@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">RimBoard</string>
+    <string name="subtype_en">English (RimBoard)</string>
+    <string name="subtype_tr">Türkçe (RimBoard)</string>
+
+    <!-- Kurulum -->
+    <string name="setup_title">RimBoard\'a hoş geldin</string>
+    <string name="setup_subtitle">Gizliliğe saygılı, açık kaynak bir klavye. İnternet izni yok, hiçbir şey telefondan çıkmaz.</string>
+    <string name="setup_step1_title">1. RimBoard\'u etkinleştir</string>
+    <string name="setup_step1_desc">Sistem klavye listesinde RimBoard\'u aç.</string>
+    <string name="setup_step1_button">Klavye ayarlarını aç</string>
+    <string name="setup_step2_title">2. RimBoard\'u seç</string>
+    <string name="setup_step2_desc">Geçerli klavye olarak RimBoard\'u seç.</string>
+    <string name="setup_step2_button">Klavye değiştir</string>
+    <string name="setup_step3_title">3. Kendine göre ayarla</string>
+    <string name="setup_step3_desc">Temalar, gizli mod, sayı satırı, diller ve daha fazlası.</string>
+    <string name="setup_step3_button">RimBoard ayarlarını aç</string>
+    <string name="setup_done">✓ Tamam</string>
+    <string name="setup_pending">Henüz değil</string>
+    <string name="setup_test_hint">Burada denemek için yaz…</string>
+
+    <!-- Ayarlar -->
+    <string name="settings_title">RimBoard ayarları</string>
+    <string name="cat_languages">Diller</string>
+    <string name="pref_languages_title">Etkin diller</string>
+    <string name="pref_languages_summary">🌐 tuşuyla veya virgüle uzun basarak değiştir</string>
+    <string name="cat_look">Görünüm</string>
+    <string name="pref_theme_title">Tema</string>
+    <string name="pref_height_title">Klavye yüksekliği</string>
+    <string name="pref_number_row_title">Sayı satırı</string>
+    <string name="pref_number_row_summary">En üstte ayrı bir 1–0 satırı göster</string>
+    <string name="pref_popup_title">Tuş baloncuğu</string>
+    <string name="pref_popup_summary">Basılan tuşun üstünde baloncuk göster</string>
+    <string name="cat_typing">Yazma</string>
+    <string name="pref_autocaps_title">Otomatik büyük harf</string>
+    <string name="pref_autocaps_summary">Cümlelerin ilk kelimesini büyük harfle başlat</string>
+    <string name="pref_autocorrect_title">Otomatik düzeltme</string>
+    <string name="pref_autocorrect_summary">Boşluğa basınca basit yazım hatalarını düzelt</string>
+    <string name="pref_suggestions_title">Önerileri göster</string>
+    <string name="pref_suggestions_summary">Yazarken kelime önerileri</string>
+    <string name="pref_predictions_title">Sonraki kelime tahmini</string>
+    <string name="pref_predictions_summary">Kendi yazma geçmişinden sonraki kelimeyi öner</string>
+    <string name="pref_double_space_title">Çift boşlukla nokta</string>
+    <string name="pref_double_space_summary">Boşluğa iki kez basınca “. ” ekle</string>
+    <string name="pref_space_cursor_title">Boşluk tuşuyla imleç</string>
+    <string name="pref_space_cursor_summary">Boşluk tuşunda kaydırarak imleci hareket ettir</string>
+    <string name="cat_feedback">Tuş geri bildirimi</string>
+    <string name="pref_haptic_title">Basınca titret</string>
+    <string name="pref_haptic_summary">Sistem dokunma geri bildirimini kullanır, ek izin gerekmez</string>
+    <string name="pref_sound_title">Basınca ses çal</string>
+    <string name="cat_privacy">Gizlilik</string>
+    <string name="pref_learn_title">Yeni kelimeleri öğren</string>
+    <string name="pref_learn_summary">Yazdığın kelimeleri hatırla (yalnızca bu cihazda saklanır)</string>
+    <string name="pref_clipboard_title">Pano önerisi</string>
+    <string name="pref_clipboard_summary">Boş bir alana odaklanınca Yapıştır çipi göster</string>
+    <string name="pref_incognito_title">Her zaman gizli mod</string>
+    <string name="pref_incognito_summary">Asla öğrenme ve geçmişten önerme. Oturumluk açmak için virgüle uzun bas → 🕶</string>
+    <string name="pref_clear_learned_title">Öğrenilen kelimeleri sil</string>
+    <string name="pref_clear_learned_summary">Bu cihazdaki tüm öğrenilmiş kelimeleri ve tahminleri kaldır</string>
+    <string name="clear_confirm_title">Öğrenilen veriler silinsin mi?</string>
+    <string name="clear_confirm_msg">Tüm öğrenilmiş kelimeler ve sonraki kelime tahminleri kaldırılacak. Bu işlem geri alınamaz.</string>
+    <string name="clear_done">Öğrenilen veriler silindi</string>
+    <string name="cat_about">Hakkında</string>
+    <string name="pref_version_title">Sürüm</string>
+    <string name="pref_source_title">Kaynak kodu</string>
+    <string name="pref_source_summary">RimBoard açık kaynaklıdır (MIT)</string>
+    <string name="action_delete">Sil</string>
+    <string name="action_cancel">İptal</string>
+
+    <!-- Klavye içi -->
+    <string name="incognito_label">Gizli mod · öğrenme kapalı</string>
+</resources>

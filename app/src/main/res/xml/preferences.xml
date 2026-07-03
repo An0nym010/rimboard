@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="@string/cat_languages"
+        app:iconSpaceReserved="false">
+
+        <MultiSelectListPreference
+            android:key="languages"
+            android:title="@string/pref_languages_title"
+            android:summary="@string/pref_languages_summary"
+            android:entries="@array/lang_entries"
+            android:entryValues="@array/lang_values"
+            android:defaultValue="@array/lang_default"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/cat_look"
+        app:iconSpaceReserved="false">
+
+        <ListPreference
+            android:key="theme"
+            android:title="@string/pref_theme_title"
+            android:entries="@array/theme_entries"
+            android:entryValues="@array/theme_values"
+            android:defaultValue="system"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <ListPreference
+            android:key="height"
+            android:title="@string/pref_height_title"
+            android:entries="@array/height_entries"
+            android:entryValues="@array/height_values"
+            android:defaultValue="1.0"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:key="number_row"
+            android:title="@string/pref_number_row_title"
+            android:summary="@string/pref_number_row_summary"
+            android:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:key="popup_preview"
+            android:title="@string/pref_popup_title"
+            android:summary="@string/pref_popup_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/cat_typing"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:key="autocaps"
+            android:title="@string/pref_autocaps_title"
+            android:summary="@string/pref_autocaps_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:key="autocorrect"
+            android:title="@string/pref_autocorrect_title"
+            android:summary="@string/pref_autocorrect_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:key="suggestions"
+            android:title="@string/pref_suggestions_title"
+            android:summary="@string/pref_suggestions_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:key="predictions"
+            android:title="@string/pref_predictions_title"
+            android:summary="@string/pref_predictions_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:key="double_space"
+            android:title="@string/pref_double_space_title"
+            android:summary="@string/pref_double_space_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:key="space_cursor"
+            android:title="@string/pref_space_cursor_title"
+            android:summary="@string/pref_space_cursor_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/cat_feedback"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:key="haptic"
+            android:title="@string/pref_haptic_title"
+            android:summary="@string/pref_haptic_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:key="sound"
+            android:title="@string/pref_sound_title"
+            android:defaultValue="false"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/cat_privacy"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:key="learn_words"
+            android:title="@string/pref_learn_title"
+            android:summary="@string/pref_learn_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:key="clipboard_suggest"
+            android:title="@string/pref_clipboard_title"
+            android:summary="@string/pref_clipboard_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:key="incognito_always"
+            android:title="@string/pref_incognito_title"
+            android:summary="@string/pref_incognito_summary"
+            android:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            android:key="clear_learned"
+            android:title="@string/pref_clear_learned_title"
+            android:summary="@string/pref_clear_learned_summary"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/cat_about"
+        app:iconSpaceReserved="false">
+
+        <Preference
+            android:key="version"
+            android:title="@string/pref_version_title"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            android:key="source"
+            android:title="@string/pref_source_title"
+            android:summary="@string/pref_source_summary"
+            app:iconSpaceReserved="false">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://github.com/rimboard/RimBoard" />
+        </Preference>
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">RimBoard</string>
+    <string name="subtype_en">English (RimBoard)</string>
+    <string name="subtype_tr">Türkçe (RimBoard)</string>
+
+    <!-- Setup -->
+    <string name="setup_title">Welcome to RimBoard</string>
+    <string name="setup_subtitle">A private, open-source keyboard. No internet permission, nothing ever leaves your phone.</string>
+    <string name="setup_step1_title">1. Enable RimBoard</string>
+    <string name="setup_step1_desc">Turn on RimBoard in your system keyboard list.</string>
+    <string name="setup_step1_button">Open keyboard settings</string>
+    <string name="setup_step2_title">2. Select RimBoard</string>
+    <string name="setup_step2_desc">Choose RimBoard as your current keyboard.</string>
+    <string name="setup_step2_button">Switch keyboard</string>
+    <string name="setup_step3_title">3. Make it yours</string>
+    <string name="setup_step3_desc">Themes, incognito, number row, languages and more.</string>
+    <string name="setup_step3_button">Open RimBoard settings</string>
+    <string name="setup_done">✓ Done</string>
+    <string name="setup_pending">Not yet</string>
+    <string name="setup_test_hint">Try typing here…</string>
+
+    <!-- Settings -->
+    <string name="settings_title">RimBoard settings</string>
+    <string name="cat_languages">Languages</string>
+    <string name="pref_languages_title">Active languages</string>
+    <string name="pref_languages_summary">Switch with the 🌐 key or long-press comma</string>
+    <string name="cat_look">Look and feel</string>
+    <string name="pref_theme_title">Theme</string>
+    <string name="pref_height_title">Keyboard height</string>
+    <string name="pref_number_row_title">Number row</string>
+    <string name="pref_number_row_summary">Show a dedicated 1–0 row on top</string>
+    <string name="pref_popup_title">Popup on keypress</string>
+    <string name="pref_popup_summary">Show a bubble above the pressed key</string>
+    <string name="cat_typing">Typing</string>
+    <string name="pref_autocaps_title">Auto-capitalization</string>
+    <string name="pref_autocaps_summary">Capitalize the first word of sentences</string>
+    <string name="pref_autocorrect_title">Auto-correction</string>
+    <string name="pref_autocorrect_summary">Fix simple typos when you press space</string>
+    <string name="pref_suggestions_title">Show suggestions</string>
+    <string name="pref_suggestions_summary">Word suggestions while you type</string>
+    <string name="pref_predictions_title">Next-word prediction</string>
+    <string name="pref_predictions_summary">Suggest the next word from your own typing history</string>
+    <string name="pref_double_space_title">Double-space period</string>
+    <string name="pref_double_space_summary">Tap space twice to insert “. ”</string>
+    <string name="pref_space_cursor_title">Spacebar cursor control</string>
+    <string name="pref_space_cursor_summary">Slide on the spacebar to move the cursor</string>
+    <string name="cat_feedback">Key feedback</string>
+    <string name="pref_haptic_title">Vibrate on keypress</string>
+    <string name="pref_haptic_summary">Uses the system touch-feedback setting, no extra permissions</string>
+    <string name="pref_sound_title">Sound on keypress</string>
+    <string name="cat_privacy">Privacy</string>
+    <string name="pref_learn_title">Learn new words</string>
+    <string name="pref_learn_summary">Remember words you type (stored only on this device)</string>
+    <string name="pref_clipboard_title">Clipboard suggestion</string>
+    <string name="pref_clipboard_summary">Offer a Paste chip when you focus an empty field</string>
+    <string name="pref_incognito_title">Always incognito</string>
+    <string name="pref_incognito_summary">Never learn or suggest from history. Also toggle per-session via long-press comma → 🕶</string>
+    <string name="pref_clear_learned_title">Delete learned words</string>
+    <string name="pref_clear_learned_summary">Remove all learned words and predictions from this device</string>
+    <string name="clear_confirm_title">Delete learned data?</string>
+    <string name="clear_confirm_msg">All learned words and next-word predictions will be removed. This cannot be undone.</string>
+    <string name="clear_done">Learned data deleted</string>
+    <string name="cat_about">About</string>
+    <string name="pref_version_title">Version</string>
+    <string name="pref_source_title">Source code</string>
+    <string name="pref_source_summary">RimBoard is open source (MIT)</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_cancel">Cancel</string>
+
+    <!-- In-keyboard -->
+    <string name="incognito_label">Incognito · not learning</string>
+</resources>

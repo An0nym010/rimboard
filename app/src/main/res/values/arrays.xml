@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="theme_entries">
+        <item>System default</item>
+        <item>Light</item>
+        <item>Dark</item>
+        <item>AMOLED black</item>
+        <item>Material You (dynamic)</item>
+    </string-array>
+    <string-array name="theme_values">
+        <item>system</item>
+        <item>light</item>
+        <item>dark</item>
+        <item>amoled</item>
+        <item>dynamic</item>
+    </string-array>
+
+    <string-array name="height_entries">
+        <item>Compact</item>
+        <item>Default</item>
+        <item>Tall</item>
+        <item>Extra tall</item>
+    </string-array>
+    <string-array name="height_values">
+        <item>0.85</item>
+        <item>1.0</item>
+        <item>1.15</item>
+        <item>1.3</item>
+    </string-array>
+
+    <string-array name="lang_entries">
+        <item>English</item>
+        <item>Türkçe</item>
+    </string-array>
+    <string-array name="lang_values">
+        <item>en</item>
+        <item>tr</item>
+    </string-array>
+    <string-array name="lang_default">
+        <item>en</item>
+        <item>tr</item>
+    </string-array>
+</resources>

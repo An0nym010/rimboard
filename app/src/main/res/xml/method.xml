@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<input-method xmlns:android="http://schemas.android.com/apk/res/android"
+    android:settingsActivity="com.rimboard.keyboard.settings.SettingsActivity"
+    android:supportsSwitchingToNextInputMethod="true">
+
+    <subtype
+        android:label="@string/subtype_en"
+        android:imeSubtypeLocale="en_US"
+        android:languageTag="en-US"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
+
+    <subtype
+        android:label="@string/subtype_tr"
+        android:imeSubtypeLocale="tr_TR"
+        android:languageTag="tr-TR"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
+
+</input-method>
