@@ -50,6 +50,7 @@ object Icons {
 
     fun forLabel(label: String): Int? = when (label) {
         "\uD83D\uDD0D" -> SEARCH
+        "\uD83D\uDD76" -> INCOGNITO
         else -> null
     }
 

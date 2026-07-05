@@ -88,4 +88,52 @@
         android:languageTag="cs-CZ"
         android:imeSubtypeMode="keyboard" />
 
+    <subtype
+        android:label="@string/subtype_da"
+        android:imeSubtypeLocale="da_DK"
+        android:languageTag="da-DK"
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_no"
+        android:imeSubtypeLocale="no_NO"
+        android:languageTag="no-NO"
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_fi"
+        android:imeSubtypeLocale="fi_FI"
+        android:languageTag="fi-FI"
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_hu"
+        android:imeSubtypeLocale="hu_HU"
+        android:languageTag="hu-HU"
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_uk"
+        android:imeSubtypeLocale="uk_UA"
+        android:languageTag="uk-UA"
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_el"
+        android:imeSubtypeLocale="el_GR"
+        android:languageTag="el-GR"
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_hr"
+        android:imeSubtypeLocale="hr_HR"
+        android:languageTag="hr-HR"
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_sk"
+        android:imeSubtypeLocale="sk_SK"
+        android:languageTag="sk-SK"
+        android:imeSubtypeMode="keyboard" />
+
 </input-method>

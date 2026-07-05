@@ -16,6 +16,14 @@
         <item>Bahasa Indonesia</item>
         <item>Română</item>
         <item>Čeština</item>
+    <item>Dansk</item>
+        <item>Norsk</item>
+        <item>Suomi</item>
+        <item>Magyar</item>
+        <item>Українська</item>
+        <item>Ελληνικά</item>
+        <item>Hrvatski</item>
+        <item>Slovenčina</item>
     </string-array>
 
     <string-array name="lang_values">
@@ -33,6 +41,14 @@
         <item>id</item>
         <item>ro</item>
         <item>cs</item>
+    <item>da</item>
+        <item>no</item>
+        <item>fi</item>
+        <item>hu</item>
+        <item>uk</item>
+        <item>el</item>
+        <item>hr</item>
+        <item>sk</item>
     </string-array>
 
     <string-array name="lang_default">

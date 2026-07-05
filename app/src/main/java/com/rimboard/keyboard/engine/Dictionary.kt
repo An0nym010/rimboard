@@ -15,6 +15,7 @@ class Dictionary(context: Context, lang: String, private val locale: Locale) {
     private val words: Array<String>
     private val freqs: IntArray
     private val exact = HashSet<String>()
+    private val byLen: Array<IntArray>
 
     init {
         val entries = ArrayList<Pair<String, Int>>(12000)
@@ -36,6 +37,13 @@ class Dictionary(context: Context, lang: String, private val locale: Locale) {
         words = Array(entries.size) { entries[it].first }
         freqs = IntArray(entries.size) { entries[it].second }
         exact.addAll(words)
+        val buckets = Array(25) { ArrayList<Int>() }
+        for (i in words.indices) {
+            if (freqs[i] < 200) continue // very rare words make bad corrections
+            val len = words[i].length
+            if (len in 1..24) buckets[len].add(i)
+        }
+        byLen = Array(25) { buckets[it].toIntArray() }
     }
 
     val size: Int get() = words.size
@@ -73,10 +81,8 @@ class Dictionary(context: Context, lang: String, private val locale: Locale) {
         var best: String? = null
         var bestFreq = 0
         var bestDist = maxDist + 1
-        for (i in words.indices) {
+        for (bl in maxOf(1, n - maxDist)..minOf(24, n + maxDist)) for (i in byLen[bl]) {
             val cand = words[i]
-            if (abs(cand.length - n) > maxDist) continue
-            if (freqs[i] < 200) continue // very rare words make bad corrections
             val d = damerau(typedLower, cand, maxDist)
             if (d in 1..maxDist) {
                 if (d < bestDist || (d == bestDist && freqs[i] > bestFreq)) {

@@ -137,13 +137,6 @@
             app:iconSpaceReserved="false" />
 
         <SwitchPreferenceCompat
-        android:key="quick_actions"
-        android:title="@string/pref_quick_actions_title"
-        android:summary="@string/pref_quick_actions_summary"
-        android:defaultValue="true"
-        app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
             android:key="learn_words"
             android:title="@string/pref_learn_title"
             android:summary="@string/pref_learn_summary"

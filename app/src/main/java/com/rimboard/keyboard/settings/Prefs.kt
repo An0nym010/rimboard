@@ -31,7 +31,6 @@ object Prefs {
     const val KEY_ONE_HANDED = "one_handed"
     const val KEY_ONE_HANDED_LAST = "one_handed_last"
     const val KEY_UI_LANG = "interface_language"
-    const val KEY_QUICK_ACTIONS = "quick_actions"
     const val KEY_CLIP_TIMEOUT = "clip_timeout"
     const val KEY_FLOATING = "floating_keyboard"
     const val KEY_REPEAT_SPEED = "key_repeat_speed"
@@ -87,7 +86,6 @@ object Prefs {
         get(c).edit().putString(KEY_UI_LANG, v).apply()
     }
 
-    fun quickActions(c: Context) = get(c).getBoolean(KEY_QUICK_ACTIONS, true)
 
     fun floating(c: Context) = get(c).getBoolean(KEY_FLOATING, false)
 

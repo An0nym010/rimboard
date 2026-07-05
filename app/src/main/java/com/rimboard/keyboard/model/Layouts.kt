@@ -37,15 +37,14 @@ object Layouts {
         popup = listOf(Key(Codes.IME_PICKER, "\u2328", type = KeyType.FUNCTION))
     )
 
-    /** Long-press menu on the comma key: language, clipboard, one-handed, incognito, settings, emoji. */
+    /** Long-press menu on the comma key. Language switching lives on the globe
+     *  key and clipboard/settings live on the suggestion strip, so this holds
+     *  only: edit panel, one-handed, floating, incognito, emoji. */
     private val commaMenu = listOf(
-        Key(Codes.LANG, "\uD83C\uDF10", type = KeyType.FUNCTION),
-        Key(Codes.CLIPBOARD, "\uD83D\uDCCB", type = KeyType.FUNCTION),
         Key(Codes.EDIT_PANEL, "\u2702", type = KeyType.FUNCTION),
         Key(Codes.ONE_HANDED, "\uD83E\uDD1A", type = KeyType.FUNCTION),
         Key(Codes.FLOATING, "\u25A3", type = KeyType.FUNCTION),
         Key(Codes.INCOGNITO, "\uD83D\uDD76", type = KeyType.FUNCTION),
-        Key(Codes.SETTINGS, "\u2699", type = KeyType.FUNCTION),
         Key(Codes.EMOJI, "\uD83D\uDE0A", type = KeyType.FUNCTION)
     )
 
@@ -359,6 +358,97 @@ object Layouts {
     fun qwertyId(numberRow: Boolean, showGlobe: Boolean) = latin(
         mapOf('e' to "\u00E9"), "id", numberRow, showGlobe
     )
+
+    private fun qwertz(
+        pops: Map<Char, String>, tag: String, numberRow: Boolean, showGlobe: Boolean
+    ): KeyboardLayout = assemble(
+        listOf(
+            topRow("qwertzuiop", pops, !numberRow),
+            midRow("asdfghjkl", pops),
+            thirdRow("yxcvbnm", pops)
+        ),
+        10f, Locale.forLanguageTag(tag),
+        if (numberRow) plainNumberRow() else null,
+        showGlobe, 1.5f
+    )
+
+    fun qwertyDa(numberRow: Boolean, showGlobe: Boolean) = latin(
+        mapOf('a' to "\u00E5\u00E6", 'o' to "\u00F8", 'e' to "\u00E9"),
+        "da", numberRow, showGlobe
+    )
+
+    fun qwertyNo(numberRow: Boolean, showGlobe: Boolean) = latin(
+        mapOf('a' to "\u00E5\u00E6", 'o' to "\u00F8", 'e' to "\u00E9"),
+        "no", numberRow, showGlobe
+    )
+
+    fun qwertyFi(numberRow: Boolean, showGlobe: Boolean) = latin(
+        mapOf('a' to "\u00E4\u00E5", 'o' to "\u00F6"),
+        "fi", numberRow, showGlobe
+    )
+
+    fun qwertzHu(numberRow: Boolean, showGlobe: Boolean) = qwertz(
+        mapOf(
+            'a' to "\u00E1", 'e' to "\u00E9", 'i' to "\u00ED",
+            'o' to "\u00F3\u00F6\u0151", 'u' to "\u00FA\u00FC\u0171"
+        ),
+        "hu", numberRow, showGlobe
+    )
+
+    fun qwertzHr(numberRow: Boolean, showGlobe: Boolean) = qwertz(
+        mapOf(
+            'c' to "\u010D\u0107", 's' to "\u0161",
+            'z' to "\u017E", 'd' to "\u0111"
+        ),
+        "hr", numberRow, showGlobe
+    )
+
+    fun qwertzSk(numberRow: Boolean, showGlobe: Boolean) = qwertz(
+        mapOf(
+            'a' to "\u00E1\u00E4", 'e' to "\u00E9", 'i' to "\u00ED",
+            'o' to "\u00F3\u00F4", 'u' to "\u00FA", 'y' to "\u00FD",
+            'c' to "\u010D", 's' to "\u0161", 'z' to "\u017E",
+            't' to "\u0165", 'd' to "\u010F", 'n' to "\u0148",
+            'l' to "\u013A\u013E", 'r' to "\u0155"
+        ),
+        "sk", numberRow, showGlobe
+    )
+
+    fun cyrillicUk(numberRow: Boolean, showGlobe: Boolean): KeyboardLayout {
+        val pops = mapOf(
+            '\u0433' to "\u0491", // г -> ґ
+            '\u0445' to "\u0457"  // х -> ї
+        )
+        return assemble(
+            listOf(
+                topRow("\u0439\u0446\u0443\u043A\u0435\u043D\u0433\u0448\u0449\u0437\u0445", pops, !numberRow),
+                midRow("\u0444\u0456\u0432\u0430\u043F\u0440\u043E\u043B\u0434\u0436\u0454", pops),
+                thirdRow("\u044F\u0447\u0441\u043C\u0438\u0442\u044C\u0431\u044E", pops, sideW = 1f)
+            ),
+            11f, Locale.forLanguageTag("uk"),
+            if (numberRow) plainNumberRow(1.1f) else null,
+            showGlobe, 2f
+        )
+    }
+
+    fun greekEl(numberRow: Boolean, showGlobe: Boolean): KeyboardLayout {
+        val pops = mapOf(
+            '\u03B1' to "\u03AC", '\u03B5' to "\u03AD", '\u03B7' to "\u03AE",
+            '\u03B9' to "\u03AF\u03CA\u0390", '\u03BF' to "\u03CC",
+            '\u03C5' to "\u03CD\u03CB\u03B0", '\u03C9' to "\u03CE",
+            '\u03C3' to "\u03C2"
+        )
+        return assemble(
+            listOf(
+                topRow("\u03C2\u03B5\u03C1\u03C4\u03C5\u03B8\u03B9\u03BF\u03C0", pops, !numberRow),
+                midRow("\u03B1\u03C3\u03B4\u03C6\u03B3\u03B7\u03BE\u03BA\u03BB", pops),
+                thirdRow("\u03B6\u03C7\u03C8\u03C9\u03B2\u03BD\u03BC", pops)
+            ),
+            10f, Locale.forLanguageTag("el"),
+            if (numberRow) plainNumberRow() else null,
+            showGlobe, 1.5f
+        )
+    }
 
     fun qwertyRo(numberRow: Boolean, showGlobe: Boolean) = latin(
         mapOf(

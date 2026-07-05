@@ -9,6 +9,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.rimboard.keyboard.model.Codes
 import com.rimboard.keyboard.settings.Prefs
 import com.rimboard.keyboard.theme.KeyboardTheme
 
@@ -30,7 +31,9 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     private val dividers = ArrayList<View>(2)
     private val centerLabel: TextView
     private val clipChip: TextView
-    private val actionBtns = ArrayList<IconView>()
+    private val settingsBtn: IconView
+    private val clipboardBtn: IconView
+    private val centerBox: LinearLayout
     private val incogIcon: IconView
     private var boldIndex = -1
 
@@ -40,6 +43,12 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         setPadding(dp(4), 0, dp(4), 0)
+
+        settingsBtn = IconView(context, Icons.SETTINGS).apply {
+            visibility = GONE
+            setOnClickListener { listener?.onQuickAction(Codes.SETTINGS) }
+        }
+        addView(settingsBtn, LayoutParams(dp(42), LayoutParams.MATCH_PARENT))
 
         clipChip = TextView(context).apply {
             gravity = Gravity.CENTER
@@ -53,7 +62,14 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
                 true
             }
         }
-        addView(clipChip, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
+        centerBox = LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            gravity = Gravity.CENTER
+            visibility = GONE
+        }
+        centerBox.addView(clipChip,
+            LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
+        addView(centerBox, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
 
         for (i in 0 until 3) {
             if (i > 0) {
@@ -96,26 +112,12 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             visibility = GONE
         }
         addView(centerLabel, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
-    }
 
-    /** Shortcut icons shown when the strip has nothing else to display. */
-    fun setQuickActions(items: List<Pair<Int, Int>>) {
-        actionBtns.forEach { removeView(it) }
-        actionBtns.clear()
-        for ((icon, code) in items) {
-            val iv = IconView(context, icon).apply {
-                visibility = GONE
-                setOnClickListener { listener?.onQuickAction(code) }
-            }
-            actionBtns.add(iv)
-            addView(iv, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
+        clipboardBtn = IconView(context, Icons.CLIPBOARD).apply {
+            visibility = GONE
+            setOnClickListener { listener?.onQuickAction(Codes.CLIPBOARD) }
         }
-        applyActionColors()
-    }
-
-    private fun applyActionColors() {
-        val t = theme ?: return
-        actionBtns.forEach { it.color = t.stripText }
+        addView(clipboardBtn, LayoutParams(dp(42), LayoutParams.MATCH_PARENT))
     }
 
     fun applyTheme(t: KeyboardTheme) {
@@ -126,7 +128,8 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         centerLabel.setTextColor(t.keyHint)
         incogIcon.color = t.keyHint
         clipChip.setTextColor(t.stripText)
-        applyActionColors()
+        settingsBtn.color = t.stripText
+        clipboardBtn.color = t.stripText
         refreshSlotColors()
     }
 
@@ -138,10 +141,13 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     }
 
     fun showSuggestions(words: List<String>, highlightIndex: Int) {
+        settingsBtn.visibility = GONE
+        centerBox.visibility = GONE
+        clipboardBtn.visibility = GONE
         boldIndex = highlightIndex
         clipChip.visibility = GONE
         centerLabel.visibility = GONE
-        actionBtns.forEach { it.visibility = GONE }
+        incogIcon.visibility = GONE
         for (i in 0 until 3) {
             val tv = slots[i]
             val w = words.getOrNull(i) ?: ""
@@ -161,28 +167,26 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     }
 
     fun showClipboard(label: String) {
-        hideAll()
+        showEmpty()
         clipChip.text = label
         clipChip.visibility = VISIBLE
     }
 
     fun showEmpty() {
         hideAll()
-        if (actionBtns.isNotEmpty() && Prefs.quickActions(context)) {
-            actionBtns.forEach { it.visibility = VISIBLE }
-        }
+        settingsBtn.visibility = VISIBLE
+        centerBox.visibility = VISIBLE
+        clipboardBtn.visibility = VISIBLE
     }
 
     private fun hideAll() {
-        boldIndex = -1
-        slots.forEach {
-            it.text = ""
-            it.visibility = GONE
-        }
+        for (s in slots) { s.text = ""; s.visibility = GONE }
         dividers.forEach { it.visibility = GONE }
+        settingsBtn.visibility = GONE
+        centerBox.visibility = GONE
         clipChip.visibility = GONE
+        clipboardBtn.visibility = GONE
         centerLabel.visibility = GONE
         incogIcon.visibility = GONE
-        actionBtns.forEach { it.visibility = GONE }
     }
 }

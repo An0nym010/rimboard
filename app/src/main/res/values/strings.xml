@@ -140,4 +140,12 @@
     <string name="st_since">Counting since %1$s</string>
     <string name="st_reset">Reset statistics</string>
     <string name="st_reset_confirm">Reset all typing statistics? This cannot be undone.</string>
+    <string name="subtype_da">Dansk (RimBoard)</string>
+    <string name="subtype_no">Norsk (RimBoard)</string>
+    <string name="subtype_fi">Suomi (RimBoard)</string>
+    <string name="subtype_hu">Magyar (RimBoard)</string>
+    <string name="subtype_uk">Українська (RimBoard)</string>
+    <string name="subtype_el">Ελληνικά (RimBoard)</string>
+    <string name="subtype_hr">Hrvatski (RimBoard)</string>
+    <string name="subtype_sk">Slovenčina (RimBoard)</string>
 </resources>

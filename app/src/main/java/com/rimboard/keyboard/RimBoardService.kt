@@ -150,13 +150,6 @@ class RimBoardService : InputMethodService(),
         val ctx = L10n.wrap(this)
         val root = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
         val s = SuggestionStripView(ctx).apply { listener = this@RimBoardService }
-        s.setQuickActions(listOf(
-            Icons.CLIPBOARD to Codes.CLIPBOARD,
-            Icons.EDIT to Codes.EDIT_PANEL,
-            Icons.EMOJI to Codes.EMOJI,
-            Icons.INCOGNITO to Codes.INCOGNITO,
-            Icons.SETTINGS to Codes.SETTINGS
-        ))
         root.addView(s, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(44)))
         val frame = FrameLayout(ctx)
         val kv = KeyboardView(ctx).apply { listener = this@RimBoardService }
