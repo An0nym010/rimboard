@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- RimBoard requests NO permissions. No INTERNET permission means the
-         keyboard is physically unable to send anything off the device. -->
+    <!-- RimBoard requests no network or data permissions. The only permission
+         is VIBRATE, used for key-press haptics. Without INTERNET the keyboard
+         is physically unable to send anything off the device. -->
+
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
+        android:localeConfig="@xml/locales_config"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -15,6 +19,7 @@
         <service
             android:name=".RimBoardService"
             android:exported="true"
+            android:directBootAware="true"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_INPUT_METHOD">
             <intent-filter>
@@ -39,6 +44,21 @@
             android:name=".settings.SettingsActivity"
             android:exported="true"
             android:label="@string/settings_title" />
+
+        <activity
+            android:name=".settings.PersonalDictActivity"
+            android:exported="false"
+            android:label="@string/pref_personal_dict_title" />
+
+        <activity
+            android:name=".settings.ShortcutsActivity"
+            android:exported="false"
+            android:label="@string/pref_shortcuts_title" />
+
+        <activity
+            android:name=".settings.StatsActivity"
+            android:exported="false"
+            android:label="@string/pref_stats_title" />
 
     </application>
 

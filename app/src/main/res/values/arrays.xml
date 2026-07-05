@@ -1,26 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <string-array name="lang_entries">
+        <item>English</item>
+        <item>Türkçe</item>
+        <item>Deutsch</item>
+        <item>Español</item>
+        <item>Français</item>
+        <item>Italiano</item>
+        <item>Português</item>
+        <item>Русский</item>
+        <item>Nederlands</item>
+        <item>Polski</item>
+        <item>Svenska</item>
+        <item>Bahasa Indonesia</item>
+        <item>Română</item>
+        <item>Čeština</item>
+    </string-array>
+
+    <string-array name="lang_values">
+        <item>en</item>
+        <item>tr</item>
+        <item>de</item>
+        <item>es</item>
+        <item>fr</item>
+        <item>it</item>
+        <item>pt</item>
+        <item>ru</item>
+        <item>nl</item>
+        <item>pl</item>
+        <item>sv</item>
+        <item>id</item>
+        <item>ro</item>
+        <item>cs</item>
+    </string-array>
+
+    <string-array name="lang_default">
+        <item>en</item>
+        <item>tr</item>
+    </string-array>
+
     <string-array name="theme_entries">
-        <item>System default</item>
+        <item>System (light/dark)</item>
         <item>Light</item>
         <item>Dark</item>
         <item>AMOLED black</item>
         <item>Material You (dynamic)</item>
+        <item>High contrast</item>
+        <item>Custom</item>
     </string-array>
+
     <string-array name="theme_values">
         <item>system</item>
         <item>light</item>
         <item>dark</item>
         <item>amoled</item>
         <item>dynamic</item>
+        <item>contrast</item>
+        <item>custom</item>
     </string-array>
 
     <string-array name="height_entries">
         <item>Compact</item>
-        <item>Default</item>
+        <item>Normal</item>
         <item>Tall</item>
         <item>Extra tall</item>
     </string-array>
+
     <string-array name="height_values">
         <item>0.85</item>
         <item>1.0</item>
@@ -28,16 +74,46 @@
         <item>1.3</item>
     </string-array>
 
-    <string-array name="lang_entries">
+    <string-array name="ui_lang_entries">
+        <item>@string/ui_lang_system</item>
         <item>English</item>
         <item>Türkçe</item>
+        <item>Deutsch</item>
+        <item>Español</item>
+        <item>Français</item>
+        <item>Italiano</item>
+        <item>Português</item>
+        <item>Русский</item>
     </string-array>
-    <string-array name="lang_values">
+    <string-array name="ui_lang_values">
+        <item>system</item>
         <item>en</item>
         <item>tr</item>
+        <item>de</item>
+        <item>es</item>
+        <item>fr</item>
+        <item>it</item>
+        <item>pt</item>
+        <item>ru</item>
     </string-array>
-    <string-array name="lang_default">
-        <item>en</item>
-        <item>tr</item>
+    <string-array name="clip_timeout_entries">
+        <item>@string/timeout_never</item>
+        <item>@string/timeout_15m</item>
+        <item>@string/timeout_1h</item>
+    </string-array>
+    <string-array name="clip_timeout_values">
+        <item>0</item>
+        <item>15</item>
+        <item>60</item>
+    </string-array>
+    <string-array name="repeat_entries">
+        <item>@string/repeat_slow</item>
+        <item>@string/repeat_normal</item>
+        <item>@string/repeat_fast</item>
+    </string-array>
+    <string-array name="repeat_values">
+        <item>slow</item>
+        <item>normal</item>
+        <item>fast</item>
     </string-array>
 </resources>

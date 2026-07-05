@@ -12,11 +12,32 @@ import java.util.concurrent.Executors
  */
 class UserData(context: Context) {
 
-    private val learnedFile = File(context.filesDir, "learned.txt")
-    private val bigramFile = File(context.filesDir, "bigrams.txt")
+    companion object {
+        /**
+         * User data lives in device-protected storage (encrypted at rest,
+         * available before first unlock) so the keyboard is fully functional
+         * on the lock screen after a reboot. Old files are migrated once.
+         */
+        fun dataDir(context: Context): File {
+            val dp = context.createDeviceProtectedStorageContext()
+            for (n in listOf("learned.txt", "bigrams.txt")) {
+                val old = File(context.filesDir, n)
+                val nw = File(dp.filesDir, n)
+                if (old.exists() && !nw.exists()) {
+                    try { old.copyTo(nw); old.delete() } catch (_: Exception) {}
+                }
+            }
+            return dp.filesDir
+        }
+    }
+
+    private val learnedFile = File(dataDir(context), "learned.txt")
+    private val blockedFile = File(dataDir(context), "blocked.txt")
+    private val bigramFile = File(dataDir(context), "bigrams.txt")
     private val io = Executors.newSingleThreadExecutor()
 
     private val learned = ConcurrentHashMap<String, Int>()
+    private val blocked: MutableSet<String> = ConcurrentHashMap.newKeySet()
     private val bigrams = ConcurrentHashMap<String, ConcurrentHashMap<String, Int>>()
 
     @Volatile
@@ -26,7 +47,29 @@ class UserData(context: Context) {
         io.execute { load() }
     }
 
+    /** Discard in-memory state and reload from disk (used after a backup import). */
+    fun reload() {
+        blocked.clear()
+        loadBlocked()
+        io.execute {
+            learned.clear()
+            bigrams.clear()
+            dirty = false
+            load()
+        }
+    }
+
+    private fun loadBlocked() {
+        try {
+            if (blockedFile.exists()) {
+                blockedFile.readLines().forEach { if (it.isNotBlank()) blocked.add(it.trim()) }
+            }
+        } catch (_: Exception) {
+        }
+    }
+
     private fun load() {
+        loadBlocked()
         try {
             if (learnedFile.exists()) learnedFile.forEachLine { line ->
                 val p = line.split('\t')
@@ -56,6 +99,54 @@ class UserData(context: Context) {
 
     fun isKnown(word: String): Boolean = (learned[word] ?: 0) >= 2
 
+    fun isBlocked(word: String): Boolean = blocked.contains(word)
+
+    /** Hide a word from all suggestions; also forgets it if learned. */
+    fun blockWord(word: String) {
+        val w = word.lowercase()
+        blocked.add(w)
+        learned.remove(w)
+        io.execute {
+            flushLearned()
+            flushBlocked()
+        }
+    }
+
+    fun learnedEntries(): List<Pair<String, Int>> =
+        learned.entries.sortedByDescending { it.value }.map { it.key to it.value }
+
+    fun removeLearned(word: String) {
+        if (learned.remove(word.lowercase()) != null) io.execute { flushLearned() }
+    }
+
+    /** Explicitly added words start at the suggestion threshold. */
+    fun addUserWord(word: String) {
+        val w = word.trim().lowercase()
+        if (w.isEmpty()) return
+        blocked.remove(w)
+        learned[w] = maxOf(learned[w] ?: 0, 3)
+        io.execute {
+            flushLearned()
+            flushBlocked()
+        }
+    }
+
+    private fun flushLearned() {
+        try {
+            val sb = StringBuilder()
+            for ((w, c) in learned) sb.append(w).append('\t').append(c).append('\n')
+            learnedFile.writeText(sb.toString())
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun flushBlocked() {
+        try {
+            blockedFile.writeText(blocked.joinToString("\n"))
+        } catch (_: Exception) {
+        }
+    }
+
     fun recordBigram(prev: String, next: String) {
         if (prev.isEmpty() || next.isEmpty()) return
         bigrams.getOrPut(prev) { ConcurrentHashMap() }.merge(next, 1) { a, b -> a + b }
@@ -64,8 +155,20 @@ class UserData(context: Context) {
 
     fun predictNext(prev: String, limit: Int): List<String> {
         val m = bigrams[prev] ?: return emptyList()
-        return m.entries.sortedByDescending { it.value }.take(limit).map { it.key }
+        return m.entries.filter { !blocked.contains(it.key) }.sortedByDescending { it.value }.take(limit).map { it.key }
     }
+
+    fun glideCandidates(first: Char, last: Char, nearLast: Char, limit: Int): List<Pair<String, Int>> =
+        learned.entries.asSequence()
+            .filter {
+                val k = it.key
+                k.length >= 2 && k[0] == first &&
+                    (k[k.length - 1] == last || k[k.length - 1] == nearLast)
+            }
+            .sortedByDescending { it.value }
+            .take(limit)
+            .map { it.key to it.value }
+            .toList()
 
     fun userMatches(prefixLower: String, limit: Int): List<Pair<String, Int>> {
         if (prefixLower.isEmpty()) return emptyList()

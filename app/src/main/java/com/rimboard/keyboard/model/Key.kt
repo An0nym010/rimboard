@@ -15,6 +15,10 @@ object Codes {
     const val SETTINGS = -9
     const val INCOGNITO = -10
     const val IME_PICKER = -11
+    const val ONE_HANDED = -12
+    const val CLIPBOARD = -13
+    const val EDIT_PANEL = -14
+    const val FLOATING = -15
     const val SPACE = 32
 }
 

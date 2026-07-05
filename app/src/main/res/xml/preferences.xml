@@ -29,12 +29,27 @@
             app:useSimpleSummaryProvider="true"
             app:iconSpaceReserved="false" />
 
+    <Preference
+        android:key="custom_colors"
+        android:title="@string/pref_custom_colors_title"
+        android:summary="@string/pref_custom_colors_summary"
+        app:iconSpaceReserved="false" />
+
         <ListPreference
             android:key="height"
             android:title="@string/pref_height_title"
             android:entries="@array/height_entries"
             android:entryValues="@array/height_values"
             android:defaultValue="1.0"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <ListPreference
+            android:key="key_repeat_speed"
+            android:title="@string/pref_repeat_title"
+            android:entries="@array/repeat_entries"
+            android:entryValues="@array/repeat_values"
+            android:defaultValue="normal"
             app:useSimpleSummaryProvider="true"
             app:iconSpaceReserved="false" />
 
@@ -58,32 +73,22 @@
         app:iconSpaceReserved="false">
 
         <SwitchPreferenceCompat
+            android:key="glide_typing"
+            android:title="@string/pref_glide_title"
+            android:summary="@string/pref_glide_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
             android:key="autocaps"
             android:title="@string/pref_autocaps_title"
             android:summary="@string/pref_autocaps_summary"
             android:defaultValue="true"
             app:iconSpaceReserved="false" />
 
-        <SwitchPreferenceCompat
-            android:key="autocorrect"
-            android:title="@string/pref_autocorrect_title"
-            android:summary="@string/pref_autocorrect_summary"
-            android:defaultValue="true"
-            app:iconSpaceReserved="false" />
+        
 
-        <SwitchPreferenceCompat
-            android:key="suggestions"
-            android:title="@string/pref_suggestions_title"
-            android:summary="@string/pref_suggestions_summary"
-            android:defaultValue="true"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
-            android:key="predictions"
-            android:title="@string/pref_predictions_title"
-            android:summary="@string/pref_predictions_summary"
-            android:defaultValue="true"
-            app:iconSpaceReserved="false" />
+        
 
         <SwitchPreferenceCompat
             android:key="double_space"
@@ -98,6 +103,65 @@
             android:summary="@string/pref_space_cursor_summary"
             android:defaultValue="true"
             app:iconSpaceReserved="false" />
+    
+        <Preference
+            android:key="typing_stats"
+            android:title="@string/pref_stats_title"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        android:title="@string/cat_suggestions">
+
+        <SwitchPreferenceCompat
+            android:key="suggestions"
+            android:title="@string/pref_suggestions_title"
+            android:summary="@string/pref_suggestions_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:key="autocorrect"
+            android:title="@string/pref_autocorrect_title"
+            android:summary="@string/pref_autocorrect_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:key="predictions"
+            android:title="@string/pref_predictions_title"
+            android:summary="@string/pref_predictions_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+        android:key="quick_actions"
+        android:title="@string/pref_quick_actions_title"
+        android:summary="@string/pref_quick_actions_summary"
+        android:defaultValue="true"
+        app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:key="learn_words"
+            android:title="@string/pref_learn_title"
+            android:summary="@string/pref_learn_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            android:key="personal_dict"
+            android:title="@string/pref_personal_dict_title"
+            android:summary="@string/pref_personal_dict_summary"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            android:key="text_shortcuts"
+            android:title="@string/pref_shortcuts_title"
+            android:summary="@string/pref_shortcuts_summary"
+            app:iconSpaceReserved="false" />
+
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -123,18 +187,20 @@
         app:iconSpaceReserved="false">
 
         <SwitchPreferenceCompat
-            android:key="learn_words"
-            android:title="@string/pref_learn_title"
-            android:summary="@string/pref_learn_summary"
-            android:defaultValue="true"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
             android:key="clipboard_suggest"
             android:title="@string/pref_clipboard_title"
             android:summary="@string/pref_clipboard_summary"
             android:defaultValue="true"
             app:iconSpaceReserved="false" />
+
+    <ListPreference
+        android:key="clip_timeout"
+        android:title="@string/pref_clip_timeout_title"
+        android:entries="@array/clip_timeout_entries"
+        android:entryValues="@array/clip_timeout_values"
+        android:defaultValue="0"
+        app:useSimpleSummaryProvider="true"
+        app:iconSpaceReserved="false" />
 
         <SwitchPreferenceCompat
             android:key="incognito_always"
@@ -147,6 +213,23 @@
             android:key="clear_learned"
             android:title="@string/pref_clear_learned_title"
             android:summary="@string/pref_clear_learned_summary"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/cat_backup"
+        app:iconSpaceReserved="false">
+
+        <Preference
+            android:key="backup_export"
+            android:title="@string/pref_export_title"
+            android:summary="@string/pref_export_summary"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            android:key="backup_import"
+            android:title="@string/pref_import_title"
+            android:summary="@string/pref_import_summary"
             app:iconSpaceReserved="false" />
     </PreferenceCategory>
 

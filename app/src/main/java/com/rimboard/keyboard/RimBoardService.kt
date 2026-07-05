@@ -7,35 +7,50 @@ import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import android.media.AudioManager
 import android.os.Build
+import android.os.SystemClock
 import android.text.InputType
 import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
 import android.view.View
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
 import android.view.inputmethod.InputMethodSubtype
 import android.widget.FrameLayout
+import android.widget.PopupWindow
+import android.widget.TextView
 import android.widget.LinearLayout
 import com.rimboard.keyboard.engine.SuggestionEngine
 import com.rimboard.keyboard.engine.UserData
 import com.rimboard.keyboard.model.Codes
 import com.rimboard.keyboard.model.Key
 import com.rimboard.keyboard.model.KeyboardLayout
+import com.rimboard.keyboard.model.Languages
 import com.rimboard.keyboard.model.LayoutKind
 import com.rimboard.keyboard.model.Layouts
+import com.rimboard.keyboard.settings.L10n
 import com.rimboard.keyboard.settings.Prefs
+import com.rimboard.keyboard.settings.Shortcuts
+import com.rimboard.keyboard.settings.Stats
 import com.rimboard.keyboard.settings.SettingsActivity
 import com.rimboard.keyboard.theme.KeyboardTheme
 import com.rimboard.keyboard.theme.Themes
+import com.rimboard.keyboard.ui.ClipboardView
+import com.rimboard.keyboard.ui.EditPanelView
 import com.rimboard.keyboard.ui.EmojiView
+import com.rimboard.keyboard.ui.IconView
+import com.rimboard.keyboard.ui.Icons
 import com.rimboard.keyboard.ui.KeyboardView
 import com.rimboard.keyboard.ui.SuggestionStripView
+import java.io.File
 import java.util.Locale
 import kotlin.math.abs
+import org.json.JSONArray
 
 class RimBoardService : InputMethodService(),
-    KeyboardView.Listener, SuggestionStripView.Listener, EmojiView.Listener {
+    KeyboardView.Listener, SuggestionStripView.Listener, EmojiView.Listener,
+    ClipboardView.Listener, EditPanelView.Listener {
 
     private lateinit var userData: UserData
     private lateinit var engine: SuggestionEngine
@@ -44,6 +59,30 @@ class RimBoardService : InputMethodService(),
     private var strip: SuggestionStripView? = null
     private var keyboardView: KeyboardView? = null
     private var emojiView: EmojiView? = null
+    private var clipboardView: ClipboardView? = null
+
+    /** Clipboard history lives only in memory; it is never written to disk. */
+    private class ClipEntry(val text: String, val at: Long)
+
+    private val clipHistory = ArrayDeque<ClipEntry>()
+    private var clipChangedListener: ClipboardManager.OnPrimaryClipChangedListener? = null
+    private var editPanelView: EditPanelView? = null
+    private var floatingBlock: View? = null
+    private var editSelectMode = false
+
+    /** Pinned clips persist in device-protected storage; the user opts in per item. */
+    private val pinnedClips = ArrayList<String>()
+
+    /** Words removed by the backspace swipe, restorable by sliding right. */
+    private val wordUndo = ArrayDeque<String>()
+
+    private var appliedUiLang: String? = null
+
+    // Language auto-detection: if the user keeps typing words that only the
+    // other enabled language knows, suggestions quietly swap priority.
+    private var altBoost = false
+    private var altBoostStreak = 0
+    private var primStreak = 0
 
     private val composing = StringBuilder()
     private var prevWordForBigram = ""
@@ -64,6 +103,9 @@ class RimBoardService : InputMethodService(),
 
     private var lastSpaceTime = 0L
     private var lastShiftTapTime = 0L
+    private var backspaceRepeats = 0
+    private var autoSpace = false
+    private var glideWords: List<String> = emptyList()
 
     private class Revert(val original: String, val committed: String, val separator: String)
 
@@ -76,6 +118,11 @@ class RimBoardService : InputMethodService(),
         userData = UserData(this)
         userData.loadAsync()
         engine = SuggestionEngine(this, userData)
+        val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipL = ClipboardManager.OnPrimaryClipChangedListener { captureClip() }
+        clipChangedListener = clipL
+        cm.addPrimaryClipChangedListener(clipL)
+        loadPinned()
         // Warm the dictionaries off the main thread so the first keystroke
         // doesn't pay the load-and-sort cost.
         Thread {
@@ -89,6 +136,10 @@ class RimBoardService : InputMethodService(),
     }
 
     override fun onDestroy() {
+        clipChangedListener?.let {
+            (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+                .removePrimaryClipChangedListener(it)
+        }
         userData.saveIfDirty()
         super.onDestroy()
     }
@@ -96,12 +147,20 @@ class RimBoardService : InputMethodService(),
     override fun onEvaluateFullscreenMode(): Boolean = false
 
     override fun onCreateInputView(): View {
-        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        val s = SuggestionStripView(this).apply { listener = this@RimBoardService }
+        val ctx = L10n.wrap(this)
+        val root = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
+        val s = SuggestionStripView(ctx).apply { listener = this@RimBoardService }
+        s.setQuickActions(listOf(
+            Icons.CLIPBOARD to Codes.CLIPBOARD,
+            Icons.EDIT to Codes.EDIT_PANEL,
+            Icons.EMOJI to Codes.EMOJI,
+            Icons.INCOGNITO to Codes.INCOGNITO,
+            Icons.SETTINGS to Codes.SETTINGS
+        ))
         root.addView(s, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(44)))
-        val frame = FrameLayout(this)
-        val kv = KeyboardView(this).apply { listener = this@RimBoardService }
-        val ev = EmojiView(this).apply {
+        val frame = FrameLayout(ctx)
+        val kv = KeyboardView(ctx).apply { listener = this@RimBoardService }
+        val ev = EmojiView(ctx).apply {
             listener = this@RimBoardService
             visibility = View.GONE
         }
@@ -109,13 +168,90 @@ class RimBoardService : InputMethodService(),
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
         frame.addView(ev, FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
+        val cv = ClipboardView(ctx).apply {
+            listener = this@RimBoardService
+            visibility = View.GONE
+        }
+        frame.addView(cv, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
+        val ep = EditPanelView(ctx).apply {
+            listener = this@RimBoardService
+            visibility = View.GONE
+        }
+        frame.addView(ep, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
         root.addView(frame, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         rootView = root
         strip = s
         keyboardView = kv
         emojiView = ev
-        return root
+        clipboardView = cv
+        editPanelView = ep
+        floatingBlock = null
+        if (!Prefs.floating(this)) return root
+
+        // ---- floating mode: draggable block inside a pass-through container
+        val dm = resources.displayMetrics
+        val blockW = (dm.widthPixels * 0.86f).toInt()
+        val handleH = (26 * dm.density).toInt()
+        val lift = (220 * dm.density).toInt()
+
+        val handle = TextView(ctx).apply {
+            text = "\u2630"
+            gravity = android.view.Gravity.CENTER
+            textSize = 13f
+        }
+        val block = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(handle, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, handleH))
+            addView(root, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT))
+        }
+        floatingBlock = block
+        block.setBackgroundColor(0x33000000)
+
+        val container = FrameLayout(ctx)
+        block.measure(
+            View.MeasureSpec.makeMeasureSpec(blockW, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        )
+        container.minimumHeight = lift + block.measuredHeight
+        val maxX = (dm.widthPixels - blockW).coerceAtLeast(0)
+        val lp = FrameLayout.LayoutParams(blockW, FrameLayout.LayoutParams.WRAP_CONTENT)
+        val fx = Prefs.floatX(this)
+        lp.leftMargin = (if (fx == Int.MAX_VALUE) maxX / 2 else fx).coerceIn(0, maxX)
+        lp.topMargin = Prefs.floatY(this).coerceIn(0, lift)
+        container.addView(block, lp)
+
+        var downRawX = 0f
+        var downRawY = 0f
+        var startL = 0
+        var startT = 0
+        handle.setOnTouchListener { _, e ->
+            when (e.actionMasked) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    downRawX = e.rawX; downRawY = e.rawY
+                    startL = lp.leftMargin; startT = lp.topMargin
+                    true
+                }
+                android.view.MotionEvent.ACTION_MOVE -> {
+                    lp.leftMargin = (startL + (e.rawX - downRawX).toInt()).coerceIn(0, maxX)
+                    lp.topMargin = (startT + (e.rawY - downRawY).toInt()).coerceIn(0, lift)
+                    block.layoutParams = lp
+                    true
+                }
+                android.view.MotionEvent.ACTION_UP,
+                android.view.MotionEvent.ACTION_CANCEL -> {
+                    Prefs.setFloatPos(this, lp.leftMargin, lp.topMargin)
+                    true
+                }
+                else -> false
+            }
+        }
+        return container
     }
 
     override fun onStartInputView(info: EditorInfo, restarting: Boolean) {
@@ -123,7 +259,20 @@ class RimBoardService : InputMethodService(),
         composing.setLength(0)
         prevWordForBigram = ""
         revert = null
+        autoSpace = false
+        glideWords = emptyList()
+        backspaceRepeats = 0
+        val ui = Prefs.uiLanguage(this)
+        if (appliedUiLang != null && appliedUiLang != ui) {
+            setInputView(onCreateInputView())
+        }
+        appliedUiLang = ui
+        altBoost = false
+        altBoostStreak = 0
+        primStreak = 0
+        wordUndo.clear()
         keyboardView?.shiftState = KeyboardView.ShiftState.NONE
+        captureClip()
         configureAll(info)
     }
 
@@ -139,6 +288,7 @@ class RimBoardService : InputMethodService(),
         super.onFinishInputView(finishingInput)
         composing.setLength(0)
         userData.saveIfDirty()
+        Stats.flush(this)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -156,11 +306,22 @@ class RimBoardService : InputMethodService(),
             userData.clearAll()
             Prefs.setPendingClear(this, false)
         }
+        if (Prefs.pendingReload(this)) {
+            userData.reload()
+            pinnedClips.clear()
+            loadPinned()
+            Prefs.setPendingReload(this, false)
+        }
 
         langs = Prefs.languages(this)
         val saved = Prefs.currentLang(this)
         val idx = langs.indexOf(saved)
-        langIndex = if (idx >= 0) idx else 0
+        val sysIdx = langs.indexOf(java.util.Locale.getDefault().language)
+        langIndex = when {
+            idx >= 0 -> idx
+            sysIdx >= 0 -> sysIdx
+            else -> 0
+        }
 
         val inputType = info.inputType
         val cls = inputType and InputType.TYPE_MASK_CLASS
@@ -191,13 +352,32 @@ class RimBoardService : InputMethodService(),
             kv.theme = t
             kv.previewEnabled = Prefs.popupPreview(this)
             kv.spaceCursorEnabled = Prefs.spaceCursor(this)
+            kv.glideEnabled = Prefs.glide(this)
+            when (Prefs.repeatSpeed(this)) {
+                "slow" -> { kv.repeatInitialMs = 420L; kv.repeatIntervalMs = 70L }
+                "fast" -> { kv.repeatInitialMs = 200L; kv.repeatIntervalMs = 32L }
+                else -> { kv.repeatInitialMs = 300L; kv.repeatIntervalMs = 50L }
+            }
+            kv.hapticFeedback = Prefs.haptic(this)
+            kv.oneHanded = (if (Prefs.floating(this)) 0 else Prefs.oneHanded(this))
             kv.keyHeightFactor = Prefs.heightFactor(this)
             kv.showDigitHints = !Prefs.numberRow(this)
             kv.incognito = isIncognito()
         }
         strip?.applyTheme(t)
         emojiView?.applyTheme(t)
+        clipboardView?.applyTheme(t)
+        editPanelView?.applyTheme(t)
         rootView?.setBackgroundColor(t.background)
+        window?.window?.let { w ->
+            w.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            w.navigationBarColor = t.background
+            if (Build.VERSION.SDK_INT >= 29) w.isNavigationBarContrastEnforced = false
+            w.decorView.systemUiVisibility = if (t.isDark)
+                w.decorView.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
+            else
+                w.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+        }
     }
 
     private fun isIncognito(): Boolean =
@@ -215,10 +395,41 @@ class RimBoardService : InputMethodService(),
 
     private fun currentLangCode(): String = langs.getOrElse(langIndex) { "en" }
 
-    private fun localeFor(code: String): Locale =
-        if (code == "tr") Locale.forLanguageTag("tr") else Locale.ENGLISH
+    private fun localeFor(code: String): Locale = Languages.byCode(code).locale
 
     private fun locale(): Locale = localeFor(currentLangCode())
+
+    private fun altLangCode(): String? = langs.firstOrNull { it != currentLangCode() }
+
+    private fun altLocale(): Locale? = altLangCode()?.let { localeFor(it) }
+
+    private fun effLang(): String =
+        if (altBoost) altLangCode() ?: currentLangCode() else currentLangCode()
+
+    private fun effLocale(): Locale = localeFor(effLang())
+
+    private fun effAlt(): String? = if (altBoost) currentLangCode() else altLangCode()
+
+    private fun effAltLocale(): Locale? = effAlt()?.let { localeFor(it) }
+
+    private fun noteCommittedWord(word: String) {
+        Stats.word(this)
+        val alt = altLangCode() ?: return
+        val inPrim = engine.knownIn(word.lowercase(locale()), currentLangCode(), locale())
+        val inAlt = engine.knownIn(word.lowercase(localeFor(alt)), alt, localeFor(alt))
+        when {
+            inAlt && !inPrim -> {
+                altBoostStreak++
+                primStreak = 0
+                if (altBoostStreak >= 3) altBoost = true
+            }
+            inPrim -> {
+                primStreak++
+                altBoostStreak = 0
+                if (primStreak >= 2) altBoost = false
+            }
+        }
+    }
 
     private fun applyLayout() {
         val kv = keyboardView ?: return
@@ -227,8 +438,7 @@ class RimBoardService : InputMethodService(),
         val showGlobe = langs.size > 1
         val lay: KeyboardLayout = when (kind) {
             LayoutKind.MAIN ->
-                if (currentLangCode() == "tr") Layouts.qwertyTr(numberRow, showGlobe)
-                else Layouts.qwertyEn(numberRow, showGlobe)
+                Languages.byCode(currentLangCode()).layout(numberRow, showGlobe)
             LayoutKind.SYMBOLS -> Layouts.symbols(locale())
             LayoutKind.SYMBOLS2 -> Layouts.symbols2(locale())
             LayoutKind.NUMPAD -> Layouts.numpad(locale())
@@ -263,6 +473,9 @@ class RimBoardService : InputMethodService(),
     // ---------------------------------------------------------------- keyboard callbacks
 
     override fun onKeyPressed(key: Key) {
+        wordUndo.clear()
+        Stats.key(this)
+        backspaceRepeats = 0
         when (key.code) {
             Codes.SHIFT -> handleShift()
             Codes.BACKSPACE -> handleBackspace()
@@ -276,6 +489,10 @@ class RimBoardService : InputMethodService(),
             Codes.EMOJI -> showEmoji()
             Codes.SETTINGS -> openSettings()
             Codes.INCOGNITO -> toggleIncognito()
+            Codes.ONE_HANDED -> toggleOneHanded()
+            Codes.CLIPBOARD -> showClipPanel()
+            Codes.EDIT_PANEL -> showEditPanel()
+            Codes.FLOATING -> toggleFloating()
             Codes.SPACE -> handleSpace()
             else -> if (key.code > 0) typeText(key.label)
         }
@@ -283,9 +500,35 @@ class RimBoardService : InputMethodService(),
 
     override fun onKeyRepeated(key: Key) {
         if (key.code == Codes.BACKSPACE) {
-            handleBackspace()
+            backspaceRepeats++
+            if (backspaceRepeats >= 12) {
+                // long hold: switch to word-by-word deletion, throttled
+                if (backspaceRepeats % 3 == 0) deleteWordBeforeCursor()
+            } else {
+                handleBackspace()
+            }
             if (Prefs.sound(this)) playSound(Codes.BACKSPACE)
         }
+    }
+
+    private fun deleteWordBeforeCursor() {
+        val ic = currentInputConnection ?: return
+        revert = null
+        autoSpace = false
+        glideWords = emptyList()
+        if (composing.isNotEmpty()) {
+            composing.setLength(0)
+            ic.commitText("", 1)
+            afterEdit()
+            return
+        }
+        val before = ic.getTextBeforeCursor(32, 0)
+        if (before.isNullOrEmpty()) return
+        var i = before.length
+        while (i > 0 && before[i - 1].isWhitespace()) i--
+        while (i > 0 && !before[i - 1].isWhitespace()) i--
+        ic.deleteSurroundingText(before.length - i, 0)
+        afterEdit()
     }
 
     override fun onPopupKeySelected(key: Key) {
@@ -294,6 +537,10 @@ class RimBoardService : InputMethodService(),
             Codes.SETTINGS -> openSettings()
             Codes.INCOGNITO -> toggleIncognito()
             Codes.EMOJI -> showEmoji()
+            Codes.ONE_HANDED -> toggleOneHanded()
+            Codes.CLIPBOARD -> showClipPanel()
+            Codes.EDIT_PANEL -> showEditPanel()
+            Codes.FLOATING -> toggleFloating()
             Codes.IME_PICKER -> imePicker()
             else -> if (key.code > 0) typeText(key.label)
         }
@@ -306,9 +553,56 @@ class RimBoardService : InputMethodService(),
         repeat(abs(steps)) { sendDownUpKeyEvents(code) }
     }
 
+    override fun onGlideComplete(sequence: String) {
+        if (!Prefs.glide(this) || !isTextClass) return
+        val loc = locale()
+        val cands = engine.glideFor(
+            sequence, currentLangCode(), loc,
+            personalized = !isIncognito() && Prefs.learnWords(this)
+        )
+        if (cands.isEmpty()) {
+            // tiny flick that matched nothing: fall back to the starting key
+            if (sequence.length <= 2) typeText(sequence.substring(0, 1))
+            return
+        }
+        val kv = keyboardView
+        val capsLock = kv?.shiftState == KeyboardView.ShiftState.CAPSLOCK
+        val cap = kv != null && kv.shiftState != KeyboardView.ShiftState.NONE
+        val words = cands.map { w ->
+            when {
+                capsLock -> w.uppercase(loc)
+                cap -> w.replaceFirstChar {
+                    if (it.isLowerCase()) it.titlecase(loc) else it.toString()
+                }
+                else -> w
+            }
+        }
+        val best = words.first()
+        val ic = currentInputConnection ?: return
+        ic.beginBatchEdit()
+        if (composing.isNotEmpty()) {
+            commitComposedWord(ic, allowAutocorrect = autocorrectActive, separator = " ")
+        }
+        val before = ic.getTextBeforeCursor(1, 0)
+        val lead = if (!before.isNullOrEmpty() && before[0].isLetterOrDigit()) " " else ""
+        ic.commitText("$lead$best ", 1)
+        ic.endBatchEdit()
+        val canLearn = Prefs.learnWords(this) && !isIncognito() && !isPassword && !isEmailOrUri
+        if (canLearn && Prefs.predictions(this) && prevWordForBigram.isNotEmpty()) {
+            userData.recordBigram(prevWordForBigram, best.lowercase(loc))
+        }
+        prevWordForBigram = best.lowercase(loc)
+        revert = null
+        noteCommittedWord(best)
+        autoSpace = true
+        glideWords = words
+        consumeAutoShift()
+        afterEdit()
+    }
+
     override fun onKeyDownFeedback(key: Key) {
         if (Prefs.haptic(this)) {
-            keyboardView?.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            keyboardView?.let { Haptics.tap(it) }
         }
         if (Prefs.sound(this)) playSound(key.code)
     }
@@ -333,6 +627,8 @@ class RimBoardService : InputMethodService(),
     private fun typeText(raw: String) {
         val text = applyShift(raw)
         revert = null
+        autoSpace = false
+        glideWords = emptyList()
         lastShiftTapTime = 0 // a typed character breaks a double-tap-shift sequence
         val c = text.firstOrNull() ?: return
         val isWordChar = c.isLetter() || (c == '\'' && composing.isNotEmpty())
@@ -370,6 +666,8 @@ class RimBoardService : InputMethodService(),
         ic.endBatchEdit()
         prevWordForBigram = ""
         revert = null
+        autoSpace = false
+        glideWords = emptyList()
         afterEdit()
     }
 
@@ -379,10 +677,20 @@ class RimBoardService : InputMethodService(),
         if (composing.isNotEmpty()) {
             commitComposedWord(ic, allowAutocorrect = autocorrectActive, separator = sep)
         } else {
-            ic.commitText(sep, 1)
+            val swap = autoSpace && sep.length == 1 && sep[0] in ".,;:!?" &&
+                ic.getTextBeforeCursor(1, 0)?.toString() == " "
+            if (swap) {
+                // "word " + "." becomes "word. " (GBoard-style punctuation swap)
+                ic.deleteSurroundingText(1, 0)
+                ic.commitText("$sep ", 1)
+            } else {
+                ic.commitText(sep, 1)
+            }
             revert = null
         }
         ic.endBatchEdit()
+        autoSpace = false
+        glideWords = emptyList()
         if (sep != " ") prevWordForBigram = ""
         afterEdit()
     }
@@ -391,12 +699,24 @@ class RimBoardService : InputMethodService(),
         val typed = composing.toString()
         var finalWord = typed
         if (allowAutocorrect) {
-            engine.correctionFor(typed, currentLangCode(), locale())?.let { finalWord = it }
+            val shortcutExp = Shortcuts.expansionFor(this, typed)
+        if (shortcutExp != null) {
+            finalWord = shortcutExp
+        } else {
+            engine.correctionFor(typed, effLang(), effLocale(), effAlt(), effAltLocale())?.let {
+                finalWord = it
+                Stats.autocorrect(this)
+            }
+        }
+            if (finalWord == typed && typed == "i" && currentLangCode() == "en") {
+                finalWord = "I" // standalone English pronoun
+            }
         }
         ic.commitText(finalWord + separator, 1)
         revert = if (finalWord != typed) Revert(typed, finalWord, separator) else null
 
         val loc = locale()
+        noteCommittedWord(typed)
         val wordish = typed.all { it.isLetter() || it == '\'' }
         val canLearn = Prefs.learnWords(this) && !isIncognito() && !isPassword && !isEmailOrUri
         if (canLearn && finalWord == typed && wordish && typed.length >= 2) {
@@ -426,6 +746,8 @@ class RimBoardService : InputMethodService(),
                 lastSpaceTime = 0
                 prevWordForBigram = ""
                 revert = null
+                autoSpace = false
+                glideWords = emptyList()
                 afterEdit()
                 return
             }
@@ -435,8 +757,16 @@ class RimBoardService : InputMethodService(),
     }
 
     private fun handleBackspace() {
+        Stats.backspace(this)
         val ic = currentInputConnection ?: return
+        if (revert != null && composing.isEmpty()) {
+            // backspace right after an autocorrect restores the original word
+            performRevert()
+            return
+        }
         revert = null
+        autoSpace = false
+        glideWords = emptyList()
         if (composing.isNotEmpty()) {
             composing.deleteCharAt(composing.length - 1)
             if (composing.isEmpty()) {
@@ -487,6 +817,8 @@ class RimBoardService : InputMethodService(),
             ic.endBatchEdit()
         }
         revert = null
+        autoSpace = false
+        glideWords = emptyList()
         val info = currentInputEditorInfo
         val noAction = info == null ||
             (info.imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION) != 0
@@ -550,6 +882,10 @@ class RimBoardService : InputMethodService(),
                 s.showSuggestions(listOf("\u21A9 " + rv.original, "", ""), -1)
                 return
             }
+            if (glideWords.isNotEmpty()) {
+                s.showSuggestions(glideWords.take(3), 0)
+                return
+            }
             var preds = if (Prefs.predictions(this) && prevWordForBigram.isNotEmpty()) {
                 engine.predictions(prevWordForBigram, locale(), 3)
             } else emptyList()
@@ -571,15 +907,31 @@ class RimBoardService : InputMethodService(),
             return
         }
         val res = engine.suggestionsFor(
-            composing.toString(), currentLangCode(), locale(),
+            composing.toString(), effLang(), effLocale(),
             allowAutocorrect = autocorrectActive, personalized = true
+        ,
+            altLang = effAlt(),
+            altLocale = effAltLocale()
         )
-        s.showSuggestions(res.items, res.autocorrectIndex)
+        val shortcutExp = Shortcuts.expansionFor(this, composing.toString())
+        val emojiSug = if (composing.length >= 2)
+            engine.emojiFor(composing.toString().lowercase(effLocale()), effLang()) else null
+        var shownWords = res.items
+        var shownHi = res.autocorrectIndex
+        if (emojiSug != null && shownWords.isNotEmpty() && !shownWords.contains(emojiSug)) {
+            shownWords = if (shownWords.size < 3) shownWords + emojiSug
+            else shownWords.take(2) + emojiSug
+        }
+        if (shortcutExp != null) {
+            shownWords = listOf(shortcutExp) + shownWords.take(2)
+            shownHi = 0
+        }
+        s.showSuggestions(shownWords, shownHi)
     }
 
     private fun maybeClipboardOrEmpty(s: SuggestionStripView) {
         if (clipChipEligible()) {
-            s.showClipboard("\uD83D\uDCCB " + getString(android.R.string.paste))
+            s.showClipboard(L10n.wrap(this).getString(android.R.string.paste))
         } else {
             s.showEmpty()
         }
@@ -604,12 +956,18 @@ class RimBoardService : InputMethodService(),
             return
         }
         if (word.isEmpty() || word.startsWith("\u21A9")) return
+        if (glideWords.isNotEmpty() && composing.isEmpty()) {
+            replaceLastGlideWith(word)
+            return
+        }
         val ic = currentInputConnection ?: return
         val loc = locale()
         ic.beginBatchEdit()
         ic.commitText("$word ", 1) // replaces the composing region if present
         ic.endBatchEdit()
         composing.setLength(0)
+        autoSpace = true
+        noteCommittedWord(word)
         val wordish = word.all { it.isLetter() || it == '\'' }
         val canLearn = Prefs.learnWords(this) && !isIncognito() && !isPassword && !isEmailOrUri
         if (canLearn && wordish && word.length >= 2) {
@@ -620,6 +978,27 @@ class RimBoardService : InputMethodService(),
         }
         prevWordForBigram = if (wordish) word.lowercase(loc) else ""
         revert = null
+        afterEdit()
+    }
+
+    private fun replaceLastGlideWith(word: String) {
+        val old = glideWords.firstOrNull() ?: return
+        if (word == old) return
+        val ic = currentInputConnection ?: return
+        val expect = "$old "
+        if (ic.getTextBeforeCursor(expect.length, 0)?.toString() != expect) {
+            glideWords = emptyList()
+            updateStrip()
+            return
+        }
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(expect.length, 0)
+        ic.commitText("$word ", 1)
+        ic.endBatchEdit()
+        prevWordForBigram =
+            if (word.all { it.isLetter() || it == '\'' }) word.lowercase(locale()) else ""
+        glideWords = listOf(word) + glideWords.filter { it != word }
+        autoSpace = true
         afterEdit()
     }
 
@@ -676,6 +1055,7 @@ class RimBoardService : InputMethodService(),
             }
         } else {
             updateShiftState()
+            var stale = false
             val rv = revert
             if (rv != null) {
                 val expect = rv.committed + rv.separator
@@ -683,17 +1063,29 @@ class RimBoardService : InputMethodService(),
                     ?.getTextBeforeCursor(expect.length, 0)?.toString()
                 if (before != expect) {
                     revert = null
-                    updateStrip()
+                    stale = true
                 }
-            } else {
-                updateStrip()
             }
+            val gw = glideWords.firstOrNull()
+            if (gw != null) {
+                val expect = "$gw "
+                val before = currentInputConnection
+                    ?.getTextBeforeCursor(expect.length, 0)?.toString()
+                if (before != expect) {
+                    glideWords = emptyList()
+                    stale = true
+                }
+            }
+            if (stale || (revert == null && glideWords.isEmpty())) updateStrip()
         }
     }
 
     // ---------------------------------------------------------------- languages / modes
 
     private fun cycleLanguage() {
+        altBoost = false
+        altBoostStreak = 0
+        primStreak = 0
         if (langs.size <= 1) {
             imePicker()
             return
@@ -717,7 +1109,7 @@ class RimBoardService : InputMethodService(),
         val tag = newSubtype.languageTag
         @Suppress("DEPRECATION")
         val locStr = if (tag.isNotEmpty()) tag else newSubtype.locale
-        val code = if (locStr.startsWith("tr")) "tr" else "en"
+        val code = locStr.take(2).lowercase(Locale.ENGLISH)
         val idx = langs.indexOf(code)
         if (idx >= 0 && idx != langIndex) {
             langIndex = idx
@@ -732,6 +1124,35 @@ class RimBoardService : InputMethodService(),
         currentInputEditorInfo?.let { readPrefsAndFieldFlags(it) }
         applyLayout()
         updateStrip()
+    }
+
+    private fun toggleFloating() {
+        Prefs.setFloating(this, !Prefs.floating(this))
+        setInputView(onCreateInputView())
+    }
+
+    override fun onComputeInsets(outInsets: InputMethodService.Insets) {
+        super.onComputeInsets(outInsets)
+        val block = floatingBlock ?: return
+        val total = (block.parent as? View)?.height ?: return
+        outInsets.contentTopInsets = total
+        outInsets.visibleTopInsets = total
+        outInsets.touchableInsets = InputMethodService.Insets.TOUCHABLE_INSETS_REGION
+        outInsets.touchableRegion.set(block.left, block.top, block.right, block.bottom)
+    }
+
+    private fun toggleOneHanded() {
+        if (Prefs.floating(this)) return
+        val cur = (if (Prefs.floating(this)) 0 else Prefs.oneHanded(this))
+        val next = if (cur == 0) Prefs.oneHandedLast(this) else 0
+        if (cur != 0) Prefs.setOneHandedLast(this, cur)
+        Prefs.setOneHanded(this, next)
+        keyboardView?.oneHanded = next
+    }
+
+    override fun onOneHandedChanged(mode: Int) {
+        Prefs.setOneHanded(this, mode)
+        if (mode != 0) Prefs.setOneHandedLast(this, mode)
     }
 
     private fun openSettings() {
@@ -751,6 +1172,8 @@ class RimBoardService : InputMethodService(),
         lp.height = kv.measureKeyboardHeight()
         ev.layoutParams = lp
         ev.setRecents(if (isIncognito()) emptyList() else Prefs.emojiRecents(this))
+        clipboardView?.visibility = View.GONE
+        editPanelView?.visibility = View.GONE
         kv.visibility = View.GONE
         ev.visibility = View.VISIBLE
     }
@@ -758,6 +1181,271 @@ class RimBoardService : InputMethodService(),
     private fun hideEmoji() {
         keyboardView?.visibility = View.VISIBLE
         emojiView?.visibility = View.GONE
+        clipboardView?.visibility = View.GONE
+        editPanelView?.visibility = View.GONE
+    }
+
+    // ------------------------------------------------------------ clipboard
+
+    private fun showClipPanel() {
+        val kv = keyboardView ?: return
+        val cv = clipboardView ?: return
+        finishComposingSilently()
+        val lp = cv.layoutParams as FrameLayout.LayoutParams
+        lp.height = kv.measureKeyboardHeight()
+        cv.layoutParams = lp
+        updateClipView()
+        emojiView?.visibility = View.GONE
+        editPanelView?.visibility = View.GONE
+        kv.visibility = View.GONE
+        cv.visibility = View.VISIBLE
+    }
+
+    private fun updateClipView() {
+        pruneClips()
+        clipboardView?.setClips(pinnedClips.toList(), clipHistory.map { it.text })
+    }
+
+    private fun showEditPanel() {
+        val kv = keyboardView ?: return
+        val ep = editPanelView ?: return
+        finishComposingSilently()
+        val lp = ep.layoutParams as FrameLayout.LayoutParams
+        lp.height = kv.measureKeyboardHeight()
+        ep.layoutParams = lp
+        editSelectMode = false
+        ep.setSelectOn(false)
+        emojiView?.visibility = View.GONE
+        clipboardView?.visibility = View.GONE
+        kv.visibility = View.GONE
+        ep.visibility = View.VISIBLE
+    }
+
+    private fun pinnedFile() = File(UserData.dataDir(this), "pinned_clips.json")
+
+    private fun loadPinned() {
+        try {
+            val arr = JSONArray(pinnedFile().readText())
+            for (i in 0 until arr.length()) pinnedClips.add(arr.getString(i))
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun pruneClips() {
+        val mins = Prefs.clipTimeoutMin(this)
+        if (mins <= 0) return
+        val cutoff = System.currentTimeMillis() - mins * 60_000L
+        clipHistory.removeAll { it.at < cutoff }
+    }
+
+    private fun savePinned() {
+        try {
+            pinnedFile().writeText(JSONArray(pinnedClips).toString())
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun captureClip() {
+        try {
+            if (!Prefs.clipboardSuggest(this) || isIncognito()) return
+            val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = cm.primaryClip ?: return
+            if (clip.itemCount == 0) return
+            val text = clip.getItemAt(0).coerceToText(this)?.toString() ?: return
+            if (text.isBlank()) return
+            val trimmed = if (text.length > 10000) text.substring(0, 10000) else text
+            if (pinnedClips.contains(trimmed)) return
+            pruneClips()
+            clipHistory.removeAll { it.text == trimmed }
+            clipHistory.addFirst(ClipEntry(trimmed, System.currentTimeMillis()))
+            while (clipHistory.size > 10) clipHistory.removeLast()
+            updateClipView()
+        } catch (_: Exception) {
+        }
+    }
+
+    override fun onClipboardPanelRequested() {
+        showClipPanel()
+    }
+
+    override fun onClipPicked(text: String) {
+        finishComposingSilently()
+        currentInputConnection?.commitText(text, 1)
+        hideEmoji()
+        afterEdit()
+    }
+
+    override fun onClipsCleared() {
+        clipHistory.clear()
+        updateClipView()
+    }
+
+    override fun onClipPinToggle(text: String, pinned: Boolean) {
+        clipHistory.removeAll { it.text == text }
+        pinnedClips.remove(text)
+        if (pinned) {
+            pinnedClips.add(0, text)
+        } else {
+            clipHistory.addFirst(ClipEntry(text, System.currentTimeMillis()))
+            while (clipHistory.size > 10) clipHistory.removeLast()
+        }
+        savePinned()
+        updateClipView()
+    }
+
+    // ------------------------------------------------------------ edit panel
+
+    override fun onEditAction(action: EditPanelView.Action) {
+        val ic = currentInputConnection ?: return
+        when (action) {
+            EditPanelView.Action.SELECT -> {
+                editSelectMode = !editSelectMode
+                editPanelView?.setSelectOn(editSelectMode)
+            }
+            EditPanelView.Action.SELECT_ALL ->
+                ic.performContextMenuAction(android.R.id.selectAll)
+            EditPanelView.Action.COPY -> {
+                ic.performContextMenuAction(android.R.id.copy)
+                endSelect()
+            }
+            EditPanelView.Action.CUT -> {
+                ic.performContextMenuAction(android.R.id.cut)
+                endSelect()
+                afterEdit()
+            }
+            EditPanelView.Action.PASTE -> {
+                ic.performContextMenuAction(android.R.id.paste)
+                endSelect()
+                afterEdit()
+            }
+            EditPanelView.Action.TRANSLATE -> launchTranslate(ic)
+            EditPanelView.Action.UNDO -> {
+                sendCtrl(ic, KeyEvent.KEYCODE_Z, shift = false)
+                afterEdit()
+            }
+            EditPanelView.Action.REDO -> {
+                sendCtrl(ic, KeyEvent.KEYCODE_Z, shift = true)
+                afterEdit()
+            }
+            else -> {
+                val code = when (action) {
+                    EditPanelView.Action.UP -> KeyEvent.KEYCODE_DPAD_UP
+                    EditPanelView.Action.DOWN -> KeyEvent.KEYCODE_DPAD_DOWN
+                    EditPanelView.Action.LEFT -> KeyEvent.KEYCODE_DPAD_LEFT
+                    EditPanelView.Action.RIGHT -> KeyEvent.KEYCODE_DPAD_RIGHT
+                    EditPanelView.Action.HOME -> KeyEvent.KEYCODE_MOVE_HOME
+                    else -> KeyEvent.KEYCODE_MOVE_END
+                }
+                if (editSelectMode) sendShifted(ic, code) else sendDownUpKeyEvents(code)
+            }
+        }
+    }
+
+    override fun onSuggestionLongPressed(word: String, anchor: View) {
+        val ctx = anchor.context
+        val d = resources.displayMetrics.density
+        val row = android.widget.LinearLayout(ctx).apply {
+            orientation = android.widget.LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            setBackgroundColor(0xEE222222.toInt())
+            setPadding((12 * d).toInt(), (8 * d).toInt(), (14 * d).toInt(), (8 * d).toInt())
+        }
+        row.addView(IconView(ctx, Icons.TRASH).apply { color = 0xFFFFFFFF.toInt() },
+            android.view.ViewGroup.LayoutParams((22 * d).toInt(), (26 * d).toInt()))
+        val tv = TextView(ctx).apply {
+            text = " " + ctx.getString(R.string.suggestion_remove, word)
+            setTextColor(0xFFFFFFFF.toInt())
+            textSize = 14f
+        }
+        row.addView(tv)
+        val pw = PopupWindow(
+            row,
+            android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+            android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        )
+        pw.isOutsideTouchable = true
+        tv.setOnClickListener {
+            userData.blockWord(word.lowercase(effLocale()))
+            pw.dismiss()
+            updateStrip()
+        }
+        pw.showAsDropDown(anchor, 0, -(anchor.height * 5) / 2)
+    }
+
+    override fun onQuickAction(code: Int) {
+        when (code) {
+            Codes.CLIPBOARD -> showClipPanel()
+            Codes.EDIT_PANEL -> showEditPanel()
+            Codes.EMOJI -> showEmoji()
+            Codes.INCOGNITO -> toggleIncognito()
+            Codes.SETTINGS -> openSettings()
+        }
+    }
+
+    /** Hands text to any installed translator via the system process-text
+     *  action. RimBoard itself sends nothing anywhere. */
+    private fun launchTranslate(ic: InputConnection) {
+        val selected = ic.getSelectedText(0)?.toString()
+        val text = if (!selected.isNullOrBlank()) {
+            selected
+        } else {
+            val et = ic.getExtractedText(android.view.inputmethod.ExtractedTextRequest(), 0)
+            et?.text?.toString() ?: ""
+        }
+        if (text.isBlank()) return
+        try {
+            val send = Intent(Intent.ACTION_PROCESS_TEXT).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_PROCESS_TEXT, text.take(1000))
+                putExtra(Intent.EXTRA_PROCESS_TEXT_READONLY, true)
+            }
+            startActivity(Intent.createChooser(send, null)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun endSelect() {
+        editSelectMode = false
+        editPanelView?.setSelectOn(false)
+    }
+
+    private fun sendCtrl(ic: InputConnection, keyCode: Int, shift: Boolean) {
+        val meta = KeyEvent.META_CTRL_ON or (if (shift) KeyEvent.META_SHIFT_ON else 0)
+        val now = SystemClock.uptimeMillis()
+        ic.sendKeyEvent(KeyEvent(now, now, KeyEvent.ACTION_DOWN, keyCode, 0, meta))
+        ic.sendKeyEvent(KeyEvent(now, now, KeyEvent.ACTION_UP, keyCode, 0, meta))
+    }
+
+    private fun sendShifted(ic: InputConnection, keyCode: Int) {
+        val now = SystemClock.uptimeMillis()
+        ic.sendKeyEvent(KeyEvent(now, now, KeyEvent.ACTION_DOWN, keyCode, 0, KeyEvent.META_SHIFT_ON))
+        ic.sendKeyEvent(KeyEvent(now, now, KeyEvent.ACTION_UP, keyCode, 0, KeyEvent.META_SHIFT_ON))
+    }
+
+    override fun onBackspaceWord() {
+        finishComposingSilently()
+        revert = null
+        val ic = currentInputConnection ?: return
+        val before = ic.getTextBeforeCursor(64, 0)?.toString() ?: return
+        if (before.isEmpty()) return
+        var i = before.length
+        while (i > 0 && before[i - 1].isWhitespace()) i--
+        while (i > 0 && !before[i - 1].isWhitespace()) i--
+        val chunk = before.substring(i)
+        if (chunk.isEmpty()) return
+        ic.deleteSurroundingText(chunk.length, 0)
+        wordUndo.addLast(chunk)
+        while (wordUndo.size > 50) wordUndo.removeFirst()
+        afterEdit()
+    }
+
+    override fun onBackspaceWordRestore() {
+        if (wordUndo.isEmpty()) return
+        val chunk = wordUndo.removeLast()
+        currentInputConnection?.commitText(chunk, 1)
+        afterEdit()
     }
 
     override fun onEmoji(emoji: String) {

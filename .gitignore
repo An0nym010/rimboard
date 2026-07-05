@@ -18,3 +18,7 @@ Thumbs.db
 # Keystores (never commit signing keys)
 *.jks
 *.keystore
+
+# Committed on purpose: fixed debug signing key so every CI build
+# shares one signature and updates install over previous versions.
+!app/debug.keystore

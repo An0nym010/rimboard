@@ -6,12 +6,72 @@ and **zero Android permissions** — the app cannot touch the internet even if
 it wanted to.
 
 - Kotlin, no heavyweight dependencies, single small APK
-- English (QWERTY) and Turkish (Q-klavye, 12-key rows with ğ ü ş i ö ç)
+- 8 languages built in: English (QWERTY), Turkish (Q-klavye), German (QWERTZ),
+  Spanish, French (AZERTY), Italian, Portuguese, Russian (ЙЦУКЕН)
 - MIT licensed code, CC BY-SA 4.0 dictionaries
+
+## Device compatibility
+
+Runs on any Android 8.0+ phone or tablet (API 26, ~97% of devices) — Samsung, Xiaomi, Pixel, OnePlus, Oppo, Huawei and everything else. No Google services required, pure Kotlin with no native code, works on every CPU architecture.
+
+- **Direct boot aware** — the keyboard works on the lock screen right after a reboot, before your first unlock
+- **No fullscreen extract mode** — landscape typing keeps your app visible, Gboard-style
+- **Themed navigation bar** — no white system-bar strip under a dark keyboard on 3-button-nav devices
+- **Emoji filtered per device** — emoji your Android version can't render are hidden instead of showing ▯ boxes
+
+## What's new in 2.0.0
+
+- **Icon redesign** — every emoji in the keyboard chrome is replaced with hand-drawn vector icons that tint with your theme: globe, clipboard, edit, one-handed, floating, incognito, settings, emoji panel, keyboard picker, pin, trash, translate, undo/redo and search. The interface now looks identical on every device instead of depending on the system emoji font. (The emoji *panel* still shows real emoji, of course — that is content, not chrome.)
+
+## What's new in 1.9.0
+
+- **Text shortcuts** — Settings → Suggestions → Text shortcuts: define codes like "brb" → "be right back". While typing, the expansion appears as the first suggestion; hitting space expands it automatically. Included in backups.
+- **Emoji suggestions** — type "fire" and 🔥 appears in the suggestion bar (English + Turkish keyword maps, offline).
+- **Typing statistics** — Settings → Typing → Typing statistics: words, keys, backspace rate, autocorrections, active time and average WPM. 100% local, resettable.
+- **Custom theme** — new Custom theme with a color picker (background, keys, text, accent — the rest of the palette is derived automatically), plus a High-contrast theme for accessibility.
+- **Key repeat speed** — slow / normal / fast setting for backspace and arrows.
+- **Stable APK signing** — builds are now signed with a fixed debug key committed to the repo, so every new version installs directly over the previous one. (One-time step when upgrading from an older build: export a backup in Settings → Backup, uninstall, install the new APK, import the backup.)
+- **Haptics dedup fix** — key vibration now fires exactly once per press via a single path.
+
+## What's new in 1.8.0
+
+- **6 new languages** — Dutch, Polish, Swedish, Indonesian, Romanian, Czech — and every dictionary grown to 30,000 words (3× larger).
+- **Floating keyboard** — long-press comma → ▣: a compact keyboard with a ☰ drag handle you can move anywhere; taps outside pass through to the app. Position is remembered.
+- **Personal dictionary** — Settings → Suggestions: view every learned word with its use count, add words, remove words.
+- **Remove any suggestion** — long-press a word in the suggestion bar → 🗑 to block it forever (works for built-in dictionary words too).
+- **Learned words earn their place** — a new word must be typed 3+ times before it appears in suggestions.
+- **Language auto-detection** — type 3 words in your other enabled language and suggestions quietly swap priority; it swaps back on its own.
+- **Translate** — 🌍 in the edit panel hands text to any installed translator via the system process-text action; RimBoard itself still has no network access.
+- **Interface language** moved to the ⋮ menu in Settings; settings reorganized with a Suggestions section.
+- **Haptics actually work now** — key presses vibrate via the vibrator service (fixes silent keys on MIUI/HyperOS). This adds the harmless install-time VIBRATE permission; still no network, storage or contacts access.
+- First run now enables your device language automatically.
+
+## What's new in 1.7.0
+
+- **Quick actions bar** — when the suggestion bar is idle, it shows shortcuts: 📋 clipboard, ✂ edit panel, 😊 emoji, 🕶 incognito, ⚙ settings. Toggle it in Settings.
+- **Undo / redo** — ↶ ↷ buttons in the edit panel (sends Ctrl+Z / Ctrl+Shift+Z to the app).
+- **Word delete, forgiven** — after swiping left on backspace, slide back right to restore deleted words one by one, with a haptic tick per word.
+- **Auto-clear clipboard** — optional setting to drop unpinned clips after 15 or 60 minutes.
+- Backups now include pinned clips; pins reload after a restore.
+- Bilingual suggestions are now capitalized with their own language rules (no more Turkish dotted İ on English words).
+
+## What's new in 1.6.0
+
+- **Text editing panel** — long-press comma, tap ✂: arrow keys, Home/End, Select, Select all, Copy, Cut, Paste.
+- **Word delete gesture** — touch backspace and swipe left to delete whole words, one per step.
+- **Clipboard pinning** — tap 📌 on any clip to pin it. Pinned clips survive restarts (stored in the app's device-encrypted storage because you explicitly chose to keep them); everything else stays RAM-only and vanishes when the keyboard process ends.
+- **Bilingual typing** — with two or more languages enabled, suggestions draw from your top two dictionaries, and autocorrect never "fixes" a word that is valid in the other language.
+- **Interface language** — Settings → Interface language: the keyboard panels and settings UI in any of the 8 supported languages, independent of your system language.
+
+Feature ideas in this release were informed by studying Gboard, SwiftKey, HeliBoard and FlorisBoard. No code was copied from any of them — HeliBoard/OpenBoard are GPL-3.0 licensed and RimBoard is MIT, so every implementation here is original and written for RimBoard's own architecture.
 
 ## Features
 
 **Typing**
+- Glide typing: slide across letters to type a word, with a swipe trail and
+- ◨ **One-handed mode** — shrink the keyboard to either side (long-press comma → ◨); arrows switch sides, ⇔ restores full width. Auto-off in landscape.
+- 📋 **Clipboard history** — last 10 copied items (long-press comma → 📋, or long-press the paste chip). Kept in RAM only, never written to disk, cleared when the keyboard process ends, disabled in incognito, 🗑 wipes it instantly.
+  tap-to-replace alternatives in the strip (works in all bundled languages)
 - GBoard-like key layout, sizes and spacing; adjustable key height; optional
   number row (digit hints on the top row when it's off)
 - Auto-capitalization (sentence-aware), double-tap Shift for caps lock
@@ -24,11 +84,14 @@ it wanted to.
 - Long-press popups for accents, digits and symbols; key preview bubbles
 - Two symbol pages, a phone/number pad for numeric fields, ~700 emoji with
   categories and recents
+  a rail to switch sides or expand back; long-press Enter inserts a newline
+  in chat apps where Enter sends
 - Multi-touch typing (rollover), repeating backspace
 
 **Languages**
-- English and Turkish out of the box; 🌐 key cycles languages, long-press it
-  for the system keyboard picker; correct Turkish casing (i → İ, ı → I)
+- English, Turkish, German, Spanish, French, Italian, Portuguese and Russian
+  out of the box — pick any set in Settings; 🌐 cycles them, long-press for
+  the system picker; locale-correct casing (Turkish i → İ, Cyrillic, etc.)
 - Add more languages by dropping a dictionary file and a layout (see below)
 
 **Privacy**
@@ -42,6 +105,10 @@ it wanted to.
 - Learned words live in two plain-text files in the app's private storage.
   You can wipe them anytime from Settings → "Delete learned data".
 - `allowBackup=false`, so learned words are never uploaded to device backups.
+- Built-in **Export / Import backup** (Settings → Backup): everything —
+  settings, learned words, predictions — goes into one JSON file you control,
+  written through the system file picker. Move it between devices yourself;
+  nothing ever leaves the phone otherwise.
 
 ## Install
 
@@ -97,10 +164,7 @@ Adding a whole new language also needs a layout in
 
 ## Roadmap / not implemented yet
 
-- Glide (swipe) typing
 - Voice input
-- One-handed / floating mode
-- Clipboard history (currently a single "paste latest" chip)
 
 ## License
 

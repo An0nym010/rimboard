@@ -30,6 +30,13 @@ class EmojiView(context: Context) : LinearLayout(context) {
 
     private val grid: GridView
     private val adapterImpl: EmojiAdapter
+    private val glyphPaint = android.graphics.Paint()
+    private val filteredCache = HashMap<Int, List<String>>()
+
+    private fun categoryEmojis(i: Int): List<String> =
+        filteredCache.getOrPut(i) {
+            EmojiData.categories[i].emojis.filter { glyphPaint.hasGlyph(it) }
+        }
     private val tabViews = ArrayList<TextView>()
     private val abcBtn: TextView
     private val backBtn: TextView
@@ -131,7 +138,7 @@ class EmojiView(context: Context) : LinearLayout(context) {
     }
 
     private fun refresh() {
-        adapterImpl.items = if (tab == 0) recents else EmojiData.categories[tab - 1].emojis
+        adapterImpl.items = if (tab == 0) recents else categoryEmojis(tab - 1)
         adapterImpl.notifyDataSetChanged()
         grid.setSelection(0)
     }

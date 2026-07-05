@@ -3,6 +3,7 @@ package com.rimboard.keyboard.engine
 import android.content.Context
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.ceil
 
 /**
  * A static word list loaded from assets/dictionaries/<lang>.txt.
@@ -86,6 +87,61 @@ class Dictionary(context: Context, lang: String, private val locale: Locale) {
             }
         }
         return best
+    }
+
+    /**
+     * Candidate words for a glide path: same first letter, last letter matching
+     * the path's last (or second-to-last, to forgive overshoot), and the word's
+     * letters (doubles collapsed) forming a subsequence of the swiped keys.
+     * Scored by frequency, sharply discounted when the word length doesn't fit
+     * the path length. A relaxed second pass runs if the strict one is empty.
+     */
+    fun glideCandidates(seqLower: String, limit: Int): List<Pair<String, Double>> {
+        if (seqLower.length < 2 || words.isEmpty()) return emptyList()
+        val strict = glidePass(seqLower, limit, 4.5)
+        return if (strict.isNotEmpty()) strict else glidePass(seqLower, limit, 6.0)
+    }
+
+    private fun glidePass(seq: String, limit: Int, floorDiv: Double): List<Pair<String, Double>> {
+        val firstStr = seq.first().toString()
+        val firstCh = seq.first()
+        val last = seq.last()
+        val nearLast = if (seq.length >= 3) seq[seq.length - 2] else last
+        val floor = maxOf(2, ceil(seq.length / floorDiv).toInt())
+        val ideal = seq.length / 2.6
+        var lo = 0
+        var hi = words.size
+        while (lo < hi) {
+            val mid = (lo + hi) ushr 1
+            if (words[mid] < firstStr) lo = mid + 1 else hi = mid
+        }
+        val out = ArrayList<Pair<String, Double>>()
+        var i = lo
+        while (i < words.size && words[i][0] == firstCh) {
+            val w = words[i]
+            val wl = w[w.length - 1]
+            if (w.length >= 2 && (wl == last || wl == nearLast)) {
+                val c = collapse(w)
+                if (c.length in floor..seq.length && isSubsequence(c, seq)) {
+                    out.add(w to freqs[i] * Math.pow(0.2, abs(c.length - ideal)))
+                }
+            }
+            i++
+        }
+        out.sortByDescending { it.second }
+        return if (out.size > limit) ArrayList(out.subList(0, limit)) else out
+    }
+
+    private fun collapse(w: String): String {
+        val sb = StringBuilder(w.length)
+        for (ch in w) if (sb.isEmpty() || sb[sb.length - 1] != ch) sb.append(ch)
+        return sb.toString()
+    }
+
+    private fun isSubsequence(needle: String, hay: String): Boolean {
+        var i = 0
+        for (ch in hay) if (i < needle.length && needle[i] == ch) i++
+        return i == needle.length
     }
 
     /** Optimal string alignment (Damerau-Levenshtein) distance with early cutoff. */

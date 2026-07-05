@@ -7,14 +7,85 @@
         android:label="@string/subtype_en"
         android:imeSubtypeLocale="en_US"
         android:languageTag="en-US"
-        android:imeSubtypeMode="keyboard"
-        android:isAsciiCapable="true" />
+        android:imeSubtypeMode="keyboard" />
 
     <subtype
         android:label="@string/subtype_tr"
         android:imeSubtypeLocale="tr_TR"
         android:languageTag="tr-TR"
-        android:imeSubtypeMode="keyboard"
-        android:isAsciiCapable="true" />
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_de"
+        android:imeSubtypeLocale="de_DE"
+        android:languageTag="de-DE"
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_es"
+        android:imeSubtypeLocale="es_ES"
+        android:languageTag="es-ES"
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_fr"
+        android:imeSubtypeLocale="fr_FR"
+        android:languageTag="fr-FR"
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_it"
+        android:imeSubtypeLocale="it_IT"
+        android:languageTag="it-IT"
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_pt"
+        android:imeSubtypeLocale="pt_PT"
+        android:languageTag="pt-PT"
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_ru"
+        android:imeSubtypeLocale="ru_RU"
+        android:languageTag="ru-RU"
+        android:imeSubtypeMode="keyboard" />
+
+
+    <subtype
+        android:label="@string/subtype_nl"
+        android:imeSubtypeLocale="nl_NL"
+        android:languageTag="nl-NL"
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_pl"
+        android:imeSubtypeLocale="pl_PL"
+        android:languageTag="pl-PL"
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_sv"
+        android:imeSubtypeLocale="sv_SE"
+        android:languageTag="sv-SE"
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_id"
+        android:imeSubtypeLocale="id_ID"
+        android:languageTag="id-ID"
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_ro"
+        android:imeSubtypeLocale="ro_RO"
+        android:languageTag="ro-RO"
+        android:imeSubtypeMode="keyboard" />
+
+    <subtype
+        android:label="@string/subtype_cs"
+        android:imeSubtypeLocale="cs_CZ"
+        android:languageTag="cs-CZ"
+        android:imeSubtypeMode="keyboard" />
 
 </input-method>

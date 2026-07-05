@@ -4,34 +4,32 @@ import java.util.Locale
 
 /**
  * Layout definitions. Widths are in "units"; each layout declares how many
- * units make up a full row, mirroring GBoard's proportions:
- *   EN: 10 units per row, TR: 12 units per row (extra ğüşiöç keys).
+ * units make up a full row (GBoard proportions): Latin layouts are 10 units
+ * wide, Turkish 12, Russian 11. Shorter rows are centered automatically.
  */
 object Layouts {
 
-    private val EN: Locale = Locale.ENGLISH
-    private val TR: Locale = Locale.forLanguageTag("tr")
-
-    // ---------- helpers ----------
+    // ---------- shared building blocks ----------
 
     private fun chars(s: String): List<Key> = s.map { Key(it.code, it.toString()) }
 
-    private fun k(c: Char, popup: String = "", hint: String? = null, w: Float = 1f): Key =
-        Key(c.code, c.toString(), width = w, hint = hint, popup = chars(popup))
+    private fun k(c: Char, popup: String = ""): Key =
+        Key(c.code, c.toString(), popup = chars(popup))
 
     private fun shift(w: Float) = Key(Codes.SHIFT, "\u21E7", width = w, type = KeyType.FUNCTION)
 
     private fun backspace(w: Float) =
         Key(Codes.BACKSPACE, "\u232B", width = w, type = KeyType.FUNCTION, repeatable = true)
 
-    private fun enter(w: Float) = Key(Codes.ENTER, "\u21B5", width = w, type = KeyType.ENTER)
+    private fun enter(w: Float) = Key(
+        Codes.ENTER, "\u21B5", width = w, type = KeyType.ENTER,
+        popup = listOf(Key('\n'.code, "\u21B5")) // long-press: plain newline
+    )
 
     private fun space(w: Float) = Key(Codes.SPACE, " ", width = w, type = KeyType.SPACE)
 
     private fun modeSym(w: Float) = Key(Codes.MODE_SYM, "?123", width = w, type = KeyType.FUNCTION)
-
     private fun modeAbc(w: Float) = Key(Codes.MODE_ABC, "ABC", width = w, type = KeyType.FUNCTION)
-
     private fun modeSym2(w: Float) = Key(Codes.MODE_SYM2, "=\\<", width = w, type = KeyType.FUNCTION)
 
     private fun globe() = Key(
@@ -39,94 +37,231 @@ object Layouts {
         popup = listOf(Key(Codes.IME_PICKER, "\u2328", type = KeyType.FUNCTION))
     )
 
-    /** Long-press menu on the comma key: language, settings, incognito, emoji. */
+    /** Long-press menu on the comma key: language, clipboard, one-handed, incognito, settings, emoji. */
     private val commaMenu = listOf(
         Key(Codes.LANG, "\uD83C\uDF10", type = KeyType.FUNCTION),
-        Key(Codes.SETTINGS, "\u2699", type = KeyType.FUNCTION),
+        Key(Codes.CLIPBOARD, "\uD83D\uDCCB", type = KeyType.FUNCTION),
+        Key(Codes.EDIT_PANEL, "\u2702", type = KeyType.FUNCTION),
+        Key(Codes.ONE_HANDED, "\uD83E\uDD1A", type = KeyType.FUNCTION),
+        Key(Codes.FLOATING, "\u25A3", type = KeyType.FUNCTION),
         Key(Codes.INCOGNITO, "\uD83D\uDD76", type = KeyType.FUNCTION),
+        Key(Codes.SETTINGS, "\u2699", type = KeyType.FUNCTION),
         Key(Codes.EMOJI, "\uD83D\uDE0A", type = KeyType.FUNCTION)
     )
 
     private fun comma() = Key(','.code, ",", popup = commaMenu)
-
     private fun period() = Key('.'.code, ".", popup = chars("\u2026!?,-:;'\"@"))
+
+    /** Top letter row: digit hints/popups mapped onto the first ten keys. */
+    private fun topRow(
+        letters: String, pops: Map<Char, String>, hintsOn: Boolean, w: Float = 1f
+    ): Row {
+        val digits = "1234567890"
+        return Row(letters.mapIndexed { i, ch ->
+            val d = if (i < digits.length) digits[i].toString() else null
+            Key(
+                ch.code, ch.toString(), width = w,
+                hint = if (hintsOn && d != null) d else null,
+                popup = chars((d ?: "") + (pops[ch] ?: ""))
+            )
+        })
+    }
+
+    private fun midRow(letters: String, pops: Map<Char, String>): Row =
+        Row(letters.map { ch -> k(ch, pops[ch] ?: "") })
+
+    private fun thirdRow(letters: String, pops: Map<Char, String>, sideW: Float = 1.5f): Row =
+        Row(
+            listOf(shift(sideW)) +
+                letters.map { ch -> k(ch, pops[ch] ?: "") } +
+                listOf(backspace(sideW))
+        )
+
+    private fun bottomRow(total: Float, showGlobe: Boolean, sideW: Float): Row =
+        if (showGlobe) Row(
+            listOf(
+                modeSym(sideW), globe(), comma(),
+                space(total - 2 * sideW - 3f), period(), enter(sideW)
+            )
+        ) else Row(
+            listOf(
+                modeSym(sideW), comma(),
+                space(total - 2 * sideW - 2f), period(), enter(sideW)
+            )
+        )
+
+    private fun assemble(
+        letterRows: List<Row>, units: Float, locale: Locale,
+        numberRowKeys: Row?, showGlobe: Boolean, sideW: Float
+    ): KeyboardLayout {
+        val all = mutableListOf<Row>()
+        if (numberRowKeys != null) all += numberRowKeys
+        all += letterRows
+        all += bottomRow(units, showGlobe, sideW)
+        return KeyboardLayout(all, units, locale, LayoutKind.MAIN)
+    }
+
+    private fun plainNumberRow(w: Float = 1f): Row {
+        val syms = "!@#\$%^&*()"
+        return Row("1234567890".mapIndexed { i, ch ->
+            Key(ch.code, ch.toString(), width = w, popup = chars(syms[i].toString()))
+        })
+    }
 
     // ---------- main layouts ----------
 
     fun qwertyEn(numberRow: Boolean, showGlobe: Boolean): KeyboardLayout {
-        val rows = mutableListOf<Row>()
-        if (numberRow) rows += Row(chars("1234567890"))
-        val h = !numberRow  // digit hints only when the number row is hidden
-        rows += Row(listOf(
-            k('q', "1", if (h) "1" else null),
-            k('w', "2", if (h) "2" else null),
-            k('e', "3\u00E8\u00E9\u00EA\u00EB\u0113", if (h) "3" else null),
-            k('r', "4", if (h) "4" else null),
-            k('t', "5", if (h) "5" else null),
-            k('y', "6\u00FD\u00FF", if (h) "6" else null),
-            k('u', "7\u00FB\u00FC\u00F9\u00FA\u016B", if (h) "7" else null),
-            k('i', "8\u00EE\u00EF\u00ED\u012B\u00EC", if (h) "8" else null),
-            k('o', "9\u00F4\u00F6\u00F2\u00F3\u00F5\u014D", if (h) "9" else null),
-            k('p', "0", if (h) "0" else null)
-        ))
-        rows += Row(listOf(
-            k('a', "\u00E0\u00E1\u00E2\u00E4\u00E3\u00E5\u0101"),
-            k('s', "\u00DF\u015B\u0161"),
-            k('d'), k('f'), k('g'), k('h'), k('j'), k('k'),
-            k('l', "\u0142")
-        ))
-        rows += Row(listOf(
-            shift(1.5f),
-            k('z', "\u017E\u017A\u017C"), k('x'),
-            k('c', "\u00E7\u0107\u010D"),
-            k('v'), k('b'),
-            k('n', "\u00F1\u0144"),
-            k('m'),
-            backspace(1.5f)
-        ))
-        rows += Row(
-            if (showGlobe) listOf(modeSym(1.5f), globe(), comma(), space(4f), period(), enter(1.5f))
-            else listOf(modeSym(1.5f), comma(), space(5f), period(), enter(1.5f))
+        val pops = mapOf(
+            'e' to "\u00E8\u00E9\u00EA\u00EB\u0113",
+            'y' to "\u00FD\u00FF",
+            'u' to "\u00FB\u00FC\u00F9\u00FA\u016B",
+            'i' to "\u00EE\u00EF\u00ED\u012B\u00EC",
+            'o' to "\u00F4\u00F6\u00F2\u00F3\u00F5\u014D",
+            'a' to "\u00E0\u00E1\u00E2\u00E4\u00E3\u00E5\u0101",
+            's' to "\u00DF\u015B\u0161",
+            'l' to "\u0142",
+            'z' to "\u017E\u017A\u017C",
+            'c' to "\u00E7\u0107\u010D",
+            'n' to "\u00F1\u0144"
         )
-        return KeyboardLayout(rows, 10f, EN, LayoutKind.MAIN)
+        return assemble(
+            listOf(
+                topRow("qwertyuiop", pops, !numberRow),
+                midRow("asdfghjkl", pops),
+                thirdRow("zxcvbnm", pops)
+            ),
+            10f, Locale.ENGLISH,
+            if (numberRow) plainNumberRow() else null,
+            showGlobe, 1.5f
+        )
     }
 
     fun qwertyTr(numberRow: Boolean, showGlobe: Boolean): KeyboardLayout {
-        val rows = mutableListOf<Row>()
-        if (numberRow) rows += Row("1234567890".map { Key(it.code, it.toString(), width = 1.2f) })
-        val h = !numberRow
-        rows += Row(listOf(
-            k('q', "1", if (h) "1" else null),
-            k('w', "2", if (h) "2" else null),
-            k('e', "3\u00E9", if (h) "3" else null),
-            k('r', "4", if (h) "4" else null),
-            k('t', "5", if (h) "5" else null),
-            k('y', "6", if (h) "6" else null),
-            k('u', "7\u00FB", if (h) "7" else null),
-            k('\u0131', "8", if (h) "8" else null),
-            k('o', "9\u00F4", if (h) "9" else null),
-            k('p', "0", if (h) "0" else null),
-            k('\u011F'),
-            k('\u00FC')
-        ))
-        rows += Row(listOf(
-            k('a', "\u00E2"),
-            k('s'), k('d'), k('f'), k('g'), k('h'), k('j'), k('k'), k('l'),
-            k('\u015F'),
-            k('i', "\u00EE")
-        ))
-        rows += Row(listOf(
-            shift(1.5f),
-            k('z'), k('x'), k('c'), k('v'), k('b'), k('n'), k('m'),
-            k('\u00F6'),
-            k('\u00E7'),
-            backspace(1.5f)
-        ))
-        rows += Row(
-            if (showGlobe) listOf(modeSym(2f), globe(), comma(), space(5f), period(), enter(2f))
-            else listOf(modeSym(2f), comma(), space(6f), period(), enter(2f))
+        val pops = mapOf(
+            'e' to "\u00E9", 'u' to "\u00FB", 'o' to "\u00F4",
+            'a' to "\u00E2", 'i' to "\u00EE"
         )
-        return KeyboardLayout(rows, 12f, TR, LayoutKind.MAIN)
+        return assemble(
+            listOf(
+                topRow("qwertyu\u0131op\u011F\u00FC", pops, !numberRow),
+                midRow("asdfghjkl\u015Fi", pops),
+                thirdRow("zxcvbnm\u00F6\u00E7", pops)
+            ),
+            12f, Locale.forLanguageTag("tr"),
+            if (numberRow) plainNumberRow(1.2f) else null,
+            showGlobe, 2f
+        )
+    }
+
+    fun qwertzDe(numberRow: Boolean, showGlobe: Boolean): KeyboardLayout {
+        val pops = mapOf(
+            'a' to "\u00E4", 'o' to "\u00F6", 'u' to "\u00FC",
+            's' to "\u00DF", 'e' to "\u00E9"
+        )
+        return assemble(
+            listOf(
+                topRow("qwertzuiop", pops, !numberRow),
+                midRow("asdfghjkl", pops),
+                thirdRow("yxcvbnm", pops)
+            ),
+            10f, Locale.GERMAN,
+            if (numberRow) plainNumberRow() else null,
+            showGlobe, 1.5f
+        )
+    }
+
+    fun qwertyEs(numberRow: Boolean, showGlobe: Boolean): KeyboardLayout {
+        val pops = mapOf(
+            'a' to "\u00E1", 'e' to "\u00E9", 'i' to "\u00ED",
+            'o' to "\u00F3", 'u' to "\u00FA\u00FC"
+        )
+        return assemble(
+            listOf(
+                topRow("qwertyuiop", pops, !numberRow),
+                midRow("asdfghjkl\u00F1", pops),
+                thirdRow("zxcvbnm", pops)
+            ),
+            10f, Locale.forLanguageTag("es"),
+            if (numberRow) plainNumberRow() else null,
+            showGlobe, 1.5f
+        )
+    }
+
+    fun azertyFr(numberRow: Boolean, showGlobe: Boolean): KeyboardLayout {
+        val pops = mapOf(
+            'a' to "\u00E0\u00E2\u00E6",
+            'e' to "\u00E9\u00E8\u00EA\u00EB",
+            'u' to "\u00F9\u00FB\u00FC",
+            'i' to "\u00EE\u00EF",
+            'o' to "\u00F4\u0153",
+            'y' to "\u00FF",
+            'c' to "\u00E7"
+        )
+        return assemble(
+            listOf(
+                topRow("azertyuiop", pops, !numberRow),
+                midRow("qsdfghjklm", pops),
+                thirdRow("wxcvbn'", pops)
+            ),
+            10f, Locale.FRENCH,
+            if (numberRow) plainNumberRow() else null,
+            showGlobe, 1.5f
+        )
+    }
+
+    fun qwertyIt(numberRow: Boolean, showGlobe: Boolean): KeyboardLayout {
+        val pops = mapOf(
+            'a' to "\u00E0", 'e' to "\u00E8\u00E9", 'i' to "\u00EC\u00ED",
+            'o' to "\u00F2\u00F3", 'u' to "\u00F9\u00FA"
+        )
+        return assemble(
+            listOf(
+                topRow("qwertyuiop", pops, !numberRow),
+                midRow("asdfghjkl", pops),
+                thirdRow("zxcvbnm", pops)
+            ),
+            10f, Locale.ITALIAN,
+            if (numberRow) plainNumberRow() else null,
+            showGlobe, 1.5f
+        )
+    }
+
+    fun qwertyPt(numberRow: Boolean, showGlobe: Boolean): KeyboardLayout {
+        val pops = mapOf(
+            'a' to "\u00E1\u00E2\u00E3\u00E0",
+            'e' to "\u00E9\u00EA",
+            'i' to "\u00ED",
+            'o' to "\u00F3\u00F4\u00F5",
+            'u' to "\u00FA",
+            'c' to "\u00E7"
+        )
+        return assemble(
+            listOf(
+                topRow("qwertyuiop", pops, !numberRow),
+                midRow("asdfghjkl", pops),
+                thirdRow("zxcvbnm", pops)
+            ),
+            10f, Locale.forLanguageTag("pt"),
+            if (numberRow) plainNumberRow() else null,
+            showGlobe, 1.5f
+        )
+    }
+
+    fun cyrillicRu(numberRow: Boolean, showGlobe: Boolean): KeyboardLayout {
+        val pops = mapOf(
+            '\u0435' to "\u0451", // е -> ё
+            '\u044C' to "\u044A"  // ь -> ъ
+        )
+        return assemble(
+            listOf(
+                topRow("\u0439\u0446\u0443\u043A\u0435\u043D\u0433\u0448\u0449\u0437\u0445", pops, !numberRow),
+                midRow("\u0444\u044B\u0432\u0430\u043F\u0440\u043E\u043B\u0434\u0436\u044D", pops),
+                thirdRow("\u044F\u0447\u0441\u043C\u0438\u0442\u044C\u0431\u044E", pops, sideW = 1f)
+            ),
+            11f, Locale.forLanguageTag("ru"),
+            if (numberRow) plainNumberRow(1.1f) else null,
+            showGlobe, 2f
+        )
     }
 
     // ---------- symbols ----------
@@ -188,4 +323,56 @@ object Layouts {
         )
         return KeyboardLayout(rows, 4f, locale, LayoutKind.NUMPAD)
     }
+
+    private fun latin(
+        pops: Map<Char, String>, tag: String, numberRow: Boolean, showGlobe: Boolean
+    ): KeyboardLayout = assemble(
+        listOf(
+            topRow("qwertyuiop", pops, !numberRow),
+            midRow("asdfghjkl", pops),
+            thirdRow("zxcvbnm", pops)
+        ),
+        10f, Locale.forLanguageTag(tag),
+        if (numberRow) plainNumberRow() else null,
+        showGlobe, 1.5f
+    )
+
+    fun qwertyNl(numberRow: Boolean, showGlobe: Boolean) = latin(
+        mapOf(
+            'e' to "\u00E9\u00E8\u00EA\u00EB", 'o' to "\u00F3\u00F6\u00F4",
+            'i' to "\u00ED\u00EF\u00EE", 'a' to "\u00E1\u00E4", 'u' to "\u00FA\u00FC"
+        ), "nl", numberRow, showGlobe
+    )
+
+    fun qwertyPl(numberRow: Boolean, showGlobe: Boolean) = latin(
+        mapOf(
+            'a' to "\u0105", 'c' to "\u0107", 'e' to "\u0119", 'l' to "\u0142",
+            'n' to "\u0144", 'o' to "\u00F3", 's' to "\u015B", 'z' to "\u017C\u017A"
+        ), "pl", numberRow, showGlobe
+    )
+
+    fun qwertySv(numberRow: Boolean, showGlobe: Boolean) = latin(
+        mapOf('a' to "\u00E5\u00E4", 'o' to "\u00F6", 'e' to "\u00E9"),
+        "sv", numberRow, showGlobe
+    )
+
+    fun qwertyId(numberRow: Boolean, showGlobe: Boolean) = latin(
+        mapOf('e' to "\u00E9"), "id", numberRow, showGlobe
+    )
+
+    fun qwertyRo(numberRow: Boolean, showGlobe: Boolean) = latin(
+        mapOf(
+            'a' to "\u0103\u00E2", 'i' to "\u00EE",
+            's' to "\u0219", 't' to "\u021B"
+        ), "ro", numberRow, showGlobe
+    )
+
+    fun qwertyCs(numberRow: Boolean, showGlobe: Boolean) = latin(
+        mapOf(
+            'e' to "\u00E9\u011B", 's' to "\u0161", 'c' to "\u010D", 'r' to "\u0159",
+            'z' to "\u017E", 'y' to "\u00FD", 'a' to "\u00E1", 'i' to "\u00ED",
+            'u' to "\u00FA\u016F", 'o' to "\u00F3", 'd' to "\u010F",
+            't' to "\u0165", 'n' to "\u0148"
+        ), "cs", numberRow, showGlobe
+    )
 }

@@ -10,12 +10,14 @@ import android.os.Handler
 import android.os.Looper
 import android.util.SparseArray
 import android.view.MotionEvent
+import com.rimboard.keyboard.Haptics
 import android.view.View
 import android.view.ViewConfiguration
 import com.rimboard.keyboard.model.Codes
 import com.rimboard.keyboard.model.Key
 import com.rimboard.keyboard.model.KeyType
 import com.rimboard.keyboard.model.KeyboardLayout
+import com.rimboard.keyboard.model.LayoutKind
 import com.rimboard.keyboard.theme.KeyboardTheme
 import java.util.Locale
 import kotlin.math.abs
@@ -30,6 +32,10 @@ class KeyboardView(context: Context) : View(context) {
         fun onPopupKeySelected(key: Key)
         fun onCursorMove(steps: Int)
         fun onKeyDownFeedback(key: Key)
+        fun onGlideComplete(sequence: String)
+        fun onOneHandedChanged(mode: Int)
+        fun onBackspaceWord()
+        fun onBackspaceWordRestore()
     }
 
     enum class ShiftState { NONE, AUTO, MANUAL, CAPSLOCK }
@@ -64,6 +70,10 @@ class KeyboardView(context: Context) : View(context) {
 
     var previewEnabled: Boolean = true
     var spaceCursorEnabled: Boolean = true
+    var glideEnabled: Boolean = true
+    var hapticFeedback: Boolean = true
+    var repeatInitialMs: Long = 300L
+    var repeatIntervalMs: Long = 50L
 
     var spaceLabel: String = ""
         set(value) {
@@ -89,6 +99,14 @@ class KeyboardView(context: Context) : View(context) {
             requestLayout()
         }
 
+    /** 0 = off, 1 = anchored left, 2 = anchored right. Forced off in landscape. */
+    var oneHanded: Int = 0
+        set(value) {
+            field = value
+            if (width > 0) computeBounds(width)
+            invalidate()
+        }
+
     // ---------- geometry ----------
 
     private class KeyBounds(val key: Key) {
@@ -105,6 +123,10 @@ class KeyboardView(context: Context) : View(context) {
     private val density = resources.displayMetrics.density
     private fun dp(v: Float) = v * density
 
+    private fun wordTick() {
+        if (hapticFeedback) Haptics.tap(this)
+    }
+
     private val gapX = dp(3f)
     private val gapY = dp(5f)
     private val sidePad = dp(3f)
@@ -115,6 +137,11 @@ class KeyboardView(context: Context) : View(context) {
     private val keyPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { textAlign = Paint.Align.CENTER }
     private val hintPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { textAlign = Paint.Align.RIGHT }
+    private val trailPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
+        strokeJoin = Paint.Join.ROUND
+    }
     private val rectF = RectF()
 
     // ---------- touch state ----------
@@ -128,6 +155,12 @@ class KeyboardView(context: Context) : View(context) {
         var longPress: Runnable? = null
         var repeat: Runnable? = null
         var handledOnDown = false
+        var glide = false
+        var wordDelete = false
+        var wordDeleteLastX = 0f
+        var wordsDeleted = 0
+        val trail = ArrayList<Float>()
+        val glideSeq = StringBuilder()
     }
 
     private val pointers = SparseArray<PointerState>()
@@ -140,6 +173,14 @@ class KeyboardView(context: Context) : View(context) {
     private val popupRect = RectF()
     private var popupCell = 0f
     private var previewKb: KeyBounds? = null
+    private val switchBtn = RectF()
+    private val expandBtn = RectF()
+
+    private fun effectiveOneHanded(): Int {
+        val landscape =
+            resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        return if (landscape) 0 else oneHanded
+    }
 
     // ---------- measurement ----------
 
@@ -167,15 +208,20 @@ class KeyboardView(context: Context) : View(context) {
 
     private fun computeBounds(w: Int) {
         bounds.clear()
+        switchBtn.setEmpty()
+        expandBtn.setEmpty()
         val lay = layout ?: return
+        val mode = effectiveOneHanded()
+        val contentW = if (mode == 0) w.toFloat() else w * 0.82f
+        val offsetX = if (mode == 2) w - contentW else 0f
         val rowH = rowHeightPx()
-        val innerW = w - 2 * sidePad
+        val innerW = contentW - 2 * sidePad
         val unit = innerW / lay.unitsPerRow
         var y = topPad
         for (row in lay.rows) {
             var rowUnits = 0f
             for (key in row.keys) rowUnits += key.width
-            var x = sidePad + (lay.unitsPerRow - rowUnits) * unit / 2f
+            var x = offsetX + sidePad + (lay.unitsPerRow - rowUnits) * unit / 2f
             for (key in row.keys) {
                 val kb = KeyBounds(key)
                 kb.x = x
@@ -186,6 +232,14 @@ class KeyboardView(context: Context) : View(context) {
                 x += kb.w
             }
             y += rowH + gapY
+        }
+        if (mode != 0) {
+            val bottom = y - gapY
+            val gLeft = if (mode == 2) dp(6f) else contentW + dp(6f)
+            val gRight = if (mode == 2) w - contentW - dp(6f) else w - dp(6f)
+            val mid = topPad + (bottom - topPad) / 2f
+            switchBtn.set(gLeft, topPad + dp(8f), gRight, mid - dp(6f))
+            expandBtn.set(gLeft, mid + dp(6f), gRight, bottom - dp(8f))
         }
     }
 
@@ -226,6 +280,11 @@ class KeyboardView(context: Context) : View(context) {
                     key.type == KeyType.SPACE -> t.keyHint
                     else -> t.keyText
                 }
+                val keyIcon = Icons.forCode(key.code) ?: Icons.forLabel(label)
+                if (keyIcon != null) {
+                    Icons.draw(canvas, keyIcon, rectF.centerX(), rectF.centerY(),
+                        kb.h * 0.42f, textPaint.color)
+                } else {
                 textPaint.textSize = when {
                     key.type == KeyType.SPACE -> if (incognito) kb.h * 0.38f else kb.h * 0.26f
                     key.type == KeyType.ENTER -> kb.h * 0.38f
@@ -235,6 +294,7 @@ class KeyboardView(context: Context) : View(context) {
                 }
                 val cy = rectF.centerY() - (textPaint.ascent() + textPaint.descent()) / 2f
                 canvas.drawText(label, rectF.centerX(), cy, textPaint)
+                }
             }
 
             val hint = key.hint
@@ -245,8 +305,44 @@ class KeyboardView(context: Context) : View(context) {
             }
         }
 
+        drawOneHandedControls(canvas, t)
+        drawTrails(canvas, t)
         drawPopup(canvas, t)
         drawPreview(canvas, t)
+    }
+
+    private fun drawOneHandedControls(canvas: Canvas, t: KeyboardTheme) {
+        if (switchBtn.isEmpty) return
+        keyPaint.color = t.keyBgFunc
+        canvas.drawRoundRect(switchBtn, keyRadius, keyRadius, keyPaint)
+        canvas.drawRoundRect(expandBtn, keyRadius, keyRadius, keyPaint)
+        textPaint.color = t.keyText
+        textPaint.textSize = dp(18f)
+        val arrow = if (effectiveOneHanded() == 1) "\u25B6" else "\u25C0"
+        var cy = switchBtn.centerY() - (textPaint.ascent() + textPaint.descent()) / 2f
+        canvas.drawText(arrow, switchBtn.centerX(), cy, textPaint)
+        cy = expandBtn.centerY() - (textPaint.ascent() + textPaint.descent()) / 2f
+        canvas.drawText("\u21D4", expandBtn.centerX(), cy, textPaint)
+    }
+
+    private fun drawTrails(canvas: Canvas, t: KeyboardTheme) {
+        for (p in 0 until pointers.size()) {
+            val ps = pointers.valueAt(p)
+            if (!ps.glide || ps.trail.size < 4) continue
+            trailPaint.color = t.accent
+            trailPaint.strokeWidth = dp(5f)
+            val n = ps.trail.size / 2
+            var px = ps.trail[0]
+            var py = ps.trail[1]
+            for (j in 1 until n) {
+                val x = ps.trail[j * 2]
+                val y = ps.trail[j * 2 + 1]
+                trailPaint.alpha = 40 + (180 * j) / n
+                canvas.drawLine(px, py, x, y, trailPaint)
+                px = x
+                py = y
+            }
+        }
     }
 
     private fun displayLabel(key: Key, locale: Locale): String {
@@ -286,14 +382,21 @@ class KeyboardView(context: Context) : View(context) {
                 canvas.drawRoundRect(rectF, keyRadius * 0.75f, keyRadius * 0.75f, keyPaint)
             }
             textPaint.color = if (i == owner.popupIndex) t.onAccent else t.keyText
-            val cy = popupRect.centerY() - (textPaint.ascent() + textPaint.descent()) / 2f
-            canvas.drawText(popupDisplayLabel(popupKeys[i]), left + popupCell / 2f, cy, textPaint)
+            val pIcon = Icons.forCode(popupKeys[i].code) ?: Icons.forLabel(popupKeys[i].label)
+            if (pIcon != null) {
+                Icons.draw(canvas, pIcon, left + popupCell / 2f, popupRect.centerY(),
+                    popupRect.height() * 0.46f, textPaint.color)
+            } else {
+                val cy = popupRect.centerY() - (textPaint.ascent() + textPaint.descent()) / 2f
+                canvas.drawText(popupDisplayLabel(popupKeys[i]), left + popupCell / 2f, cy, textPaint)
+            }
         }
     }
 
     private fun drawPreview(canvas: Canvas, t: KeyboardTheme) {
         val kb = previewKb ?: return
         if (popupOwner?.popupOpen == true) return
+        if (Icons.forCode(kb.key.code) != null || Icons.forLabel(kb.key.label) != null) return
         val w = max(kb.w * 1.15f, dp(46f))
         val h = kb.h * 1.05f
         var left = kb.centerX() - w / 2f
@@ -343,6 +446,7 @@ class KeyboardView(context: Context) : View(context) {
     }
 
     private fun onPointerDown(pid: Int, x: Float, y: Float) {
+        if (handleGutterTap(x, y)) return
         // Rollover typing: when a new finger lands, flush every still-held key
         // so keys commit in press order, not release order (GBoard behavior).
         for (i in 0 until pointers.size()) {
@@ -350,6 +454,8 @@ class KeyboardView(context: Context) : View(context) {
             if (held.cancelled || held.cursorMode) continue
             if (held.popupOpen) {
                 commitPopup(held)
+            } else if (held.glide) {
+                finishGlide(held)
             } else if (held.handledOnDown) {
                 cancelTimers(held) // stop backspace auto-repeat
             } else {
@@ -372,11 +478,11 @@ class KeyboardView(context: Context) : View(context) {
             val r = object : Runnable {
                 override fun run() {
                     listener?.onKeyRepeated(kb.key)
-                    uiHandler.postDelayed(this, 50)
+                    uiHandler.postDelayed(this, repeatIntervalMs)
                 }
             }
             ps.repeat = r
-            uiHandler.postDelayed(r, 300)
+            uiHandler.postDelayed(r, repeatInitialMs)
         } else if (kb.key.popup.isNotEmpty()) {
             val lp = Runnable { openPopup(ps) }
             ps.longPress = lp
@@ -411,6 +517,35 @@ class KeyboardView(context: Context) : View(context) {
             }
         }
 
+        // Swipe left on backspace: delete whole words (one per step of travel)
+        if (ps.kb.key.code == Codes.BACKSPACE) {
+            if (!ps.wordDelete && x - ps.downX < -dp(30f)) {
+                ps.wordDelete = true
+                cancelTimers(ps)
+                ps.wordDeleteLastX = x
+                ps.wordsDeleted = 1
+                wordTick()
+                listener?.onBackspaceWord()
+            }
+            if (ps.wordDelete) {
+                val step = dp(40f)
+                while (ps.wordDeleteLastX - x > step) {
+                    ps.wordDeleteLastX -= step
+                    ps.wordsDeleted++
+                    wordTick()
+                    listener?.onBackspaceWord()
+                }
+                // Slide back to the right to restore deleted words.
+                while (x - ps.wordDeleteLastX > step && ps.wordsDeleted > 0) {
+                    ps.wordDeleteLastX += step
+                    ps.wordsDeleted--
+                    wordTick()
+                    listener?.onBackspaceWordRestore()
+                }
+                return
+            }
+        }
+
         if (ps.popupOpen) {
             val n = popupKeys.size
             if (n > 0) {
@@ -423,9 +558,41 @@ class KeyboardView(context: Context) : View(context) {
             return
         }
 
-        // slide far off the key => cancel it
-        if (x < ps.kb.x - dp(12f) || x > ps.kb.x + ps.kb.w + dp(12f) ||
-            y < ps.kb.y - dp(18f) || y > ps.kb.y + ps.kb.h + dp(18f)
+        // glide typing: a letter-key press that travels becomes a swipe
+        val glideCapable = glideEnabled && layout?.kind == LayoutKind.MAIN &&
+            isGlideKey(ps.kb.key) && !ps.handledOnDown
+        if (glideCapable && !ps.glide &&
+            (abs(x - ps.downX) > dp(14f) || abs(y - ps.downY) > dp(14f))
+        ) {
+            ps.glide = true
+            cancelTimers(ps)
+            if (previewKb === ps.kb) previewKb = null
+            ps.glideSeq.append(ps.kb.key.label)
+            ps.trail.add(ps.downX)
+            ps.trail.add(ps.downY)
+        }
+        if (ps.glide) {
+            ps.trail.add(x)
+            ps.trail.add(y)
+            while (ps.trail.size > 240) {
+                ps.trail.removeAt(0)
+                ps.trail.removeAt(0)
+            }
+            val kb = keyAt(x, y)
+            if (kb != null && isGlideKey(kb.key)) {
+                val ch = kb.key.label[0]
+                if (ps.glideSeq.isEmpty() || ps.glideSeq[ps.glideSeq.length - 1] != ch) {
+                    ps.glideSeq.append(ch)
+                }
+            }
+            invalidate()
+            return
+        }
+
+        // slide far off the key => cancel it (glide-capable keys never cancel)
+        if (!glideCapable &&
+            (x < ps.kb.x - dp(12f) || x > ps.kb.x + ps.kb.w + dp(12f) ||
+                y < ps.kb.y - dp(18f) || y > ps.kb.y + ps.kb.h + dp(18f))
         ) {
             ps.cancelled = true
             cancelTimers(ps)
@@ -441,6 +608,7 @@ class KeyboardView(context: Context) : View(context) {
         if (previewKb === ps.kb) previewKb = null
         when {
             ps.cancelled -> {}
+            ps.glide -> finishGlide(ps)
             ps.popupOpen -> commitPopup(ps)
             ps.cursorMode -> {}
             ps.handledOnDown -> {}
@@ -450,6 +618,37 @@ class KeyboardView(context: Context) : View(context) {
             popupOwner = null
             popupKeys = emptyList()
         }
+        invalidate()
+    }
+
+    private fun handleGutterTap(x: Float, y: Float): Boolean {
+        val mode = effectiveOneHanded()
+        if (mode == 0) return false
+        if (switchBtn.contains(x, y)) {
+            oneHanded = if (mode == 1) 2 else 1
+            listener?.onOneHandedChanged(oneHanded)
+            return true
+        }
+        if (expandBtn.contains(x, y)) {
+            oneHanded = 0
+            listener?.onOneHandedChanged(0)
+            return true
+        }
+        // dead gutter space: swallow the touch instead of snapping to a key
+        val contentW = width * 0.82f
+        return if (mode == 2) x < width - contentW else x > contentW
+    }
+
+    private fun isGlideKey(key: Key): Boolean =
+        key.type == KeyType.CHARACTER && key.label.length == 1 && key.label[0].isLetter()
+
+    private fun finishGlide(ps: PointerState) {
+        if (ps.glide && ps.glideSeq.length >= 2) {
+            listener?.onGlideComplete(ps.glideSeq.toString())
+        }
+        ps.glide = false
+        ps.handledOnDown = true
+        ps.trail.clear()
         invalidate()
     }
 
@@ -468,7 +667,7 @@ class KeyboardView(context: Context) : View(context) {
     }
 
     private fun openPopup(ps: PointerState) {
-        if (ps.cancelled || ps.cursorMode) return
+        if (ps.cancelled || ps.cursorMode || ps.glide) return
         val keys = ps.kb.key.popup
         if (keys.isEmpty()) return
         popupOwner = ps
@@ -490,6 +689,7 @@ class KeyboardView(context: Context) : View(context) {
         popupRect.set(left, top, left + total, top + h)
         popupCell = cell
         ps.popupIndex = ((ps.downX - left) / cell).toInt().coerceIn(0, keys.size - 1)
+        if (hapticFeedback) Haptics.longPress(this)
         invalidate()
     }
 

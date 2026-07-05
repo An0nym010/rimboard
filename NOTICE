@@ -7,7 +7,7 @@ Third-party data
 ----------------
 
 The bundled word-frequency dictionaries
-(app/src/main/assets/dictionaries/en.txt and tr.txt) are derived from:
+(all files under app/src/main/assets/dictionaries/) are derived from:
 
   FrequencyWords by Hermit Dave
   https://github.com/hermitdave/FrequencyWords
@@ -19,6 +19,7 @@ The bundled word-frequency dictionaries
   (CC BY-SA 4.0): https://creativecommons.org/licenses/by-sa/4.0/
 
 Modifications made for RimBoard: filtered to alphabetic words for each
-language and truncated to the top 10,000 entries per language. Under the
+language (en, tr, de, es, fr, it, pt, ru) and truncated to the top 10,000
+entries per language. Under the
 CC BY-SA 4.0 terms, these dictionary files (and any derivative dictionary
 files) remain licensed under CC BY-SA 4.0.

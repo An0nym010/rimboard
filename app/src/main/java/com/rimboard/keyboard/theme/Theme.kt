@@ -63,6 +63,58 @@ object Themes {
         isDark = true
     )
 
+
+    private fun highContrast() = KeyboardTheme(
+        background = 0xFF000000.toInt(),
+        keyBg = 0xFF1C1C1C.toInt(),
+        keyBgFunc = 0xFF0A0A0A.toInt(),
+        keyBgPressed = 0xFF555555.toInt(),
+        keyText = 0xFFFFFFFF.toInt(),
+        keyHint = 0xFFCCCCCC.toInt(),
+        accent = 0xFFFFEB3B.toInt(),
+        onAccent = 0xFF000000.toInt(),
+        stripText = 0xFFFFFFFF.toInt(),
+        previewBg = 0xFF2A2A2A.toInt(),
+        isDark = true
+    )
+
+    private fun luminance(c: Int): Double {
+        val r = (c shr 16 and 0xFF) / 255.0
+        val g = (c shr 8 and 0xFF) / 255.0
+        val b = (c and 0xFF) / 255.0
+        return 0.299 * r + 0.587 * g + 0.114 * b
+    }
+
+    private fun mix(a: Int, b: Int, f: Float): Int {
+        fun ch(sh: Int) = (((a shr sh and 0xFF) * (1 - f)) + ((b shr sh and 0xFF) * f)).toInt()
+        return (0xFF shl 24) or (ch(16) shl 16) or (ch(8) shl 8) or ch(0)
+    }
+
+    private fun custom(context: Context): KeyboardTheme {
+        val bg = com.rimboard.keyboard.settings.Prefs.customColor(
+            context, com.rimboard.keyboard.settings.Prefs.KEY_CC_BG, 0xFF1B1E23.toInt())
+        val key = com.rimboard.keyboard.settings.Prefs.customColor(
+            context, com.rimboard.keyboard.settings.Prefs.KEY_CC_KEY, 0xFF3A3E46.toInt())
+        val text = com.rimboard.keyboard.settings.Prefs.customColor(
+            context, com.rimboard.keyboard.settings.Prefs.KEY_CC_TEXT, 0xFFE8EAED.toInt())
+        val accent = com.rimboard.keyboard.settings.Prefs.customColor(
+            context, com.rimboard.keyboard.settings.Prefs.KEY_CC_ACCENT, 0xFF8AB4F8.toInt())
+        val dark = luminance(bg) < 0.5
+        return KeyboardTheme(
+            background = bg,
+            keyBg = key,
+            keyBgFunc = mix(key, bg, 0.55f),
+            keyBgPressed = mix(key, if (dark) 0xFFFFFFFF.toInt() else 0xFF000000.toInt(), 0.25f),
+            keyText = text,
+            keyHint = mix(text, bg, 0.4f),
+            accent = accent,
+            onAccent = if (luminance(accent) < 0.5) 0xFFFFFFFF.toInt() else 0xFF000000.toInt(),
+            stripText = text,
+            previewBg = mix(key, if (dark) 0xFFFFFFFF.toInt() else 0xFF000000.toInt(), 0.12f),
+            isDark = dark
+        )
+    }
+
     private fun dynamic(context: Context, night: Boolean): KeyboardTheme {
         fun c(id: Int) = ContextCompat.getColor(context, id)
         return if (night) KeyboardTheme(
@@ -99,6 +151,8 @@ object Themes {
             "light" -> light()
             "dark" -> dark()
             "amoled" -> amoled()
+            "contrast" -> highContrast()
+            "custom" -> custom(context)
             "dynamic" ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) dynamic(context, night)
                 else if (night) dark() else light()

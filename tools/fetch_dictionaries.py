@@ -30,6 +30,9 @@ PATTERNS = {
     "de": re.compile(r"^[a-zäöüß]+$"),
     "es": re.compile(r"^[a-záéíóúüñ]+$"),
     "fr": re.compile(r"^[a-zàâçéèêëîïôùûüÿœæ']+$"),
+    "it": re.compile(r"^[a-zàèéìíîòóùú']+$"),
+    "pt": re.compile(r"^[a-záâãàçéêíóôõúü]+$"),
+    "ru": re.compile(r"^[а-яё]+$"),
 }
 
 OUT_DIR = Path(__file__).resolve().parent.parent / "app/src/main/assets/dictionaries"
@@ -71,7 +74,8 @@ def fetch(lang: str, top: int) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--langs", nargs="+", default=["en", "tr"])
+    ap.add_argument("--langs", nargs="+",
+                default=["en", "tr", "de", "es", "fr", "it", "pt", "ru"])
     ap.add_argument("--top", type=int, default=10000)
     args = ap.parse_args()
     for lang in args.langs:
