@@ -120,4 +120,6 @@
     <string name="st_since">Gezählt seit %1$s</string>
     <string name="st_reset">Statistiken zurücksetzen</string>
     <string name="st_reset_confirm">Alle Tipp-Statistiken zurücksetzen? Das kann nicht rückgängig gemacht werden.</string>
+    <string name="header_languages">Sprachen</string>
+    <string name="header_offline">100% offline</string>
 </resources>

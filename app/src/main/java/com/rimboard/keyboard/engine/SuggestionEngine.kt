@@ -13,6 +13,27 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
 
     private val cache = HashMap<String, Dictionary>()
 
+    /** Preload dictionaries on a background thread so the first keystroke never stalls. */
+
+    fun warm(lang: String, locale: java.util.Locale, altLang: String?, altLocale: java.util.Locale?) {
+
+        Thread {
+
+            try {
+
+                dictionary(lang, locale)
+
+                if (altLang != null && altLocale != null) dictionary(altLang, altLocale)
+
+            } catch (_: Exception) {
+
+            }
+
+        }.start()
+
+    }
+
+
     @Synchronized
     fun dictionary(lang: String, locale: Locale): Dictionary =
         cache.getOrPut(lang) { Dictionary(context, lang, locale) }

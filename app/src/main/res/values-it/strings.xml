@@ -120,4 +120,6 @@
     <string name="st_since">Dal %1$s</string>
     <string name="st_reset">Azzera statistiche</string>
     <string name="st_reset_confirm">Azzerare tutte le statistiche? Operazione irreversibile.</string>
+    <string name="header_languages">lingue</string>
+    <string name="header_offline">100% offline</string>
 </resources>

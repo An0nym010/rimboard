@@ -19,6 +19,12 @@ Runs on any Android 8.0+ phone or tablet (API 26, ~97% of devices) — Samsung, 
 - **Themed navigation bar** — no white system-bar strip under a dark keyboard on 3-button-nav devices
 - **Emoji filtered per device** — emoji your Android version can't render are hidden instead of showing ▯ boxes
 
+## What's new in 2.3.0
+
+- **Dictionaries at full scale** — 200,000 words for English, Turkish, German, Spanish, French, Italian, Portuguese and Russian; 100,000 for the other 14 languages. Dictionaries now preload on a background thread, so the first keystroke never stalls.
+- **Rich settings** — a gradient hero header with version and language count, hand-drawn stroke icons on every key setting (theme, languages, shortcuts, statistics, backup and more), and Material accent coloring on all switches and dialogs.
+- **Statistics dashboard** — WPM and total words now headline the stats screen as large accent tiles.
+
 ## What's new in 2.2.0
 
 - **Key press animation** — keys sink in slightly on touch and fade smoothly back over 150 ms after release, giving every tap a tactile, fluid feel.

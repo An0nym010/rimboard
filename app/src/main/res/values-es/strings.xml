@@ -120,4 +120,6 @@
     <string name="st_since">Contando desde %1$s</string>
     <string name="st_reset">Restablecer estadísticas</string>
     <string name="st_reset_confirm">¿Restablecer todas las estadísticas? No se puede deshacer.</string>
+    <string name="header_languages">idiomas</string>
+    <string name="header_offline">100% offline</string>
 </resources>

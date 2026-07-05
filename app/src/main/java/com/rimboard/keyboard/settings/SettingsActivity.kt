@@ -6,6 +6,13 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.view.Gravity
+import android.graphics.drawable.GradientDrawable
+import com.rimboard.keyboard.ui.IconView
+import com.rimboard.keyboard.ui.Icons
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -50,11 +57,68 @@ class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.setTitle(R.string.settings_title)
+        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val d = resources.displayMetrics.density
+        val header = buildHeader()
+        val hlp = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        hlp.setMargins((12 * d).toInt(), (12 * d).toInt(), (12 * d).toInt(), (4 * d).toInt())
+        root.addView(header, hlp)
+        val container = FrameLayout(this).apply { id = CONTAINER_ID }
+        root.addView(container, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+        setContentView(root)
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                .replace(android.R.id.content, SettingsFragment())
+                .replace(CONTAINER_ID, SettingsFragment())
                 .commit()
         }
+    }
+
+    private fun buildHeader(): LinearLayout {
+        val d = resources.displayMetrics.density
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding((20 * d).toInt(), (18 * d).toInt(), (20 * d).toInt(), (18 * d).toInt())
+            background = GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                intArrayOf(0xFF1A73E8.toInt(), 0xFF0B47A1.toInt())
+            ).apply { cornerRadius = 18 * d }
+        }
+        card.addView(
+            IconView(this, Icons.KEYBOARD).apply { color = 0xFFFFFFFF.toInt() },
+            LinearLayout.LayoutParams((46 * d).toInt(), (46 * d).toInt())
+        )
+        val col = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding((14 * d).toInt(), 0, 0, 0)
+        }
+        col.addView(TextView(this).apply {
+            text = "RimBoard"
+            setTextColor(0xFFFFFFFF.toInt())
+            textSize = 20f
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+        })
+        val ver = try {
+            packageManager.getPackageInfo(packageName, 0).versionName
+        } catch (_: Exception) {
+            ""
+        }
+        col.addView(TextView(this).apply {
+            text = "v$ver \u2022 " +
+                "${com.rimboard.keyboard.model.Languages.all.size} ${getString(R.string.header_languages)} \u2022 " +
+                getString(R.string.header_offline)
+            setTextColor(0xDDFFFFFF.toInt())
+            textSize = 12f
+        })
+        card.addView(col)
+        return card
+    }
+
+    companion object {
+        private const val CONTAINER_ID = 0x0A11CE
     }
 
     class SettingsFragment : PreferenceFragmentCompat() {

@@ -148,4 +148,7 @@
     <string name="subtype_el">Ελληνικά (RimBoard)</string>
     <string name="subtype_hr">Hrvatski (RimBoard)</string>
     <string name="subtype_sk">Slovenčina (RimBoard)</string>
+    <string name="header_languages">languages</string>
+    <string name="header_offline">100% offline</string>
+    <string name="st_wpm_short">WPM</string>
 </resources>

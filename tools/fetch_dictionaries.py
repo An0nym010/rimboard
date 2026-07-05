@@ -22,8 +22,8 @@ BASES = [
     "https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2016/{lang}/{lang}_50k.txt",
 ]
 
-BIG = 120_000
-MID = 60_000
+BIG = 200_000
+MID = 100_000
 TOP = {"en": BIG, "tr": BIG, "de": BIG, "es": BIG, "fr": BIG, "it": BIG, "pt": BIG, "ru": BIG}
 
 PATTERNS = {

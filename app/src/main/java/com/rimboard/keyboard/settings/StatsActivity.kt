@@ -3,6 +3,8 @@ package com.rimboard.keyboard.settings
 import android.content.Context
 import android.os.Bundle
 import android.view.Gravity
+import android.view.View
+import android.graphics.drawable.GradientDrawable
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -55,6 +57,33 @@ class StatsActivity : AppCompatActivity() {
         val minutes = Stats.activeMs / 60000.0
         val wpm = if (minutes > 0.5) (Stats.words / minutes) else 0.0
         val backRate = if (Stats.keys > 0) Stats.backspaces * 100.0 / Stats.keys else 0.0
+        val tiles = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        fun tile(value: String, label: String): View {
+            val box = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER
+                setPadding(0, (18 * d).toInt(), 0, (16 * d).toInt())
+                background = GradientDrawable().apply {
+                    cornerRadius = 16 * d
+                    setColor(0x1F1A73E8)
+                }
+            }
+            box.addView(TextView(this).apply {
+                text = value
+                textSize = 30f
+                setTextColor(0xFF1A73E8.toInt())
+                setTypeface(typeface, android.graphics.Typeface.BOLD)
+            })
+            box.addView(TextView(this).apply { text = label; textSize = 12f })
+            return box
+        }
+        val lp1 = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        lp1.setMargins(0, 0, (6 * d).toInt(), (14 * d).toInt())
+        val lp2 = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        lp2.setMargins((6 * d).toInt(), 0, 0, (14 * d).toInt())
+        tiles.addView(tile(if (wpm > 0) "%.0f".format(wpm) else "\u2014", getString(R.string.st_wpm_short)), lp1)
+        tiles.addView(tile("%,d".format(Stats.words), getString(R.string.st_words)), lp2)
+        container.addView(tiles)
         row(getString(R.string.st_words), "%,d".format(Stats.words))
         row(getString(R.string.st_keys), "%,d".format(Stats.keys))
         row(getString(R.string.st_backspace), "%.1f%%".format(backRate))

@@ -271,6 +271,7 @@ class RimBoardService : InputMethodService(),
 
     private fun configureAll(info: EditorInfo) {
         readPrefsAndFieldFlags(info)
+        engine.warm(effLang(), effLocale(), effAlt(), effAltLocale())
         kind = initialKindFor(info)
         applyLayout()
         updateShiftState()

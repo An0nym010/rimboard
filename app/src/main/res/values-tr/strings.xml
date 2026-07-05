@@ -126,4 +126,6 @@
     <string name="st_since">%1$s tarihinden beri</string>
     <string name="st_reset">İstatistikleri sıfırla</string>
     <string name="st_reset_confirm">Tüm yazma istatistikleri sıfırlansın mı? Bu geri alınamaz.</string>
+    <string name="header_languages">dil</string>
+    <string name="header_offline">100% çevrimdışı</string>
 </resources>

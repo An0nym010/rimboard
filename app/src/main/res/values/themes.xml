@@ -2,5 +2,6 @@
 <resources>
     <style name="Theme.RimBoard" parent="Theme.Material3.DayNight">
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+        <item name="colorPrimary">#1A73E8</item>
     </style>
 </resources>
