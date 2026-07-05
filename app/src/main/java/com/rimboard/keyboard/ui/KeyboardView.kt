@@ -4,7 +4,10 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Canvas
+import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.Shader
+import android.os.SystemClock
 import android.graphics.RectF
 import android.os.Handler
 import android.os.Looper
@@ -132,7 +135,22 @@ class KeyboardView(context: Context) : View(context) {
     private val sidePad = dp(3f)
     private val topPad = dp(6f)
     private val bottomPad = dp(5f)
-    private val keyRadius = dp(8f)
+    private val keyRadius = dp(9f)
+    private val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x26000000 }
+    private val shadowRect = RectF()
+    private val bgPaint = Paint()
+    private var bgShaderH = 0
+    private var bgShaderColor = 1
+    private val lastPressed = HashSet<Key>()
+    private val nowPressed = HashSet<Key>()
+    private val releaseAnim = HashMap<Key, Long>()
+
+    private fun mixColor(a: Int, b: Int, f: Float): Int {
+        if (f <= 0f) return a
+        if (f >= 1f) return b
+        fun ch(s: Int) = (((a shr s and 0xFF) * (1 - f)) + ((b shr s and 0xFF) * f)).toInt()
+        return (0xFF shl 24) or (ch(16) shl 16) or (ch(8) shl 8) or ch(0)
+    }
 
     private val keyPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { textAlign = Paint.Align.CENTER }
@@ -248,26 +266,50 @@ class KeyboardView(context: Context) : View(context) {
     override fun onDraw(canvas: Canvas) {
         val t = theme ?: return
         val lay = layout ?: return
-        canvas.drawColor(t.background)
+        if (bgPaint.shader == null || bgShaderH != height || bgShaderColor != t.background) {
+            bgShaderColor = t.background
+            bgShaderH = height
+            val bottom = mixColor(t.background, 0xFF000000.toInt(), if (t.isDark) 0.20f else 0.07f)
+            bgPaint.shader = LinearGradient(
+                0f, 0f, 0f, height.toFloat(), t.background, bottom, Shader.TileMode.CLAMP
+            )
+        }
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bgPaint)
+        nowPressed.clear()
 
         for (kb in bounds) {
             val key = kb.key
             val pressed = isPressedKb(kb)
 
+            if (pressed) nowPressed.add(key)
+            var press = if (pressed) 1f else 0f
+            if (!pressed) {
+                val rel = releaseAnim[key]
+                if (rel != null) {
+                    val dt = SystemClock.uptimeMillis() - rel
+                    if (dt < 150) press = 1f - dt / 150f else releaseAnim.remove(key)
+                }
+            }
             val bgColor = when {
                 key.type == KeyType.ENTER -> t.accent
                 key.code == Codes.SHIFT && shiftState == ShiftState.CAPSLOCK -> t.accent
-                key.type == KeyType.FUNCTION -> if (pressed) t.keyBgPressed else t.keyBgFunc
-                else -> if (pressed) t.keyBgPressed else t.keyBg
+                key.type == KeyType.FUNCTION -> mixColor(t.keyBgFunc, t.keyBgPressed, press)
+                else -> mixColor(t.keyBg, t.keyBgPressed, press)
             }
             keyPaint.color = bgColor
             rectF.set(kb.x + gapX / 2f, kb.y, kb.x + kb.w - gapX / 2f, kb.y + kb.h)
+            if (press > 0f) {
+                rectF.inset(rectF.width() * 0.018f * press, rectF.height() * 0.018f * press)
+            }
             val radius = if (key.type == KeyType.ENTER) rectF.height() / 2f else keyRadius
+            shadowRect.set(rectF)
+            shadowRect.offset(0f, dp(1.4f))
+            canvas.drawRoundRect(shadowRect, radius, radius, shadowPaint)
             canvas.drawRoundRect(rectF, radius, radius, keyPaint)
-            if (pressed && (key.type == KeyType.ENTER ||
+            if (press > 0f && (key.type == KeyType.ENTER ||
                     (key.code == Codes.SHIFT && shiftState == ShiftState.CAPSLOCK))
             ) {
-                keyPaint.color = 0x33000000
+                keyPaint.color = ((0x33 * press).toInt() shl 24)
                 canvas.drawRoundRect(rectF, radius, radius, keyPaint)
             }
 
@@ -305,6 +347,12 @@ class KeyboardView(context: Context) : View(context) {
             }
         }
 
+        val nowUp = SystemClock.uptimeMillis()
+        for (k in lastPressed) if (k !in nowPressed) releaseAnim[k] = nowUp
+        lastPressed.clear()
+        lastPressed.addAll(nowPressed)
+        if (releaseAnim.isNotEmpty()) postInvalidateOnAnimation()
+
         drawOneHandedControls(canvas, t)
         drawTrails(canvas, t)
         drawPopup(canvas, t)
@@ -331,6 +379,7 @@ class KeyboardView(context: Context) : View(context) {
             if (!ps.glide || ps.trail.size < 4) continue
             trailPaint.color = t.accent
             trailPaint.strokeWidth = dp(5f)
+            trailPaint.strokeCap = Paint.Cap.ROUND
             val n = ps.trail.size / 2
             var px = ps.trail[0]
             var py = ps.trail[1]
@@ -368,6 +417,9 @@ class KeyboardView(context: Context) : View(context) {
     private fun drawPopup(canvas: Canvas, t: KeyboardTheme) {
         val owner = popupOwner ?: return
         if (!owner.popupOpen || popupKeys.isEmpty()) return
+        shadowRect.set(popupRect)
+        shadowRect.offset(0f, dp(2f))
+        canvas.drawRoundRect(shadowRect, keyRadius, keyRadius, shadowPaint)
         keyPaint.color = t.previewBg
         canvas.drawRoundRect(popupRect, keyRadius, keyRadius, keyPaint)
         textPaint.textSize = popupRect.height() * 0.42f
@@ -405,6 +457,9 @@ class KeyboardView(context: Context) : View(context) {
         var top = kb.y - h - dp(8f)
         if (top < dp(2f)) top = dp(2f)
         rectF.set(left, top, left + w, top + h)
+        shadowRect.set(rectF)
+        shadowRect.offset(0f, dp(2f))
+        canvas.drawRoundRect(shadowRect, keyRadius, keyRadius, shadowPaint)
         keyPaint.color = t.previewBg
         canvas.drawRoundRect(rectF, keyRadius, keyRadius, keyPaint)
         textPaint.color = t.keyText

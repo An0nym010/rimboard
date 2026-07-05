@@ -3,6 +3,7 @@ package com.rimboard.keyboard.ui
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
@@ -136,7 +137,16 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     private fun refreshSlotColors() {
         val t = theme ?: return
         for (i in slots.indices) {
-            slots[i].setTextColor(if (i == boldIndex) t.accent else t.stripText)
+            val hl = i == boldIndex && slots[i].text.isNotEmpty()
+            slots[i].setTextColor(if (hl) t.accent else t.stripText)
+            if (hl) {
+                val pill = GradientDrawable()
+                pill.cornerRadius = dp(15).toFloat()
+                pill.setColor((t.accent and 0x00FFFFFF) or 0x22000000)
+                slots[i].background = pill
+            } else {
+                slots[i].background = null
+            }
         }
     }
 

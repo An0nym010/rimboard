@@ -1157,6 +1157,15 @@ class RimBoardService : InputMethodService(),
 
     // ---------------------------------------------------------------- emoji
 
+    private fun animatePanelIn(v: View) {
+        v.animate().cancel()
+        v.alpha = 0f
+        v.translationY = 10 * resources.displayMetrics.density
+        v.animate().alpha(1f).translationY(0f).setDuration(150)
+            .setInterpolator(android.view.animation.DecelerateInterpolator())
+            .start()
+    }
+
     private fun showEmoji() {
         val kv = keyboardView ?: return
         val ev = emojiView ?: return
@@ -1169,6 +1178,7 @@ class RimBoardService : InputMethodService(),
         editPanelView?.visibility = View.GONE
         kv.visibility = View.GONE
         ev.visibility = View.VISIBLE
+        animatePanelIn(ev)
     }
 
     private fun hideEmoji() {
@@ -1192,6 +1202,7 @@ class RimBoardService : InputMethodService(),
         editPanelView?.visibility = View.GONE
         kv.visibility = View.GONE
         cv.visibility = View.VISIBLE
+        animatePanelIn(cv)
     }
 
     private fun updateClipView() {
@@ -1212,6 +1223,7 @@ class RimBoardService : InputMethodService(),
         clipboardView?.visibility = View.GONE
         kv.visibility = View.GONE
         ep.visibility = View.VISIBLE
+        animatePanelIn(ep)
     }
 
     private fun pinnedFile() = File(UserData.dataDir(this), "pinned_clips.json")
