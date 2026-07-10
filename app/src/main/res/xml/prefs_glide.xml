@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <SwitchPreferenceCompat
+            android:key="glide_typing"
+            android:title="@string/pref_glide_title"
+            android:summary="@string/pref_glide_summary"
+            android:defaultValue="true" />
+
+    <SwitchPreferenceCompat
+        android:key="glide_trail"
+        android:title="@string/pref_glide_trail_title"
+        android:summary="@string/pref_glide_trail_summary"
+        android:defaultValue="true" />
+
+    <SwitchPreferenceCompat
+            android:key="space_cursor"
+            android:title="@string/pref_space_cursor_title"
+            android:summary="@string/pref_space_cursor_summary"
+            android:defaultValue="true" />
+
+</PreferenceScreen>

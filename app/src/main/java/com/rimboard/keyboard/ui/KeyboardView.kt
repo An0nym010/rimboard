@@ -145,6 +145,50 @@ class KeyboardView(context: Context) : View(context) {
     private val nowPressed = HashSet<Key>()
     private val releaseAnim = HashMap<Key, Long>()
 
+    private var bgBm: android.graphics.Bitmap? = null
+    private var bgBmStamp = -1
+
+    private fun drawBackgroundImage(canvas: Canvas) {
+        if (width == 0 || height == 0) return
+        val f = java.io.File(
+            com.rimboard.keyboard.engine.UserData.dataDir(context), "bg_image.jpg")
+        if (!f.exists()) {
+            bgBm = null
+            return
+        }
+        val stamp = BgImageState.version * 31 + width * 7 + height
+        if (bgBm == null || bgBmStamp != stamp) {
+            bgBm = try {
+                decodeCentered(f, width, height)
+            } catch (_: Exception) {
+                null
+            }
+            bgBmStamp = stamp
+        }
+        bgBm?.let { bm ->
+            canvas.drawBitmap(bm, 0f, 0f, null)
+            keyPaint.color = (bgDimAlpha shl 24)
+            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), keyPaint)
+        }
+    }
+
+    private fun decodeCentered(f: java.io.File, w: Int, h: Int): android.graphics.Bitmap? {
+        val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        android.graphics.BitmapFactory.decodeFile(f.path, bounds)
+        var sample = 1
+        while (bounds.outWidth / (sample * 2) >= w && bounds.outHeight / (sample * 2) >= h) sample *= 2
+        val opts = android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }
+        val raw = android.graphics.BitmapFactory.decodeFile(f.path, opts) ?: return null
+        val scale = maxOf(w.toFloat() / raw.width, h.toFloat() / raw.height)
+        val sw = (raw.width * scale).toInt().coerceAtLeast(w)
+        val sh = (raw.height * scale).toInt().coerceAtLeast(h)
+        val scaled = android.graphics.Bitmap.createScaledBitmap(raw, sw, sh, true)
+        if (scaled !== raw) raw.recycle()
+        val out = android.graphics.Bitmap.createBitmap(scaled, (sw - w) / 2, (sh - h) / 2, w, h)
+        if (out !== scaled) scaled.recycle()
+        return out
+    }
+
     private fun mixColor(a: Int, b: Int, f: Float): Int {
         if (f <= 0f) return a
         if (f >= 1f) return b
@@ -183,8 +227,11 @@ class KeyboardView(context: Context) : View(context) {
 
     private val pointers = SparseArray<PointerState>()
     private val uiHandler = Handler(Looper.getMainLooper())
-    private val longPressTimeoutMs =
+    var longPressTimeoutMs =
         minOf(ViewConfiguration.getLongPressTimeout(), 350).toLong()
+    var labelScale = 1f
+    var showTrail = true
+    var bgDimAlpha = 110
 
     private var popupOwner: PointerState? = null
     private var popupKeys: List<Key> = emptyList()
@@ -275,6 +322,7 @@ class KeyboardView(context: Context) : View(context) {
             )
         }
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bgPaint)
+        drawBackgroundImage(canvas)
         nowPressed.clear()
 
         for (kb in bounds) {
@@ -327,7 +375,7 @@ class KeyboardView(context: Context) : View(context) {
                     Icons.draw(canvas, keyIcon, rectF.centerX(), rectF.centerY(),
                         kb.h * 0.42f, textPaint.color)
                 } else {
-                textPaint.textSize = when {
+                textPaint.textSize = labelScale * when {
                     key.type == KeyType.SPACE -> if (incognito) kb.h * 0.38f else kb.h * 0.26f
                     key.type == KeyType.ENTER -> kb.h * 0.38f
                     key.type == KeyType.CHARACTER -> kb.h * 0.42f
@@ -376,7 +424,7 @@ class KeyboardView(context: Context) : View(context) {
     private fun drawTrails(canvas: Canvas, t: KeyboardTheme) {
         for (p in 0 until pointers.size()) {
             val ps = pointers.valueAt(p)
-            if (!ps.glide || ps.trail.size < 4) continue
+            if (!showTrail || !ps.glide || ps.trail.size < 4) continue
             trailPaint.color = t.accent
             trailPaint.strokeWidth = dp(5f)
             trailPaint.strokeCap = Paint.Cap.ROUND
@@ -787,4 +835,10 @@ class KeyboardView(context: Context) : View(context) {
         }
         return best
     }
+}
+
+/** Bumped whenever the background image file changes, so the view reloads it. */
+object BgImageState {
+    @Volatile
+    var version = 0
 }

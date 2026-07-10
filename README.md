@@ -19,6 +19,15 @@ Runs on any Android 8.0+ phone or tablet (API 26, ~97% of devices) — Samsung, 
 - **Themed navigation bar** — no white system-bar strip under a dark keyboard on 3-button-nav devices
 - **Emoji filtered per device** — emoji your Android version can't render are hidden instead of showing ▯ boxes
 
+## What's new in 2.4.0
+
+- **Settings, reorganized Gboard-style** — the flat list is now proper sub-screens with icons and back navigation: Preferences, Look and feel, Suggestions, Glide typing, Clipboard, Privacy, Statistics, Backup, About.
+- **Background image themes** — pick any photo as the keyboard background (permission-free document picker), with adjustable dimming so keys stay readable. Works over every theme.
+- **New controls** — number row for passwords, auto-space after punctuation, touch-and-hold delay, key text size, key sound volume, vibration strength (light/medium/strong), and a glide-trail toggle.
+- **Emoji fast-access row** — the idle suggestion bar now shows your recent emoji between the gear and clipboard; one tap inserts.
+- **System (auto) theme** — follows the device light/dark setting.
+- Fixed in this release's review: a strip-update regression that would have overwritten the incognito label with the idle bar.
+
 ## What's new in 2.3.0
 
 - **Dictionaries at full scale** — 200,000 words for English, Turkish, German, Spanish, French, Italian, Portuguese and Russian; 100,000 for the other 14 languages. Dictionaries now preload on a background thread, so the first keystroke never stalls.

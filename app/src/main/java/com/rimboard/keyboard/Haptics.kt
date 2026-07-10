@@ -28,12 +28,23 @@ object Haptics {
     }
 
     fun tap(view: View) {
+        val strength = com.rimboard.keyboard.settings.Prefs.hapticStrength(view.context)
         val v = vibrator(view.context)
+        val predefined = when (strength) {
+            "light" -> VibrationEffect.EFFECT_TICK
+            "strong" -> VibrationEffect.EFFECT_HEAVY_CLICK
+            else -> VibrationEffect.EFFECT_CLICK
+        }
+        val ms = when (strength) {
+            "light" -> 8L
+            "strong" -> 24L
+            else -> 15L
+        }
         when {
             v != null && v.hasVibrator() && Build.VERSION.SDK_INT >= 29 ->
-                v.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
+                v.vibrate(VibrationEffect.createPredefined(predefined))
             v != null && v.hasVibrator() ->
-                v.vibrate(VibrationEffect.createOneShot(15, VibrationEffect.DEFAULT_AMPLITUDE))
+                v.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE))
             else -> view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
         }
     }

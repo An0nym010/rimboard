@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <SwitchPreferenceCompat
+            android:key="suggestions"
+            android:title="@string/pref_suggestions_title"
+            android:summary="@string/pref_suggestions_summary"
+            android:defaultValue="true" />
+
+    <SwitchPreferenceCompat
+            android:key="autocorrect"
+            android:title="@string/pref_autocorrect_title"
+            android:summary="@string/pref_autocorrect_summary"
+            android:defaultValue="true" />
+
+    <SwitchPreferenceCompat
+            android:key="predictions"
+            android:title="@string/pref_predictions_title"
+            android:summary="@string/pref_predictions_summary"
+            android:defaultValue="true" />
+
+    <SwitchPreferenceCompat
+            android:key="learn_words"
+            android:title="@string/pref_learn_title"
+            android:summary="@string/pref_learn_summary"
+            android:defaultValue="true" />
+
+    <Preference
+            android:key="personal_dict"
+            android:icon="@drawable/ic_pref_book"
+            android:title="@string/pref_personal_dict_title"
+            android:summary="@string/pref_personal_dict_summary" />
+
+    <Preference
+            android:key="text_shortcuts"
+            android:icon="@drawable/ic_pref_bolt"
+            android:title="@string/pref_shortcuts_title"
+            android:summary="@string/pref_shortcuts_summary" />
+
+</PreferenceScreen>

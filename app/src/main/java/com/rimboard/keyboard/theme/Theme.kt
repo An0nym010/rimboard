@@ -64,6 +64,11 @@ object Themes {
     )
 
 
+    private fun isNightMode(context: Context): Boolean =
+        (context.resources.configuration.uiMode and
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+
     private fun highContrast() = KeyboardTheme(
         background = 0xFF000000.toInt(),
         keyBg = 0xFF1C1C1C.toInt(),
@@ -148,6 +153,7 @@ object Themes {
         val night = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
             Configuration.UI_MODE_NIGHT_YES
         return when (pref) {
+            "system" -> if (isNightMode(context)) dark() else light()
             "light" -> light()
             "dark" -> dark()
             "amoled" -> amoled()

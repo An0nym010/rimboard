@@ -94,6 +94,7 @@ class RimBoardService : InputMethodService(),
 
     // per-editor flags
     private var isPassword = false
+    private var pendingPunctSpace = false
     private var fieldNoLearning = false
     private var fieldNoSuggestions = false
     private var isEmailOrUri = false
@@ -352,6 +353,22 @@ class RimBoardService : InputMethodService(),
                 "fast" -> { kv.repeatInitialMs = 200L; kv.repeatIntervalMs = 32L }
                 else -> { kv.repeatInitialMs = 300L; kv.repeatIntervalMs = 50L }
             }
+            kv.showTrail = Prefs.glideTrail(this)
+            kv.labelScale = when (Prefs.labelSize(this)) {
+                "small" -> 0.9f
+                "large" -> 1.12f
+                else -> 1f
+            }
+            kv.longPressTimeoutMs = when (Prefs.longPressDelay(this)) {
+                "short" -> 240L
+                "long" -> 430L
+                else -> minOf(android.view.ViewConfiguration.getLongPressTimeout(), 350).toLong()
+            }
+            kv.bgDimAlpha = when (Prefs.bgDim(this)) {
+                "light" -> 60
+                "strong" -> 165
+                else -> 110
+            }
             kv.hapticFeedback = Prefs.haptic(this)
             kv.oneHanded = (if (Prefs.floating(this)) 0 else Prefs.oneHanded(this))
             kv.keyHeightFactor = Prefs.heightFactor(this)
@@ -428,7 +445,7 @@ class RimBoardService : InputMethodService(),
     private fun applyLayout() {
         val kv = keyboardView ?: return
         hideEmoji()
-        val numberRow = Prefs.numberRow(this)
+        val numberRow = Prefs.numberRow(this) || (isPassword && Prefs.numberRowPasswords(this))
         val showGlobe = langs.size > 1
         val lay: KeyboardLayout = when (kind) {
             LayoutKind.MAIN ->
@@ -609,7 +626,12 @@ class RimBoardService : InputMethodService(),
             Codes.ENTER -> AudioManager.FX_KEYPRESS_RETURN
             else -> AudioManager.FX_KEYPRESS_STANDARD
         }
-        am.playSoundEffect(fx, 1.0f)
+        val vol = when (Prefs.soundVolume(this)) {
+            "quiet" -> 0.25f
+            "loud" -> 1.0f
+            else -> 0.6f
+        }
+        am.playSoundEffect(fx, vol)
     }
 
     // ---------------------------------------------------------------- typing
@@ -619,6 +641,13 @@ class RimBoardService : InputMethodService(),
     private fun isSeparator(c: Char): Boolean = c == ' ' || c in ".,;:!?)]}\u2026"
 
     private fun typeText(raw: String) {
+        if (raw.length == 1) {
+            val ch = raw[0]
+            if (pendingPunctSpace && ch.isLetter()) currentInputConnection?.commitText(" ", 1)
+            pendingPunctSpace = Prefs.autoSpacePunct(this) && ch in ".,!?;:"
+        } else {
+            pendingPunctSpace = false
+        }
         val text = applyShift(raw)
         revert = null
         autoSpace = false
@@ -752,6 +781,7 @@ class RimBoardService : InputMethodService(),
 
     private fun handleBackspace() {
         Stats.backspace(this)
+        pendingPunctSpace = false
         val ic = currentInputConnection ?: return
         if (revert != null && composing.isEmpty()) {
             // backspace right after an autocorrect restores the original word
@@ -863,7 +893,11 @@ class RimBoardService : InputMethodService(),
         val s = strip ?: return
         if (isIncognito()) {
             if (composing.isEmpty()) s.showIncognito(getString(R.string.incognito_label))
-            else s.showEmpty()
+            else {
+                s.setRecentEmojis(if (Prefs.emojiRow(this))
+                    Prefs.emojiRecents(this).take(6) else emptyList())
+                s.showEmpty()
+            }
             return
         }
         if (!suggestionsActive) {
@@ -927,6 +961,7 @@ class RimBoardService : InputMethodService(),
         if (clipChipEligible()) {
             s.showClipboard(L10n.wrap(this).getString(android.R.string.paste))
         } else {
+            s.setRecentEmojis(if (Prefs.emojiRow(this)) Prefs.emojiRecents(this).take(6) else emptyList())
             s.showEmpty()
         }
     }
@@ -1377,6 +1412,10 @@ class RimBoardService : InputMethodService(),
             updateStrip()
         }
         pw.showAsDropDown(anchor, 0, -(anchor.height * 5) / 2)
+    }
+
+    override fun onQuickEmoji(emoji: String) {
+        currentInputConnection?.commitText(emoji, 1)
     }
 
     override fun onQuickAction(code: Int) {

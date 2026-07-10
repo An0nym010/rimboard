@@ -132,4 +132,44 @@
         <item>normal</item>
         <item>fast</item>
     </string-array>
+    <string-array name="lp_entries">
+        <item>@string/lp_short</item>
+        <item>@string/lp_normal</item>
+        <item>@string/lp_long</item>
+    </string-array>
+    <string-array name="lp_values">
+        <item>short</item>
+        <item>normal</item>
+        <item>long</item>
+    </string-array>
+    <string-array name="ls_entries">
+        <item>@string/ls_small</item>
+        <item>@string/ls_normal</item>
+        <item>@string/ls_large</item>
+    </string-array>
+    <string-array name="ls_values">
+        <item>small</item>
+        <item>normal</item>
+        <item>large</item>
+    </string-array>
+    <string-array name="vol_entries">
+        <item>@string/vol_quiet</item>
+        <item>@string/vol_normal</item>
+        <item>@string/vol_loud</item>
+    </string-array>
+    <string-array name="vol_values">
+        <item>quiet</item>
+        <item>normal</item>
+        <item>loud</item>
+    </string-array>
+    <string-array name="hs_entries">
+        <item>@string/hs_light</item>
+        <item>@string/hs_medium</item>
+        <item>@string/hs_strong</item>
+    </string-array>
+    <string-array name="hs_values">
+        <item>light</item>
+        <item>medium</item>
+        <item>strong</item>
+    </string-array>
 </resources>

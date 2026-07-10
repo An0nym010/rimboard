@@ -34,6 +34,15 @@ object Prefs {
     const val KEY_CLIP_TIMEOUT = "clip_timeout"
     const val KEY_FLOATING = "floating_keyboard"
     const val KEY_REPEAT_SPEED = "key_repeat_speed"
+    const val KEY_NR_PASS = "number_row_passwords"
+    const val KEY_AUTOSPACE = "auto_space_punct"
+    const val KEY_LONGPRESS = "long_press_delay"
+    const val KEY_LABEL_SIZE = "label_size"
+    const val KEY_SOUND_VOL = "sound_volume"
+    const val KEY_HAPTIC_STR = "haptic_strength"
+    const val KEY_EMOJI_ROW = "emoji_row"
+    const val KEY_GLIDE_TRAIL = "glide_trail"
+    const val KEY_BG_DIM = "bg_dim"
     const val KEY_CC_BG = "cc_bg"
     const val KEY_CC_KEY = "cc_key"
     const val KEY_CC_TEXT = "cc_text"
@@ -88,6 +97,16 @@ object Prefs {
 
 
     fun floating(c: Context) = get(c).getBoolean(KEY_FLOATING, false)
+
+    fun numberRowPasswords(c: Context) = get(c).getBoolean(KEY_NR_PASS, true)
+    fun autoSpacePunct(c: Context) = get(c).getBoolean(KEY_AUTOSPACE, false)
+    fun longPressDelay(c: Context): String = get(c).getString(KEY_LONGPRESS, "normal") ?: "normal"
+    fun labelSize(c: Context): String = get(c).getString(KEY_LABEL_SIZE, "normal") ?: "normal"
+    fun soundVolume(c: Context): String = get(c).getString(KEY_SOUND_VOL, "normal") ?: "normal"
+    fun hapticStrength(c: Context): String = get(c).getString(KEY_HAPTIC_STR, "medium") ?: "medium"
+    fun emojiRow(c: Context) = get(c).getBoolean(KEY_EMOJI_ROW, true)
+    fun glideTrail(c: Context) = get(c).getBoolean(KEY_GLIDE_TRAIL, true)
+    fun bgDim(c: Context): String = get(c).getString(KEY_BG_DIM, "medium") ?: "medium"
 
     fun repeatSpeed(c: Context): String =
         get(c).getString(KEY_REPEAT_SPEED, "normal") ?: "normal"

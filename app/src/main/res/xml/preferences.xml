@@ -2,10 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <PreferenceCategory
-        android:title="@string/cat_languages">
-
-        <MultiSelectListPreference
+    <MultiSelectListPreference
             android:key="languages"
             android:icon="@drawable/ic_pref_globe"
             android:title="@string/pref_languages_title"
@@ -13,213 +10,50 @@
             android:entries="@array/lang_entries"
             android:entryValues="@array/lang_values"
             android:defaultValue="@array/lang_default" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:title="@string/cat_look">
-
-        <ListPreference
-            android:key="theme"
-            android:icon="@drawable/ic_pref_palette"
-            android:title="@string/pref_theme_title"
-            android:entries="@array/theme_entries"
-            android:entryValues="@array/theme_values"
-            android:defaultValue="system"
-            app:useSimpleSummaryProvider="true" />
 
     <Preference
-        android:key="custom_colors"
-        android:icon="@drawable/ic_pref_droplet"
-        android:title="@string/pref_custom_colors_title"
-        android:summary="@string/pref_custom_colors_summary" />
+        android:key="screen_general"
+        android:icon="@drawable/ic_pref_tune"
+        android:title="@string/screen_general" />
 
-        <ListPreference
-            android:key="height"
-            android:icon="@drawable/ic_pref_keyboard"
-            android:title="@string/pref_height_title"
-            android:entries="@array/height_entries"
-            android:entryValues="@array/height_values"
-            android:defaultValue="1.0"
-            app:useSimpleSummaryProvider="true" />
+    <Preference
+        android:key="screen_theme"
+        android:icon="@drawable/ic_pref_palette"
+        android:title="@string/cat_look" />
 
-        <ListPreference
-            android:key="key_repeat_speed"
-            android:title="@string/pref_repeat_title"
-            android:entries="@array/repeat_entries"
-            android:entryValues="@array/repeat_values"
-            android:defaultValue="normal"
-            app:useSimpleSummaryProvider="true" />
+    <Preference
+        android:key="screen_corrections"
+        android:icon="@drawable/ic_pref_spellcheck"
+        android:title="@string/cat_suggestions" />
 
-        <SwitchPreferenceCompat
-            android:key="number_row"
-            android:title="@string/pref_number_row_title"
-            android:summary="@string/pref_number_row_summary"
-            android:defaultValue="false" />
+    <Preference
+        android:key="screen_glide"
+        android:icon="@drawable/ic_pref_glide"
+        android:title="@string/pref_glide_title" />
 
-        <SwitchPreferenceCompat
-            android:key="popup_preview"
-            android:title="@string/pref_popup_title"
-            android:summary="@string/pref_popup_summary"
-            android:defaultValue="true" />
-    </PreferenceCategory>
+    <Preference
+        android:key="screen_clipboard"
+        android:icon="@drawable/ic_pref_clipboard"
+        android:title="@string/screen_clipboard" />
 
-    <PreferenceCategory
-        android:title="@string/cat_typing">
+    <Preference
+        android:key="screen_privacy"
+        android:icon="@drawable/ic_pref_shield"
+        android:title="@string/cat_privacy" />
 
-        <SwitchPreferenceCompat
-            android:key="glide_typing"
-            android:title="@string/pref_glide_title"
-            android:summary="@string/pref_glide_summary"
-            android:defaultValue="true" />
-
-        <SwitchPreferenceCompat
-            android:key="autocaps"
-            android:title="@string/pref_autocaps_title"
-            android:summary="@string/pref_autocaps_summary"
-            android:defaultValue="true" />
-
-        
-
-        
-
-        <SwitchPreferenceCompat
-            android:key="double_space"
-            android:title="@string/pref_double_space_title"
-            android:summary="@string/pref_double_space_summary"
-            android:defaultValue="true" />
-
-        <SwitchPreferenceCompat
-            android:key="space_cursor"
-            android:title="@string/pref_space_cursor_title"
-            android:summary="@string/pref_space_cursor_summary"
-            android:defaultValue="true" />
-    
-        <Preference
+    <Preference
             android:key="typing_stats"
             android:icon="@drawable/ic_pref_chart"
             android:title="@string/pref_stats_title" />
 
-    </PreferenceCategory>
+    <Preference
+        android:key="screen_backup"
+        android:icon="@drawable/ic_pref_export"
+        android:title="@string/cat_backup" />
 
-    <PreferenceCategory
-        android:title="@string/cat_suggestions">
-
-        <SwitchPreferenceCompat
-            android:key="suggestions"
-            android:title="@string/pref_suggestions_title"
-            android:summary="@string/pref_suggestions_summary"
-            android:defaultValue="true" />
-
-        <SwitchPreferenceCompat
-            android:key="autocorrect"
-            android:title="@string/pref_autocorrect_title"
-            android:summary="@string/pref_autocorrect_summary"
-            android:defaultValue="true" />
-
-        <SwitchPreferenceCompat
-            android:key="predictions"
-            android:title="@string/pref_predictions_title"
-            android:summary="@string/pref_predictions_summary"
-            android:defaultValue="true" />
-
-        <SwitchPreferenceCompat
-            android:key="learn_words"
-            android:title="@string/pref_learn_title"
-            android:summary="@string/pref_learn_summary"
-            android:defaultValue="true" />
-
-        <Preference
-            android:key="personal_dict"
-            android:icon="@drawable/ic_pref_book"
-            android:title="@string/pref_personal_dict_title"
-            android:summary="@string/pref_personal_dict_summary" />
-
-        <Preference
-            android:key="text_shortcuts"
-            android:icon="@drawable/ic_pref_bolt"
-            android:title="@string/pref_shortcuts_title"
-            android:summary="@string/pref_shortcuts_summary" />
-
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:title="@string/cat_feedback">
-
-        <SwitchPreferenceCompat
-            android:key="haptic"
-            android:title="@string/pref_haptic_title"
-            android:summary="@string/pref_haptic_summary"
-            android:defaultValue="true" />
-
-        <SwitchPreferenceCompat
-            android:key="sound"
-            android:title="@string/pref_sound_title"
-            android:defaultValue="false" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:title="@string/cat_privacy">
-
-        <SwitchPreferenceCompat
-            android:key="clipboard_suggest"
-            android:title="@string/pref_clipboard_title"
-            android:summary="@string/pref_clipboard_summary"
-            android:defaultValue="true" />
-
-    <ListPreference
-        android:key="clip_timeout"
-        android:icon="@drawable/ic_pref_clipboard"
-        android:title="@string/pref_clip_timeout_title"
-        android:entries="@array/clip_timeout_entries"
-        android:entryValues="@array/clip_timeout_values"
-        android:defaultValue="0"
-        app:useSimpleSummaryProvider="true" />
-
-        <SwitchPreferenceCompat
-            android:key="incognito_always"
-            android:icon="@drawable/ic_pref_shield"
-            android:title="@string/pref_incognito_title"
-            android:summary="@string/pref_incognito_summary"
-            android:defaultValue="false" />
-
-        <Preference
-            android:key="clear_learned"
-            android:title="@string/pref_clear_learned_title"
-            android:summary="@string/pref_clear_learned_summary" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:title="@string/cat_backup">
-
-        <Preference
-            android:key="backup_export"
-            android:icon="@drawable/ic_pref_export"
-            android:title="@string/pref_export_title"
-            android:summary="@string/pref_export_summary" />
-
-        <Preference
-            android:key="backup_import"
-            android:icon="@drawable/ic_pref_import"
-            android:title="@string/pref_import_title"
-            android:summary="@string/pref_import_summary" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:title="@string/cat_about">
-
-        <Preference
-            android:key="version"
-            android:icon="@drawable/ic_pref_info"
-            android:title="@string/pref_version_title" />
-
-        <Preference
-            android:key="source"
-            android:title="@string/pref_source_title"
-            android:summary="@string/pref_source_summary">
-            <intent
-                android:action="android.intent.action.VIEW"
-                android:data="https://github.com/rimboard/RimBoard" />
-        </Preference>
-    </PreferenceCategory>
+    <Preference
+        android:key="screen_about"
+        android:icon="@drawable/ic_pref_info"
+        android:title="@string/cat_about" />
 
 </PreferenceScreen>

@@ -22,6 +22,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         fun onClipboardPasteRequested()
         fun onClipboardPanelRequested()
         fun onQuickAction(code: Int)
+        fun onQuickEmoji(emoji: String)
         fun onSuggestionLongPressed(word: String, anchor: View)
     }
 
@@ -35,6 +36,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     private val settingsBtn: IconView
     private val clipboardBtn: IconView
     private val centerBox: LinearLayout
+    private val emojiRow: LinearLayout
     private val incogIcon: IconView
     private var boldIndex = -1
 
@@ -68,6 +70,13 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             gravity = Gravity.CENTER
             visibility = GONE
         }
+        emojiRow = LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            gravity = Gravity.CENTER
+            visibility = GONE
+        }
+        centerBox.addView(emojiRow,
+            LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
         centerBox.addView(clipChip,
             LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
         addView(centerBox, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
@@ -178,8 +187,22 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
 
     fun showClipboard(label: String) {
         showEmpty()
+        emojiRow.visibility = GONE
         clipChip.text = label
         clipChip.visibility = VISIBLE
+    }
+
+    fun setRecentEmojis(emojis: List<String>) {
+        emojiRow.removeAllViews()
+        for (e in emojis) {
+            emojiRow.addView(TextView(context).apply {
+                text = e
+                gravity = Gravity.CENTER
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 19f)
+                setPadding(dp(7), 0, dp(7), 0)
+                setOnClickListener { listener?.onQuickEmoji(e) }
+            }, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
+        }
     }
 
     fun showEmpty() {
@@ -187,6 +210,8 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         settingsBtn.visibility = VISIBLE
         centerBox.visibility = VISIBLE
         clipboardBtn.visibility = VISIBLE
+        clipChip.visibility = GONE
+        emojiRow.visibility = if (emojiRow.childCount > 0) VISIBLE else GONE
     }
 
     private fun hideAll() {
@@ -195,6 +220,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         settingsBtn.visibility = GONE
         centerBox.visibility = GONE
         clipChip.visibility = GONE
+        emojiRow.visibility = GONE
         clipboardBtn.visibility = GONE
         centerLabel.visibility = GONE
         incogIcon.visibility = GONE

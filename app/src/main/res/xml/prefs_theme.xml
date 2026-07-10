@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ListPreference
+            android:key="theme"
+            android:icon="@drawable/ic_pref_palette"
+            android:title="@string/pref_theme_title"
+            android:entries="@array/theme_entries"
+            android:entryValues="@array/theme_values"
+            android:defaultValue="system"
+            app:useSimpleSummaryProvider="true" />
+
+    <Preference
+        android:key="custom_colors"
+        android:icon="@drawable/ic_pref_droplet"
+        android:title="@string/pref_custom_colors_title"
+        android:summary="@string/pref_custom_colors_summary" />
+
+    <Preference
+        android:key="bg_pick"
+        android:icon="@drawable/ic_pref_image"
+        android:title="@string/pref_bg_image_title"
+        android:summary="@string/pref_bg_image_summary" />
+
+    <ListPreference
+        android:key="bg_dim"
+        android:title="@string/pref_bg_dim_title"
+        android:entries="@array/hs_entries"
+        android:entryValues="@array/hs_values"
+        android:defaultValue="medium"
+        app:useSimpleSummaryProvider="true" />
+
+    <Preference
+        android:key="bg_clear"
+        android:title="@string/pref_bg_clear_title"
+ />
+
+</PreferenceScreen>

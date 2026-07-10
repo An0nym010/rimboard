@@ -118,7 +118,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val CONTAINER_ID = 0x0A11CE
+        const val CONTAINER_ID = 0x0A11CE
     }
 
     class SettingsFragment : PreferenceFragmentCompat() {
@@ -131,9 +131,45 @@ class SettingsActivity : AppCompatActivity() {
             ActivityResultContracts.OpenDocument()
         ) { uri -> if (uri != null) confirmRestore(uri) }
 
+        private val bgLauncher = registerForActivityResult(
+            ActivityResultContracts.OpenDocument()
+        ) { uri -> if (uri != null) saveBackgroundImage(uri) }
+
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             preferenceManager.setStorageDeviceProtected()
-            setPreferencesFromResource(R.xml.preferences, rootKey)
+            val xmlRes = arguments?.getInt(ARG_XML, 0)?.takeIf { it != 0 } ?: R.xml.preferences
+            setPreferencesFromResource(xmlRes, rootKey)
+            val screens = mapOf(
+                "screen_general" to R.xml.prefs_general,
+                "screen_theme" to R.xml.prefs_theme,
+                "screen_corrections" to R.xml.prefs_corrections,
+                "screen_glide" to R.xml.prefs_glide,
+                "screen_clipboard" to R.xml.prefs_clipboard,
+                "screen_privacy" to R.xml.prefs_privacy,
+                "screen_backup" to R.xml.prefs_backup,
+                "screen_about" to R.xml.prefs_about
+            )
+            for ((key, res) in screens) {
+                findPreference<Preference>(key)?.setOnPreferenceClickListener {
+                    parentFragmentManager.beginTransaction()
+                        .replace(SettingsActivity.CONTAINER_ID, newInstance(res))
+                        .addToBackStack(null)
+                        .commit()
+                    true
+                }
+            }
+            findPreference<Preference>("bg_pick")?.setOnPreferenceClickListener {
+                bgLauncher.launch(arrayOf("image/*"))
+                true
+            }
+            findPreference<Preference>("bg_clear")?.setOnPreferenceClickListener {
+                java.io.File(com.rimboard.keyboard.engine.UserData.dataDir(requireContext()),
+                    "bg_image.jpg").delete()
+                com.rimboard.keyboard.ui.BgImageState.version++
+                android.widget.Toast.makeText(requireContext(),
+                    R.string.bg_removed, android.widget.Toast.LENGTH_SHORT).show()
+                true
+            }
             findPreference<Preference>("personal_dict")?.setOnPreferenceClickListener {
                 startActivity(Intent(requireContext(), PersonalDictActivity::class.java))
                 true
@@ -248,6 +284,35 @@ class SettingsActivity : AppCompatActivity() {
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
         }
+
+        private fun saveBackgroundImage(uri: android.net.Uri) {
+            try {
+                val ctx = requireContext()
+                val bytes = ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return
+                val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                var sample = 1
+                while (bounds.outWidth / sample > 1600 || bounds.outHeight / sample > 1600) sample *= 2
+                val opts = android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }
+                val bm = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts) ?: return
+                val f = java.io.File(com.rimboard.keyboard.engine.UserData.dataDir(ctx), "bg_image.jpg")
+                java.io.FileOutputStream(f).use {
+                    bm.compress(android.graphics.Bitmap.CompressFormat.JPEG, 88, it)
+                }
+                bm.recycle()
+                com.rimboard.keyboard.ui.BgImageState.version++
+                android.widget.Toast.makeText(ctx, R.string.bg_saved,
+                    android.widget.Toast.LENGTH_SHORT).show()
+            } catch (_: Exception) {
+            }
+        }
+        companion object {
+            private const val ARG_XML = "xml"
+            fun newInstance(res: Int) = SettingsFragment().apply {
+                arguments = Bundle().apply { putInt(ARG_XML, res) }
+            }
+        }
+
 
         private fun runExport(uri: Uri) {
             val ok = Backup.export(requireContext(), uri)
