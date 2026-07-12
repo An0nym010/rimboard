@@ -33,6 +33,22 @@ class Dictionary(context: Context, lang: String, private val locale: Locale) {
         } catch (_: Exception) {
             // Missing dictionary: keyboard still works, just without suggestions.
         }
+        try {
+            val userFile = java.io.File(UserData.dataDir(context), "userdict_" + lang + ".txt")
+            if (userFile.exists()) {
+                val seen = HashSet<String>(entries.size * 2)
+                for (e in entries) seen.add(e.first)
+                userFile.forEachLine { line ->
+                    val sp = line.indexOf(' ')
+                    if (sp > 0) {
+                        val w = line.substring(0, sp)
+                        val f = line.substring(sp + 1).trim().toIntOrNull() ?: 0
+                        if (w.isNotEmpty() && w.length <= 24 && seen.add(w)) entries.add(w to f)
+                    }
+                }
+            }
+        } catch (_: Exception) {
+        }
         entries.sortBy { it.first }
         words = Array(entries.size) { entries[it].first }
         freqs = IntArray(entries.size) { entries[it].second }

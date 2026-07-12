@@ -31,21 +31,23 @@
             android:defaultValue="normal"
             app:useSimpleSummaryProvider="true" />
 
-    <ListPreference
-        android:key="long_press_delay"
-        android:title="@string/pref_longpress_title"
-        android:entries="@array/lp_entries"
-        android:entryValues="@array/lp_values"
-        android:defaultValue="normal"
-        app:useSimpleSummaryProvider="true" />
+    <SeekBarPreference
+        android:key="long_press_ms"
+        android:title="@string/pref_lpms_title"
+        app:min="150"
+        android:max="500"
+        android:defaultValue="300"
+        app:showSeekBarValue="true" />
 
-    <ListPreference
-        android:key="label_size"
-        android:title="@string/pref_label_size_title"
-        android:entries="@array/ls_entries"
-        android:entryValues="@array/ls_values"
-        android:defaultValue="normal"
-        app:useSimpleSummaryProvider="true" />
+    <SeekBarPreference
+        android:key="label_scale_pct"
+        android:title="@string/pref_labelpct_title"
+        app:min="80"
+        android:max="130"
+        android:defaultValue="100"
+        app:showSeekBarValue="true" />
+
+
 
     <SwitchPreferenceCompat
             android:key="popup_preview"
@@ -76,6 +78,13 @@
         android:title="@string/pref_emoji_row_title"
         android:summary="@string/pref_emoji_row_summary"
         android:defaultValue="true" />
+
+    <MultiSelectListPreference
+        android:key="toolbar_keys"
+        android:title="@string/pref_toolbar_title"
+        android:summary="@string/pref_toolbar_summary"
+        android:entries="@array/toolbar_entries"
+        android:entryValues="@array/toolbar_values" />
 
     <SwitchPreferenceCompat
             android:key="haptic"

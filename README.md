@@ -19,6 +19,18 @@ Runs on any Android 8.0+ phone or tablet (API 26, ~97% of devices) — Samsung, 
 - **Themed navigation bar** — no white system-bar strip under a dark keyboard on 3-button-nav devices
 - **Emoji filtered per device** — emoji your Android version can't render are hidden instead of showing ▯ boxes
 
+## What's new in 2.5.0
+
+- **Split keyboard** — off, landscape-only, or always; letter rows part around a centered gap while the bottom row stays full-width.
+- **Custom font** — load any .ttf for key labels; plus a key-borders toggle (borderless mode), narrow key gaps, side and bottom padding sliders, and custom space-bar text.
+- **Toolbar keys** — pick up to twelve actions for the idle suggestion bar: undo, redo, copy, paste, cut, select all, one-handed, incognito, edit panel, floating, numpad, hide keyboard.
+- **Spacebar gestures** — horizontal swipe moves the cursor or switches language; vertical swipe can hide the keyboard; long-press cycles languages or opens the input-method picker.
+- **Smarter behaviors** — .com/.net/.org popups on the period key in URL and email fields, per-app language memory, auto-return from symbols after space, optional return after emoji or clipboard picks, long-press symbols for the numpad, and customizable currency symbols.
+- **Offensive-word filter** — profanity is never suggested or autocorrected to (English and Turkish lists, on by default, toggleable).
+- **Import dictionary from file** — load any “word frequency” text file into the current language; useful for unsupported languages and personal corpora.
+- **Precision controls** — touch-and-hold delay in milliseconds and key text size in percent, both as sliders.
+- New settings are localized in English and Turkish; other interface languages temporarily fall back to English for the new items.
+
 ## What's new in 2.4.0
 
 - **Settings, reorganized Gboard-style** — the flat list is now proper sub-screens with icons and back navigation: Preferences, Look and feel, Suggestions, Glide typing, Clipboard, Privacy, Statistics, Backup, About.

@@ -265,12 +265,12 @@ object Layouts {
 
     // ---------- symbols ----------
 
-    fun symbols(locale: Locale): KeyboardLayout {
+    fun symbols(locale: Locale, currencies: String = "\u0024\u20BA\u20AC\u00A3\u00A5"): KeyboardLayout {
         val rows = mutableListOf<Row>()
         rows += Row(chars("1234567890"))
         rows += Row(listOf(
             k('@'), k('#'),
-            k('$', "\u20BA\u20AC\u00A3\u00A5\u00A2"),
+            k(currencies[0], currencies.drop(1) + "\u00A2"),
             k('_'), k('&'),
             k('-', "\u2013\u2014\u00B7"),
             k('+', "\u00B1"),

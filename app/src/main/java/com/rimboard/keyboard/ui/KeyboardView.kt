@@ -7,6 +7,7 @@ import android.graphics.Canvas
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Shader
+import android.graphics.Typeface
 import android.os.SystemClock
 import android.graphics.RectF
 import android.os.Handler
@@ -35,6 +36,9 @@ class KeyboardView(context: Context) : View(context) {
         fun onPopupKeySelected(key: Key)
         fun onCursorMove(steps: Int)
         fun onKeyDownFeedback(key: Key)
+        fun onLanguageSwipe(direction: Int)
+        fun onHideKeyboard()
+        fun onSpaceLongPress()
         fun onGlideComplete(sequence: String)
         fun onOneHandedChanged(mode: Int)
         fun onBackspaceWord()
@@ -132,7 +136,7 @@ class KeyboardView(context: Context) : View(context) {
 
     private val gapX = dp(3f)
     private val gapY = dp(5f)
-    private val sidePad = dp(3f)
+    private val baseSidePad = dp(3f)
     private val topPad = dp(6f)
     private val bottomPad = dp(5f)
     private val keyRadius = dp(9f)
@@ -211,6 +215,7 @@ class KeyboardView(context: Context) : View(context) {
     private class PointerState(val kb: KeyBounds, val downX: Float, val downY: Float) {
         var cancelled = false
         var cursorMode = false
+        var langSwiped = false
         var cursorLastX = 0f
         var popupOpen = false
         var popupIndex = 0
@@ -232,6 +237,17 @@ class KeyboardView(context: Context) : View(context) {
     var labelScale = 1f
     var showTrail = true
     var bgDimAlpha = 110
+    var keyBorders = true
+    var narrowGaps = false
+    var splitFraction = 0f
+    var sidePadPct = 0
+    var bottomPadPct = 0
+    var customTypeface: Typeface? = null
+    var spaceSwipeH = 1      // 0 none, 1 cursor, 2 language
+    var spaceSwipeV = 0      // 0 none, 1 hide keyboard
+    var spaceLongPressMode = 1 // 0 none, 1 handled by listener
+    var numpadOnSymbolsLongPress = false
+    var tldPopups = false
 
     private var popupOwner: PointerState? = null
     private var popupKeys: List<Key> = emptyList()
@@ -258,7 +274,7 @@ class KeyboardView(context: Context) : View(context) {
 
     fun measureKeyboardHeight(): Int {
         val rows = layout?.rows?.size ?: 4
-        return (rows * rowHeightPx() + (rows - 1) * gapY + topPad + bottomPad).toInt()
+        return (((rows * rowHeightPx() + (rows - 1) * gapY + topPad + bottomPad).toInt()) + dp(4f) * bottomPadPct).toInt()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -277,24 +293,35 @@ class KeyboardView(context: Context) : View(context) {
         expandBtn.setEmpty()
         val lay = layout ?: return
         val mode = effectiveOneHanded()
+        val sidePad = baseSidePad + w * sidePadPct / 100f
         val contentW = if (mode == 0) w.toFloat() else w * 0.82f
         val offsetX = if (mode == 2) w - contentW else 0f
         val rowH = rowHeightPx()
         val innerW = contentW - 2 * sidePad
         val unit = innerW / lay.unitsPerRow
         var y = topPad
-        for (row in lay.rows) {
+        for ((rowIndex, row) in lay.rows.withIndex()) {
             var rowUnits = 0f
             for (key in row.keys) rowUnits += key.width
-            var x = offsetX + sidePad + (lay.unitsPerRow - rowUnits) * unit / 2f
+            val splitting = splitFraction > 0f && rowIndex < lay.rows.size - 1
+            val s = if (splitting) 1f - splitFraction else 1f
+            val gapPx = if (splitting) innerW * splitFraction else 0f
+            var x = offsetX + sidePad + (innerW - rowUnits * unit * s - gapPx) / 2f
+            var acc = 0f
+            var gapInserted = false
             for (key in row.keys) {
+                if (splitting && !gapInserted && acc >= rowUnits / 2f - 0.01f) {
+                    x += gapPx
+                    gapInserted = true
+                }
                 val kb = KeyBounds(key)
                 kb.x = x
                 kb.y = y
-                kb.w = key.width * unit
+                kb.w = key.width * unit * s
                 kb.h = rowH
                 bounds.add(kb)
                 x += kb.w
+                acc += key.width
             }
             y += rowH + gapY
         }
@@ -322,6 +349,11 @@ class KeyboardView(context: Context) : View(context) {
             )
         }
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bgPaint)
+        val tf = customTypeface ?: Typeface.DEFAULT
+        if (textPaint.typeface !== tf) {
+            textPaint.typeface = tf
+            hintPaint.typeface = tf
+        }
         drawBackgroundImage(canvas)
         nowPressed.clear()
 
@@ -345,15 +377,18 @@ class KeyboardView(context: Context) : View(context) {
                 else -> mixColor(t.keyBg, t.keyBgPressed, press)
             }
             keyPaint.color = bgColor
-            rectF.set(kb.x + gapX / 2f, kb.y, kb.x + kb.w - gapX / 2f, kb.y + kb.h)
+            val gap = if (narrowGaps) gapX * 0.45f else gapX
+            rectF.set(kb.x + gap / 2f, kb.y, kb.x + kb.w - gap / 2f, kb.y + kb.h)
             if (press > 0f) {
                 rectF.inset(rectF.width() * 0.018f * press, rectF.height() * 0.018f * press)
             }
             val radius = if (key.type == KeyType.ENTER) rectF.height() / 2f else keyRadius
-            shadowRect.set(rectF)
-            shadowRect.offset(0f, dp(1.4f))
-            canvas.drawRoundRect(shadowRect, radius, radius, shadowPaint)
-            canvas.drawRoundRect(rectF, radius, radius, keyPaint)
+            if (keyBorders || press > 0f || key.type != KeyType.CHARACTER) {
+                shadowRect.set(rectF)
+                shadowRect.offset(0f, dp(1.4f))
+                canvas.drawRoundRect(shadowRect, radius, radius, shadowPaint)
+                canvas.drawRoundRect(rectF, radius, radius, keyPaint)
+            }
             if (press > 0f && (key.type == KeyType.ENTER ||
                     (key.code == Codes.SHIFT && shiftState == ShiftState.CAPSLOCK))
             ) {
@@ -598,7 +633,28 @@ class KeyboardView(context: Context) : View(context) {
         val ps = pointers.get(pid) ?: return
         if (ps.cancelled) return
 
-        if (ps.kb.key.code == Codes.SPACE && spaceCursorEnabled) {
+        if (ps.kb.key.code == Codes.SPACE && !ps.cursorMode && !ps.cancelled) {
+            if (spaceSwipeH == 2 && !ps.langSwiped &&
+                abs(x - ps.downX) > ps.kb.w * 0.3f
+            ) {
+                ps.langSwiped = true
+                ps.cancelled = true
+                cancelTimers(ps)
+                if (previewKb === ps.kb) previewKb = null
+                listener?.onLanguageSwipe(if (x > ps.downX) 1 else -1)
+                invalidate()
+                return
+            }
+            if (spaceSwipeV == 1 && (y - ps.downY) > ps.kb.h * 0.9f) {
+                ps.cancelled = true
+                cancelTimers(ps)
+                if (previewKb === ps.kb) previewKb = null
+                listener?.onHideKeyboard()
+                invalidate()
+                return
+            }
+        }
+        if (ps.kb.key.code == Codes.SPACE && spaceSwipeH == 1) {
             if (!ps.cursorMode && abs(x - ps.downX) > dp(20f)) {
                 ps.cursorMode = true
                 ps.cursorLastX = x
@@ -769,9 +825,30 @@ class KeyboardView(context: Context) : View(context) {
         invalidate()
     }
 
+    private val tldKeys = listOf(
+        ".com", ".net", ".org", ".io", ".co", ".app", ".dev", ".tr", ".edu", ".gov"
+    ).map { Key(0, it, type = KeyType.CHARACTER) }
+
     private fun openPopup(ps: PointerState) {
         if (ps.cancelled || ps.cursorMode || ps.glide) return
-        val keys = ps.kb.key.popup
+        if (ps.kb.key.code == Codes.SPACE) {
+            if (spaceLongPressMode != 0) {
+                ps.cancelled = true
+                if (previewKb === ps.kb) previewKb = null
+                listener?.onSpaceLongPress()
+                invalidate()
+            }
+            return
+        }
+        if (numpadOnSymbolsLongPress && ps.kb.key.code == Codes.MODE_SYM) {
+            ps.cancelled = true
+            if (previewKb === ps.kb) previewKb = null
+            listener?.onKeyPressed(Key(Codes.NUMPAD, "123#", type = KeyType.FUNCTION))
+            invalidate()
+            return
+        }
+        val baseKeys = ps.kb.key.popup
+        val keys = if (tldPopups && ps.kb.key.label == ".") tldKeys else baseKeys
         if (keys.isEmpty()) return
         popupOwner = ps
         popupKeys = keys

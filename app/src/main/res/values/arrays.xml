@@ -172,4 +172,70 @@
         <item>medium</item>
         <item>strong</item>
     </string-array>
+    <string-array name="space_h_entries">
+        <item>@string/sp_cursor</item>
+        <item>@string/sp_language</item>
+        <item>@string/sp_none</item>
+    </string-array>
+    <string-array name="space_h_values">
+        <item>cursor</item>
+        <item>language</item>
+        <item>none</item>
+    </string-array>
+    <string-array name="space_v_entries">
+        <item>@string/sp_none</item>
+        <item>@string/sp_hide</item>
+    </string-array>
+    <string-array name="space_v_values">
+        <item>none</item>
+        <item>hide</item>
+    </string-array>
+    <string-array name="space_long_entries">
+        <item>@string/sp_lang_menu</item>
+        <item>@string/sp_ime</item>
+        <item>@string/sp_none</item>
+    </string-array>
+    <string-array name="space_long_values">
+        <item>language</item>
+        <item>ime</item>
+        <item>none</item>
+    </string-array>
+    <string-array name="split_entries">
+        <item>@string/split_off</item>
+        <item>@string/split_landscape</item>
+        <item>@string/split_on</item>
+    </string-array>
+    <string-array name="split_values">
+        <item>off</item>
+        <item>landscape</item>
+        <item>on</item>
+    </string-array>
+    <string-array name="toolbar_entries">
+        <item>@string/tb_undo</item>
+        <item>@string/tb_redo</item>
+        <item>@string/tb_copy</item>
+        <item>@string/tb_paste</item>
+        <item>@string/tb_cut</item>
+        <item>@string/tb_selectall</item>
+        <item>@string/tb_onehanded</item>
+        <item>@string/tb_incognito</item>
+        <item>@string/tb_edit</item>
+        <item>@string/tb_floating</item>
+        <item>@string/tb_numpad</item>
+        <item>@string/tb_hide</item>
+    </string-array>
+    <string-array name="toolbar_values">
+        <item>undo</item>
+        <item>redo</item>
+        <item>copy</item>
+        <item>paste</item>
+        <item>cut</item>
+        <item>selectall</item>
+        <item>onehanded</item>
+        <item>incognito</item>
+        <item>edit</item>
+        <item>floating</item>
+        <item>numpad</item>
+        <item>hide</item>
+    </string-array>
 </resources>

@@ -95,6 +95,7 @@ class RimBoardService : InputMethodService(),
     // per-editor flags
     private var isPassword = false
     private var pendingPunctSpace = false
+    private var currentPkg: String? = null
     private var fieldNoLearning = false
     private var fieldNoSuggestions = false
     private var isEmailOrUri = false
@@ -265,6 +266,13 @@ class RimBoardService : InputMethodService(),
         altBoostStreak = 0
         primStreak = 0
         wordUndo.clear()
+        currentPkg = info.packageName
+        if (Prefs.langPerApp(this)) {
+            Prefs.appLang(this, info.packageName)?.let { saved ->
+                val idx = langs.indexOf(saved)
+                if (idx >= 0) langIndex = idx
+            }
+        }
         keyboardView?.shiftState = KeyboardView.ShiftState.NONE
         captureClip()
         configureAll(info)
@@ -354,21 +362,35 @@ class RimBoardService : InputMethodService(),
                 else -> { kv.repeatInitialMs = 300L; kv.repeatIntervalMs = 50L }
             }
             kv.showTrail = Prefs.glideTrail(this)
-            kv.labelScale = when (Prefs.labelSize(this)) {
-                "small" -> 0.9f
-                "large" -> 1.12f
-                else -> 1f
-            }
-            kv.longPressTimeoutMs = when (Prefs.longPressDelay(this)) {
-                "short" -> 240L
-                "long" -> 430L
-                else -> minOf(android.view.ViewConfiguration.getLongPressTimeout(), 350).toLong()
-            }
             kv.bgDimAlpha = when (Prefs.bgDim(this)) {
                 "light" -> 60
                 "strong" -> 165
                 else -> 110
             }
+            kv.keyBorders = Prefs.keyBorders(this)
+            kv.narrowGaps = Prefs.narrowGaps(this)
+            kv.sidePadPct = Prefs.sidePadPct(this)
+            kv.bottomPadPct = Prefs.bottomPadPct(this)
+            kv.labelScale = Prefs.labelScalePct(this) / 100f
+            kv.longPressTimeoutMs = Prefs.longPressMs(this).toLong()
+            kv.spaceSwipeH = when (Prefs.spaceSwipeH(this)) {
+                "language" -> 2
+                "none" -> 0
+                else -> 1
+            }
+            kv.spaceSwipeV = if (Prefs.spaceSwipeV(this) == "hide") 1 else 0
+            kv.spaceLongPressMode = if (Prefs.spaceLongPress(this) == "none") 0 else 1
+            kv.numpadOnSymbolsLongPress = Prefs.numpadLongPress(this)
+            kv.tldPopups = isEmailOrUri && Prefs.tldPopupsOn(this)
+            kv.customTypeface = customFont()
+            kv.splitFraction = when (Prefs.splitMode(this)) {
+                "on" -> 0.12f
+                "landscape" ->
+                    if (resources.configuration.orientation ==
+                        android.content.res.Configuration.ORIENTATION_LANDSCAPE) 0.12f else 0f
+                else -> 0f
+            }
+            engine.blockOffensive = Prefs.blockOffensive(this)
             kv.hapticFeedback = Prefs.haptic(this)
             kv.oneHanded = (if (Prefs.floating(this)) 0 else Prefs.oneHanded(this))
             kv.keyHeightFactor = Prefs.heightFactor(this)
@@ -450,7 +472,7 @@ class RimBoardService : InputMethodService(),
         val lay: KeyboardLayout = when (kind) {
             LayoutKind.MAIN ->
                 Languages.byCode(currentLangCode()).layout(numberRow, showGlobe)
-            LayoutKind.SYMBOLS -> Layouts.symbols(locale())
+            LayoutKind.SYMBOLS -> Layouts.symbols(locale(), Prefs.currencies(this))
             LayoutKind.SYMBOLS2 -> Layouts.symbols2(locale())
             LayoutKind.NUMPAD -> Layouts.numpad(locale())
         }
@@ -461,6 +483,7 @@ class RimBoardService : InputMethodService(),
     }
 
     private fun spaceLabelText(): String {
+        Prefs.spaceText(this).takeIf { it.isNotBlank() }?.let { return it }
         if (langs.size <= 1) return ""
         val loc = locale()
         return loc.getDisplayLanguage(loc)
@@ -503,6 +526,7 @@ class RimBoardService : InputMethodService(),
             Codes.ONE_HANDED -> toggleOneHanded()
             Codes.CLIPBOARD -> showClipPanel()
             Codes.EDIT_PANEL -> showEditPanel()
+            Codes.NUMPAD -> toggleNumpad()
             Codes.FLOATING -> toggleFloating()
             Codes.SPACE -> handleSpace()
             else -> if (key.code > 0) typeText(key.label)
@@ -665,6 +689,11 @@ class RimBoardService : InputMethodService(),
             commitTextRaw(text)
         }
         consumeAutoShift()
+            if (raw == " " && Prefs.symbolsReturn(this) && (kind == LayoutKind.SYMBOLS || kind == LayoutKind.SYMBOLS2)) {
+            kind = LayoutKind.MAIN
+            applyLayout()
+            updateShiftState()
+        }
     }
 
     private fun applyShift(label: String): String {
@@ -894,8 +923,7 @@ class RimBoardService : InputMethodService(),
         if (isIncognito()) {
             if (composing.isEmpty()) s.showIncognito(getString(R.string.incognito_label))
             else {
-                s.setRecentEmojis(if (Prefs.emojiRow(this))
-                    Prefs.emojiRecents(this).take(6) else emptyList())
+                feedIdle(s)
                 s.showEmpty()
             }
             return
@@ -961,7 +989,7 @@ class RimBoardService : InputMethodService(),
         if (clipChipEligible()) {
             s.showClipboard(L10n.wrap(this).getString(android.R.string.paste))
         } else {
-            s.setRecentEmojis(if (Prefs.emojiRow(this)) Prefs.emojiRecents(this).take(6) else emptyList())
+            feedIdle(s)
             s.showEmpty()
         }
     }
@@ -992,7 +1020,7 @@ class RimBoardService : InputMethodService(),
         val ic = currentInputConnection ?: return
         val loc = locale()
         ic.beginBatchEdit()
-        ic.commitText("$word ", 1) // replaces the composing region if present
+        ic.commitText(if (Prefs.autoSpaceSuggestion(this)) "$word " else word, 1) // replaces the composing region if present
         ic.endBatchEdit()
         composing.setLength(0)
         autoSpace = true
@@ -1022,7 +1050,7 @@ class RimBoardService : InputMethodService(),
         }
         ic.beginBatchEdit()
         ic.deleteSurroundingText(expect.length, 0)
-        ic.commitText("$word ", 1)
+        ic.commitText(if (Prefs.autoSpaceSuggestion(this)) "$word " else word, 1)
         ic.endBatchEdit()
         prevWordForBigram =
             if (word.all { it.isLetter() || it == '\'' }) word.lowercase(locale()) else ""
@@ -1126,6 +1154,73 @@ class RimBoardService : InputMethodService(),
         applyLayout()
         updateShiftState()
         updateStrip()
+        recordAppLang()
+    }
+
+    private var cachedFont: android.graphics.Typeface? = null
+    private var cachedFontStamp = -1L
+
+    private fun customFont(): android.graphics.Typeface? {
+        val f = java.io.File(
+            com.rimboard.keyboard.engine.UserData.dataDir(this), "custom_font.ttf")
+        if (!f.exists()) {
+            cachedFont = null
+            return null
+        }
+        val stamp = f.lastModified()
+        if (cachedFont == null || cachedFontStamp != stamp) {
+            cachedFont = try {
+                android.graphics.Typeface.createFromFile(f)
+            } catch (_: Exception) {
+                null
+            }
+            cachedFontStamp = stamp
+        }
+        return cachedFont
+    }
+
+    private fun feedIdle(s: com.rimboard.keyboard.ui.SuggestionStripView) {
+        val sel = Prefs.toolbarKeys(this)
+        if (sel.isNotEmpty()) {
+            val catalog = listOf(
+                "undo" to (Icons.UNDO to Codes.UNDO),
+                "redo" to (Icons.REDO to Codes.REDO),
+                "copy" to (Icons.COPY to Codes.COPY),
+                "paste" to (Icons.PASTE to Codes.PASTE),
+                "cut" to (Icons.CUT to Codes.CUT),
+                "selectall" to (Icons.SELECT_ALL to Codes.SELECT_ALL),
+                "onehanded" to (Icons.ONE_HANDED to Codes.ONE_HANDED),
+                "incognito" to (Icons.INCOGNITO to Codes.INCOGNITO),
+                "edit" to (Icons.EDIT to Codes.EDIT_PANEL),
+                "floating" to (Icons.FLOATING to Codes.FLOATING),
+                "numpad" to (Icons.KEYBOARD to Codes.NUMPAD),
+                "hide" to (Icons.HIDE to Codes.HIDE_KB)
+            )
+            s.setToolbarActions(catalog.filter { it.first in sel }.map { it.second })
+        } else {
+            s.setToolbarActions(emptyList())
+            s.setRecentEmojis(
+                if (Prefs.emojiRow(this)) Prefs.emojiRecents(this).take(6) else emptyList()
+            )
+        }
+    }
+
+    private fun restoreMainView() {
+        emojiView?.visibility = View.GONE
+        clipboardView?.visibility = View.GONE
+        editPanelView?.visibility = View.GONE
+        keyboardView?.visibility = View.VISIBLE
+    }
+
+    private fun toggleNumpad() {
+        kind = if (kind == LayoutKind.NUMPAD) LayoutKind.MAIN else LayoutKind.NUMPAD
+        applyLayout()
+        updateShiftState()
+    }
+
+    private fun recordAppLang() {
+        val pkg = currentPkg ?: return
+        if (Prefs.langPerApp(this)) Prefs.setAppLang(this, pkg, currentLangCode())
     }
 
     private fun imePicker() {
@@ -1314,6 +1409,7 @@ class RimBoardService : InputMethodService(),
         currentInputConnection?.commitText(text, 1)
         hideEmoji()
         afterEdit()
+        if (Prefs.clipReturn(this)) restoreMainView()
     }
 
     override fun onClipsCleared() {
@@ -1418,8 +1514,50 @@ class RimBoardService : InputMethodService(),
         currentInputConnection?.commitText(emoji, 1)
     }
 
+    override fun onLanguageSwipe(direction: Int) {
+        if (direction < 0 && langs.size > 1) {
+            finishComposingSilently()
+            altBoost = false
+            altBoostStreak = 0
+            primStreak = 0
+            langIndex = (langIndex - 1 + langs.size) % langs.size
+            Prefs.setCurrentLang(this, currentLangCode())
+            kind = LayoutKind.MAIN
+            applyLayout()
+            updateShiftState()
+            updateStrip()
+            recordAppLang()
+        } else {
+            cycleLanguage()
+        }
+    }
+
+    override fun onHideKeyboard() {
+        requestHideSelf(0)
+    }
+
+    override fun onSpaceLongPress() {
+        when (Prefs.spaceLongPress(this)) {
+            "ime" -> imePicker()
+            "none" -> {}
+            else -> cycleLanguage()
+        }
+    }
+
     override fun onQuickAction(code: Int) {
         when (code) {
+            Codes.UNDO -> currentInputConnection?.let {
+                sendCtrl(it, KeyEvent.KEYCODE_Z, shift = false)
+            }
+            Codes.REDO -> currentInputConnection?.let {
+                sendCtrl(it, KeyEvent.KEYCODE_Z, shift = true)
+            }
+            Codes.COPY -> currentInputConnection?.performContextMenuAction(android.R.id.copy)
+            Codes.PASTE -> currentInputConnection?.performContextMenuAction(android.R.id.paste)
+            Codes.CUT -> currentInputConnection?.performContextMenuAction(android.R.id.cut)
+            Codes.SELECT_ALL -> currentInputConnection?.performContextMenuAction(android.R.id.selectAll)
+            Codes.HIDE_KB -> requestHideSelf(0)
+            Codes.NUMPAD -> toggleNumpad()
             Codes.CLIPBOARD -> showClipPanel()
             Codes.EDIT_PANEL -> showEditPanel()
             Codes.EMOJI -> showEmoji()
@@ -1504,6 +1642,7 @@ class RimBoardService : InputMethodService(),
             emojiView?.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
         }
         if (Prefs.sound(this)) playSound(0)
+        if (Prefs.emojiReturn(this)) restoreMainView()
     }
 
     override fun onAbc() {

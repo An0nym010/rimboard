@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <SwitchPreferenceCompat
+        android:key="tld_popups"
+        android:title="@string/pref_tld_title"
+        android:summary="@string/pref_tld_summary"
+        android:defaultValue="true" />
+
+    <SwitchPreferenceCompat
+        android:key="lang_per_app"
+        android:title="@string/pref_lang_per_app_title"
+        android:summary="@string/pref_lang_per_app_summary"
+        android:defaultValue="false" />
+
+    <SwitchPreferenceCompat
+        android:key="symbols_return"
+        android:title="@string/pref_sym_return_title"
+        android:summary="@string/pref_sym_return_summary"
+        android:defaultValue="true" />
+
+    <SwitchPreferenceCompat
+        android:key="emoji_return"
+        android:title="@string/pref_emoji_return_title"
+        android:defaultValue="false" />
+
+    <SwitchPreferenceCompat
+        android:key="clip_return"
+        android:title="@string/pref_clip_return_title"
+        android:defaultValue="false" />
+
+    <SwitchPreferenceCompat
+        android:key="numpad_long_press"
+        android:title="@string/pref_numpad_long_title"
+        android:defaultValue="false" />
+
+    <EditTextPreference
+        android:key="currencies"
+        android:title="@string/pref_currencies_title"
+        android:summary="@string/pref_currencies_summary"
+        app:useSimpleSummaryProvider="false" />
+
+    <SwitchPreferenceCompat
+        android:key="block_offensive"
+        android:title="@string/pref_offensive_title"
+        android:summary="@string/pref_offensive_summary"
+        android:defaultValue="true" />
+
+    <SwitchPreferenceCompat
+        android:key="autospace_suggestion"
+        android:title="@string/pref_as_sugg_title"
+        android:defaultValue="true" />
+
+    <Preference
+        android:key="dict_import"
+        android:icon="@drawable/ic_pref_book"
+        android:title="@string/pref_dict_import_title"
+        android:summary="@string/pref_dict_import_summary" />
+
+</PreferenceScreen>

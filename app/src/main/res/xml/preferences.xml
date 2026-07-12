@@ -42,6 +42,11 @@
         android:title="@string/cat_privacy" />
 
     <Preference
+        android:key="screen_advanced"
+        android:icon="@drawable/ic_pref_wrench"
+        android:title="@string/screen_advanced" />
+
+    <Preference
             android:key="typing_stats"
             android:icon="@drawable/ic_pref_chart"
             android:title="@string/pref_stats_title" />

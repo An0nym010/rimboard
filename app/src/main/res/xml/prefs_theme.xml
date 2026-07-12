@@ -36,4 +36,52 @@
         android:title="@string/pref_bg_clear_title"
  />
 
+    <ListPreference
+        android:key="split_mode"
+        android:title="@string/pref_split_title"
+        android:entries="@array/split_entries"
+        android:entryValues="@array/split_values"
+        android:defaultValue="off"
+        app:useSimpleSummaryProvider="true" />
+
+    <SwitchPreferenceCompat
+        android:key="key_borders"
+        android:title="@string/pref_borders_title"
+        android:defaultValue="true" />
+
+    <SwitchPreferenceCompat
+        android:key="narrow_gaps"
+        android:title="@string/pref_gaps_title"
+        android:defaultValue="false" />
+
+    <SeekBarPreference
+        android:key="side_pad_pct"
+        android:title="@string/pref_sidepad_title"
+        app:min="0"
+        android:max="12"
+        android:defaultValue="0"
+        app:showSeekBarValue="true" />
+
+    <SeekBarPreference
+        android:key="bottom_pad_pct"
+        android:title="@string/pref_bottompad_title"
+        app:min="0"
+        android:max="12"
+        android:defaultValue="0"
+        app:showSeekBarValue="true" />
+
+    <Preference
+        android:key="font_pick"
+        android:title="@string/pref_font_title"
+        android:summary="@string/pref_font_summary" />
+
+    <Preference
+        android:key="font_clear"
+        android:title="@string/pref_font_clear" />
+
+    <EditTextPreference
+        android:key="space_text"
+        android:title="@string/pref_space_text_title"
+        app:useSimpleSummaryProvider="true" />
+
 </PreferenceScreen>

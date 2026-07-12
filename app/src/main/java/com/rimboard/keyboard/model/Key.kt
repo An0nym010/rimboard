@@ -19,6 +19,14 @@ object Codes {
     const val CLIPBOARD = -13
     const val EDIT_PANEL = -14
     const val FLOATING = -15
+    const val UNDO = -16
+    const val REDO = -17
+    const val COPY = -18
+    const val PASTE = -19
+    const val CUT = -20
+    const val SELECT_ALL = -21
+    const val HIDE_KB = -22
+    const val NUMPAD = -23
     const val SPACE = 32
 }
 

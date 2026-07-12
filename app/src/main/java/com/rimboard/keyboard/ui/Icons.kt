@@ -30,6 +30,11 @@ object Icons {
     const val UNDO = 13
     const val REDO = 14
     const val SEARCH = 15
+    const val COPY = 16
+    const val PASTE = 17
+    const val CUT = 18
+    const val SELECT_ALL = 19
+    const val HIDE = 20
 
     private val p = Paint(Paint.ANTI_ALIAS_FLAG)
     private val path = Path()
@@ -45,6 +50,14 @@ object Icons {
         Codes.SETTINGS -> SETTINGS
         Codes.EMOJI -> EMOJI
         Codes.IME_PICKER -> KEYBOARD
+        Codes.UNDO -> UNDO
+        Codes.REDO -> REDO
+        Codes.COPY -> COPY
+        Codes.PASTE -> PASTE
+        Codes.CUT -> CUT
+        Codes.SELECT_ALL -> SELECT_ALL
+        Codes.HIDE_KB -> HIDE
+        Codes.NUMPAD -> KEYBOARD
         else -> null
     }
 
@@ -214,6 +227,56 @@ object Icons {
                 c.drawCircle(cx - r * 0.18f, cy - r * 0.18f, r * 0.5f, p)
                 p.strokeWidth = s * 0.14f
                 c.drawLine(cx + r * 0.2f, cy + r * 0.2f, cx + r * 0.72f, cy + r * 0.72f, p)
+            }
+            COPY -> {
+                oval.set(cx - r * 0.75f, cy - r * 0.75f, cx + r * 0.25f, cy + r * 0.25f)
+                c.drawRoundRect(oval, r * 0.12f, r * 0.12f, p)
+                oval.set(cx - r * 0.25f, cy - r * 0.25f, cx + r * 0.75f, cy + r * 0.75f)
+                c.drawRoundRect(oval, r * 0.12f, r * 0.12f, p)
+            }
+            PASTE -> {
+                oval.set(cx - r * 0.6f, cy - r * 0.68f, cx + r * 0.6f, cy + r * 0.85f)
+                c.drawRoundRect(oval, r * 0.12f, r * 0.12f, p)
+                p.style = Paint.Style.FILL
+                oval.set(cx - r * 0.26f, cy - r * 0.88f, cx + r * 0.26f, cy - r * 0.55f)
+                c.drawRoundRect(oval, r * 0.08f, r * 0.08f, p)
+                p.style = Paint.Style.STROKE
+                c.drawLine(cx, cy - r * 0.2f, cx, cy + r * 0.42f, p)
+                path.reset()
+                path.moveTo(cx - r * 0.24f, cy + r * 0.2f)
+                path.lineTo(cx, cy + r * 0.46f)
+                path.lineTo(cx + r * 0.24f, cy + r * 0.2f)
+                c.drawPath(path, p)
+            }
+            CUT -> {
+                c.drawCircle(cx - r * 0.45f, cy + r * 0.45f, r * 0.24f, p)
+                c.drawCircle(cx + r * 0.45f, cy + r * 0.45f, r * 0.24f, p)
+                c.drawLine(cx - r * 0.28f, cy + r * 0.28f, cx + r * 0.55f, cy - r * 0.7f, p)
+                c.drawLine(cx + r * 0.28f, cy + r * 0.28f, cx - r * 0.55f, cy - r * 0.7f, p)
+            }
+            SELECT_ALL -> {
+                val e = r * 0.8f
+                val l = r * 0.36f
+                c.drawLine(cx - e, cy - e, cx - e + l, cy - e, p)
+                c.drawLine(cx - e, cy - e, cx - e, cy - e + l, p)
+                c.drawLine(cx + e, cy - e, cx + e - l, cy - e, p)
+                c.drawLine(cx + e, cy - e, cx + e, cy - e + l, p)
+                c.drawLine(cx - e, cy + e, cx - e + l, cy + e, p)
+                c.drawLine(cx - e, cy + e, cx - e, cy + e - l, p)
+                c.drawLine(cx + e, cy + e, cx + e - l, cy + e, p)
+                c.drawLine(cx + e, cy + e, cx + e, cy + e - l, p)
+                p.style = Paint.Style.FILL
+                oval.set(cx - r * 0.3f, cy - r * 0.3f, cx + r * 0.3f, cy + r * 0.3f)
+                c.drawRoundRect(oval, r * 0.08f, r * 0.08f, p)
+            }
+            HIDE -> {
+                oval.set(cx - r * 0.85f, cy - r * 0.8f, cx + r * 0.85f, cy + r * 0.15f)
+                c.drawRoundRect(oval, r * 0.12f, r * 0.12f, p)
+                path.reset()
+                path.moveTo(cx - r * 0.34f, cy + r * 0.4f)
+                path.lineTo(cx, cy + r * 0.78f)
+                path.lineTo(cx + r * 0.34f, cy + r * 0.4f)
+                c.drawPath(path, p)
             }
         }
     }

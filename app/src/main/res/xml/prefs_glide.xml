@@ -14,10 +14,29 @@
         android:summary="@string/pref_glide_trail_summary"
         android:defaultValue="true" />
 
-    <SwitchPreferenceCompat
-            android:key="space_cursor"
-            android:title="@string/pref_space_cursor_title"
-            android:summary="@string/pref_space_cursor_summary"
-            android:defaultValue="true" />
+
+    <ListPreference
+        android:key="space_swipe_h"
+        android:title="@string/pref_swipe_h_title"
+        android:entries="@array/space_h_entries"
+        android:entryValues="@array/space_h_values"
+        android:defaultValue="cursor"
+        app:useSimpleSummaryProvider="true" />
+
+    <ListPreference
+        android:key="space_swipe_v"
+        android:title="@string/pref_swipe_v_title"
+        android:entries="@array/space_v_entries"
+        android:entryValues="@array/space_v_values"
+        android:defaultValue="none"
+        app:useSimpleSummaryProvider="true" />
+
+    <ListPreference
+        android:key="space_long_press"
+        android:title="@string/pref_space_long_title"
+        android:entries="@array/space_long_entries"
+        android:entryValues="@array/space_long_values"
+        android:defaultValue="language"
+        app:useSimpleSummaryProvider="true" />
 
 </PreferenceScreen>

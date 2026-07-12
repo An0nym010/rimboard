@@ -9,6 +9,11 @@ class SuggestionsResult(
     val autocorrectIndex: Int   // index that would be committed on space, or -1
 )
 
+object DictVersion {
+    @Volatile
+    var v = 0
+}
+
 class SuggestionEngine(private val context: Context, private val userData: UserData) {
 
     private val cache = HashMap<String, Dictionary>()
@@ -36,7 +41,7 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
 
     @Synchronized
     fun dictionary(lang: String, locale: Locale): Dictionary =
-        cache.getOrPut(lang) { Dictionary(context, lang, locale) }
+        cache.getOrPut(lang + "#" + DictVersion.v) { Dictionary(context, lang, locale) }
 
     /**
      * Correction the keyboard would apply on a separator, or null.
@@ -44,6 +49,25 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
      * already known from the dictionary or the user's own vocabulary.
      */
     /** True if the exact lowercase word exists in the given language's dictionary. */
+
+    var blockOffensive = true
+    private val offensiveSets = HashMap<String, Set<String>>()
+
+    private fun offensive(lang: String): Set<String> =
+        offensiveSets.getOrPut(lang) {
+            try {
+                context.assets.open("offensive/$lang.txt").bufferedReader().readLines()
+                    .map { it.trim().lowercase() }.filter { it.isNotEmpty() }.toSet()
+            } catch (_: Exception) {
+                emptySet()
+            }
+        }
+
+    private fun isOffensive(word: String, lang: String): Boolean {
+        if (!blockOffensive) return false
+        val w = word.lowercase()
+        return w in offensive(lang) || (lang != "en" && w in offensive("en"))
+    }
 
     private val emojiMaps = HashMap<String, Map<String, String>>()
 
@@ -85,7 +109,7 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
         if (altLang != null && altLocale != null &&
             dictionary(altLang, altLocale).contains(typed.lowercase(altLocale))
         ) return null
-        val corr = dict.bestCorrection(lower) ?: return null
+        val corr = dict.bestCorrection(lower)?.takeIf { !isOffensive(it, lang) } ?: return null
         if (userData.isBlocked(corr)) return null
         return matchCase(typed, corr, locale)
     }
@@ -152,7 +176,15 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
             val idx = display.indexOf(correction)
             if (idx >= 0) acIndex = idx
         }
-        return SuggestionsResult(display, 0, acIndex)
+        var outWords = display
+        var outAc = acIndex
+        if (blockOffensive) {
+            val acWord = display.getOrNull(acIndex)
+            outWords = display.filter { !isOffensive(it, lang) }
+            outAc = if (acWord != null && !isOffensive(acWord, lang))
+                outWords.indexOf(acWord) else -1
+        }
+        return SuggestionsResult(outWords, 0, outAc)
     }
 
     /** Ranked word candidates for a glide key sequence (lowercase results). */

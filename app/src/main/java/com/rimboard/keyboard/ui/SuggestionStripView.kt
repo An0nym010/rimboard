@@ -37,6 +37,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     private val clipboardBtn: IconView
     private val centerBox: LinearLayout
     private val emojiRow: LinearLayout
+    private var toolbarMode = false
     private val incogIcon: IconView
     private var boldIndex = -1
 
@@ -137,6 +138,9 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         dividers.forEach { it.setBackgroundColor(dividerColor) }
         centerLabel.setTextColor(t.keyHint)
         incogIcon.color = t.keyHint
+        for (i in 0 until emojiRow.childCount) {
+            (emojiRow.getChildAt(i) as? IconView)?.color = t.stripText
+        }
         clipChip.setTextColor(t.stripText)
         settingsBtn.color = t.stripText
         clipboardBtn.color = t.stripText
@@ -192,7 +196,24 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         clipChip.visibility = VISIBLE
     }
 
+    fun setToolbarActions(items: List<Pair<Int, Int>>) {
+        if (items.isEmpty()) {
+            toolbarMode = false
+            return
+        }
+        toolbarMode = true
+        emojiRow.removeAllViews()
+        val t = theme
+        for ((icon, code) in items) {
+            emojiRow.addView(IconView(context, icon).apply {
+                color = t?.stripText ?: 0xFF888888.toInt()
+                setOnClickListener { listener?.onQuickAction(code) }
+            }, LayoutParams(dp(38), LayoutParams.MATCH_PARENT))
+        }
+    }
+
     fun setRecentEmojis(emojis: List<String>) {
+        if (toolbarMode) return
         emojiRow.removeAllViews()
         for (e in emojis) {
             emojiRow.addView(TextView(context).apply {

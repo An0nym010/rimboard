@@ -43,6 +43,27 @@ object Prefs {
     const val KEY_EMOJI_ROW = "emoji_row"
     const val KEY_GLIDE_TRAIL = "glide_trail"
     const val KEY_BG_DIM = "bg_dim"
+    const val KEY_KEY_BORDERS = "key_borders"
+    const val KEY_NARROW_GAPS = "narrow_gaps"
+    const val KEY_SPLIT = "split_mode"
+    const val KEY_SIDE_PAD = "side_pad_pct"
+    const val KEY_BOTTOM_PAD = "bottom_pad_pct"
+    const val KEY_LABEL_PCT = "label_scale_pct"
+    const val KEY_LP_MS = "long_press_ms"
+    const val KEY_SPACE_H = "space_swipe_h"
+    const val KEY_SPACE_V = "space_swipe_v"
+    const val KEY_SPACE_LONG = "space_long_press"
+    const val KEY_NUMPAD_LONG = "numpad_long_press"
+    const val KEY_TLD = "tld_popups"
+    const val KEY_LANG_PER_APP = "lang_per_app"
+    const val KEY_SYM_RETURN = "symbols_return"
+    const val KEY_EMOJI_RETURN = "emoji_return"
+    const val KEY_CLIP_RETURN = "clip_return"
+    const val KEY_CURRENCIES = "currencies"
+    const val KEY_OFFENSIVE = "block_offensive"
+    const val KEY_AS_SUGG = "autospace_suggestion"
+    const val KEY_TOOLBAR = "toolbar_keys"
+    const val KEY_SPACE_TEXT = "space_text"
     const val KEY_CC_BG = "cc_bg"
     const val KEY_CC_KEY = "cc_key"
     const val KEY_CC_TEXT = "cc_text"
@@ -107,6 +128,51 @@ object Prefs {
     fun emojiRow(c: Context) = get(c).getBoolean(KEY_EMOJI_ROW, true)
     fun glideTrail(c: Context) = get(c).getBoolean(KEY_GLIDE_TRAIL, true)
     fun bgDim(c: Context): String = get(c).getString(KEY_BG_DIM, "medium") ?: "medium"
+
+    fun keyBorders(c: Context) = get(c).getBoolean(KEY_KEY_BORDERS, true)
+    fun narrowGaps(c: Context) = get(c).getBoolean(KEY_NARROW_GAPS, false)
+    fun splitMode(c: Context): String = get(c).getString(KEY_SPLIT, "off") ?: "off"
+    fun sidePadPct(c: Context) = get(c).getInt(KEY_SIDE_PAD, 0)
+    fun bottomPadPct(c: Context) = get(c).getInt(KEY_BOTTOM_PAD, 0)
+    fun labelScalePct(c: Context) = get(c).getInt(KEY_LABEL_PCT, 100)
+    fun longPressMs(c: Context) = get(c).getInt(KEY_LP_MS, 300)
+    fun spaceSwipeH(c: Context): String = get(c).getString(KEY_SPACE_H, "cursor") ?: "cursor"
+    fun spaceSwipeV(c: Context): String = get(c).getString(KEY_SPACE_V, "none") ?: "none"
+    fun spaceLongPress(c: Context): String = get(c).getString(KEY_SPACE_LONG, "language") ?: "language"
+    fun numpadLongPress(c: Context) = get(c).getBoolean(KEY_NUMPAD_LONG, false)
+    fun tldPopupsOn(c: Context) = get(c).getBoolean(KEY_TLD, true)
+    fun langPerApp(c: Context) = get(c).getBoolean(KEY_LANG_PER_APP, false)
+    fun symbolsReturn(c: Context) = get(c).getBoolean(KEY_SYM_RETURN, true)
+    fun emojiReturn(c: Context) = get(c).getBoolean(KEY_EMOJI_RETURN, false)
+    fun clipReturn(c: Context) = get(c).getBoolean(KEY_CLIP_RETURN, false)
+    fun currencies(c: Context): String {
+        val v = get(c).getString(KEY_CURRENCIES, "") ?: ""
+        return if (v.length >= 2) v.take(6) else "\u0024\u20BA\u20AC\u00A3\u00A5"
+    }
+    fun blockOffensive(c: Context) = get(c).getBoolean(KEY_OFFENSIVE, true)
+    fun autoSpaceSuggestion(c: Context) = get(c).getBoolean(KEY_AS_SUGG, true)
+    fun toolbarKeys(c: Context): Set<String> =
+        get(c).getStringSet(KEY_TOOLBAR, emptySet()) ?: emptySet()
+    fun spaceText(c: Context): String = get(c).getString(KEY_SPACE_TEXT, "") ?: ""
+
+    fun appLang(c: Context, pkg: String?): String? {
+        if (pkg == null) return null
+        return try {
+            org.json.JSONObject(get(c).getString("app_langs", "{}") ?: "{}")
+                .optString(pkg).takeIf { it.isNotEmpty() }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    fun setAppLang(c: Context, pkg: String, code: String) {
+        try {
+            val o = org.json.JSONObject(get(c).getString("app_langs", "{}") ?: "{}")
+            o.put(pkg, code)
+            get(c).edit().putString("app_langs", o.toString()).apply()
+        } catch (_: Exception) {
+        }
+    }
 
     fun repeatSpeed(c: Context): String =
         get(c).getString(KEY_REPEAT_SPEED, "normal") ?: "normal"

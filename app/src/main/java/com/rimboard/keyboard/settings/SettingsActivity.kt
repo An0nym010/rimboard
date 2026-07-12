@@ -135,6 +135,14 @@ class SettingsActivity : AppCompatActivity() {
             ActivityResultContracts.OpenDocument()
         ) { uri -> if (uri != null) saveBackgroundImage(uri) }
 
+        private val fontLauncher = registerForActivityResult(
+            ActivityResultContracts.OpenDocument()
+        ) { uri -> if (uri != null) saveFont(uri) }
+
+        private val dictLauncher = registerForActivityResult(
+            ActivityResultContracts.OpenDocument()
+        ) { uri -> if (uri != null) importDict(uri) }
+
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             preferenceManager.setStorageDeviceProtected()
             val xmlRes = arguments?.getInt(ARG_XML, 0)?.takeIf { it != 0 } ?: R.xml.preferences
@@ -147,6 +155,7 @@ class SettingsActivity : AppCompatActivity() {
                 "screen_clipboard" to R.xml.prefs_clipboard,
                 "screen_privacy" to R.xml.prefs_privacy,
                 "screen_backup" to R.xml.prefs_backup,
+                "screen_advanced" to R.xml.prefs_advanced,
                 "screen_about" to R.xml.prefs_about
             )
             for ((key, res) in screens) {
@@ -160,6 +169,21 @@ class SettingsActivity : AppCompatActivity() {
             }
             findPreference<Preference>("bg_pick")?.setOnPreferenceClickListener {
                 bgLauncher.launch(arrayOf("image/*"))
+                true
+            }
+            findPreference<Preference>("font_pick")?.setOnPreferenceClickListener {
+                fontLauncher.launch(arrayOf("*/*"))
+                true
+            }
+            findPreference<Preference>("font_clear")?.setOnPreferenceClickListener {
+                java.io.File(com.rimboard.keyboard.engine.UserData.dataDir(requireContext()),
+                    "custom_font.ttf").delete()
+                android.widget.Toast.makeText(requireContext(),
+                    R.string.font_removed, android.widget.Toast.LENGTH_SHORT).show()
+                true
+            }
+            findPreference<Preference>("dict_import")?.setOnPreferenceClickListener {
+                dictLauncher.launch(arrayOf("*/*"))
                 true
             }
             findPreference<Preference>("bg_clear")?.setOnPreferenceClickListener {
@@ -283,6 +307,61 @@ class SettingsActivity : AppCompatActivity() {
                 .setView(grid)
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
+        }
+
+        private fun saveFont(uri: android.net.Uri) {
+            try {
+                val ctx = requireContext()
+                val bytes = ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return
+                val f = java.io.File(
+                    com.rimboard.keyboard.engine.UserData.dataDir(ctx), "custom_font.ttf")
+                f.writeBytes(bytes)
+                val ok = try {
+                    android.graphics.Typeface.createFromFile(f)
+                    true
+                } catch (_: Exception) {
+                    false
+                }
+                if (!ok) {
+                    f.delete()
+                    android.widget.Toast.makeText(ctx, R.string.font_invalid,
+                        android.widget.Toast.LENGTH_SHORT).show()
+                } else {
+                    android.widget.Toast.makeText(ctx, R.string.font_saved,
+                        android.widget.Toast.LENGTH_SHORT).show()
+                }
+            } catch (_: Exception) {
+            }
+        }
+
+        private fun importDict(uri: android.net.Uri) {
+            try {
+                val ctx = requireContext()
+                val lines = ctx.contentResolver.openInputStream(uri)
+                    ?.bufferedReader()?.use { it.readLines() } ?: return
+                var valid = 0
+                val out = StringBuilder()
+                for (line in lines) {
+                    val sp = line.indexOf(' ')
+                    if (sp > 0 && line.substring(sp + 1).trim().toIntOrNull() != null) {
+                        out.append(line.trim()).append('\n')
+                        valid++
+                    }
+                }
+                if (valid < 30) {
+                    android.widget.Toast.makeText(ctx, R.string.dict_invalid,
+                        android.widget.Toast.LENGTH_LONG).show()
+                    return
+                }
+                val lang = Prefs.currentLang(ctx) ?: "en"
+                java.io.File(com.rimboard.keyboard.engine.UserData.dataDir(ctx),
+                    "userdict_" + lang + ".txt").writeText(out.toString())
+                com.rimboard.keyboard.engine.DictVersion.v++
+                android.widget.Toast.makeText(ctx,
+                    getString(R.string.dict_saved, valid, lang),
+                    android.widget.Toast.LENGTH_LONG).show()
+            } catch (_: Exception) {
+            }
         }
 
         private fun saveBackgroundImage(uri: android.net.Uri) {
