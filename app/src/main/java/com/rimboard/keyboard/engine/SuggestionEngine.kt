@@ -1,7 +1,6 @@
 package com.rimboard.keyboard.engine
 
 import android.content.Context
-import com.rimboard.keyboard.model.KeyProximity
 import java.util.Locale
 
 class SuggestionsResult(
@@ -20,28 +19,36 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
     private val cache = HashMap<String, Dictionary>()
 
     /** Preload dictionaries on a background thread so the first keystroke never stalls. */
-    fun warm(lang: String, locale: Locale, altLang: String?, altLocale: Locale?) {
+
+    fun warm(lang: String, locale: java.util.Locale, altLang: String?, altLocale: java.util.Locale?) {
+
         Thread {
+
             try {
+
                 dictionary(lang, locale)
-                predictionModel(lang)
+
                 if (altLang != null && altLocale != null) dictionary(altLang, altLocale)
+
             } catch (_: Exception) {
+
             }
+
         }.start()
+
     }
+
 
     @Synchronized
     fun dictionary(lang: String, locale: Locale): Dictionary =
         cache.getOrPut(lang + "#" + DictVersion.v) { Dictionary(context, lang, locale) }
 
     /**
-     * The dictionary for [lang] only if it is already loaded. Safe to call on
-     * the UI thread (per-keystroke tap arbitration), where triggering a
-     * synchronous asset load would jank.
+     * Correction the keyboard would apply on a separator, or null.
+     * Skips short words, words with digits or mid-word capitals, and words
+     * already known from the dictionary or the user's own vocabulary.
      */
-    @Synchronized
-    fun cachedDictionary(lang: String): Dictionary? = cache[lang + "#" + DictVersion.v]
+    /** True if the exact lowercase word exists in the given language's dictionary. */
 
     var blockOffensive = true
     private val offensiveSets = HashMap<String, Set<String>>()
@@ -84,48 +91,28 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
     fun knownIn(wordLower: String, lang: String, locale: Locale): Boolean =
         dictionary(lang, locale).contains(wordLower)
 
-    /**
-     * Ranked corrections the keyboard would offer for [typed] (best first, case
-     * matched to what was typed). Applies the same guards as autocorrect: skips
-     * short words, digits, mid-word capitals, words already known, and words
-     * valid in the user's other enabled language, and filters out offensive or
-     * blocked results. Ranking is keyboard-proximity aware (see [Dictionary]).
-     */
-    fun correctionCandidates(
-        typed: String,
-        lang: String,
-        locale: Locale,
-        altLang: String? = null,
-        altLocale: Locale? = null,
-        limit: Int = 1
-    ): List<String> {
-        if (typed.length < 3) return emptyList()
-        if (typed.any { it.isDigit() }) return emptyList()
-        if (typed.drop(1).any { it.isUpperCase() }) return emptyList()
-        val dict = dictionary(lang, locale)
-        val lower = typed.lowercase(locale)
-        if (dict.contains(lower) || userData.isKnown(lower)) return emptyList()
-        // Bilingual typing: never "correct" a word that is valid in the
-        // user's other enabled language (e.g. English words in Turkish mode).
-        if (altLang != null && altLocale != null &&
-            dictionary(altLang, altLocale).contains(typed.lowercase(altLocale))
-        ) return emptyList()
-        return dict.corrections(lower, KeyProximity.forLang(lang), limit + 4)
-            .asSequence()
-            .filter { !isOffensive(it, lang) && !userData.isBlocked(it) }
-            .map { matchCase(typed, it, locale) }
-            .take(limit)
-            .toList()
-    }
-
-    /** Correction the keyboard would apply on a separator, or null. */
     fun correctionFor(
         typed: String,
         lang: String,
         locale: Locale,
         altLang: String? = null,
         altLocale: Locale? = null
-    ): String? = correctionCandidates(typed, lang, locale, altLang, altLocale, 1).firstOrNull()
+    ): String? {
+        if (typed.length < 3) return null
+        if (typed.any { it.isDigit() }) return null
+        if (typed.drop(1).any { it.isUpperCase() }) return null
+        val dict = dictionary(lang, locale)
+        val lower = typed.lowercase(locale)
+        if (dict.contains(lower) || userData.isKnown(lower)) return null
+        // Bilingual typing: never "correct" a word that is valid in the
+        // user's other enabled language (e.g. English words in Turkish mode).
+        if (altLang != null && altLocale != null &&
+            dictionary(altLang, altLocale).contains(typed.lowercase(altLocale))
+        ) return null
+        val corr = dict.bestCorrection(lower)?.takeIf { !isOffensive(it, lang) } ?: return null
+        if (userData.isBlocked(corr)) return null
+        return matchCase(typed, corr, locale)
+    }
 
     fun suggestionsFor(
         composing: String,
@@ -168,14 +155,12 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
             .map { it.key }
             .toMutableList()
 
-        // Up to two corrections, best first, promoted to the front of the strip.
-        val corrs = correctionCandidates(composing, lang, locale, altLang, altLocale, 2)
-        for (c in corrs.asReversed()) {
-            val cl = c.lowercase(locale)
+        val correction = correctionFor(composing, lang, locale, altLang, altLocale)
+        if (correction != null) {
+            val cl = correction.lowercase(locale)
             ranked.remove(cl)
             ranked.add(0, cl)
         }
-        val correction = corrs.firstOrNull()
 
         val display = mutableListOf(composing) // slot 0: verbatim
         for (w in ranked) {
@@ -191,7 +176,7 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
             val idx = display.indexOf(correction)
             if (idx >= 0) acIndex = idx
         }
-        var outWords: List<String> = display
+        var outWords = display
         var outAc = acIndex
         if (blockOffensive) {
             val acWord = display.getOrNull(acIndex)
@@ -236,51 +221,8 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
         return i == needle.length
     }
 
-    private val predictionModels = HashMap<String, Map<String, List<String>>>()
-
-    /** Bundled starter next-word model for [lang] (assets/predictions/<lang>.txt). */
-    private fun predictionModel(lang: String): Map<String, List<String>> =
-        predictionModels.getOrPut(lang) {
-            try {
-                val m = HashMap<String, List<String>>()
-                context.assets.open("predictions/$lang.txt").bufferedReader().useLines { lines ->
-                    lines.forEach { line ->
-                        val tab = line.indexOf('\t')
-                        if (tab > 0) {
-                            val prev = line.substring(0, tab)
-                            val nexts = line.substring(tab + 1).trim()
-                                .split(' ').filter { it.isNotEmpty() }
-                            if (prev.isNotEmpty() && nexts.isNotEmpty()) m[prev] = nexts
-                        }
-                    }
-                }
-                m
-            } catch (_: Exception) {
-                emptyMap()
-            }
-        }
-
-    /**
-     * Next-word predictions after the two-word context (prevWord2, prevWord).
-     * The user's own learned n-grams come first (trigram evidence outranks
-     * bigram — see [UserData.predictNext]), then the bundled starter model
-     * fills any remaining slots so predictions work from the very first word.
-     */
-    fun predictions(
-        prevWord2: String, prevWord: String, lang: String, locale: Locale, limit: Int
-    ): List<String> {
-        val key = prevWord.lowercase(locale)
-        val key2 = prevWord2.lowercase(locale)
-        val out = LinkedHashSet<String>()
-        for (w in userData.predictNext(key2, key, limit)) out.add(w)
-        if (out.size < limit) {
-            for (w in predictionModel(lang)[key].orEmpty()) {
-                if (out.size >= limit) break
-                if (!userData.isBlocked(w) && !isOffensive(w, lang)) out.add(w)
-            }
-        }
-        return out.toList()
-    }
+    fun predictions(prevWord: String, locale: Locale, limit: Int): List<String> =
+        userData.predictNext(prevWord.lowercase(locale), limit)
 
     private fun matchCase(typed: String, candidate: String, locale: Locale): String {
         return when {

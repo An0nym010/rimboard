@@ -11,8 +11,8 @@ android {
         applicationId = "com.rimboard.keyboard"
         minSdk = 26
         targetSdk = 34
-        versionCode = 20
-        versionName = "2.7.0"
+        versionCode = 18
+        versionName = "2.5.0"
     }
 
     signingConfigs {

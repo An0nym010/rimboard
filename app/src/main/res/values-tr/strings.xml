@@ -70,7 +70,6 @@
 
     <!-- Klavye içi -->
     <string name="incognito_label">Gizli mod · öğrenme kapalı</string>
-    <string name="emoji_search">Emoji ara</string>
     <string name="cat_backup">Yedekleme</string>
     <string name="pref_export_title">Yedeği dışa aktar</string>
     <string name="pref_export_summary">Ayarları, öğrenilen kelimeleri ve tahminleri bir dosyaya kaydet</string>

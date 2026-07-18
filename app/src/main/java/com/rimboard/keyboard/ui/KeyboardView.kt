@@ -52,14 +52,10 @@ class KeyboardView(context: Context) : View(context) {
     var layout: KeyboardLayout? = null
         set(value) {
             field = value
-            shiftedLabelCache.clear()
             if (width > 0) computeBounds(width)
             requestLayout()
             invalidate()
         }
-
-    /** Uppercased key labels, cached so the draw loop never allocates strings. */
-    private val shiftedLabelCache = HashMap<Key, String>()
 
     var theme: KeyboardTheme? = null
         set(value) {
@@ -217,7 +213,6 @@ class KeyboardView(context: Context) : View(context) {
     // ---------- touch state ----------
 
     private class PointerState(val kb: KeyBounds, val downX: Float, val downY: Float) {
-        val downTime = SystemClock.uptimeMillis()
         var cancelled = false
         var cursorMode = false
         var langSwiped = false
@@ -254,27 +249,11 @@ class KeyboardView(context: Context) : View(context) {
     var numpadOnSymbolsLongPress = false
     var tldPopups = false
 
-    /**
-     * Optional probabilistic arbiter for taps that land near a letter-key
-     * boundary (adaptive touch targeting). Receives the candidate letters and
-     * their spatial log-likelihoods (Gaussian around each key centre); returns
-     * the index of the chosen candidate, or -1 to keep the primary key. Only
-     * consulted when a touch falls inside more than one letter key's slightly
-     * expanded bounds, so a tap comfortably inside a key can never be diverted.
-     */
-    var tapArbiter: ((candidates: CharArray, spatialLogP: DoubleArray) -> Int)? = null
-
     private var popupOwner: PointerState? = null
     private var popupKeys: List<Key> = emptyList()
     private val popupRect = RectF()
     private var popupCell = 0f
-    private var popupShownAt = 0L
     private var previewKb: KeyBounds? = null
-        set(value) {
-            if (value !== field && value != null) previewShownAt = SystemClock.uptimeMillis()
-            field = value
-        }
-    private var previewShownAt = 0L
     private val switchBtn = RectF()
     private val expandBtn = RectF()
 
@@ -377,8 +356,6 @@ class KeyboardView(context: Context) : View(context) {
         }
         drawBackgroundImage(canvas)
         nowPressed.clear()
-        val now = SystemClock.uptimeMillis()
-        var needsAnimFrame = false
 
         for (kb in bounds) {
             val key = kb.key
@@ -389,12 +366,8 @@ class KeyboardView(context: Context) : View(context) {
             if (!pressed) {
                 val rel = releaseAnim[key]
                 if (rel != null) {
-                    val dt = now - rel
-                    if (dt < 150) {
-                        // Ease-out: the key springs back quickly, then settles.
-                        val tt = 1f - dt / 150f
-                        press = tt * tt
-                    } else releaseAnim.remove(key)
+                    val dt = SystemClock.uptimeMillis() - rel
+                    if (dt < 150) press = 1f - dt / 150f else releaseAnim.remove(key)
                 }
             }
             val bgColor = when {
@@ -421,30 +394,6 @@ class KeyboardView(context: Context) : View(context) {
             ) {
                 keyPaint.color = ((0x33 * press).toInt() shl 24)
                 canvas.drawRoundRect(rectF, radius, radius, keyPaint)
-            }
-
-            // Radial press highlight: a soft circle grows from the touch point
-            // for the first ~160 ms of a press (Telegram-style micro-feedback).
-            if (pressed) {
-                val ps = pressedPointer(kb)
-                if (ps != null && !ps.glide && !ps.cursorMode) {
-                    val age = now - ps.downTime
-                    if (age < 160) {
-                        val tt = age / 160f
-                        val ease = 1f - (1f - tt) * (1f - tt)
-                        val maxR = if (kb.w > kb.h) kb.w else kb.h
-                        val alpha = (0x2A * (1f - 0.6f * ease)).toInt()
-                        keyPaint.color = (alpha shl 24) or
-                            (if (t.isDark) 0xFFFFFF else 0x000000)
-                        canvas.save()
-                        canvas.clipRect(rectF)
-                        canvas.drawCircle(
-                            ps.downX, ps.downY, maxR * (0.30f + 0.65f * ease), keyPaint
-                        )
-                        canvas.restore()
-                        needsAnimFrame = true
-                    }
-                }
             }
 
             val label = displayLabel(key, lay.locale)
@@ -481,10 +430,11 @@ class KeyboardView(context: Context) : View(context) {
             }
         }
 
-        for (k in lastPressed) if (k !in nowPressed) releaseAnim[k] = now
+        val nowUp = SystemClock.uptimeMillis()
+        for (k in lastPressed) if (k !in nowPressed) releaseAnim[k] = nowUp
         lastPressed.clear()
         lastPressed.addAll(nowPressed)
-        if (releaseAnim.isNotEmpty() || needsAnimFrame) postInvalidateOnAnimation()
+        if (releaseAnim.isNotEmpty()) postInvalidateOnAnimation()
 
         drawOneHandedControls(canvas, t)
         drawTrails(canvas, t)
@@ -535,8 +485,7 @@ class KeyboardView(context: Context) : View(context) {
             else -> {
                 if (key.type == KeyType.CHARACTER && key.label.length == 1 &&
                     key.label[0].isLetter() && shiftState != ShiftState.NONE
-                ) shiftedLabelCache.getOrPut(key) { key.label.uppercase(locale) }
-                else key.label
+                ) key.label.uppercase(locale) else key.label
             }
         }
     }
@@ -551,14 +500,6 @@ class KeyboardView(context: Context) : View(context) {
     private fun drawPopup(canvas: Canvas, t: KeyboardTheme) {
         val owner = popupOwner ?: return
         if (!owner.popupOpen || popupKeys.isEmpty()) return
-        // Entrance: scale up from the key with a slight overshoot, Telegram-style.
-        val et = ((SystemClock.uptimeMillis() - popupShownAt) / 140f).coerceAtMost(1f)
-        val o = et - 1f
-        val overshoot = 2.1f * o * o * o + 1.1f * o * o + 1f // tension 1.1
-        val scale = 0.82f + 0.18f * overshoot
-        val restore = canvas.save()
-        canvas.scale(scale, scale, popupRect.centerX(), popupRect.bottom)
-        if (et < 1f) postInvalidateOnAnimation()
         shadowRect.set(popupRect)
         shadowRect.offset(0f, dp(2f))
         canvas.drawRoundRect(shadowRect, keyRadius, keyRadius, shadowPaint)
@@ -585,7 +526,6 @@ class KeyboardView(context: Context) : View(context) {
                 canvas.drawText(popupDisplayLabel(popupKeys[i]), left + popupCell / 2f, cy, textPaint)
             }
         }
-        canvas.restoreToCount(restore)
     }
 
     private fun drawPreview(canvas: Canvas, t: KeyboardTheme) {
@@ -600,13 +540,6 @@ class KeyboardView(context: Context) : View(context) {
         var top = kb.y - h - dp(8f)
         if (top < dp(2f)) top = dp(2f)
         rectF.set(left, top, left + w, top + h)
-        // Entrance: quick scale-in from the key below (ease-out, ~90 ms).
-        val et = ((SystemClock.uptimeMillis() - previewShownAt) / 90f).coerceAtMost(1f)
-        val ease = 1f - (1f - et) * (1f - et)
-        val scale = 0.85f + 0.15f * ease
-        val restore = canvas.save()
-        canvas.scale(scale, scale, rectF.centerX(), rectF.bottom)
-        if (et < 1f) postInvalidateOnAnimation()
         shadowRect.set(rectF)
         shadowRect.offset(0f, dp(2f))
         canvas.drawRoundRect(shadowRect, keyRadius, keyRadius, shadowPaint)
@@ -617,7 +550,6 @@ class KeyboardView(context: Context) : View(context) {
         val cy = rectF.centerY() - (textPaint.ascent() + textPaint.descent()) / 2f
         canvas.drawText(displayLabel(kb.key, layout?.locale ?: Locale.getDefault()),
             rectF.centerX(), cy, textPaint)
-        canvas.restoreToCount(restore)
     }
 
     private fun isPressedKb(kb: KeyBounds): Boolean {
@@ -626,14 +558,6 @@ class KeyboardView(context: Context) : View(context) {
             if (ps.kb === kb && !ps.cancelled) return true
         }
         return false
-    }
-
-    private fun pressedPointer(kb: KeyBounds): PointerState? {
-        for (i in 0 until pointers.size()) {
-            val ps = pointers.valueAt(i)
-            if (ps.kb === kb && !ps.cancelled) return ps
-        }
-        return null
     }
 
     // ---------- touch ----------
@@ -680,7 +604,7 @@ class KeyboardView(context: Context) : View(context) {
             }
         }
         pointers.get(pid)?.let { cancelTimers(it) } // safety: recycled pointer id
-        val kb = arbitrate(keyAt(x, y) ?: return, x, y)
+        val kb = keyAt(x, y) ?: return
         val ps = PointerState(kb, x, y)
         pointers.put(pid, ps)
         listener?.onKeyDownFeedback(kb.key)
@@ -929,7 +853,6 @@ class KeyboardView(context: Context) : View(context) {
         popupOwner = ps
         popupKeys = keys
         ps.popupOpen = true
-        popupShownAt = SystemClock.uptimeMillis()
         previewKb = null
         val kb = ps.kb
         val cellW = max(kb.w, dp(44f))
@@ -964,44 +887,6 @@ class KeyboardView(context: Context) : View(context) {
         popupKeys = emptyList()
         previewKb = null
         invalidate()
-    }
-
-    private fun isLetterKey(k: Key): Boolean =
-        k.type == KeyType.CHARACTER && k.label.length == 1 && k.label[0].isLetter()
-
-    /**
-     * Adaptive touch targeting: when a tap lands where the slightly expanded
-     * bounds of two or more letter keys overlap, let [tapArbiter] pick the
-     * intended letter from spatial likelihood + language model instead of
-     * blindly taking the bounding box.
-     */
-    private fun arbitrate(primary: KeyBounds, x: Float, y: Float): KeyBounds {
-        val arb = tapArbiter ?: return primary
-        if (layout?.kind != LayoutKind.MAIN || !isLetterKey(primary.key)) return primary
-        var cands: ArrayList<KeyBounds>? = null
-        for (kb in bounds) {
-            if (!isLetterKey(kb.key)) continue
-            val ex = kb.w * 0.18f
-            val ey = kb.h * 0.15f
-            if (x >= kb.x - ex && x < kb.x + kb.w + ex &&
-                y >= kb.y - ey && y < kb.y + kb.h + ey
-            ) {
-                (cands ?: ArrayList<KeyBounds>(4).also { cands = it }).add(kb)
-            }
-        }
-        val list = cands ?: return primary
-        if (list.size < 2 || primary !in list) return primary
-        val chars = CharArray(list.size)
-        val logp = DoubleArray(list.size)
-        for (i in list.indices) {
-            val kb = list[i]
-            chars[i] = kb.key.label[0]
-            val dx = (x - (kb.x + kb.w / 2f)) / (kb.w * 0.40f)
-            val dy = (y - (kb.y + kb.h / 2f)) / (kb.h * 0.40f)
-            logp[i] = -0.5 * (dx * dx + dy * dy).toDouble()
-        }
-        val idx = arb(chars, logp)
-        return if (idx in list.indices) list[idx] else primary
     }
 
     private fun keyAt(x: Float, y: Float): KeyBounds? {
