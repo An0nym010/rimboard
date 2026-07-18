@@ -1,0 +1,420 @@
+alien	👽 👾
+ambulance	🚑
+anchor	⚓
+angel	😇 👼
+angry	😠 😡 🤬 👿
+ant	🐜
+apple	🍎 🍏
+art	🎨
+avocado	🥑
+baby	👶
+bacon	🥓
+bad	👎
+bag	🛍️ 👜 🎒
+balloon	🎈
+banana	🍌
+baseball	⚾
+basketball	🏀
+bat	🦇
+bath	🛁 🛀
+battery	🔋
+beach	🏖️ 🏝️
+bear	🐻 🧸
+bed	🛏️
+bee	🐝
+beer	🍺 🍻
+bell	🔔 🔕
+bell_notify	🔔
+bike	🚴 🚲
+bird	🐦 🕊️ 🦅
+birthday	🎂 🥳 🎉
+boat	⛵ 🚤 🛥️
+bomb	💣
+book	📖 📚
+boom	💥
+bored	😑 😐 🥱
+bowling	🎳
+boxing	🥊
+boy	👦 🧒
+brain	🧠
+bread	🍞 🥖 🥐
+bridge	🌉
+briefcase	💼
+brokenheart	💔
+broom	🧹
+bug	🐛 🐜 🐞
+building	🏢 🏬 🏥
+bulb	💡
+bunny	🐰 🐇
+burger	🍔
+bus	🚌
+butterfly	🦋
+bye	👋
+cake	🎂 🍰 🧁
+calendar	📅 📆
+call	📞 ☎️
+camera	📷 📸
+candle	🕯️
+candy	🍬 🍭
+car	🚗 🚙
+card	💳
+carrot	🥕
+cart	🛒
+cash	💵 💴 💶 💷
+castle	🏰 🏯
+cat	🐱 🐈 😺 😸 😻
+celebrate	🥳 🎉 🎊 🍾
+chair	🪑
+champagne	🍾 🥂
+chart	📊 📈 📉
+check	✅ ☑️ ✔️
+cheers	🍻 🥂
+cheese	🧀
+cherry	🍒
+chess	♟️
+chicken	🐔 🐓 🐣 🐤
+chicken_leg	🍗
+chocolate	🍫
+church	⛪
+circus	🎪
+city	🏙️ 🌆
+clap	👏
+climb	🧗
+clock	⏰ 🕐 ⏱️
+cloud	☁️ ⛅
+clover	🍀
+clown	🤡
+cocktail	🍸 🍹
+coconut	🥥
+coffee	☕
+cold	🥶 ❄️
+comet	☄️
+computer	💻 🖥️
+confetti	🎊 🎉
+confused	😕 😟 🫤 😵
+cookie	🍪
+cool	😎 🆒
+corn	🌽
+cow	🐮 🐄
+crab	🦀
+crazy	🤪 🤯
+cross	🤞 🙏
+cross_mark	❌
+crown	👑
+crown_king	👑
+cry	😭 😢 😿
+cute	🥰 😍 🥺
+dance	💃 🕺
+dart	🎯
+dead	💀 ☠️
+desert	🏜️
+devil	😈 👿
+diamond	💎
+dice	🎲
+dinosaur	🦖 🦕
+dizzy	😵 💫
+dog	🐶 🐕 🦮
+dolphin	🐬
+donut	🍩
+door	🚪
+down	📉 ⬇️ 🔽
+dragon	🐉 🐲
+dress	👗
+drink	🥤 🍹 🍸
+drum	🥁
+duck	🦆
+eagle	🦅
+earth	🌍 🌎 🌏
+egg	🥚 🍳
+elephant	🐘
+email	📧 ✉️
+exclamation	❗ ❕
+explosion	💥
+eyes	👀 👁️
+facepalm	🤦
+family	👪 👨‍👩‍👧 👨‍👩‍👧‍👦
+ferris	🎡
+fire	🔥
+fire_truck	🚒
+fish	🐟 🐠 🐡 🎣
+fishing	🎣
+fist	✊ 👊 🤛 🤜
+flag	🚩 🏁 🏳️ 🏴
+flower	🌸 🌷 🌹 🌻 🌼 💐
+food	🍕 🍔 🍟 🌮
+football	🏈 ⚽
+fox	🦊
+fries	🍟
+frog	🐸
+fruit	🍎 🍊 🍌 🍇 🍓
+fuel	⛽
+funny	😂 🤣 😜
+game	🎮 🕹️
+gear	⚙️
+ghost	👻
+gift	🎁
+giraffe	🦒
+girl	👧 🧒
+glasses	👓 🕶️
+globe	🌍 🌐
+gold	🥇
+golf	⛳ 🏌️
+good	👍 👌 🙆
+grape	🍇
+graph	📈 📉 📊
+grin	😁 😀
+guitar	🎸
+gun	🔫
+gym	💪 🏋️
+hammer	🔨
+hand	✋ 🖐️ 👋 🤚
+happy	😊 😄 😁 🙂 😃 😀 😆 🥰 😍
+hat	🎩 🧢 👒
+headphone	🎧
+heart	❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎
+hearts	❤️ 💕 💞 💓 💗 💖 💘 💝
+helicopter	🚁
+hello	👋
+hi	👋
+highfive	🙌 ✋
+home	🏠 🏡
+honey	🍯
+horse	🐴 🐎 🦄
+hospital	🏥
+hot	🥵 🔥
+hotdog	🌭
+house	🏠 🏡
+hug	🤗 🫂
+hundred	💯
+hungry	🤤 😋
+icecream	🍦 🍨 🍧
+idea	💡
+infinity	♾️
+juice	🧃
+key	🔑 🗝️
+keyboard	⌨️
+king	🤴 👑
+kiss	😘 😗 😚 💋 😙
+kitten	🐱 🐈
+knife	🔪
+koala	🐨
+ladybug	🐞
+laptop	💻
+laugh	😂 🤣 😆 😹
+launch	🚀
+leaf	🍀 🍃 🌿
+lemon	🍋
+letter	✉️ 📝
+lie	🤥
+light	💡 🔦
+lightning	⚡
+lion	🦁
+lit	🔥
+lock	🔒 🔓
+lol	😂 🤣
+look	👀
+love	😍 🥰 😘 ❤️ 💕 💖
+mad	😡 😠 🤬
+magic	✨ 🪄
+magnet	🧲
+magnify	🔍 🔎
+mail	📧 ✉️ 📨
+man	👨 🧑
+map	🗺️ 🧭
+meat	🍖 🥩
+medal	🏅 🥇 🥈 🥉
+mic	🎤
+microphone	🎤
+microscope	🔬
+milk	🥛
+mind	🤯 🧠
+mirror	🪞
+money	🤑 💰 💵 💸
+money_bag	💰
+monkey	🐵 🐒 🙈 🙉 🙊
+monkey_face	🐵
+moon	🌙 🌛 🌝 🌚
+motorcycle	🏍️
+mountain	⛰️ 🏔️ 🗻
+mouse	🐭 🐁
+movie	🎬 🎥
+muscle	💪
+mushroom	🍄
+music	🎵 🎶
+nerd	🤓 🧐
+nervous	😅 😬 😰
+neutral	😐 😑
+night	🌙 🌃
+no	❌ 🚫 👎
+noodles	🍜 🍝
+note	🎵 🎶
+ocean	🌊
+octopus	🐙
+ok	👌 🆗 ✅
+omg	😱 😲 🤯
+orange	🍊
+owl	🦉
+panda	🐼
+party	🥳 🎉 🎊
+pasta	🍝
+paw	🐾
+peace	✌️
+peach	🍑
+pen	🖊️ 🖋️
+pencil	✏️ 📝
+penguin	🐧
+pepper	🌶️ 🫑
+perfect	💯
+phone	📱 ☎️ 📞
+photo	📸 🖼️
+piano	🎹
+pig	🐷 🐖
+pill	💊
+pineapple	🍍
+pizza	🍕
+plane	✈️ 🛫
+planet	🪐
+plant	🌱 🪴 🌿
+please	🙏
+plug	🔌
+point	👉 👈 👆 👇 ☝️
+police	👮
+police_car	🚓
+poop	💩
+popcorn	🍿
+potato	🥔 🍟
+pray	🙏
+present	🎁
+punch	👊 🤛 🤜
+puppy	🐶 🐕
+queen	👸 👑
+question	❓ ❔
+quiet	🤫 🤐 😶
+rabbit	🐰 🐇
+rain	🌧️ ☔
+rainbow	🌈
+recycle	♻️
+rice	🍚 🍙
+rich	🤑 💰
+ring	💍
+robot	🤖
+rocket	🚀
+rose	🌹
+run	🏃
+sad	😢 😞 😔 🙁 ☹️ 😟
+salad	🥗
+sandwich	🥪
+scared	😨 😱 😰
+school	🏫
+scooter	🛵 🛴
+search	🔍 🔎
+shark	🦈
+shield	🛡️
+ship	🚢 ⛴️
+shirt	👕
+shocked	😱 😨 😳
+shoe	👟 👞
+shopping	🛒 🛍️
+shrimp	🦐
+shrug	🤷
+shy	😳 🥺 ☺️
+sick	🤒 🤢 🤮 🤧 😷
+silly	😜 🤪 😝
+skate	⛸️ 🛹
+ski	🎿 ⛷️
+skull	💀 ☠️
+sleep	😴 😪 💤
+smile	😊 😄 🙂 😁 😃
+smirk	😏
+snail	🐌
+snake	🐍
+snake_face	🐍
+snow	❄️ ⛄ 🌨️
+snowman	⛄ ☃️
+soap	🧼
+soccer	⚽
+soda	🥤
+space	🚀 🌌 🪐
+sparkle	✨ 🌟 💫
+spider	🕷️ 🕸️
+sport	⚽ 🏀 🏈 ⚾
+squid	🦑
+star	⭐ 🌟 ✨
+statue	🗽
+stop	🛑 ✋
+storm	⛈️ 🌩️
+strawberry	🍓
+strong	💪
+study	📚 📖 ✏️
+subway	🚇
+sun	☀️ 🌞
+sunglass	😎
+sunglasses	😎 🕶️
+sunny	☀️
+superhero	🦸 🦹
+surf	🏄
+sushi	🍣 🍱
+swim	🏊
+syringe	💉
+taco	🌮
+target	🎯
+taxi	🚕
+tea	🍵 🫖
+telescope	🔭
+tennis	🎾
+tent	⛺ 🏕️
+thanks	🙏
+think	🤔 🧐
+thumbsdown	👎
+thumbsup	👍
+tiger	🐯 🐅
+time	⏰ ⌛ ⏳
+tired	😴 🥱 😪
+toilet	🚽
+tomato	🍅
+tool	🔧 🔨 🛠️
+traffic	🚦 🚥
+train	🚆 🚄 🚂
+trash	🗑️
+travel	✈️ 🧳 🗺️
+tree	🌳 🌲 🌴
+trophy	🏆
+truck	🚚 🚛
+trumpet	🎺
+turtle	🐢
+tv	📺
+umbrella	☔ ☂️
+unicorn	🦄
+up	📈 ⬆️ 🔼
+vampire	🧛
+victory	✌️
+violin	🎻
+volcano	🌋
+volleyball	🏐
+wait	⏳ ⌛
+walk	🚶
+wand	🪄
+warning	⚠️ 🚨
+water	💧 💦 🌊
+watermelon	🍉
+wave	🌊 👋
+whale	🐳 🐋
+win	🏆 🥇
+wind	💨 🌬️
+wine	🍷
+wink	😉 😜
+wizard	🧙
+wolf	🐺
+woman	👩 🧑
+work	💼
+world	🌍 🌎 🌏
+worried	😟 😧 😰
+wow	😮 😯 😲 🤩
+wrench	🔧
+write	✍️ 📝
+yes	✅ 👍
+yoga	🧘
+yum	😋 🤤
+zebra	🦓
+zombie	🧟
+zzz	💤

@@ -1,0 +1,107 @@
+alkış	👏
+anahtar	🔑
+araba	🚗 🚙
+arı	🐝
+aslan	🦁
+at	🐴 🐎
+ateş	🔥
+ay	🌙 🌝
+ayı	🐻
+ağaç	🌳 🌲
+ağla	😭 😢
+aşk	😍 🥰 😘 ❤️ 💕
+balon	🎈
+balık	🐟 🐠
+basketbol	🏀
+beyin	🧠
+bilgisayar	💻
+bira	🍺 🍻
+dans	💃 🕺
+dağ	⛰️ 🏔️
+deniz	🌊
+dondurma	🍦 🍨
+doğumgünü	🎂 🥳 🎉
+dua	🙏
+dünya	🌍 🌎 🌏
+elma	🍎 🍏
+elmas	💎
+ev	🏠 🏡
+evet	✅ 👍
+fikir	💡
+fil	🐘
+futbol	⚽
+gemi	🚢 ⛵
+gitar	🎸
+göz	👀 👁️
+gül	😂 🤣 😆
+gül_çiçek	🌹
+gülümse	😊 🙂 😄
+güneş	☀️ 🌞
+güçlü	💪
+hamburger	🍔
+harika	💯 🤩
+hayalet	👻
+hayır	❌ 🚫 👎
+hediye	🎁
+kahve	☕
+kaka	💩
+kalem	✏️ 🖊️
+kalp	❤️ 🧡 💛 💚 💙 💜 🖤
+kamera	📷 📸
+kaplan	🐯 🐅
+kar	❄️ ⛄
+kas	💪
+kedi	🐱 🐈 😺
+kelebek	🦋
+kilit	🔒
+kitap	📖 📚
+komik	😂 🤣
+koş	🏃
+kupa	🏆
+kurukafa	💀
+kutlama	🥳 🎉
+kuş	🐦 🦅
+köpek	🐶 🐕
+kızgın	😠 😡 🤬
+lütfen	🙏
+merhaba	👋
+meyve	🍎 🍌 🍇
+mutlu	😊 😄 😁 🥰
+muz	🍌
+müzik	🎵 🎶
+okul	🏫
+otobüs	🚌
+oyun	🎮 🕹️
+para	💰 💵
+parti	🥳 🎉 🎊
+pasta	🎂 🍰
+pizza	🍕
+portakal	🍊
+robot	🤖
+roket	🚀
+saat	⏰ 🕐
+selam	👋
+sevgi	❤️ 🥰 😍 💕
+sinirli	😡 😠
+su	💧 💦 🌊
+süt	🥛
+tamam	👌 ✅ 🆗
+tavşan	🐰 🐇
+taç	👑
+telefon	📱 📞
+teşekkür	🙏
+tren	🚆 🚄
+uzaylı	👽
+uçak	✈️
+yağmur	🌧️ ☔
+yemek	🍕 🍔 🍟
+yılan	🐍
+yıldız	⭐ 🌟 ✨
+çay	🍵
+çikolata	🍫
+çilek	🍓
+çiçek	🌸 🌷 🌹 💐
+öpücük	😘 😗 💋
+üzgün	😢 😞 😔 🙁
+şarap	🍷
+şimşek	⚡
