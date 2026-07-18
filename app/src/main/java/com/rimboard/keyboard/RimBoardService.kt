@@ -85,7 +85,15 @@ class RimBoardService : InputMethodService(),
     private var primStreak = 0
 
     private val composing = StringBuilder()
+
+    /** Word before [prevWordForBigram] — the trigram context. Maintained by
+     *  the setter below: committing a new word shifts, clearing clears both. */
+    private var prevWord2 = ""
     private var prevWordForBigram = ""
+        set(value) {
+            prevWord2 = if (value.isEmpty()) "" else field
+            field = value
+        }
 
     private var kind = LayoutKind.MAIN
     private var langs: List<String> = listOf("en", "tr")
@@ -154,7 +162,10 @@ class RimBoardService : InputMethodService(),
         val s = SuggestionStripView(ctx).apply { listener = this@RimBoardService }
         root.addView(s, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(44)))
         val frame = FrameLayout(ctx)
-        val kv = KeyboardView(ctx).apply { listener = this@RimBoardService }
+        val kv = KeyboardView(ctx).apply {
+            listener = this@RimBoardService
+            tapArbiter = ::resolveAmbiguousTap
+        }
         val ev = EmojiView(ctx).apply {
             listener = this@RimBoardService
             visibility = View.GONE
@@ -624,7 +635,7 @@ class RimBoardService : InputMethodService(),
         ic.endBatchEdit()
         val canLearn = Prefs.learnWords(this) && !isIncognito() && !isPassword && !isEmailOrUri
         if (canLearn && Prefs.predictions(this) && prevWordForBigram.isNotEmpty()) {
-            userData.recordBigram(prevWordForBigram, best.lowercase(loc))
+            userData.recordNgram(prevWord2, prevWordForBigram, best.lowercase(loc))
         }
         prevWordForBigram = best.lowercase(loc)
         revert = null
@@ -633,6 +644,31 @@ class RimBoardService : InputMethodService(),
         glideWords = words
         consumeAutoShift()
         afterEdit()
+    }
+
+    /**
+     * Adaptive tap targeting: choose among letter keys whose expanded bounds
+     * contain the touch by combining the spatial Gaussian (from KeyboardView)
+     * with the language model's P(letter | previous letter) — the technique
+     * behind Gboard's tap accuracy. Word-initial taps use the word-start
+     * distribution. Disabled in password fields, where people type precisely
+     * and unusual sequences (no language prior should second-guess them).
+     */
+    private fun resolveAmbiguousTap(chars: CharArray, spatialLogP: DoubleArray): Int {
+        if (isPassword) return -1
+        val dict = engine.cachedDictionary(effLang()) ?: return -1
+        val prev = composing.lastOrNull()?.lowercaseChar()
+            ?: com.rimboard.keyboard.engine.Dictionary.WORD_START
+        var best = -1
+        var bestScore = Double.NEGATIVE_INFINITY
+        for (i in chars.indices) {
+            val s = spatialLogP[i] + 0.55 * dict.charLogP(prev, chars[i].lowercaseChar())
+            if (s > bestScore) {
+                bestScore = s
+                best = i
+            }
+        }
+        return best
     }
 
     override fun onKeyDownFeedback(key: Key) {
@@ -776,7 +812,7 @@ class RimBoardService : InputMethodService(),
         }
         val fw = finalWord.lowercase(loc)
         if (canLearn && Prefs.predictions(this) && wordish && prevWordForBigram.isNotEmpty()) {
-            userData.recordBigram(prevWordForBigram, fw)
+            userData.recordNgram(prevWord2, prevWordForBigram, fw)
         }
         prevWordForBigram = if (wordish) fw else ""
         composing.setLength(0)
@@ -918,6 +954,82 @@ class RimBoardService : InputMethodService(),
 
     // ---------------------------------------------------------------- suggestions
 
+    // ------------------------------------------------------------ calculator
+
+    private val calcRegex = Regex(
+        "(?:\\d+(?:[.,]\\d+)?)(?:\\s*[+\\-*/×÷]\\s*\\d+(?:[.,]\\d+)?)+=?$"
+    )
+
+    /**
+     * "= 408" chip for a trailing arithmetic expression before the cursor
+     * (e.g. "12*34"), or null. Guards against things that merely look like
+     * arithmetic: dates (12/07/2026) and phone-ish digit runs (555-1234) are
+     * only evaluated when the user types an explicit trailing "=".
+     */
+    private fun calcChip(): String? {
+        val before = currentInputConnection?.getTextBeforeCursor(40, 0)?.toString()
+            ?: return null
+        val m = calcRegex.find(before) ?: return null
+        val expr = m.value
+        val explicit = expr.endsWith("=")
+        if (!explicit) {
+            val hasStrongOp = expr.any { it == '+' || it == '*' || it == '×' || it == '÷' }
+            val slashes = expr.count { it == '/' }
+            if (!hasStrongOp && slashes != 1) return null // "-"-only or date-like
+            if (slashes > 1) return null
+        }
+        val value = evalExpression(expr.removeSuffix("=")) ?: return null
+        val formatted = formatCalcResult(value) ?: return null
+        return "= $formatted"
+    }
+
+    /** Left-to-right two-pass eval: * / ÷ × first, then + -. Null on overflow/div-zero. */
+    private fun evalExpression(expr: String): Double? {
+        val nums = ArrayList<Double>()
+        val ops = ArrayList<Char>()
+        var i = 0
+        val s = expr.replace(" ", "")
+        while (i < s.length) {
+            val c = s[i]
+            if (c.isDigit() || ((c == '-' || c == '+') && nums.size == ops.size)) {
+                val start = i
+                if (c == '-' || c == '+') i++
+                while (i < s.length && (s[i].isDigit() || s[i] == '.' || s[i] == ',')) i++
+                val n = s.substring(start, i).replace(',', '.').toDoubleOrNull() ?: return null
+                nums.add(n)
+            } else if (c in "+-*/×÷") {
+                if (nums.size != ops.size + 1) return null
+                ops.add(c)
+                i++
+            } else return null
+        }
+        if (nums.size != ops.size + 1) return null
+        // pass 1: multiplication and division
+        var k = 0
+        while (k < ops.size) {
+            val op = ops[k]
+            if (op == '*' || op == '×' || op == '/' || op == '÷') {
+                val b = nums[k + 1]
+                if ((op == '/' || op == '÷') && b == 0.0) return null
+                nums[k] = if (op == '*' || op == '×') nums[k] * b else nums[k] / b
+                nums.removeAt(k + 1)
+                ops.removeAt(k)
+            } else k++
+        }
+        var acc = nums[0]
+        for (j in ops.indices) acc = if (ops[j] == '+') acc + nums[j + 1] else acc - nums[j + 1]
+        return if (acc.isFinite()) acc else null
+    }
+
+    private fun formatCalcResult(v: Double): String? {
+        if (kotlin.math.abs(v) >= 1e12) return null
+        val r = Math.round(v)
+        if (v == r.toDouble()) return r.toString()
+        var s = String.format(java.util.Locale.US, "%.4f", v).trimEnd('0').trimEnd('.')
+        if (s == "-0") s = "0"
+        return s
+    }
+
     private fun updateStrip() {
         val s = strip ?: return
         if (isIncognito()) {
@@ -942,8 +1054,12 @@ class RimBoardService : InputMethodService(),
                 s.showSuggestions(glideWords.take(3), 0)
                 return
             }
+            calcChip()?.let {
+                s.showSuggestions(listOf(it, "", ""), -1)
+                return
+            }
             var preds = if (Prefs.predictions(this) && prevWordForBigram.isNotEmpty()) {
-                engine.predictions(prevWordForBigram, locale(), 3)
+                engine.predictions(prevWord2, prevWordForBigram, currentLangCode(), locale(), 3)
             } else emptyList()
             if (preds.isNotEmpty() &&
                 keyboardView?.shiftState == KeyboardView.ShiftState.AUTO
@@ -1013,6 +1129,14 @@ class RimBoardService : InputMethodService(),
             return
         }
         if (word.isEmpty() || word.startsWith("\u21A9")) return
+        if (word.startsWith("= ")) { // calculator chip
+            val result = word.substring(2)
+            val ic = currentInputConnection ?: return
+            val prevCh = ic.getTextBeforeCursor(1, 0)?.lastOrNull()
+            ic.commitText(if (prevCh == '=') result else "=$result", 1)
+            afterEdit()
+            return
+        }
         if (glideWords.isNotEmpty() && composing.isEmpty()) {
             replaceLastGlideWith(word)
             return
@@ -1031,7 +1155,7 @@ class RimBoardService : InputMethodService(),
             userData.learnWord(word.lowercase(loc))
         }
         if (canLearn && Prefs.predictions(this) && wordish && prevWordForBigram.isNotEmpty()) {
-            userData.recordBigram(prevWordForBigram, word.lowercase(loc))
+            userData.recordNgram(prevWord2, prevWordForBigram, word.lowercase(loc))
         }
         prevWordForBigram = if (wordish) word.lowercase(loc) else ""
         revert = null
@@ -1052,8 +1176,12 @@ class RimBoardService : InputMethodService(),
         ic.deleteSurroundingText(expect.length, 0)
         ic.commitText(if (Prefs.autoSpaceSuggestion(this)) "$word " else word, 1)
         ic.endBatchEdit()
+        // Replacement of the last word: the trigram context (prevWord2) must
+        // not shift onto the word being replaced.
+        val keep2 = prevWord2
         prevWordForBigram =
             if (word.all { it.isLetter() || it == '\'' }) word.lowercase(locale()) else ""
+        prevWord2 = keep2
         glideWords = listOf(word) + glideWords.filter { it != word }
         autoSpace = true
         afterEdit()
@@ -1076,7 +1204,10 @@ class RimBoardService : InputMethodService(),
         if (Prefs.learnWords(this) && !isIncognito()) {
             userData.markKnown(rv.original.lowercase(locale()))
         }
+        // Reverting swaps the last word in place; keep the trigram context.
+        val keep2 = prevWord2
         prevWordForBigram = rv.original.lowercase(locale())
+        prevWord2 = keep2
         revert = null
         afterEdit()
     }
@@ -1304,6 +1435,7 @@ class RimBoardService : InputMethodService(),
         val lp = ev.layoutParams as FrameLayout.LayoutParams
         lp.height = kv.measureKeyboardHeight()
         ev.layoutParams = lp
+        ev.setSearchLang(currentLangCode())
         ev.setRecents(if (isIncognito()) emptyList() else Prefs.emojiRecents(this))
         clipboardView?.visibility = View.GONE
         editPanelView?.visibility = View.GONE

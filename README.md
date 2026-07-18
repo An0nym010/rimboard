@@ -6,8 +6,13 @@ and **zero Android permissions** — the app cannot touch the internet even if
 it wanted to.
 
 - Kotlin, no heavyweight dependencies, single small APK
-- 8 languages built in: English (QWERTY), Turkish (Q-klavye), German (QWERTZ),
-  Spanish, French (AZERTY), Italian, Portuguese, Russian (ЙЦУКЕН)
+- 22 languages built in — English, Turkish, German, Spanish, French, Italian,
+  Portuguese, Russian, Dutch, Polish, Swedish, Indonesian, Romanian, Czech,
+  Danish, Norwegian, Finnish, Hungarian, Ukrainian, Greek, Croatian, Slovak —
+  with native layouts (QWERTY, QWERTZ, AZERTY, ЙЦУКЕН, Greek, Turkish Q)
+- Gboard-class typing engine: adaptive tap targeting, proximity-aware
+  autocorrect, glide typing, trigram predictions, emoji search, inline
+  calculator — all fully offline
 - MIT licensed code, CC BY-SA 4.0 dictionaries
 
 ## Device compatibility
@@ -18,6 +23,55 @@ Runs on any Android 8.0+ phone or tablet (API 26, ~97% of devices) — Samsung, 
 - **No fullscreen extract mode** — landscape typing keeps your app visible, Gboard-style
 - **Themed navigation bar** — no white system-bar strip under a dark keyboard on 3-button-nav devices
 - **Emoji filtered per device** — emoji your Android version can't render are hidden instead of showing ▯ boxes
+
+## What's new in 2.7.0
+
+- **Adaptive tap targeting** — the technique behind Gboard's tap accuracy,
+  implemented from scratch: when a touch lands near a key boundary, a spatial
+  Gaussian around each key centre is combined with a per-language
+  character-transition model (built from the bundled dictionary at load), and
+  the most probable letter wins. Type "t" then tap between q and w — you get
+  the w you meant. Touches comfortably inside a key are never diverted, and
+  password fields are exempt. Works for all 22 languages.
+- **Trigram predictions** — the keyboard now learns two-word contexts, not
+  just word pairs: after "see you" it can predict "soon" even though "you"
+  alone is usually followed by "are". Trigram evidence outranks bigram,
+  everything stays on-device, and the data is included in backups.
+- **Inline calculator** — type `12*34` and the suggestion bar offers `= 408`;
+  tap to insert. Proper operator precedence, decimal commas, × and ÷.
+  Dates (12/07/2026) and phone-style numbers are left alone unless you type
+  an explicit trailing `=`.
+- **Telegram-grade rendering** — the technique, not the code: the keyboard is
+  one custom-drawn view with a zero-allocation draw loop (shifted key labels
+  are now cached instead of re-created every frame), an eased spring-back on
+  key release, a soft radial highlight that blooms from the exact touch point,
+  and long-press popups and key previews that scale in with a subtle
+  overshoot. All animations run on `postInvalidateOnAnimation` frame timing.
+- Everything above is offline, permission-free and original code (MIT).
+
+## What's new in 2.6.0
+
+- **Proximity-aware autocorrect** — corrections now weigh where the keys sit on
+  the layout, noisy-channel style: an adjacent-key slip (`helko` → `hello`,
+  `noq` → `now`) is treated as far more likely than a distant one, so the word
+  that gets auto-committed matches what you meant more often. Works for every
+  layout (QWERTY/QWERTZ/AZERTY/Cyrillic/Greek/Turkish), and the strip can now
+  offer up to two corrections instead of one.
+- **Next-word predictions from the first word** — a small bundled starter model
+  (English and Turkish) means the suggestion bar predicts your next word before
+  it has learned anything from you; your own learned n-grams still take priority
+  and take over as you type. Regenerate or extend it with
+  `python3 tools/build_predictions.py`.
+- **Emoji search** — the emoji panel has a 🔍 search with its own compact
+  keypad and a fully offline keyword index (420 English + Turkish terms); type
+  `cat`, `pizza`, or `heart` to find emoji. Accent-folding lets an ASCII query
+  reach accented keywords (`kopek` → köpek). Extend it with
+  `python3 tools/build_emoji_search.py`.
+- **Polish** — the auto-commit suggestion now sits on a compact inset pill
+  instead of a full-height bar, and the emoji-search keys have rounded,
+  press-highlighted backgrounds.
+- Also fixed: a type-mismatch compile error in `SuggestionEngine` that broke
+  clean builds of 2.5.0.
 
 ## What's new in 2.5.0
 
@@ -133,9 +187,9 @@ Feature ideas in this release were informed by studying Gboard, SwiftKey, HeliBo
 - Multi-touch typing (rollover), repeating backspace
 
 **Languages**
-- English, Turkish, German, Spanish, French, Italian, Portuguese and Russian
-  out of the box — pick any set in Settings; 🌐 cycles them, long-press for
-  the system picker; locale-correct casing (Turkish i → İ, Cyrillic, etc.)
+- 22 languages out of the box (see the list at the top) — pick any set in
+  Settings; 🌐 cycles them, long-press for the system picker; locale-correct
+  casing (Turkish i → İ, Cyrillic, etc.)
 - Add more languages by dropping a dictionary file and a layout (see below)
 
 **Privacy**
@@ -185,8 +239,9 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 ## Extending the dictionaries
 
-The bundled lists are the top 10,000 words per language. To regenerate or
-enlarge them:
+The bundled lists hold up to 200,000 words for the eight core languages and
+100,000 for the rest (from the OpenSubtitles frequency corpus). To regenerate
+or enlarge them:
 
 ```
 python3 tools/fetch_dictionaries.py --top 20000

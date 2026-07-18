@@ -1,9 +1,11 @@
 package com.rimboard.keyboard.engine
 
 import android.content.Context
+import com.rimboard.keyboard.model.KeyProximity
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.ceil
+import kotlin.math.ln
 
 /**
  * A static word list loaded from assets/dictionaries/<lang>.txt.
@@ -12,10 +14,18 @@ import kotlin.math.ceil
  */
 class Dictionary(context: Context, lang: String, private val locale: Locale) {
 
+    companion object {
+        /** Marker for the word-initial position in the character model. */
+        const val WORD_START = ' '
+        private const val LN_UNSEEN = -6.0
+    }
+
     private val words: Array<String>
     private val freqs: IntArray
     private val exact = HashSet<String>()
     private val byLen: Array<IntArray>
+    private val charCounts = HashMap<Char, HashMap<Char, Double>>()
+    private val charTotals = HashMap<Char, Double>()
 
     init {
         val entries = ArrayList<Pair<String, Int>>(12000)
@@ -53,6 +63,21 @@ class Dictionary(context: Context, lang: String, private val locale: Locale) {
         words = Array(entries.size) { entries[it].first }
         freqs = IntArray(entries.size) { entries[it].second }
         exact.addAll(words)
+        // Character-transition model for adaptive tap targeting: how likely is
+        // letter b to follow letter a in this language, weighted by ln(freq) so
+        // common words dominate without drowning everything else. ' ' marks
+        // the word-initial position.
+        for (i in words.indices) {
+            val w = words[i]
+            val wgt = ln((freqs[i] + 1).toDouble())
+            var prev = WORD_START
+            for (ch in w) {
+                val m = charCounts.getOrPut(prev) { HashMap() }
+                m[ch] = (m[ch] ?: 0.0) + wgt
+                charTotals[prev] = (charTotals[prev] ?: 0.0) + wgt
+                prev = ch
+            }
+        }
         val buckets = Array(25) { ArrayList<Int>() }
         for (i in words.indices) {
             if (freqs[i] < 200) continue // very rare words make bad corrections
@@ -65,6 +90,19 @@ class Dictionary(context: Context, lang: String, private val locale: Locale) {
     val size: Int get() = words.size
 
     fun contains(wordLower: String): Boolean = exact.contains(wordLower)
+
+    /**
+     * Smoothed log P(next | prev) from the character-transition model. [prev]
+     * is [WORD_START] at the beginning of a word. Used to arbitrate ambiguous
+     * taps near key boundaries (Gboard-style adaptive touch targeting).
+     * Floored at [LN_UNSEEN] so no single transition can pull a tap across
+     * more than a small fraction of a key.
+     */
+    fun charLogP(prev: Char, next: Char): Double {
+        val total = charTotals[prev] ?: return LN_UNSEEN
+        val c = charCounts[prev]?.get(next) ?: 0.0
+        return maxOf(LN_UNSEEN, ln((c + 0.5) / (total + 40.0)))
+    }
 
     /** Top [limit] dictionary words starting with [prefixRaw], ranked by frequency. */
     fun byPrefix(prefixRaw: String, limit: Int): List<Pair<String, Int>> {
@@ -87,28 +125,74 @@ class Dictionary(context: Context, lang: String, private val locale: Locale) {
     }
 
     /**
-     * Best correction for a lowercase typed word, or null.
-     * Edit distance 1 (2 for words of 6+ chars), highest-frequency candidate wins.
+     * Ranked corrections for a lowercase typed word, best first (may be empty).
+     *
+     * Candidates are gated to integer edit distance 1 (2 for words of 6+ chars),
+     * then scored noisy-channel style: `ln(freq) - 3.5 * spatialCost`, where the
+     * spatial cost weights each substitution by how far apart the two keys sit on
+     * the layout. So an adjacent-key slip (helko -> hello) beats a distant one,
+     * and a much more frequent word can still outrank a slightly closer rare one.
      */
-    fun bestCorrection(typedLower: String): String? {
+    fun corrections(typedLower: String, prox: KeyProximity?, limit: Int): List<String> {
         val n = typedLower.length
-        if (n < 2 || words.isEmpty()) return null
+        if (n < 2 || words.isEmpty()) return emptyList()
         val maxDist = if (n >= 6) 2 else 1
-        var best: String? = null
-        var bestFreq = 0
-        var bestDist = maxDist + 1
+        val scored = ArrayList<Pair<String, Double>>()
         for (bl in maxOf(1, n - maxDist)..minOf(24, n + maxDist)) for (i in byLen[bl]) {
             val cand = words[i]
             val d = damerau(typedLower, cand, maxDist)
             if (d in 1..maxDist) {
-                if (d < bestDist || (d == bestDist && freqs[i] > bestFreq)) {
-                    bestDist = d
-                    best = cand
-                    bestFreq = freqs[i]
-                }
+                val score = ln((freqs[i] + 1).toDouble()) - 3.5 * spatialCost(typedLower, cand, prox)
+                scored.add(cand to score)
             }
         }
-        return best
+        if (scored.isEmpty()) return emptyList()
+        scored.sortByDescending { it.second }
+        val out = ArrayList<String>(minOf(limit, scored.size))
+        for (p in scored) {
+            out.add(p.first)
+            if (out.size >= limit) break
+        }
+        return out
+    }
+
+    /** Single best correction for a lowercase typed word, or null. */
+    fun bestCorrection(typedLower: String, prox: KeyProximity? = null): String? =
+        corrections(typedLower, prox, 1).firstOrNull()
+
+    /**
+     * Keyboard-weighted edit cost between the typed word and a candidate: the
+     * minimum-cost alignment where a substitution costs [KeyProximity.cost] of
+     * the two keys (0 same, ~0.35 adjacent, up to 1.0 far), an insertion or
+     * deletion costs 0.9, and a transposition costs 0.35. Lower means a more
+     * plausible typo. With no proximity data it degrades to plain edit distance.
+     */
+    private fun spatialCost(a: String, b: String, prox: KeyProximity?): Double {
+        val m = a.length
+        val n = b.length
+        val ins = 0.9
+        val transp = 0.35
+        var prevPrev: DoubleArray? = null
+        var prev = DoubleArray(n + 1) { it * ins }
+        var curr = DoubleArray(n + 1)
+        for (i in 1..m) {
+            curr[0] = i * ins
+            for (j in 1..n) {
+                val subCost = prox?.cost(a[i - 1], b[j - 1])
+                    ?: if (a[i - 1] == b[j - 1]) 0.0 else 1.0
+                var v = minOf(prev[j] + ins, curr[j - 1] + ins, prev[j - 1] + subCost)
+                if (i > 1 && j > 1 && a[i - 1] == b[j - 2] && a[i - 2] == b[j - 1]) {
+                    val pp = prevPrev
+                    if (pp != null && pp[j - 2] + transp < v) v = pp[j - 2] + transp
+                }
+                curr[j] = v
+            }
+            val recycled = prevPrev ?: DoubleArray(n + 1)
+            prevPrev = prev
+            prev = curr
+            curr = recycled
+        }
+        return prev[n]
     }
 
     /**

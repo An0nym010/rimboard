@@ -48,6 +48,7 @@ object Backup {
             root.put("settings", settings)
             root.put("learned", readFileOrEmpty(File(UserData.dataDir(context), "learned.txt")))
             root.put("bigrams", readFileOrEmpty(File(UserData.dataDir(context), "bigrams.txt")))
+            root.put("trigrams", readFileOrEmpty(File(UserData.dataDir(context), "trigrams.txt")))
             root.put("pinned", readFileOrEmpty(File(UserData.dataDir(context), "pinned_clips.json")))
             root.put("shortcuts", readFileOrEmpty(File(UserData.dataDir(context), "shortcuts.json")))
 
@@ -93,6 +94,7 @@ object Backup {
 
             writeIfPresent(root, "learned", File(UserData.dataDir(context), "learned.txt"))
             writeIfPresent(root, "bigrams", File(UserData.dataDir(context), "bigrams.txt"))
+            writeIfPresent(root, "trigrams", File(UserData.dataDir(context), "trigrams.txt"))
             writeIfPresent(root, "pinned", File(UserData.dataDir(context), "pinned_clips.json"))
             writeIfPresent(root, "shortcuts", File(UserData.dataDir(context), "shortcuts.json"))
 

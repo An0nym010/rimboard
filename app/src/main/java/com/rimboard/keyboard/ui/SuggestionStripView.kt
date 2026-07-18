@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.InsetDrawable
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
@@ -154,9 +155,10 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             slots[i].setTextColor(if (hl) t.accent else t.stripText)
             if (hl) {
                 val pill = GradientDrawable()
-                pill.cornerRadius = dp(15).toFloat()
-                pill.setColor((t.accent and 0x00FFFFFF) or 0x22000000)
-                slots[i].background = pill
+                pill.cornerRadius = dp(16).toFloat()
+                pill.setColor((t.accent and 0x00FFFFFF) or 0x26000000)
+                // Inset so the highlight reads as a compact pill, not a full-height bar.
+                slots[i].background = InsetDrawable(pill, dp(6), dp(6), dp(6), dp(6))
             } else {
                 slots[i].background = null
             }

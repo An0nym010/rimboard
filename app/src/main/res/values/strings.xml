@@ -70,6 +70,7 @@
 
     <!-- In-keyboard -->
     <string name="incognito_label">Incognito · not learning</string>
+    <string name="emoji_search">Search emoji</string>
     <string name="subtype_de">Deutsch (RimBoard)</string>
     <string name="subtype_es">Español (RimBoard)</string>
     <string name="subtype_fr">Français (RimBoard)</string>

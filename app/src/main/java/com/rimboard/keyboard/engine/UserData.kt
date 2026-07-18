@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
 /**
- * Learned words and next-word bigrams. Stored only in app-private storage
+ * Learned words and next-word n-grams. Stored only in app-private storage
  * (filesDir), never backed up, never transmitted (the app has no internet
  * permission). Learning is skipped entirely in incognito contexts.
  */
@@ -20,7 +20,7 @@ class UserData(context: Context) {
          */
         fun dataDir(context: Context): File {
             val dp = context.createDeviceProtectedStorageContext()
-            for (n in listOf("learned.txt", "bigrams.txt")) {
+            for (n in listOf("learned.txt", "bigrams.txt", "trigrams.txt")) {
                 val old = File(context.filesDir, n)
                 val nw = File(dp.filesDir, n)
                 if (old.exists() && !nw.exists()) {
@@ -34,11 +34,17 @@ class UserData(context: Context) {
     private val learnedFile = File(dataDir(context), "learned.txt")
     private val blockedFile = File(dataDir(context), "blocked.txt")
     private val bigramFile = File(dataDir(context), "bigrams.txt")
+    private val trigramFile = File(dataDir(context), "trigrams.txt")
     private val io = Executors.newSingleThreadExecutor()
 
     private val learned = ConcurrentHashMap<String, Int>()
     private val blocked: MutableSet<String> = ConcurrentHashMap.newKeySet()
     private val bigrams = ConcurrentHashMap<String, ConcurrentHashMap<String, Int>>()
+
+    // Two-word context -> next-word counts, keyed "prev2 prev1". Trigram hits
+    // outrank plain bigrams in predictNext, so "see you" predicts "soon" even
+    // if "you" alone most often precedes "are".
+    private val trigrams = ConcurrentHashMap<String, ConcurrentHashMap<String, Int>>()
 
     @Volatile
     private var dirty = false
@@ -54,6 +60,7 @@ class UserData(context: Context) {
         io.execute {
             learned.clear()
             bigrams.clear()
+            trigrams.clear()
             dirty = false
             load()
         }
@@ -79,6 +86,12 @@ class UserData(context: Context) {
                 val p = line.split('\t')
                 if (p.size == 3) p[2].toIntOrNull()?.let {
                     bigrams.getOrPut(p[0]) { ConcurrentHashMap() }[p[1]] = it
+                }
+            }
+            if (trigramFile.exists()) trigramFile.forEachLine { line ->
+                val p = line.split('\t')
+                if (p.size == 3) p[2].toIntOrNull()?.let {
+                    trigrams.getOrPut(p[0]) { ConcurrentHashMap() }[p[1]] = it
                 }
             }
         } catch (_: Exception) {
@@ -153,9 +166,33 @@ class UserData(context: Context) {
         dirty = true
     }
 
-    fun predictNext(prev: String, limit: Int): List<String> {
-        val m = bigrams[prev] ?: return emptyList()
-        return m.entries.filter { !blocked.contains(it.key) }.sortedByDescending { it.value }.take(limit).map { it.key }
+    /** Records both the bigram prev1->next and (when prev2 is known) the trigram. */
+    fun recordNgram(prev2: String, prev1: String, next: String) {
+        recordBigram(prev1, next)
+        if (prev2.isEmpty() || prev1.isEmpty() || next.isEmpty()) return
+        trigrams.getOrPut("$prev2 $prev1") { ConcurrentHashMap() }
+            .merge(next, 1) { a, b -> a + b }
+        dirty = true
+    }
+
+    /**
+     * Next-word candidates after the context (prev2, prev1), best first.
+     * Trigram evidence counts 4x a bigram hit: a word seen after this exact
+     * two-word context is a much stronger signal than one seen after prev1
+     * alone.
+     */
+    fun predictNext(prev2: String, prev1: String, limit: Int): List<String> {
+        val scores = HashMap<String, Int>()
+        bigrams[prev1]?.forEach { (w, c) ->
+            if (!blocked.contains(w)) scores.merge(w, c) { a, b -> a + b }
+        }
+        if (prev2.isNotEmpty()) {
+            trigrams["$prev2 $prev1"]?.forEach { (w, c) ->
+                if (!blocked.contains(w)) scores.merge(w, c * 4) { a, b -> a + b }
+            }
+        }
+        if (scores.isEmpty()) return emptyList()
+        return scores.entries.sortedByDescending { it.value }.take(limit).map { it.key }
     }
 
     fun glideCandidates(first: Char, last: Char, nearLast: Char, limit: Int): List<Pair<String, Int>> =
@@ -194,6 +231,11 @@ class UserData(context: Context) {
                     sb.append(a).append('\t').append(b).append('\t').append(c).append('\n')
                 }
                 bigramFile.writeText(sb.toString())
+                sb.setLength(0)
+                for ((ctx, m) in trigrams) for ((b, c) in m) {
+                    sb.append(ctx).append('\t').append(b).append('\t').append(c).append('\n')
+                }
+                trigramFile.writeText(sb.toString())
             } catch (_: Exception) {
             }
         }
@@ -207,16 +249,22 @@ class UserData(context: Context) {
             val excess = bigrams.size - 4000
             bigrams.keys.take(excess).forEach { bigrams.remove(it) }
         }
+        if (trigrams.size > 6000) {
+            val excess = trigrams.size - 6000
+            trigrams.keys.take(excess).forEach { trigrams.remove(it) }
+        }
     }
 
     fun clearAll() {
         learned.clear()
         bigrams.clear()
+        trigrams.clear()
         dirty = false
         io.execute {
             try {
                 learnedFile.delete()
                 bigramFile.delete()
+                trigramFile.delete()
             } catch (_: Exception) {
             }
         }
