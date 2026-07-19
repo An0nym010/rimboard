@@ -1384,6 +1384,10 @@ class RimBoardService : InputMethodService(),
     private fun toggleFloating() {
         Prefs.setFloating(this, !Prefs.floating(this))
         setInputView(onCreateInputView())
+        // Rebuilding the input view yields fresh, uninitialised views; re-run the
+        // full setup (layout, theme, prefs, strip) exactly like a config change,
+        // otherwise the keyboard comes up blank after toggling floating mode.
+        currentInputEditorInfo?.let { configureAll(it) }
     }
 
     override fun onComputeInsets(outInsets: InputMethodService.Insets) {

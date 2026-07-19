@@ -21,31 +21,34 @@ data class KeyboardTheme(
 
 object Themes {
 
+    // Gboard-style layout with a Telegram-style palette: quiet neutrals biased
+    // slightly toward the azure accent, one confident blue, soft depth. All
+    // values are original (not sampled from either app).
     private fun light() = KeyboardTheme(
-        background = 0xFFEEF1F5.toInt(),
+        background = 0xFFEDF0F5.toInt(),
         keyBg = 0xFFFFFFFF.toInt(),
-        keyBgFunc = 0xFFDDE2EA.toInt(),
-        keyBgPressed = 0xFFC7CEDA.toInt(),
-        keyText = 0xFF1F1F1F.toInt(),
-        keyHint = 0xFF6B7078.toInt(),
-        accent = 0xFF1A73E8.toInt(),
+        keyBgFunc = 0xFFDBE1EB.toInt(),
+        keyBgPressed = 0xFFC3CDDB.toInt(),
+        keyText = 0xFF1B1E24.toInt(),
+        keyHint = 0xFF697180.toInt(),
+        accent = 0xFF3E7BFA.toInt(),
         onAccent = 0xFFFFFFFF.toInt(),
-        stripText = 0xFF3C4043.toInt(),
+        stripText = 0xFF363B44.toInt(),
         previewBg = 0xFFFFFFFF.toInt(),
         isDark = false
     )
 
     private fun dark() = KeyboardTheme(
-        background = 0xFF1B1E23.toInt(),
-        keyBg = 0xFF3A3E46.toInt(),
-        keyBgFunc = 0xFF262A31.toInt(),
-        keyBgPressed = 0xFF565B66.toInt(),
-        keyText = 0xFFE8EAED.toInt(),
-        keyHint = 0xFF9AA0A6.toInt(),
-        accent = 0xFF8AB4F8.toInt(),
-        onAccent = 0xFF1F1F1F.toInt(),
-        stripText = 0xFFE8EAED.toInt(),
-        previewBg = 0xFF4A4F58.toInt(),
+        background = 0xFF141A22.toInt(),
+        keyBg = 0xFF29323D.toInt(),
+        keyBgFunc = 0xFF1D242E.toInt(),
+        keyBgPressed = 0xFF3A4553.toInt(),
+        keyText = 0xFFE8EBF0.toInt(),
+        keyHint = 0xFF868F9D.toInt(),
+        accent = 0xFF5C9CFF.toInt(),
+        onAccent = 0xFF0D1218.toInt(),
+        stripText = 0xFFE4E8EE.toInt(),
+        previewBg = 0xFF323D4A.toInt(),
         isDark = true
     )
 

@@ -10,8 +10,15 @@ import android.view.View
 
 /**
  * Key-press haptics that keep working even when the system-wide
- * "touch feedback" toggle is off (common on MIUI/HyperOS), by using the
+ * "touch feedback" toggle is off (common on MIUI/HyperOS), by driving the
  * vibrator service directly with a fallback to view haptics.
+ *
+ * Note on predefined effects: [VibrationEffect.EFFECT_CLICK] and friends feel
+ * crisper, but many OEM devices (notably Xiaomi/HyperOS, which RimBoard
+ * targets) do not implement them and stay completely silent when asked to play
+ * one. So we only use a predefined effect when the device reports it as
+ * supported (API 30+), and otherwise fall back to a plain one-shot vibration,
+ * which every device with a motor honours.
  */
 object Haptics {
 
@@ -27,36 +34,40 @@ object Haptics {
         null
     }
 
-    fun tap(view: View) {
-        val strength = com.rimboard.keyboard.settings.Prefs.hapticStrength(view.context)
+    /** Reliable effect for [predefined]: the predefined effect only if the
+     *  device confirms support, otherwise a one-shot of [ms] at [amp] (1..255). */
+    private fun effect(v: Vibrator, predefined: Int, ms: Long, amp: Int): VibrationEffect {
+        if (Build.VERSION.SDK_INT >= 30 &&
+            v.areAllEffectsSupported(predefined) == Vibrator.VIBRATION_EFFECT_SUPPORT_YES
+        ) {
+            return VibrationEffect.createPredefined(predefined)
+        }
+        val amplitude = if (v.hasAmplitudeControl()) amp else VibrationEffect.DEFAULT_AMPLITUDE
+        return VibrationEffect.createOneShot(ms, amplitude)
+    }
+
+    private fun fire(view: View, predefined: Int, ms: Long, amp: Int, fallback: Int) {
         val v = vibrator(view.context)
-        val predefined = when (strength) {
-            "light" -> VibrationEffect.EFFECT_TICK
-            "strong" -> VibrationEffect.EFFECT_HEAVY_CLICK
-            else -> VibrationEffect.EFFECT_CLICK
+        if (v == null || !v.hasVibrator()) {
+            view.performHapticFeedback(fallback)
+            return
         }
-        val ms = when (strength) {
-            "light" -> 8L
-            "strong" -> 24L
-            else -> 15L
+        try {
+            v.vibrate(effect(v, predefined, ms, amp))
+        } catch (_: Exception) {
+            view.performHapticFeedback(fallback)
         }
-        when {
-            v != null && v.hasVibrator() && Build.VERSION.SDK_INT >= 29 ->
-                v.vibrate(VibrationEffect.createPredefined(predefined))
-            v != null && v.hasVibrator() ->
-                v.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE))
-            else -> view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+    }
+
+    fun tap(view: View) {
+        when (com.rimboard.keyboard.settings.Prefs.hapticStrength(view.context)) {
+            "light" -> fire(view, VibrationEffect.EFFECT_TICK, 10L, 60, HapticFeedbackConstants.KEYBOARD_TAP)
+            "strong" -> fire(view, VibrationEffect.EFFECT_HEAVY_CLICK, 28L, 255, HapticFeedbackConstants.KEYBOARD_TAP)
+            else -> fire(view, VibrationEffect.EFFECT_CLICK, 18L, 130, HapticFeedbackConstants.KEYBOARD_TAP)
         }
     }
 
     fun longPress(view: View) {
-        val v = vibrator(view.context)
-        when {
-            v != null && v.hasVibrator() && Build.VERSION.SDK_INT >= 29 ->
-                v.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK))
-            v != null && v.hasVibrator() ->
-                v.vibrate(VibrationEffect.createOneShot(25, VibrationEffect.DEFAULT_AMPLITUDE))
-            else -> view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-        }
+        fire(view, VibrationEffect.EFFECT_HEAVY_CLICK, 28L, 200, HapticFeedbackConstants.LONG_PRESS)
     }
 }

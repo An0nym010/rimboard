@@ -24,6 +24,23 @@ Runs on any Android 8.0+ phone or tablet (API 26, ~97% of devices) — Samsung, 
 - **Themed navigation bar** — no white system-bar strip under a dark keyboard on 3-button-nav devices
 - **Emoji filtered per device** — emoji your Android version can't render are hidden instead of showing ▯ boxes
 
+## What's new in 2.7.1
+
+- **Vibration fixed on Xiaomi/HyperOS** — key-press haptics used a predefined
+  vibration effect that many OEM devices silently ignore, so the keyboard felt
+  dead even with haptics on. It now uses a predefined effect only when the
+  device reports support and otherwise a reliable one-shot vibration, so every
+  device with a motor buzzes (and still works when the system touch-feedback
+  toggle is off).
+- **Floating keyboard fixed** — toggling floating mode rebuilt the keyboard but
+  skipped its setup, leaving it blank. It now re-applies layout, theme and
+  settings on toggle.
+- **Refreshed default theme** — the built-in light and dark themes get a
+  cleaner, more modern skin (Gboard layout with a Telegram-style palette):
+  quieter neutrals, one confident azure accent, smoother 11dp key corners and a
+  touch more spacing. AMOLED, high-contrast, custom and dynamic themes are
+  unchanged. All colours are original.
+
 ## What's new in 2.7.0
 
 - **Adaptive tap targeting** — the technique behind Gboard's tap accuracy,

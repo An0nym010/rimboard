@@ -138,12 +138,12 @@ class KeyboardView(context: Context) : View(context) {
         if (hapticFeedback) Haptics.tap(this)
     }
 
-    private val gapX = dp(3f)
+    private val gapX = dp(4f)
     private val gapY = dp(5f)
     private val baseSidePad = dp(3f)
     private val topPad = dp(6f)
     private val bottomPad = dp(5f)
-    private val keyRadius = dp(9f)
+    private val keyRadius = dp(11f)
     private val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x26000000 }
     private val shadowRect = RectF()
     private val bgPaint = Paint()
