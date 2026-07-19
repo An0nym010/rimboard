@@ -71,6 +71,18 @@
     <!-- Klavye içi -->
     <string name="incognito_label">Gizli mod · öğrenme kapalı</string>
     <string name="emoji_search">Emoji ara</string>
+    <string name="tb_emoji">Emoji</string>
+    <string name="tb_clipboard">Pano</string>
+    <string name="tb_language">Sonraki dil</string>
+    <string name="tb_translate">Çevir</string>
+    <string name="tb_share">Metni paylaş</string>
+    <string name="tb_theme">Tema değiştir</string>
+    <string name="tb_resize">Klavyeyi boyutlandır</string>
+    <string name="tb_settings">Ayarlar</string>
+    <string name="pref_calc_title">Satır içi hesap makinesi</string>
+    <string name="pref_calc_summary">12*34 yazın, öneri çubuğu sonucu sunsun</string>
+    <string name="pref_smarttap_title">Akıllı dokunma düzeltmesi</string>
+    <string name="pref_smarttap_summary">İki tuş arasına denk gelen dokunuşlarda dili kullan</string>
     <string name="cat_backup">Yedekleme</string>
     <string name="pref_export_title">Yedeği dışa aktar</string>
     <string name="pref_export_summary">Ayarları, öğrenilen kelimeleri ve tahminleri bir dosyaya kaydet</string>

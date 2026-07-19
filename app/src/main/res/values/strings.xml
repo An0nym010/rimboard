@@ -238,6 +238,19 @@
     <string name="tb_floating">Floating keyboard</string>
     <string name="tb_numpad">Numpad</string>
     <string name="tb_hide">Hide keyboard</string>
+    <string name="tb_emoji">Emoji</string>
+    <string name="tb_clipboard">Clipboard</string>
+    <string name="tb_language">Next language</string>
+    <string name="tb_translate">Translate</string>
+    <string name="tb_share">Share text</string>
+    <string name="tb_theme">Switch theme</string>
+    <string name="tb_resize">Resize keyboard</string>
+    <string name="tb_settings">Settings</string>
+
+    <string name="pref_calc_title">Inline calculator</string>
+    <string name="pref_calc_summary">Type 12*34 and the suggestion bar offers the result</string>
+    <string name="pref_smarttap_title">Smart tap correction</string>
+    <string name="pref_smarttap_summary">Use the language to decide taps that land between two keys</string>
     <string name="font_saved">Font applied</string>
     <string name="font_removed">Font removed</string>
     <string name="font_invalid">Not a valid font file</string>

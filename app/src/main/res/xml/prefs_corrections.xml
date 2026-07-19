@@ -21,6 +21,18 @@
             android:defaultValue="true" />
 
     <SwitchPreferenceCompat
+            android:key="smart_tap"
+            android:title="@string/pref_smarttap_title"
+            android:summary="@string/pref_smarttap_summary"
+            android:defaultValue="true" />
+
+    <SwitchPreferenceCompat
+            android:key="calc_chip"
+            android:title="@string/pref_calc_title"
+            android:summary="@string/pref_calc_summary"
+            android:defaultValue="true" />
+
+    <SwitchPreferenceCompat
             android:key="learn_words"
             android:title="@string/pref_learn_title"
             android:summary="@string/pref_learn_summary"

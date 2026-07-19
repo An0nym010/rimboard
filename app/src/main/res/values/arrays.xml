@@ -223,6 +223,14 @@
         <item>@string/tb_floating</item>
         <item>@string/tb_numpad</item>
         <item>@string/tb_hide</item>
+        <item>@string/tb_emoji</item>
+        <item>@string/tb_clipboard</item>
+        <item>@string/tb_language</item>
+        <item>@string/tb_translate</item>
+        <item>@string/tb_share</item>
+        <item>@string/tb_theme</item>
+        <item>@string/tb_resize</item>
+        <item>@string/tb_settings</item>
     </string-array>
     <string-array name="toolbar_values">
         <item>undo</item>
@@ -237,5 +245,13 @@
         <item>floating</item>
         <item>numpad</item>
         <item>hide</item>
+        <item>emoji</item>
+        <item>clipboard</item>
+        <item>language</item>
+        <item>translate</item>
+        <item>share</item>
+        <item>theme</item>
+        <item>resize</item>
+        <item>settings</item>
     </string-array>
 </resources>

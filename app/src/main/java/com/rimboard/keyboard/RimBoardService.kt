@@ -655,7 +655,7 @@ class RimBoardService : InputMethodService(),
      * and unusual sequences (no language prior should second-guess them).
      */
     private fun resolveAmbiguousTap(chars: CharArray, spatialLogP: DoubleArray): Int {
-        if (isPassword) return -1
+        if (isPassword || !Prefs.smartTap(this)) return -1
         val dict = engine.cachedDictionary(effLang()) ?: return -1
         // Locale-aware lowercase so Turkish 'I' folds to dotless 'ı' (matching the
         // dictionary), not 'i', keeping the language prior meaningful in Turkish.
@@ -969,6 +969,7 @@ class RimBoardService : InputMethodService(),
      * only evaluated when the user types an explicit trailing "=".
      */
     private fun calcChip(): String? {
+        if (!Prefs.calcChip(this)) return null
         val window = 40
         val before = currentInputConnection?.getTextBeforeCursor(window, 0)?.toString()
             ?: return null
@@ -1333,7 +1334,15 @@ class RimBoardService : InputMethodService(),
                 "edit" to (Icons.EDIT to Codes.EDIT_PANEL),
                 "floating" to (Icons.FLOATING to Codes.FLOATING),
                 "numpad" to (Icons.KEYBOARD to Codes.NUMPAD),
-                "hide" to (Icons.HIDE to Codes.HIDE_KB)
+                "hide" to (Icons.HIDE to Codes.HIDE_KB),
+                "emoji" to (Icons.EMOJI to Codes.EMOJI),
+                "clipboard" to (Icons.CLIPBOARD to Codes.CLIPBOARD),
+                "language" to (Icons.GLOBE to Codes.LANG),
+                "translate" to (Icons.TRANSLATE to Codes.TRANSLATE),
+                "share" to (Icons.SHARE to Codes.SHARE),
+                "theme" to (Icons.THEME to Codes.THEME),
+                "resize" to (Icons.RESIZE to Codes.RESIZE),
+                "settings" to (Icons.SETTINGS to Codes.SETTINGS)
             )
             s.setToolbarActions(catalog.filter { it.first in sel }.map { it.second })
         } else {

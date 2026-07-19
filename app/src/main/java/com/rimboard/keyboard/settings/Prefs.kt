@@ -64,6 +64,8 @@ object Prefs {
     const val KEY_AS_SUGG = "autospace_suggestion"
     const val KEY_TOOLBAR = "toolbar_keys"
     const val KEY_TOOLBAR_ORDER = "toolbar_order"
+    const val KEY_CALC = "calc_chip"
+    const val KEY_SMART_TAP = "smart_tap"
     const val KEY_SPACE_TEXT = "space_text"
     const val KEY_CC_BG = "cc_bg"
     const val KEY_CC_KEY = "cc_key"
@@ -154,6 +156,10 @@ object Prefs {
     fun autoSpaceSuggestion(c: Context) = get(c).getBoolean(KEY_AS_SUGG, true)
     fun toolbarKeys(c: Context): Set<String> =
         get(c).getStringSet(KEY_TOOLBAR, emptySet()) ?: emptySet()
+
+    fun calcChip(c: Context) = get(c).getBoolean(KEY_CALC, true)
+
+    fun smartTap(c: Context) = get(c).getBoolean(KEY_SMART_TAP, true)
 
     /** Order the expandable toolbar's icons were dragged into (action codes). */
     fun toolbarOrder(c: Context): List<Int> =
