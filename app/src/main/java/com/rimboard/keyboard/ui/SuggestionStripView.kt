@@ -47,7 +47,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     private val clipboardBtn: IconView
     private val centerBox: LinearLayout
     private val emojiRow: LinearLayout
-    private var toolbarMode = false
+    private val emojiScroll: HorizontalScrollView
     private val incogIcon: IconView
     private var boldIndex = -1
 
@@ -102,7 +102,14 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             gravity = Gravity.CENTER
             visibility = GONE
         }
-        centerBox.addView(emojiRow,
+        // Scrollable so a long list of pinned shortcuts (plus recent emoji)
+        // never gets clipped off the end of the strip.
+        emojiScroll = HorizontalScrollView(context).apply {
+            isHorizontalScrollBarEnabled = false
+            visibility = GONE
+            addView(emojiRow)
+        }
+        centerBox.addView(emojiScroll,
             LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
         centerBox.addView(clipChip,
             LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
@@ -357,17 +364,17 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
 
     fun showClipboard(label: String) {
         showEmpty()
-        emojiRow.visibility = GONE
+        emojiScroll.visibility = GONE
         clipChip.text = label
         clipChip.visibility = VISIBLE
     }
 
-    fun setToolbarActions(items: List<Pair<Int, Int>>) {
-        if (items.isEmpty()) {
-            toolbarMode = false
-            return
-        }
-        toolbarMode = true
+    /**
+     * Fills the idle row with the user's pinned shortcuts followed by their
+     * recent emoji. Both are shown together (the row scrolls), rather than the
+     * shortcuts hiding the emoji as they used to.
+     */
+    fun setIdleRow(items: List<Pair<Int, Int>>, emojis: List<String>) {
         emojiRow.removeAllViews()
         val t = theme
         for ((icon, code) in items) {
@@ -376,11 +383,6 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
                 setOnClickListener { listener?.onQuickAction(code) }
             }, LayoutParams(dp(38), LayoutParams.MATCH_PARENT))
         }
-    }
-
-    fun setRecentEmojis(emojis: List<String>) {
-        if (toolbarMode) return
-        emojiRow.removeAllViews()
         for (e in emojis) {
             emojiRow.addView(TextView(context).apply {
                 text = e
@@ -390,6 +392,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
                 setOnClickListener { listener?.onQuickEmoji(e) }
             }, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
         }
+        emojiScroll.scrollTo(0, 0)
     }
 
     fun showEmpty() {
@@ -399,7 +402,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         centerBox.visibility = VISIBLE
         clipboardBtn.visibility = VISIBLE
         clipChip.visibility = GONE
-        emojiRow.visibility = if (emojiRow.childCount > 0) VISIBLE else GONE
+        emojiScroll.visibility = if (emojiRow.childCount > 0) VISIBLE else GONE
     }
 
     private fun hideAll() {
@@ -411,7 +414,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         settingsBtn.visibility = GONE
         centerBox.visibility = GONE
         clipChip.visibility = GONE
-        emojiRow.visibility = GONE
+        emojiScroll.visibility = GONE
         clipboardBtn.visibility = GONE
         centerLabel.visibility = GONE
         incogIcon.visibility = GONE

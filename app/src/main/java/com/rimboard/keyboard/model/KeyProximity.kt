@@ -10,10 +10,8 @@ import kotlin.math.hypot
  * (a<->p). Only the letter rows matter for proximity, so the side function
  * keys (shift, backspace) are ignored.
  *
- * The row strings here intentionally mirror the letter rows in [Layouts]; they
- * are duplicated rather than extracted so this stays a tiny pure-data class
- * with no dependency on layout construction. Languages not listed fall back to
- * the standard QWERTY grid.
+ * Rows are read from the language's real layout in [Layouts], so a layout
+ * change can never leave tap targeting pointing at the wrong keys.
  */
 class KeyProximity private constructor(rows: List<String>) {
 
@@ -49,33 +47,35 @@ class KeyProximity private constructor(rows: List<String>) {
 
     companion object {
         private val cache = HashMap<String, KeyProximity>()
-
         private val qwerty = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm")
-        private val qwertz = listOf("qwertzuiop", "asdfghjkl", "yxcvbnm")
 
-        private val rowsByLang: Map<String, List<String>> = mapOf(
-            "tr" to listOf("qwertyuıopğü", "asdfghjklşi", "zxcvbnmöç"),
-            "de" to qwertz, "hu" to qwertz, "hr" to qwertz, "sk" to qwertz,
-            "fr" to listOf("azertyuiop", "qsdfghjklm", "wxcvbn'"),
-            "ru" to listOf(
-                "йцукенгшщзх",
-                "фывапролджэ",
-                "ячсмитьбю"
-            ),
-            "uk" to listOf(
-                "йцукенгшщзх",
-                "фівапролджє",
-                "ячсмитьбю"
-            ),
-            "el" to listOf(
-                "ςερτυθιοπ",
-                "ασδφγηξκλ",
-                "ζχψωβνμ"
-            )
-        )
+        /**
+         * The letter rows of [lang]'s real layout, so proximity can never drift
+         * out of sync with what is actually drawn. Non-letter keys (digits,
+         * comma/period, shift, space) are dropped, which leaves exactly the
+         * three letter rows in top-to-bottom order.
+         */
+        private fun letterRows(lang: String): List<String> = try {
+            Languages.byCode(lang)
+                .layout(false, false)
+                .rows
+                .map { row ->
+                    row.keys
+                        .filter {
+                            it.type == KeyType.CHARACTER && it.label.length == 1 &&
+                                it.label[0].isLetter()
+                        }
+                        .joinToString("") { it.label }
+                }
+                .filter { it.length >= 4 }
+                .take(3)
+                .ifEmpty { qwerty }
+        } catch (_: Exception) {
+            qwerty
+        }
 
         @Synchronized
         fun forLang(lang: String): KeyProximity =
-            cache.getOrPut(lang) { KeyProximity(rowsByLang[lang] ?: qwerty) }
+            cache.getOrPut(lang) { KeyProximity(letterRows(lang)) }
     }
 }

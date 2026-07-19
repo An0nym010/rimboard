@@ -958,83 +958,12 @@ class RimBoardService : InputMethodService(),
 
     // ------------------------------------------------------------ calculator
 
-    private val calcRegex = Regex(
-        "(?:\\d+(?:[.,]\\d+)?)(?:\\s*[+\\-*/×÷]\\s*\\d+(?:[.,]\\d+)?)+=?$"
-    )
-
-    /**
-     * "= 408" chip for a trailing arithmetic expression before the cursor
-     * (e.g. "12*34"), or null. Guards against things that merely look like
-     * arithmetic: dates (12/07/2026) and phone-ish digit runs (555-1234) are
-     * only evaluated when the user types an explicit trailing "=".
-     */
+    /** "= 408" chip for a trailing arithmetic expression before the cursor.
+     *  The arithmetic itself lives in [com.rimboard.keyboard.engine.Calc]. */
     private fun calcChip(): String? {
         if (!Prefs.calcChip(this)) return null
-        val window = 40
-        val before = currentInputConnection?.getTextBeforeCursor(window, 0)?.toString()
-            ?: return null
-        val m = calcRegex.find(before) ?: return null
-        // If the match fills the whole fetched window, the real expression may
-        // start earlier than we can see (truncated mid-number) -> don't guess.
-        if (m.range.first == 0 && before.length >= window) return null
-        val expr = m.value
-        val explicit = expr.endsWith("=")
-        if (!explicit) {
-            val hasStrongOp = expr.any { it == '+' || it == '*' || it == '×' || it == '÷' }
-            val slashes = expr.count { it == '/' }
-            if (!hasStrongOp && slashes != 1) return null // "-"-only or date-like
-            if (slashes > 1) return null
-        }
-        val value = evalExpression(expr.removeSuffix("=")) ?: return null
-        val formatted = formatCalcResult(value) ?: return null
-        return "= $formatted"
-    }
-
-    /** Left-to-right two-pass eval: * / ÷ × first, then + -. Null on overflow/div-zero. */
-    private fun evalExpression(expr: String): Double? {
-        val nums = ArrayList<Double>()
-        val ops = ArrayList<Char>()
-        var i = 0
-        val s = expr.replace(" ", "")
-        while (i < s.length) {
-            val c = s[i]
-            if (c.isDigit() || ((c == '-' || c == '+') && nums.size == ops.size)) {
-                val start = i
-                if (c == '-' || c == '+') i++
-                while (i < s.length && (s[i].isDigit() || s[i] == '.' || s[i] == ',')) i++
-                val n = s.substring(start, i).replace(',', '.').toDoubleOrNull() ?: return null
-                nums.add(n)
-            } else if (c in "+-*/×÷") {
-                if (nums.size != ops.size + 1) return null
-                ops.add(c)
-                i++
-            } else return null
-        }
-        if (nums.size != ops.size + 1) return null
-        // pass 1: multiplication and division
-        var k = 0
-        while (k < ops.size) {
-            val op = ops[k]
-            if (op == '*' || op == '×' || op == '/' || op == '÷') {
-                val b = nums[k + 1]
-                if ((op == '/' || op == '÷') && b == 0.0) return null
-                nums[k] = if (op == '*' || op == '×') nums[k] * b else nums[k] / b
-                nums.removeAt(k + 1)
-                ops.removeAt(k)
-            } else k++
-        }
-        var acc = nums[0]
-        for (j in ops.indices) acc = if (ops[j] == '+') acc + nums[j + 1] else acc - nums[j + 1]
-        return if (acc.isFinite()) acc else null
-    }
-
-    private fun formatCalcResult(v: Double): String? {
-        if (kotlin.math.abs(v) >= 1e12) return null
-        val r = Math.round(v)
-        if (v == r.toDouble()) return r.toString()
-        var s = String.format(java.util.Locale.US, "%.4f", v).trimEnd('0').trimEnd('.')
-        if (s == "-0") s = "0"
-        return s
+        val before = currentInputConnection?.getTextBeforeCursor(40, 0)?.toString() ?: return null
+        return com.rimboard.keyboard.engine.Calc.chipFor(before, 40)
     }
 
     private fun updateStrip() {
@@ -1344,10 +1273,13 @@ class RimBoardService : InputMethodService(),
                 "resize" to (Icons.RESIZE to Codes.RESIZE),
                 "settings" to (Icons.SETTINGS to Codes.SETTINGS)
             )
-            s.setToolbarActions(catalog.filter { it.first in sel }.map { it.second })
+            s.setIdleRow(
+                catalog.filter { it.first in sel }.map { it.second },
+                if (Prefs.emojiRow(this)) Prefs.emojiRecents(this).take(6) else emptyList()
+            )
         } else {
-            s.setToolbarActions(emptyList())
-            s.setRecentEmojis(
+            s.setIdleRow(
+                emptyList(),
                 if (Prefs.emojiRow(this)) Prefs.emojiRecents(this).take(6) else emptyList()
             )
         }
@@ -1413,13 +1345,23 @@ class RimBoardService : InputMethodService(),
         val total = (block.parent as? View)?.height ?: return
         outInsets.contentTopInsets = total
         outInsets.visibleTopInsets = total
+        // Before the first layout the block has no bounds; publishing an empty
+        // touchable region there would let every tap fall through to the app and
+        // make the floating keyboard dead. Fall back to the whole view instead.
+        if (block.width <= 0 || block.height <= 0) return
         outInsets.touchableInsets = InputMethodService.Insets.TOUCHABLE_INSETS_REGION
         outInsets.touchableRegion.set(block.left, block.top, block.right, block.bottom)
     }
 
     private fun toggleOneHanded() {
-        if (Prefs.floating(this)) return
-        val cur = (if (Prefs.floating(this)) 0 else Prefs.oneHanded(this))
+        // One-handed and floating are mutually exclusive layouts. Rather than
+        // making the toolbar's one-handed button a silent no-op while floating,
+        // leave floating first so the tap always does something visible.
+        if (Prefs.floating(this)) {
+            toggleFloating()
+            if (Prefs.floating(this)) return
+        }
+        val cur = Prefs.oneHanded(this)
         val next = if (cur == 0) Prefs.oneHandedLast(this) else 0
         if (cur != 0) Prefs.setOneHandedLast(this, cur)
         Prefs.setOneHanded(this, next)
@@ -1637,17 +1579,26 @@ class RimBoardService : InputMethodService(),
         if (word.startsWith("= ") || word.startsWith("↩")) return
         val ctx = anchor.context
         val d = resources.displayMetrics.density
+        // Follow the keyboard theme instead of a hardcoded dark chip, which
+        // looked wrong on the light themes.
+        val t = kbTheme
+        val popupBg = t?.previewBg ?: 0xEE222222.toInt()
+        val popupFg = t?.keyText ?: 0xFFFFFFFF.toInt()
+        val bg = android.graphics.drawable.GradientDrawable().apply {
+            cornerRadius = 12 * d
+            setColor(popupBg)
+        }
         val row = android.widget.LinearLayout(ctx).apply {
             orientation = android.widget.LinearLayout.HORIZONTAL
             gravity = android.view.Gravity.CENTER_VERTICAL
-            setBackgroundColor(0xEE222222.toInt())
+            background = bg
             setPadding((12 * d).toInt(), (8 * d).toInt(), (14 * d).toInt(), (8 * d).toInt())
         }
-        row.addView(IconView(ctx, Icons.TRASH).apply { color = 0xFFFFFFFF.toInt() },
+        row.addView(IconView(ctx, Icons.TRASH).apply { color = popupFg },
             android.view.ViewGroup.LayoutParams((22 * d).toInt(), (26 * d).toInt()))
         val tv = TextView(ctx).apply {
             text = " " + ctx.getString(R.string.suggestion_remove, word)
-            setTextColor(0xFFFFFFFF.toInt())
+            setTextColor(popupFg)
             textSize = 14f
         }
         row.addView(tv)
