@@ -1723,7 +1723,21 @@ class RimBoardService : InputMethodService(),
     /** The full Gboard-style toolbar catalog (icon id to action code). Actions
      *  that need the internet (GIF, stickers, scan text) are intentionally
      *  absent — RimBoard has no network permission. */
-    private fun toolbarCatalog(): List<Pair<Int, Int>> = listOf(
+    private fun toolbarCatalog(): List<Pair<Int, Int>> {
+        val saved = Prefs.toolbarOrder(this)
+        if (saved.isEmpty()) return defaultToolbarCatalog()
+        // Saved order first (skipping anything no longer offered), then any
+        // tools added since the order was saved, so new actions still show up.
+        val byCode = defaultToolbarCatalog().associateBy { it.second }
+        val ordered = saved.mapNotNull { byCode[it] }
+        return ordered + defaultToolbarCatalog().filter { it.second !in saved }
+    }
+
+    override fun onToolbarReordered(codes: List<Int>) {
+        Prefs.setToolbarOrder(this, codes)
+    }
+
+    private fun defaultToolbarCatalog(): List<Pair<Int, Int>> = listOf(
         Icons.ONE_HANDED to Codes.ONE_HANDED,
         Icons.RESIZE to Codes.RESIZE,
         Icons.FLOATING to Codes.FLOATING,
