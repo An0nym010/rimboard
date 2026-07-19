@@ -34,7 +34,23 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
     @Synchronized
     fun dictionary(lang: String, locale: Locale): Dictionary {
         val key = lang + "#" + DictVersion.v
-        return cache[key] ?: Dictionary(context, lang, locale).also { cache[key] = it }
+        return cache[key] ?: try {
+            val dictStream = context.assets.open("dictionaries/$lang.txt")
+            val userDictFile = java.io.File(UserData.dataDir(context), "userdict_" + lang + ".txt")
+            val userStream = if (userDictFile.exists()) userDictFile.inputStream() else null
+            try {
+                Dictionary(dictStream, userStream, locale).also { cache[key] = it }
+            } finally {
+                userStream?.close()
+            }
+        } catch (_: Exception) {
+            val fallbackStream = context.assets.open("dictionaries/en.txt")
+            try {
+                Dictionary(fallbackStream, null, locale).also { cache[key] = it }
+            } finally {
+                fallbackStream.close()
+            }
+        }
     }
 
     /**

@@ -292,17 +292,19 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     private fun maybeSwap(v: View) {
         val idx = toolbarRow.indexOfChild(v)
         if (idx < 1) return
-        val centre = v.left + v.width / 2f + v.translationX
+        val toolW = dp(TOOL_W_DP)
+        val chevronW = dp(38)
+        val vCentre = chevronW + (idx - 1) * toolW + toolW / 2f + v.translationX
         if (idx > 1) {
-            val prev = toolbarRow.getChildAt(idx - 1)
-            if (centre < prev.left + prev.width / 2f) {
+            val prevCentre = chevronW + (idx - 2) * toolW + toolW / 2f
+            if (vCentre < prevCentre) {
                 moveChild(v, idx, idx - 1)
                 return
             }
         }
         if (idx < toolbarRow.childCount - 1) {
-            val next = toolbarRow.getChildAt(idx + 1)
-            if (centre > next.left + next.width / 2f) moveChild(v, idx, idx + 1)
+            val nextCentre = chevronW + idx * toolW + toolW / 2f
+            if (vCentre > nextCentre) moveChild(v, idx, idx + 1)
         }
     }
 

@@ -86,4 +86,29 @@ class CalcTest {
         assertEquals(-2.0, Calc.eval("-5+3")!!, 0.0001)
         assertEquals(3.0, Calc.eval("1++2")!!, 0.0001)
     }
+
+    @Test
+    fun `handles parentheses`() {
+        assertEquals("= 14", chip("(2+3)*4"))
+        assertEquals("= 3", chip("2*(1+0.5)"))
+        assertEquals("= 2", chip("(8+4)/6"))
+    }
+
+    @Test
+    fun `handles modulo operator`() {
+        assertEquals("= 2", chip("17%5"))
+        assertEquals("= 1", chip("10%3"))
+        assertEquals("= 0", chip("8%4"))
+    }
+
+    @Test
+    fun `modulo binds tighter than addition`() {
+        assertEquals("= 9", chip("2+7%5"))
+    }
+
+    @Test
+    fun `rejects division or modulo by zero`() {
+        assertNull(chip("1%0"))
+        assertNull(chip("5/0"))
+    }
 }

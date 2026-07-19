@@ -1,18 +1,18 @@
 package com.rimboard.keyboard.engine
 
-import android.content.Context
 import com.rimboard.keyboard.model.KeyProximity
+import java.io.InputStream
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.ln
 
 /**
- * A static word list loaded from assets/dictionaries/<lang>.txt.
+ * A static word list loaded from an InputStream (typically assets/dictionaries/<lang>.txt).
  * File format: one "word frequency" pair per line, ordered by frequency.
  * Internally sorted alphabetically for binary-search prefix lookups.
  */
-class Dictionary(context: Context, lang: String, private val locale: Locale) {
+class Dictionary(dictStream: InputStream, userDictStream: InputStream?, private val locale: Locale) {
 
     companion object {
         /** Marker for the word-initial position in the character model. */
@@ -30,7 +30,7 @@ class Dictionary(context: Context, lang: String, private val locale: Locale) {
     init {
         val entries = ArrayList<Pair<String, Int>>(12000)
         try {
-            context.assets.open("dictionaries/$lang.txt").bufferedReader().useLines { lines ->
+            dictStream.bufferedReader().useLines { lines ->
                 lines.forEach { line ->
                     val sp = line.indexOf(' ')
                     if (sp > 0) {
@@ -44,11 +44,10 @@ class Dictionary(context: Context, lang: String, private val locale: Locale) {
             // Missing dictionary: keyboard still works, just without suggestions.
         }
         try {
-            val userFile = java.io.File(UserData.dataDir(context), "userdict_" + lang + ".txt")
-            if (userFile.exists()) {
+            userDictStream?.bufferedReader()?.useLines { lines ->
                 val seen = HashSet<String>(entries.size * 2)
                 for (e in entries) seen.add(e.first)
-                userFile.forEachLine { line ->
+                lines.forEach { line ->
                     val sp = line.indexOf(' ')
                     if (sp > 0) {
                         val w = line.substring(0, sp)

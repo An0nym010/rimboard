@@ -9,7 +9,7 @@ package com.rimboard.keyboard.engine
 object Calc {
 
     private val expression = Regex(
-        "(?:\\d+(?:[.,]\\d+)?)(?:\\s*[+\\-*/×÷]\\s*\\d+(?:[.,]\\d+)?)+=?$"
+        "(?=.*\\d)[0-9.,()\\s+\\-*/%×÷]*=?$"
     )
 
     /**
@@ -36,47 +36,68 @@ object Calc {
         return "= " + (format(value) ?: return null)
     }
 
-    /** Two-pass evaluation: * / × ÷ first, then + -. Null if malformed. */
+    /** Evaluate with operator precedence: parentheses > * / × ÷ % > + -. Null if malformed. */
     fun eval(raw: String): Double? {
-        val s = raw
-        val nums = ArrayList<Double>()
-        val ops = ArrayList<Char>()
-        var i = 0
-        while (i < s.length) {
-            val c = s[i]
-            if (c == ' ') {
-                i++
-                continue
+        val cleaned = raw.replace(" ", "").replace("×", "*").replace("÷", "/")
+        return try {
+            evalExpr(cleaned, IntArray(1) { 0 })?.first
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun evalExpr(s: String, pos: IntArray): Pair<Double, Int>? {
+        var term = evalTerm(s, pos) ?: return null
+        while (pos[0] < s.length && s[pos[0]] in "+-") {
+            val op = s[pos[0]++]
+            val right = evalTerm(s, pos) ?: return null
+            term = if (op == '+') term + right else term - right
+        }
+        return term to pos[0]
+    }
+
+    private fun evalTerm(s: String, pos: IntArray): Double? {
+        var factor = evalFactor(s, pos) ?: return null
+        while (pos[0] < s.length && s[pos[0]] in "*/%" ) {
+            val op = s[pos[0]++]
+            val right = evalFactor(s, pos) ?: return null
+            factor = when (op) {
+                '*' -> factor * right
+                '/' -> if (right == 0.0) return null else factor / right
+                '%' -> if (right == 0.0) return null else factor % right
+                else -> return null
             }
-            if (c.isDigit() || ((c == '-' || c == '+') && nums.size == ops.size)) {
-                // Two operands with no operator between them ("1 2") is malformed;
-                // whitespace must not silently glue them into one number.
-                if (nums.size != ops.size) return null
-                val start = i
-                if (c == '-' || c == '+') i++
-                while (i < s.length && (s[i].isDigit() || s[i] == '.' || s[i] == ',')) i++
-                nums.add(s.substring(start, i).replace(',', '.').toDoubleOrNull() ?: return null)
-            } else if (c in "+-*/×÷") {
-                if (nums.size != ops.size + 1) return null
-                ops.add(c)
-                i++
-            } else return null
         }
-        if (nums.size != ops.size + 1) return null
-        var k = 0
-        while (k < ops.size) {
-            val op = ops[k]
-            if (op == '*' || op == '×' || op == '/' || op == '÷') {
-                val b = nums[k + 1]
-                if ((op == '/' || op == '÷') && b == 0.0) return null
-                nums[k] = if (op == '*' || op == '×') nums[k] * b else nums[k] / b
-                nums.removeAt(k + 1)
-                ops.removeAt(k)
-            } else k++
+        return factor
+    }
+
+    private fun evalFactor(s: String, pos: IntArray): Double? {
+        if (pos[0] >= s.length) return null
+        return when {
+            s[pos[0]] == '(' -> {
+                pos[0]++
+                val result = evalExpr(s, pos) ?: return null
+                if (pos[0] >= s.length || s[pos[0]] != ')') return null
+                pos[0]++
+                result.first
+            }
+            s[pos[0]].isDigit() || s[pos[0]] == ',' || s[pos[0]] == '.' -> parseNumber(s, pos)
+            s[pos[0]] == '-' || s[pos[0]] == '+' -> {
+                val sign = if (s[pos[0]++] == '-') -1.0 else 1.0
+                val n = parseNumber(s, pos) ?: return null
+                sign * n
+            }
+            else -> null
         }
-        var acc = nums[0]
-        for (j in ops.indices) acc = if (ops[j] == '+') acc + nums[j + 1] else acc - nums[j + 1]
-        return if (acc.isFinite()) acc else null
+    }
+
+    private fun parseNumber(s: String, pos: IntArray): Double? {
+        val start = pos[0]
+        while (pos[0] < s.length && (s[pos[0]].isDigit() || s[pos[0]] == '.' || s[pos[0]] == ',')) {
+            pos[0]++
+        }
+        if (pos[0] == start) return null
+        return s.substring(start, pos[0]).replace(',', '.').toDoubleOrNull()
     }
 
     /** Trims a result to something readable, or null if it is unreasonably big. */
