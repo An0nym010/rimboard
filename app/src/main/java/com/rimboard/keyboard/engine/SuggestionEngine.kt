@@ -17,7 +17,7 @@ object DictVersion {
 
 class SuggestionEngine(private val context: Context, private val userData: UserData) {
 
-    private val cache = HashMap<String, Dictionary>()
+    private val cache = java.util.concurrent.ConcurrentHashMap<String, Dictionary>()
 
     /** Preload dictionaries on a background thread so the first keystroke never stalls. */
     fun warm(lang: String, locale: Locale, altLang: String?, altLocale: Locale?) {
@@ -32,15 +32,17 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
     }
 
     @Synchronized
-    fun dictionary(lang: String, locale: Locale): Dictionary =
-        cache.getOrPut(lang + "#" + DictVersion.v) { Dictionary(context, lang, locale) }
+    fun dictionary(lang: String, locale: Locale): Dictionary {
+        val key = lang + "#" + DictVersion.v
+        return cache[key] ?: Dictionary(context, lang, locale).also { cache[key] = it }
+    }
 
     /**
-     * The dictionary for [lang] only if it is already loaded. Safe to call on
-     * the UI thread (per-keystroke tap arbitration), where triggering a
-     * synchronous asset load would jank.
+     * The dictionary for [lang] only if it is already loaded, via a lock-free
+     * read. Safe to call on the UI thread (per-keystroke tap arbitration): it
+     * never blocks behind the warm thread's synchronous asset load, and simply
+     * returns null (skip arbitration) until the load has finished.
      */
-    @Synchronized
     fun cachedDictionary(lang: String): Dictionary? = cache[lang + "#" + DictVersion.v]
 
     var blockOffensive = true

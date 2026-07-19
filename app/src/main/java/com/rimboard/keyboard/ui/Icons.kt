@@ -35,6 +35,11 @@ object Icons {
     const val CUT = 18
     const val SELECT_ALL = 19
     const val HIDE = 20
+    const val SHARE = 21
+    const val THEME = 22
+    const val RESIZE = 23
+    const val CHEVRON = 24      // expand ">"
+    const val CHEVRON_L = 25    // collapse "<"
 
     private val p = Paint(Paint.ANTI_ALIAS_FLAG)
     private val path = Path()
@@ -58,6 +63,10 @@ object Icons {
         Codes.SELECT_ALL -> SELECT_ALL
         Codes.HIDE_KB -> HIDE
         Codes.NUMPAD -> KEYBOARD
+        Codes.TRANSLATE -> TRANSLATE
+        Codes.SHARE -> SHARE
+        Codes.THEME -> THEME
+        Codes.RESIZE -> RESIZE
         else -> null
     }
 
@@ -276,6 +285,48 @@ object Icons {
                 path.moveTo(cx - r * 0.34f, cy + r * 0.4f)
                 path.lineTo(cx, cy + r * 0.78f)
                 path.lineTo(cx + r * 0.34f, cy + r * 0.4f)
+                c.drawPath(path, p)
+            }
+            SHARE -> {
+                // three nodes joined by two links
+                c.drawLine(cx - r * 0.32f, cy, cx + r * 0.42f, cy - r * 0.55f, p)
+                c.drawLine(cx - r * 0.32f, cy, cx + r * 0.42f, cy + r * 0.55f, p)
+                p.style = Paint.Style.FILL
+                c.drawCircle(cx + r * 0.5f, cy - r * 0.6f, r * 0.26f, p)
+                c.drawCircle(cx + r * 0.5f, cy + r * 0.6f, r * 0.26f, p)
+                c.drawCircle(cx - r * 0.5f, cy, r * 0.26f, p)
+            }
+            THEME -> {
+                c.drawCircle(cx, cy, r * 0.82f, p)
+                p.style = Paint.Style.FILL
+                oval.set(cx - r * 0.82f, cy - r * 0.82f, cx + r * 0.82f, cy + r * 0.82f)
+                c.drawArc(oval, -90f, 180f, true, p) // right half filled
+            }
+            RESIZE -> {
+                c.drawLine(cx, cy - r * 0.7f, cx, cy + r * 0.7f, p)
+                path.reset() // top arrowhead
+                path.moveTo(cx - r * 0.28f, cy - r * 0.42f)
+                path.lineTo(cx, cy - r * 0.74f)
+                path.lineTo(cx + r * 0.28f, cy - r * 0.42f)
+                c.drawPath(path, p)
+                path.reset() // bottom arrowhead
+                path.moveTo(cx - r * 0.28f, cy + r * 0.42f)
+                path.lineTo(cx, cy + r * 0.74f)
+                path.lineTo(cx + r * 0.28f, cy + r * 0.42f)
+                c.drawPath(path, p)
+            }
+            CHEVRON -> {
+                path.reset()
+                path.moveTo(cx - r * 0.22f, cy - r * 0.5f)
+                path.lineTo(cx + r * 0.34f, cy)
+                path.lineTo(cx - r * 0.22f, cy + r * 0.5f)
+                c.drawPath(path, p)
+            }
+            CHEVRON_L -> {
+                path.reset()
+                path.moveTo(cx + r * 0.22f, cy - r * 0.5f)
+                path.lineTo(cx - r * 0.34f, cy)
+                path.lineTo(cx + r * 0.22f, cy + r * 0.5f)
                 c.drawPath(path, p)
             }
         }

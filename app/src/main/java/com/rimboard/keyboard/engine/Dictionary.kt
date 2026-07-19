@@ -156,10 +156,6 @@ class Dictionary(context: Context, lang: String, private val locale: Locale) {
         return out
     }
 
-    /** Single best correction for a lowercase typed word, or null. */
-    fun bestCorrection(typedLower: String, prox: KeyProximity? = null): String? =
-        corrections(typedLower, prox, 1).firstOrNull()
-
     /**
      * Keyboard-weighted edit cost between the typed word and a candidate: the
      * minimum-cost alignment where a substitution costs [KeyProximity.cost] of

@@ -27,6 +27,10 @@ object Codes {
     const val SELECT_ALL = -21
     const val HIDE_KB = -22
     const val NUMPAD = -23
+    const val TRANSLATE = -24
+    const val SHARE = -25
+    const val THEME = -26
+    const val RESIZE = -27
     const val SPACE = 32
 }
 

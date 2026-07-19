@@ -9,6 +9,7 @@ import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.rimboard.keyboard.model.Codes
@@ -25,6 +26,8 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         fun onQuickAction(code: Int)
         fun onQuickEmoji(emoji: String)
         fun onSuggestionLongPressed(word: String, anchor: View)
+        /** Chevron tapped: expand into the full toolbar, or collapse back. */
+        fun onToolbarToggle(expand: Boolean)
     }
 
     var listener: Listener? = null
@@ -42,12 +45,23 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     private val incogIcon: IconView
     private var boldIndex = -1
 
+    private val expandBtn: IconView
+    private val toolbarScroll: HorizontalScrollView
+    private val toolbarRow: LinearLayout
+    private var toolbarOpen = false
+
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
     init {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         setPadding(dp(4), 0, dp(4), 0)
+
+        expandBtn = IconView(context, Icons.CHEVRON).apply {
+            visibility = GONE
+            setOnClickListener { listener?.onToolbarToggle(true) }
+        }
+        addView(expandBtn, LayoutParams(dp(34), LayoutParams.MATCH_PARENT))
 
         settingsBtn = IconView(context, Icons.SETTINGS).apply {
             visibility = GONE
@@ -130,6 +144,41 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             setOnClickListener { listener?.onQuickAction(Codes.CLIPBOARD) }
         }
         addView(clipboardBtn, LayoutParams(dp(42), LayoutParams.MATCH_PARENT))
+
+        toolbarRow = LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        toolbarScroll = HorizontalScrollView(context).apply {
+            isHorizontalScrollBarEnabled = false
+            visibility = GONE
+            addView(toolbarRow)
+        }
+        addView(toolbarScroll, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
+    }
+
+    /** Expand the strip into a scrollable Gboard-style toolbar of [items]
+     *  (icon id to action code). A leading chevron collapses it again. */
+    fun showToolbar(items: List<Pair<Int, Int>>) {
+        hideAll()
+        toolbarOpen = true
+        val t = theme
+        toolbarRow.removeAllViews()
+        toolbarRow.addView(IconView(context, Icons.CHEVRON_L).apply {
+            color = t?.accent ?: 0xFF3E7BFA.toInt()
+            setOnClickListener { listener?.onToolbarToggle(false) }
+        }, LayoutParams(dp(38), LayoutParams.MATCH_PARENT))
+        for ((icon, code) in items) {
+            toolbarRow.addView(IconView(context, icon).apply {
+                color = t?.stripText ?: 0xFF888888.toInt()
+                setOnClickListener {
+                    listener?.onQuickAction(code)
+                    listener?.onToolbarToggle(false)
+                }
+            }, LayoutParams(dp(46), LayoutParams.MATCH_PARENT))
+        }
+        toolbarScroll.scrollTo(0, 0)
+        toolbarScroll.visibility = VISIBLE
     }
 
     fun applyTheme(t: KeyboardTheme) {
@@ -145,6 +194,11 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         clipChip.setTextColor(t.stripText)
         settingsBtn.color = t.stripText
         clipboardBtn.color = t.stripText
+        expandBtn.color = t.accent
+        (toolbarRow.getChildAt(0) as? IconView)?.color = t.accent
+        for (i in 1 until toolbarRow.childCount) {
+            (toolbarRow.getChildAt(i) as? IconView)?.color = t.stripText
+        }
         refreshSlotColors()
     }
 
@@ -166,6 +220,9 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     }
 
     fun showSuggestions(words: List<String>, highlightIndex: Int) {
+        expandBtn.visibility = GONE
+        toolbarScroll.visibility = GONE
+        toolbarOpen = false
         settingsBtn.visibility = GONE
         centerBox.visibility = GONE
         clipboardBtn.visibility = GONE
@@ -230,6 +287,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
 
     fun showEmpty() {
         hideAll()
+        expandBtn.visibility = VISIBLE
         settingsBtn.visibility = VISIBLE
         centerBox.visibility = VISIBLE
         clipboardBtn.visibility = VISIBLE
@@ -238,6 +296,9 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     }
 
     private fun hideAll() {
+        toolbarOpen = false
+        toolbarScroll.visibility = GONE
+        expandBtn.visibility = GONE
         for (s in slots) { s.text = ""; s.visibility = GONE }
         dividers.forEach { it.visibility = GONE }
         settingsBtn.visibility = GONE

@@ -24,6 +24,23 @@ Runs on any Android 8.0+ phone or tablet (API 26, ~97% of devices) — Samsung, 
 - **Themed navigation bar** — no white system-bar strip under a dark keyboard on 3-button-nav devices
 - **Emoji filtered per device** — emoji your Android version can't render are hidden instead of showing ▯ boxes
 
+## What's new in 2.7.2
+
+- **Gboard-style toolbar** — a chevron on the left of the idle suggestion bar
+  expands into a scrollable row of tools: one-handed, resize (height), floating,
+  next language, text editing, clipboard, emoji, translate, share, theme, undo,
+  redo, incognito, settings and hide. Tapping the chevron again collapses it.
+  New actions this adds: quick **theme** cycling, keyboard **resize**, and
+  **share** (via the system share sheet — nothing leaves the device unless you
+  pick a target).
+  - Not included, on purpose: GIF, stickers and scan-text. Those need the
+    internet or the camera, which RimBoard deliberately never asks for.
+- **Fixes from a code audit** — the character model no longer blocks the first
+  taps while a dictionary is still loading; the inline calculator won't fire on
+  a text-shortcut expansion or when its expression is truncated off-screen, and
+  its chip can't be "blocked" like a word; Turkish taps fold the dotless ı
+  correctly in tap targeting.
+
 ## What's new in 2.7.1
 
 - **Vibration fixed on Xiaomi/HyperOS** — key-press haptics used a predefined

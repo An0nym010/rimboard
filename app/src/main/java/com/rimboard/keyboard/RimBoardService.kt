@@ -657,7 +657,9 @@ class RimBoardService : InputMethodService(),
     private fun resolveAmbiguousTap(chars: CharArray, spatialLogP: DoubleArray): Int {
         if (isPassword) return -1
         val dict = engine.cachedDictionary(effLang()) ?: return -1
-        val prev = composing.lastOrNull()?.lowercaseChar()
+        // Locale-aware lowercase so Turkish 'I' folds to dotless 'ı' (matching the
+        // dictionary), not 'i', keeping the language prior meaningful in Turkish.
+        val prev = composing.lastOrNull()?.toString()?.lowercase(effLocale())?.firstOrNull()
             ?: com.rimboard.keyboard.engine.Dictionary.WORD_START
         var best = -1
         var bestScore = Double.NEGATIVE_INFINITY
@@ -967,9 +969,13 @@ class RimBoardService : InputMethodService(),
      * only evaluated when the user types an explicit trailing "=".
      */
     private fun calcChip(): String? {
-        val before = currentInputConnection?.getTextBeforeCursor(40, 0)?.toString()
+        val window = 40
+        val before = currentInputConnection?.getTextBeforeCursor(window, 0)?.toString()
             ?: return null
         val m = calcRegex.find(before) ?: return null
+        // If the match fills the whole fetched window, the real expression may
+        // start earlier than we can see (truncated mid-number) -> don't guess.
+        if (m.range.first == 0 && before.length >= window) return null
         val expr = m.value
         val explicit = expr.endsWith("=")
         if (!explicit) {
@@ -1129,7 +1135,9 @@ class RimBoardService : InputMethodService(),
             return
         }
         if (word.isEmpty() || word.startsWith("\u21A9")) return
-        if (word.startsWith("= ")) { // calculator chip
+        // Calculator chip (only shown, and only actioned, while not composing \u2014
+        // so a text-shortcut expansion like "= mc^2" is never mistaken for it).
+        if (composing.isEmpty() && word.startsWith("= ")) {
             val result = word.substring(2)
             val ic = currentInputConnection ?: return
             val prevCh = ic.getTextBeforeCursor(1, 0)?.lastOrNull()
@@ -1615,6 +1623,9 @@ class RimBoardService : InputMethodService(),
     }
 
     override fun onSuggestionLongPressed(word: String, anchor: View) {
+        // The calculator chip and revert chip aren't dictionary words; long-press
+        // (block-word) doesn't apply to them.
+        if (word.startsWith("= ") || word.startsWith("↩")) return
         val ctx = anchor.context
         val d = resources.displayMetrics.density
         val row = android.widget.LinearLayout(ctx).apply {
@@ -1699,7 +1710,39 @@ class RimBoardService : InputMethodService(),
             Codes.EMOJI -> showEmoji()
             Codes.INCOGNITO -> toggleIncognito()
             Codes.SETTINGS -> openSettings()
+            Codes.LANG -> cycleLanguage()
+            Codes.ONE_HANDED -> toggleOneHanded()
+            Codes.FLOATING -> toggleFloating()
+            Codes.TRANSLATE -> currentInputConnection?.let { launchTranslate(it) }
+            Codes.SHARE -> currentInputConnection?.let { shareText(it) }
+            Codes.THEME -> cycleTheme()
+            Codes.RESIZE -> cycleHeight()
         }
+    }
+
+    /** The full Gboard-style toolbar catalog (icon id to action code). Actions
+     *  that need the internet (GIF, stickers, scan text) are intentionally
+     *  absent — RimBoard has no network permission. */
+    private fun toolbarCatalog(): List<Pair<Int, Int>> = listOf(
+        Icons.ONE_HANDED to Codes.ONE_HANDED,
+        Icons.RESIZE to Codes.RESIZE,
+        Icons.FLOATING to Codes.FLOATING,
+        Icons.GLOBE to Codes.LANG,
+        Icons.EDIT to Codes.EDIT_PANEL,
+        Icons.CLIPBOARD to Codes.CLIPBOARD,
+        Icons.EMOJI to Codes.EMOJI,
+        Icons.TRANSLATE to Codes.TRANSLATE,
+        Icons.SHARE to Codes.SHARE,
+        Icons.THEME to Codes.THEME,
+        Icons.UNDO to Codes.UNDO,
+        Icons.REDO to Codes.REDO,
+        Icons.INCOGNITO to Codes.INCOGNITO,
+        Icons.SETTINGS to Codes.SETTINGS,
+        Icons.HIDE to Codes.HIDE_KB
+    )
+
+    override fun onToolbarToggle(expand: Boolean) {
+        if (expand) strip?.showToolbar(toolbarCatalog()) else updateStrip()
     }
 
     /** Hands text to any installed translator via the system process-text
@@ -1723,6 +1766,48 @@ class RimBoardService : InputMethodService(),
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         } catch (_: Exception) {
         }
+    }
+
+    /** Shares the selected text (or the whole field) via the system share sheet.
+     *  Nothing leaves the device unless the user picks a share target. */
+    private fun shareText(ic: InputConnection) {
+        val selected = ic.getSelectedText(0)?.toString()
+        val text = if (!selected.isNullOrBlank()) selected
+        else ic.getExtractedText(android.view.inputmethod.ExtractedTextRequest(), 0)
+            ?.text?.toString() ?: ""
+        if (text.isBlank()) return
+        try {
+            val send = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, text.take(20000))
+            }
+            startActivity(Intent.createChooser(send, null)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        } catch (_: Exception) {
+        }
+    }
+
+    private val themeCycle = listOf("system", "light", "dark", "amoled", "dynamic", "contrast")
+
+    /** Steps to the next built-in theme and re-applies it live. */
+    private fun cycleTheme() {
+        val cur = Prefs.theme(this)
+        val i = themeCycle.indexOf(cur)
+        val next = themeCycle[(if (i < 0) 0 else i + 1) % themeCycle.size]
+        Prefs.get(this).edit().putString(Prefs.KEY_THEME, next).apply()
+        currentInputEditorInfo?.let { readPrefsAndFieldFlags(it) }
+        updateStrip()
+    }
+
+    private val heightCycle = listOf("0.85", "1.0", "1.15", "1.3")
+
+    /** Steps keyboard height to the next preset and re-lays out. */
+    private fun cycleHeight() {
+        val cur = Prefs.heightFactor(this)
+        val i = heightCycle.indexOfFirst { (it.toFloatOrNull() ?: 1f) == cur }
+        val next = heightCycle[(if (i < 0) 1 else i + 1) % heightCycle.size]
+        Prefs.get(this).edit().putString(Prefs.KEY_HEIGHT, next).apply()
+        keyboardView?.keyHeightFactor = next.toFloatOrNull() ?: 1f
     }
 
     private fun endSelect() {
