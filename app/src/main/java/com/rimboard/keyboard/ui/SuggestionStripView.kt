@@ -16,6 +16,7 @@ import android.view.View
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.rimboard.keyboard.R
 import com.rimboard.keyboard.model.Codes
 import com.rimboard.keyboard.settings.Prefs
 import com.rimboard.keyboard.theme.KeyboardTheme
@@ -63,6 +64,31 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         const val TOOL_W_DP = 46
     }
 
+    /** TalkBack label for a toolbar action; the icons say nothing on their own. */
+    private fun descFor(code: Int): String? = when (code) {
+        Codes.UNDO -> context.getString(R.string.tb_undo)
+        Codes.REDO -> context.getString(R.string.tb_redo)
+        Codes.COPY -> context.getString(R.string.tb_copy)
+        Codes.PASTE -> context.getString(R.string.tb_paste)
+        Codes.CUT -> context.getString(R.string.tb_cut)
+        Codes.SELECT_ALL -> context.getString(R.string.tb_selectall)
+        Codes.ONE_HANDED -> context.getString(R.string.tb_onehanded)
+        Codes.INCOGNITO -> context.getString(R.string.tb_incognito)
+        Codes.EDIT_PANEL -> context.getString(R.string.tb_edit)
+        Codes.FLOATING -> context.getString(R.string.tb_floating)
+        Codes.NUMPAD -> context.getString(R.string.tb_numpad)
+        Codes.HIDE_KB -> context.getString(R.string.tb_hide)
+        Codes.EMOJI -> context.getString(R.string.tb_emoji)
+        Codes.CLIPBOARD -> context.getString(R.string.tb_clipboard)
+        Codes.LANG -> context.getString(R.string.tb_language)
+        Codes.TRANSLATE -> context.getString(R.string.tb_translate)
+        Codes.SHARE -> context.getString(R.string.tb_share)
+        Codes.THEME -> context.getString(R.string.tb_theme)
+        Codes.RESIZE -> context.getString(R.string.tb_resize)
+        Codes.SETTINGS -> context.getString(R.string.tb_settings)
+        else -> null
+    }
+
     init {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
@@ -70,12 +96,14 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
 
         expandBtn = IconView(context, Icons.CHEVRON).apply {
             visibility = GONE
+            contentDescription = context.getString(R.string.a11y_toolbar_open)
             setOnClickListener { listener?.onToolbarToggle(true) }
         }
         addView(expandBtn, LayoutParams(dp(34), LayoutParams.MATCH_PARENT))
 
         settingsBtn = IconView(context, Icons.SETTINGS).apply {
             visibility = GONE
+            contentDescription = context.getString(R.string.tb_settings)
             setOnClickListener { listener?.onQuickAction(Codes.SETTINGS) }
         }
         addView(settingsBtn, LayoutParams(dp(42), LayoutParams.MATCH_PARENT))
@@ -159,6 +187,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
 
         clipboardBtn = IconView(context, Icons.CLIPBOARD).apply {
             visibility = GONE
+            contentDescription = context.getString(R.string.tb_clipboard)
             setOnClickListener { listener?.onQuickAction(Codes.CLIPBOARD) }
         }
         addView(clipboardBtn, LayoutParams(dp(42), LayoutParams.MATCH_PARENT))
@@ -185,12 +214,14 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         toolbarRow.removeAllViews()
         toolbarRow.addView(IconView(context, Icons.CHEVRON_L).apply {
             color = t?.accent ?: 0xFF3E7BFA.toInt()
+            contentDescription = context.getString(R.string.a11y_toolbar_close)
             setOnClickListener { listener?.onToolbarToggle(false) }
         }, LayoutParams(dp(38), LayoutParams.MATCH_PARENT))
         for ((icon, code) in items) {
             val iv = IconView(context, icon).apply {
                 color = t?.stripText ?: 0xFF888888.toInt()
                 tag = code
+                contentDescription = descFor(code)
             }
             bindTool(iv, code)
             toolbarRow.addView(iv, LayoutParams(dp(TOOL_W_DP), LayoutParams.MATCH_PARENT))
@@ -380,6 +411,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         for ((icon, code) in items) {
             emojiRow.addView(IconView(context, icon).apply {
                 color = t?.stripText ?: 0xFF888888.toInt()
+                contentDescription = descFor(code)
                 setOnClickListener { listener?.onQuickAction(code) }
             }, LayoutParams(dp(38), LayoutParams.MATCH_PARENT))
         }

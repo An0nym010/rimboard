@@ -176,9 +176,12 @@ class EmojiView(context: Context) : LinearLayout(context) {
      * actually renders.
      */
     private fun skinToneVariants(base: String): List<String> {
-        val stem = base.replace("️", "")
+        // Strip any tone already applied (recents store the toned form), so a
+        // long-press on a toned emoji still offers the full set.
+        val neutral = TONES.fold(base) { acc, t -> acc.replace(t, "") }
+        val stem = neutral.replace("️", "")
         val out = ArrayList<String>(6)
-        out.add(base)
+        out.add(neutral)
         for (tone in TONES) {
             val v = stem + tone
             if (glyphPaint.hasGlyph(v)) out.add(v)
@@ -218,10 +221,15 @@ class EmojiView(context: Context) : LinearLayout(context) {
             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
         )
-        // Centre over the tapped emoji, clamped inside the panel.
-        val x = (anchor.left + anchor.width / 2 - row.measuredWidth / 2)
-            .coerceIn(0, (width - row.measuredWidth).coerceAtLeast(0))
-        popup.showAtLocation(this, Gravity.NO_GRAVITY, x, 0)
+        // Directly above the pressed emoji, clamped inside the panel.
+        val a = IntArray(2)
+        anchor.getLocationInWindow(a)
+        val me = IntArray(2)
+        getLocationInWindow(me)
+        val x = (a[0] + anchor.width / 2 - row.measuredWidth / 2)
+            .coerceIn(me[0], (me[0] + width - row.measuredWidth).coerceAtLeast(me[0]))
+        val y = (a[1] - row.measuredHeight - dp(6)).coerceAtLeast(me[1])
+        popup.showAtLocation(this, Gravity.NO_GRAVITY, x, y)
         performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
     }
 

@@ -232,4 +232,6 @@
     <string name="font_invalid">Geçerli bir yazı tipi dosyası değil</string>
     <string name="dict_saved">%2$s için %1$d kelime içe aktarıldı</string>
     <string name="dict_invalid">En az 30 “kelime sıklık” satırı gerekli</string>
+    <string name="a11y_toolbar_open">Araç çubuğunu aç</string>
+    <string name="a11y_toolbar_close">Araç çubuğunu kapat</string>
 </resources>

@@ -24,6 +24,32 @@ Runs on any Android 8.0+ phone or tablet (API 26, ~97% of devices) — Samsung, 
 - **Themed navigation bar** — no white system-bar strip under a dark keyboard on 3-button-nav devices
 - **Emoji filtered per device** — emoji your Android version can't render are hidden instead of showing ▯ boxes
 
+## What's new in 2.8.0
+
+- **Customizable toolbar** — pick your favourite shortcuts in Settings →
+  Preferences → Toolbar keys (all 20 actions available); they show in the
+  always-visible strip, which now scrolls and shares space with your recent
+  emoji instead of replacing them. Press-and-hold icons in the expanded toolbar
+  to drag them into your own order.
+- **Emoji, finished** — a ninth tab with ~215 flags, long-press any emoji for
+  its skin-tone variants (probed from the device font, so only real variants
+  are offered), and emoji search now understands German, Spanish, French,
+  Italian, Portuguese and Russian keywords alongside English and Turkish.
+- **New toggles** — Smart tap correction and the Inline calculator can each be
+  switched off under Settings → Suggestions.
+- **Accessibility** — every toolbar and strip icon now carries a TalkBack
+  label; previously the icon buttons were silent to screen readers.
+- **Fixes** — the toolbar stays reachable in incognito mode (so you can turn
+  incognito off from it); the block-word popup follows the keyboard theme; the
+  floating keyboard no longer publishes an empty touch region before its first
+  layout (taps fell through to the app); tapping one-handed while floating now
+  exits floating instead of doing nothing.
+- **Under the hood** — first unit-test suite (calculator + tap-targeting
+  geometry, runs in CI before every APK build); tap-targeting geometry is now
+  derived from each language's real layout so it can never drift; release
+  builds can be signed with a real key via gradle properties or environment
+  variables (no keys in the repo).
+
 ## What's new in 2.7.2
 
 - **Gboard-style toolbar** — a chevron on the left of the idle suggestion bar
