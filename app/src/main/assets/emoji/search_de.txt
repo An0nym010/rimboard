@@ -1,0 +1,100 @@
+apfel	🍎 🍏
+auge	👀 👁️
+auto	🚗 🚙
+baer	🐻
+ballon	🎈
+banane	🍌
+baum	🌳 🌲
+berg	⛰️ 🏔️
+biene	🐝
+bier	🍺 🍻
+bitte	🙏
+blitz	⚡
+blume	🌸 🌷 🌹 💐
+buch	📖 📚
+burger	🍔
+bus	🚌
+bär	🐻
+computer	💻
+danke	🙏
+daumen	👍 👎
+diamant	💎
+eis	🍦 🍨
+elefant	🐘
+erdbeere	🍓
+erde	🌍 🌎 🌏
+essen	🍕 🍔 🍟
+feuer	🔥
+fisch	🐟 🐠
+flugzeug	✈️
+fussball	⚽
+fußball	⚽
+geburtstag	🎂 🥳 🎉
+gehirn	🧠
+geist	👻
+geld	💰 💵
+geschenk	🎁
+gitarre	🎸
+gluecklich	😊 😄 😁 🥰
+glücklich	😊 😄 😁 🥰
+hallo	👋
+hand	✋ 👋 🤚
+hase	🐰 🐇
+haus	🏠 🏡
+herz	❤️ 🧡 💛 💚 💙 💜 🖤
+hund	🐶 🐕
+idee	💡
+ja	✅ 👍
+kaffee	☕
+kamera	📷 📸
+katze	🐱 🐈 😺
+klatschen	👏
+krone	👑
+kuchen	🎂 🍰
+kuss	😘 💋
+lachen	😂 🤣 😆
+liebe	😍 🥰 😘 ❤️ 💕
+loewe	🦁
+löwe	🦁
+meer	🌊
+milch	🥛
+mond	🌙 🌝
+musik	🎵 🎶
+nein	❌ 🚫 👎
+obst	🍎 🍌 🍇
+ok	👌 ✅
+party	🥳 🎉 🎊
+pferd	🐴 🐎
+pizza	🍕
+pokal	🏆
+rakete	🚀
+regen	🌧️ ☔
+roboter	🤖
+rose	🌹
+schiff	🚢 ⛵
+schlange	🐍
+schloss	🔒
+schluessel	🔑
+schlüssel	🔑
+schmetterling	🦋
+schnee	❄️ ⛄
+schokolade	🍫
+schule	🏫
+sonne	☀️ 🌞
+spiel	🎮 🕹️
+stark	💪
+stern	⭐ 🌟 ✨
+stift	✏️ 🖊️
+tee	🍵
+telefon	📱 📞
+traurig	😢 😞 😔 🙁
+tschuess	👋
+tschüss	👋
+uhr	⏰ 🕐
+vogel	🐦 🦅
+wasser	💧 💦 🌊
+wein	🍷
+weinen	😭 😢
+wuetend	😠 😡 🤬
+wütend	😠 😡 🤬
+zug	🚆 🚄

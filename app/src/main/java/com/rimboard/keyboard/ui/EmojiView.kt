@@ -10,6 +10,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -66,6 +67,11 @@ class EmojiView(context: Context) : LinearLayout(context) {
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
+    private companion object {
+        /** Unicode skin-tone modifiers, light to dark. */
+        val TONES = listOf("🏻", "🏼", "🏽", "🏾", "🏿")
+    }
+
     init {
         orientation = VERTICAL
 
@@ -99,6 +105,14 @@ class EmojiView(context: Context) : LinearLayout(context) {
             isVerticalScrollBarEnabled = false
             setOnItemClickListener { _, _, position, _ ->
                 adapterImpl.items.getOrNull(position)?.let { listener?.onEmoji(it) }
+            }
+            setOnItemLongClickListener { _, view, position, _ ->
+                val e = adapterImpl.items.getOrNull(position)
+                val variants = e?.let { skinToneVariants(it) } ?: emptyList()
+                if (variants.size > 1) {
+                    showVariants(variants, view)
+                    true
+                } else false
             }
         }
         addView(grid, LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
@@ -153,6 +167,62 @@ class EmojiView(context: Context) : LinearLayout(context) {
 
         addView(bar, LayoutParams(LayoutParams.MATCH_PARENT, dp(46)))
         selectTab(1)
+    }
+
+    /**
+     * [base] plus its five skin-tone variants, or just [base] when the emoji
+     * doesn't take a tone. Support is probed with `hasGlyph` rather than kept as
+     * a hand-maintained list, so this follows whatever the device's font
+     * actually renders.
+     */
+    private fun skinToneVariants(base: String): List<String> {
+        val stem = base.replace("️", "")
+        val out = ArrayList<String>(6)
+        out.add(base)
+        for (tone in TONES) {
+            val v = stem + tone
+            if (glyphPaint.hasGlyph(v)) out.add(v)
+        }
+        return out
+    }
+
+    /** Little popup row of tone variants above the long-pressed emoji. */
+    private fun showVariants(variants: List<String>, anchor: View) {
+        val theme = t
+        val row = LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            background = GradientDrawable().apply {
+                cornerRadius = dp(12).toFloat()
+                setColor(theme?.previewBg ?: 0xFF303030.toInt())
+            }
+            setPadding(dp(4), dp(4), dp(4), dp(4))
+        }
+        val popup = android.widget.PopupWindow(
+            row, LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, true
+        )
+        popup.isOutsideTouchable = true
+        for (v in variants) {
+            row.addView(TextView(context).apply {
+                text = v
+                gravity = Gravity.CENTER
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
+                theme?.let { setTextColor(it.keyText) }
+                setOnClickListener {
+                    listener?.onEmoji(v)
+                    popup.dismiss()
+                }
+            }, LayoutParams(dp(44), dp(44)))
+        }
+        row.measure(
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        )
+        // Centre over the tapped emoji, clamped inside the panel.
+        val x = (anchor.left + anchor.width / 2 - row.measuredWidth / 2)
+            .coerceIn(0, (width - row.measuredWidth).coerceAtLeast(0))
+        popup.showAtLocation(this, Gravity.NO_GRAVITY, x, 0)
+        performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
     }
 
     /** Rounded key-like background with a pressed state, inset so keys keep a gap. */
