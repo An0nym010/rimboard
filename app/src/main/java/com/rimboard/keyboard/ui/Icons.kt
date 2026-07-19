@@ -12,6 +12,10 @@ import kotlin.math.sin
 /**
  * Hand-drawn vector icons for the keyboard chrome. They replace emoji so the
  * interface looks identical on every device and tints with the theme.
+ *
+ * The toolbar set is drawn in a 24x24 design grid (see [grid24]) with a bold
+ * 2.4-unit stroke, generous corner radii and solid filled accents, so the icons
+ * read as confident shapes rather than thin hairline outlines.
  */
 object Icons {
 
@@ -45,6 +49,9 @@ object Icons {
     private val path = Path()
     private val oval = RectF()
 
+    /** Bold stroke weight in 24-grid units. */
+    private const val SW = 2.4f
+
     fun forCode(code: Int): Int? = when (code) {
         Codes.LANG -> GLOBE
         Codes.CLIPBOARD -> CLIPBOARD
@@ -71,9 +78,23 @@ object Icons {
     }
 
     fun forLabel(label: String): Int? = when (label) {
-        "\uD83D\uDD0D" -> SEARCH
-        "\uD83D\uDD76" -> INCOGNITO
+        "🔍" -> SEARCH
+        "🕶" -> INCOGNITO
         else -> null
+    }
+
+    /**
+     * Runs [body] with the canvas mapped so a 24x24 design grid fills the icon
+     * box. Lets the toolbar icons be written in whole design units, and makes a
+     * stroke width of [SW] scale automatically with the icon size.
+     */
+    private inline fun grid24(c: Canvas, cx: Float, cy: Float, s: Float, body: () -> Unit) {
+        val save = c.save()
+        c.translate(cx - s / 2f, cy - s / 2f)
+        c.scale(s / 24f, s / 24f)
+        p.strokeWidth = SW
+        body()
+        c.restoreToCount(save)
     }
 
     fun draw(c: Canvas, icon: Int, cx: Float, cy: Float, s: Float, color: Int) {
@@ -89,86 +110,178 @@ object Icons {
         p.typeface = Typeface.DEFAULT
 
         when (icon) {
-            GLOBE -> {
-                c.drawCircle(cx, cy, r * 0.9f, p)
-                oval.set(cx - r * 0.42f, cy - r * 0.9f, cx + r * 0.42f, cy + r * 0.9f)
+            // ---------- toolbar set: 24-grid, bold, rounded, filled accents ----------
+            CHEVRON -> grid24(c, cx, cy, s) {
+                p.strokeWidth = 2.7f
+                path.reset()
+                path.moveTo(9.5f, 5.5f); path.lineTo(16f, 12f); path.lineTo(9.5f, 18.5f)
+                c.drawPath(path, p)
+            }
+            CHEVRON_L -> grid24(c, cx, cy, s) {
+                p.strokeWidth = 2.7f
+                path.reset()
+                path.moveTo(14.5f, 5.5f); path.lineTo(8f, 12f); path.lineTo(14.5f, 18.5f)
+                c.drawPath(path, p)
+            }
+            ONE_HANDED -> grid24(c, cx, cy, s) {
+                oval.set(2.8f, 6.6f, 15.2f, 17.8f)
+                c.drawRoundRect(oval, 3.4f, 3.4f, p)
+                p.style = Paint.Style.FILL
+                oval.set(17.6f, 8.4f, 20.8f, 16f)
+                c.drawRoundRect(oval, 1.6f, 1.6f, p)
+            }
+            RESIZE -> grid24(c, cx, cy, s) {
+                c.drawLine(12f, 8f, 12f, 16f, p)
+                p.style = Paint.Style.FILL
+                path.reset()
+                path.moveTo(12f, 3.2f); path.lineTo(15.8f, 8.4f); path.lineTo(8.2f, 8.4f)
+                path.close(); c.drawPath(path, p)
+                path.reset()
+                path.moveTo(12f, 20.8f); path.lineTo(15.8f, 15.6f); path.lineTo(8.2f, 15.6f)
+                path.close(); c.drawPath(path, p)
+            }
+            FLOATING -> grid24(c, cx, cy, s) {
+                oval.set(3.6f, 7.4f, 20.4f, 18.8f)
+                c.drawRoundRect(oval, 3.4f, 3.4f, p)
+                p.style = Paint.Style.FILL
+                oval.set(9.2f, 3.6f, 14.8f, 5.7f)
+                c.drawRoundRect(oval, 1.05f, 1.05f, p)
+            }
+            GLOBE -> grid24(c, cx, cy, s) {
+                c.drawCircle(12f, 12f, 8.6f, p)
+                oval.set(8.1f, 3.4f, 15.9f, 20.6f)
                 c.drawOval(oval, p)
-                c.drawLine(cx - r * 0.9f, cy, cx + r * 0.9f, cy, p)
+                c.drawLine(3.6f, 12f, 20.4f, 12f, p)
             }
-            CLIPBOARD -> {
-                oval.set(cx - r * 0.62f, cy - r * 0.72f, cx + r * 0.62f, cy + r * 0.92f)
-                c.drawRoundRect(oval, r * 0.14f, r * 0.14f, p)
+            EDIT -> grid24(c, cx, cy, s) {
+                path.reset()
+                path.moveTo(5.2f, 18.8f)
+                path.lineTo(8.7f, 18.8f)
+                path.lineTo(18.5f, 9f)
+                path.lineTo(15f, 5.5f)
+                path.lineTo(5.2f, 15.3f)
+                path.close()
+                c.drawPath(path, p)
+                c.drawLine(13.1f, 7.4f, 16.6f, 10.9f, p)
+            }
+            CLIPBOARD -> grid24(c, cx, cy, s) {
+                oval.set(4.8f, 4.4f, 19.2f, 20.6f)
+                c.drawRoundRect(oval, 3.4f, 3.4f, p)
                 p.style = Paint.Style.FILL
-                oval.set(cx - r * 0.28f, cy - r * 0.92f, cx + r * 0.28f, cy - r * 0.56f)
-                c.drawRoundRect(oval, r * 0.1f, r * 0.1f, p)
+                oval.set(8.6f, 2.4f, 15.4f, 6.6f)
+                c.drawRoundRect(oval, 1.9f, 1.9f, p)
                 p.style = Paint.Style.STROKE
-                c.drawLine(cx - r * 0.32f, cy - r * 0.08f, cx + r * 0.32f, cy - r * 0.08f, p)
-                c.drawLine(cx - r * 0.32f, cy + r * 0.32f, cx + r * 0.32f, cy + r * 0.32f, p)
+                c.drawLine(8.6f, 11.8f, 15.4f, 11.8f, p)
+                c.drawLine(8.6f, 15.6f, 13.2f, 15.6f, p)
             }
-            EDIT -> {
-                p.strokeWidth = s * 0.2f
-                c.drawLine(cx - r * 0.55f, cy + r * 0.55f, cx + r * 0.28f, cy - r * 0.28f, p)
+            EMOJI -> grid24(c, cx, cy, s) {
+                c.drawCircle(12f, 12f, 8.6f, p)
+                p.style = Paint.Style.FILL
+                c.drawCircle(8.9f, 9.9f, 1.35f, p)
+                c.drawCircle(15.1f, 9.9f, 1.35f, p)
+                p.style = Paint.Style.STROKE
+                oval.set(7.4f, 9.2f, 16.6f, 15.8f)
+                c.drawArc(oval, 32f, 116f, false, p)
+            }
+            TRANSLATE -> grid24(c, cx, cy, s) {
+                oval.set(3.2f, 3.2f, 13.6f, 13.6f)
+                c.drawRoundRect(oval, 3.2f, 3.2f, p)
+                oval.set(10.4f, 10.4f, 20.8f, 20.8f)
+                c.drawRoundRect(oval, 3.2f, 3.2f, p)
+                p.style = Paint.Style.FILL
+                p.typeface = Typeface.DEFAULT_BOLD
+                p.textSize = 6.6f
+                c.drawText("A", 8.4f, 8.4f - (p.ascent() + p.descent()) / 2f, p)
+                p.textSize = 6.2f
+                c.drawText("文", 15.6f, 15.6f - (p.ascent() + p.descent()) / 2f, p)
+            }
+            SHARE -> grid24(c, cx, cy, s) {
+                c.drawLine(8.2f, 10.8f, 15.3f, 7.2f, p)
+                c.drawLine(8.2f, 13.2f, 15.3f, 16.8f, p)
+                p.style = Paint.Style.FILL
+                c.drawCircle(5.9f, 12f, 2.6f, p)
+                c.drawCircle(17.6f, 6f, 2.6f, p)
+                c.drawCircle(17.6f, 18f, 2.6f, p)
+            }
+            THEME -> grid24(c, cx, cy, s) {
+                c.drawCircle(12f, 12f, 8.6f, p)
+                p.style = Paint.Style.FILL
+                oval.set(3.4f, 3.4f, 20.6f, 20.6f)
+                c.drawArc(oval, -90f, 180f, true, p)
+            }
+            UNDO, REDO -> grid24(c, cx, cy, s) {
+                val rad = 7.2f
+                val start = -90f
+                val sweep = if (icon == UNDO) -258f else 258f
+                oval.set(12f - rad, 12f - rad, 12f + rad, 12f + rad)
+                c.drawArc(oval, start, sweep, false, p)
+                val end = Math.toRadians((start + sweep).toDouble())
+                val ex = 12f + (cos(end) * rad).toFloat()
+                val ey = 12f + (sin(end) * rad).toFloat()
+                val tan = end + if (sweep < 0) -Math.PI / 2 else Math.PI / 2
+                val hx = (cos(tan) * 4.4).toFloat()
+                val hy = (sin(tan) * 4.4).toFloat()
+                val nx = (cos(tan + Math.PI / 2) * 2.9).toFloat()
+                val ny = (sin(tan + Math.PI / 2) * 2.9).toFloat()
                 p.style = Paint.Style.FILL
                 path.reset()
-                path.moveTo(cx + r * 0.66f, cy - r * 0.66f)
-                path.lineTo(cx + r * 0.42f, cy - r * 0.12f)
-                path.lineTo(cx + r * 0.12f, cy - r * 0.42f)
+                path.moveTo(ex + hx, ey + hy)
+                path.lineTo(ex + nx, ey + ny)
+                path.lineTo(ex - nx, ey - ny)
                 path.close()
                 c.drawPath(path, p)
             }
-            ONE_HANDED -> {
-                oval.set(cx - r * 0.9f, cy - r * 0.55f, cx + r * 0.9f, cy + r * 0.55f)
-                c.drawRoundRect(oval, r * 0.12f, r * 0.12f, p)
+            INCOGNITO -> grid24(c, cx, cy, s) {
                 p.style = Paint.Style.FILL
-                path.reset()
-                path.moveTo(cx + r * 0.38f, cy)
-                path.lineTo(cx - r * 0.1f, cy - r * 0.26f)
-                path.lineTo(cx - r * 0.1f, cy + r * 0.26f)
-                path.close()
-                c.drawPath(path, p)
-                c.drawRect(cx + r * 0.48f, cy - r * 0.28f, cx + r * 0.62f, cy + r * 0.28f, p)
-            }
-            FLOATING -> {
-                oval.set(cx - r * 0.85f, cy - r * 0.7f, cx + r * 0.45f, cy + r * 0.35f)
-                c.drawRoundRect(oval, r * 0.12f, r * 0.12f, p)
-                p.style = Paint.Style.FILL
-                oval.set(cx + r * 0.02f, cy + r * 0.05f, cx + r * 0.85f, cy + r * 0.7f)
-                c.drawRoundRect(oval, r * 0.1f, r * 0.1f, p)
-            }
-            INCOGNITO -> {
-                p.strokeWidth = s * 0.14f
-                c.drawLine(cx - r * 0.85f, cy - r * 0.05f, cx + r * 0.85f, cy - r * 0.05f, p)
-                p.style = Paint.Style.FILL
-                oval.set(cx - r * 0.5f, cy - r * 0.6f, cx + r * 0.5f, cy + r * 0.05f)
+                oval.set(5.6f, 9.4f, 18.4f, 16.4f)   // crown, sits on the brim
                 c.drawArc(oval, 180f, 180f, true, p)
+                oval.set(3.2f, 11.6f, 20.8f, 13.9f)  // brim
+                c.drawRoundRect(oval, 1.15f, 1.15f, p)
                 p.style = Paint.Style.STROKE
-                p.strokeWidth = s * 0.1f
-                c.drawCircle(cx - r * 0.34f, cy + r * 0.38f, r * 0.2f, p)
-                c.drawCircle(cx + r * 0.34f, cy + r * 0.38f, r * 0.2f, p)
-                c.drawLine(cx - r * 0.14f, cy + r * 0.38f, cx + r * 0.14f, cy + r * 0.38f, p)
+                p.strokeWidth = 2.1f
+                c.drawCircle(8.6f, 17.3f, 2.5f, p)
+                c.drawCircle(15.4f, 17.3f, 2.5f, p)
+                c.drawLine(11.1f, 17.3f, 12.9f, 17.3f, p)
             }
-            SETTINGS -> {
-                p.strokeWidth = s * 0.14f
+            SETTINGS -> grid24(c, cx, cy, s) {
+                path.reset()
                 for (i in 0 until 8) {
-                    val a = Math.toRadians(i * 45.0)
-                    c.drawLine(
-                        cx + (cos(a) * r * 0.32f).toFloat(), cy + (sin(a) * r * 0.32f).toFloat(),
-                        cx + (cos(a) * r * 0.52f).toFloat(), cy + (sin(a) * r * 0.52f).toFloat(), p
-                    )
+                    val a = i * Math.PI / 4.0
+                    val a1 = a - 0.23
+                    val a2 = a + 0.23
+                    val ax = 12f + (6.2 * cos(a1)).toFloat()
+                    val ay = 12f + (6.2 * sin(a1)).toFloat()
+                    val bx = 12f + (8.9 * cos(a1)).toFloat()
+                    val by = 12f + (8.9 * sin(a1)).toFloat()
+                    val ox = 12f + (8.9 * cos(a2)).toFloat()
+                    val oy = 12f + (8.9 * sin(a2)).toFloat()
+                    val dx = 12f + (6.2 * cos(a2)).toFloat()
+                    val dy = 12f + (6.2 * sin(a2)).toFloat()
+                    if (i == 0) path.moveTo(ax, ay) else path.lineTo(ax, ay)
+                    path.lineTo(bx, by)
+                    path.lineTo(ox, oy)
+                    path.lineTo(dx, dy)
                 }
-                p.strokeWidth = s * 0.11f
-                c.drawCircle(cx, cy, r * 0.32f, p)
-                c.drawCircle(cx, cy, r * 0.12f, p)
+                path.close()
+                c.drawPath(path, p)
+                c.drawCircle(12f, 12f, 2.9f, p)
             }
-            EMOJI -> {
-                c.drawCircle(cx, cy, r * 0.88f, p)
+            HIDE -> grid24(c, cx, cy, s) {
+                oval.set(3.4f, 5f, 20.6f, 15.4f)
+                c.drawRoundRect(oval, 3f, 3f, p)
                 p.style = Paint.Style.FILL
-                c.drawCircle(cx - r * 0.3f, cy - r * 0.22f, s * 0.06f, p)
-                c.drawCircle(cx + r * 0.3f, cy - r * 0.22f, s * 0.06f, p)
+                c.drawCircle(7.6f, 8.6f, 0.9f, p)
+                c.drawCircle(12f, 8.6f, 0.9f, p)
+                c.drawCircle(16.4f, 8.6f, 0.9f, p)
+                oval.set(8.8f, 11.2f, 15.2f, 12.9f)
+                c.drawRoundRect(oval, 0.85f, 0.85f, p)
                 p.style = Paint.Style.STROKE
-                oval.set(cx - r * 0.45f, cy - r * 0.25f, cx + r * 0.45f, cy + r * 0.5f)
-                c.drawArc(oval, 25f, 130f, false, p)
+                path.reset()
+                path.moveTo(9f, 18.2f); path.lineTo(12f, 21f); path.lineTo(15f, 18.2f)
+                c.drawPath(path, p)
             }
+
+            // ---------- panel-only icons (unchanged r-space drawings) ----------
             KEYBOARD -> {
                 oval.set(cx - r * 0.9f, cy - r * 0.55f, cx + r * 0.9f, cy + r * 0.55f)
                 c.drawRoundRect(oval, r * 0.12f, r * 0.12f, p)
@@ -199,38 +312,6 @@ object Icons {
                 c.drawPath(path, p)
                 c.drawLine(cx - r * 0.16f, cy - r * 0.24f, cx - r * 0.13f, cy + r * 0.52f, p)
                 c.drawLine(cx + r * 0.16f, cy - r * 0.24f, cx + r * 0.13f, cy + r * 0.52f, p)
-            }
-            TRANSLATE -> {
-                oval.set(cx - r * 0.85f, cy - r * 0.85f, cx + r * 0.25f, cy + r * 0.25f)
-                c.drawRoundRect(oval, r * 0.14f, r * 0.14f, p)
-                oval.set(cx - r * 0.25f, cy - r * 0.25f, cx + r * 0.85f, cy + r * 0.85f)
-                c.drawRoundRect(oval, r * 0.14f, r * 0.14f, p)
-                p.style = Paint.Style.FILL
-                p.typeface = Typeface.DEFAULT_BOLD
-                p.textSize = s * 0.44f
-                val tcy = cy + r * 0.3f - (p.ascent() + p.descent()) / 2f
-                c.drawText("A", cx + r * 0.3f, tcy, p)
-            }
-            UNDO, REDO -> {
-                val start = if (icon == UNDO) -90f else -90f
-                val sweep = if (icon == UNDO) -265f else 265f
-                oval.set(cx - r * 0.62f, cy - r * 0.62f, cx + r * 0.62f, cy + r * 0.62f)
-                c.drawArc(oval, start, sweep, false, p)
-                val endDeg = Math.toRadians((start + sweep).toDouble())
-                val ex = cx + (cos(endDeg) * r * 0.62f).toFloat()
-                val ey = cy + (sin(endDeg) * r * 0.62f).toFloat()
-                val tangent = endDeg + if (sweep < 0) -Math.PI / 2 else Math.PI / 2
-                val hx = (cos(tangent) * r * 0.34f).toFloat()
-                val hy = (sin(tangent) * r * 0.34f).toFloat()
-                val px = (cos(tangent + Math.PI / 2) * r * 0.2f).toFloat()
-                val py = (sin(tangent + Math.PI / 2) * r * 0.2f).toFloat()
-                p.style = Paint.Style.FILL
-                path.reset()
-                path.moveTo(ex + hx, ey + hy)
-                path.lineTo(ex + px, ey + py)
-                path.lineTo(ex - px, ey - py)
-                path.close()
-                c.drawPath(path, p)
             }
             SEARCH -> {
                 c.drawCircle(cx - r * 0.18f, cy - r * 0.18f, r * 0.5f, p)
@@ -277,57 +358,6 @@ object Icons {
                 p.style = Paint.Style.FILL
                 oval.set(cx - r * 0.3f, cy - r * 0.3f, cx + r * 0.3f, cy + r * 0.3f)
                 c.drawRoundRect(oval, r * 0.08f, r * 0.08f, p)
-            }
-            HIDE -> {
-                oval.set(cx - r * 0.85f, cy - r * 0.8f, cx + r * 0.85f, cy + r * 0.15f)
-                c.drawRoundRect(oval, r * 0.12f, r * 0.12f, p)
-                path.reset()
-                path.moveTo(cx - r * 0.34f, cy + r * 0.4f)
-                path.lineTo(cx, cy + r * 0.78f)
-                path.lineTo(cx + r * 0.34f, cy + r * 0.4f)
-                c.drawPath(path, p)
-            }
-            SHARE -> {
-                // three nodes joined by two links
-                c.drawLine(cx - r * 0.32f, cy, cx + r * 0.42f, cy - r * 0.55f, p)
-                c.drawLine(cx - r * 0.32f, cy, cx + r * 0.42f, cy + r * 0.55f, p)
-                p.style = Paint.Style.FILL
-                c.drawCircle(cx + r * 0.5f, cy - r * 0.6f, r * 0.26f, p)
-                c.drawCircle(cx + r * 0.5f, cy + r * 0.6f, r * 0.26f, p)
-                c.drawCircle(cx - r * 0.5f, cy, r * 0.26f, p)
-            }
-            THEME -> {
-                c.drawCircle(cx, cy, r * 0.82f, p)
-                p.style = Paint.Style.FILL
-                oval.set(cx - r * 0.82f, cy - r * 0.82f, cx + r * 0.82f, cy + r * 0.82f)
-                c.drawArc(oval, -90f, 180f, true, p) // right half filled
-            }
-            RESIZE -> {
-                c.drawLine(cx, cy - r * 0.7f, cx, cy + r * 0.7f, p)
-                path.reset() // top arrowhead
-                path.moveTo(cx - r * 0.28f, cy - r * 0.42f)
-                path.lineTo(cx, cy - r * 0.74f)
-                path.lineTo(cx + r * 0.28f, cy - r * 0.42f)
-                c.drawPath(path, p)
-                path.reset() // bottom arrowhead
-                path.moveTo(cx - r * 0.28f, cy + r * 0.42f)
-                path.lineTo(cx, cy + r * 0.74f)
-                path.lineTo(cx + r * 0.28f, cy + r * 0.42f)
-                c.drawPath(path, p)
-            }
-            CHEVRON -> {
-                path.reset()
-                path.moveTo(cx - r * 0.22f, cy - r * 0.5f)
-                path.lineTo(cx + r * 0.34f, cy)
-                path.lineTo(cx - r * 0.22f, cy + r * 0.5f)
-                c.drawPath(path, p)
-            }
-            CHEVRON_L -> {
-                path.reset()
-                path.moveTo(cx + r * 0.22f, cy - r * 0.5f)
-                path.lineTo(cx - r * 0.34f, cy)
-                path.lineTo(cx + r * 0.22f, cy + r * 0.5f)
-                c.drawPath(path, p)
             }
         }
     }
