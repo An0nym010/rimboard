@@ -183,6 +183,7 @@ class KeyboardView(context: Context) : View(context) {
     private val bgPaint = Paint()
     private var bgShaderH = 0
     private var bgShaderColor = 1
+    private var bgShaderRaised: Boolean? = null
     private val lastPressed = HashSet<Key>()
     private val nowPressed = HashSet<Key>()
     private val releaseAnim = HashMap<Key, Long>()
@@ -427,13 +428,22 @@ class KeyboardView(context: Context) : View(context) {
     override fun onDraw(canvas: Canvas) {
         val t = theme ?: return
         val lay = layout ?: return
-        if (bgPaint.shader == null || bgShaderH != height || bgShaderColor != t.background) {
+        // Depth belongs to the raised style; flat uses a uniform field, so the
+        // gradient is part of what the style switch changes.
+        if (bgShaderH != height || bgShaderColor != t.background || bgShaderRaised != keyBorders) {
             bgShaderColor = t.background
             bgShaderH = height
-            val bottom = mixColor(t.background, 0xFF000000.toInt(), if (t.isDark) 0.20f else 0.07f)
-            bgPaint.shader = LinearGradient(
-                0f, 0f, 0f, height.toFloat(), t.background, bottom, Shader.TileMode.CLAMP
-            )
+            bgShaderRaised = keyBorders
+            bgPaint.color = t.background
+            bgPaint.shader = if (keyBorders) {
+                val bottom =
+                    mixColor(t.background, 0xFF000000.toInt(), if (t.isDark) 0.20f else 0.07f)
+                LinearGradient(
+                    0f, 0f, 0f, height.toFloat(), t.background, bottom, Shader.TileMode.CLAMP
+                )
+            } else {
+                null
+            }
         }
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bgPaint)
         val tf = customTypeface ?: Typeface.DEFAULT
@@ -469,23 +479,40 @@ class KeyboardView(context: Context) : View(context) {
                     } else releaseAnim.remove(key)
                 }
             }
+            // Two visual styles. Raised keeps the shadowed caps RimBoard shipped
+            // with. Flat is the convention every current keyboard settled on:
+            // letters are bare glyphs on the background, only the keys that are
+            // not letters carry a cap, and nothing casts a shadow.
+            val flat = !keyBorders
+            val isLetter = key.type == KeyType.CHARACTER
             val bgColor = when {
                 key.type == KeyType.ENTER -> t.accent
                 key.code == Codes.SHIFT && shiftState == ShiftState.CAPSLOCK -> t.accent
                 key.type == KeyType.FUNCTION -> mixColor(t.keyBgFunc, t.keyBgPressed, press)
                 else -> mixColor(t.keyBg, t.keyBgPressed, press)
             }
-            keyPaint.color = bgColor
             val gap = if (narrowGaps) gapX * 0.45f else gapX
             rectF.set(kb.x + gap / 2f, kb.y, kb.x + kb.w - gap / 2f, kb.y + kb.h)
             if (press > 0f) {
                 rectF.inset(rectF.width() * 0.018f * press, rectF.height() * 0.018f * press)
             }
             val radius = if (key.type == KeyType.ENTER) rectF.height() / 2f else keyRadius
-            if (keyBorders || press > 0f || key.type != KeyType.CHARACTER) {
-                shadowRect.set(rectF)
-                shadowRect.offset(0f, dp(1.4f))
-                canvas.drawRoundRect(shadowRect, radius, radius, shadowPaint)
+            val bareLetter = flat && isLetter
+            if (!bareLetter || press > 0f) {
+                if (!flat) {
+                    shadowRect.set(rectF)
+                    shadowRect.offset(0f, dp(1.4f))
+                    canvas.drawRoundRect(shadowRect, radius, radius, shadowPaint)
+                }
+                keyPaint.color = if (bareLetter) {
+                    // Fade the cap in and out with the press rather than mixing
+                    // toward a resting colour that is never drawn — otherwise
+                    // the release ends by snapping a visible fill to nothing.
+                    (((255f * press).toInt().coerceIn(0, 255)) shl 24) or
+                        (t.keyBgPressed and 0x00FFFFFF)
+                } else {
+                    bgColor
+                }
                 canvas.drawRoundRect(rectF, radius, radius, keyPaint)
             }
             if (press > 0f && (key.type == KeyType.ENTER ||

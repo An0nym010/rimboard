@@ -47,7 +47,7 @@
     <SwitchPreferenceCompat
         android:key="key_borders"
         android:title="@string/pref_borders_title"
-        android:defaultValue="true" />
+        android:defaultValue="false" />
 
     <SwitchPreferenceCompat
         android:key="narrow_gaps"

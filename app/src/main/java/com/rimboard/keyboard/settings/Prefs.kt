@@ -132,7 +132,8 @@ object Prefs {
     fun glideTrail(c: Context) = get(c).getBoolean(KEY_GLIDE_TRAIL, true)
     fun bgDim(c: Context): String = get(c).getString(KEY_BG_DIM, "medium") ?: "medium"
 
-    fun keyBorders(c: Context) = get(c).getBoolean(KEY_KEY_BORDERS, true)
+    /** Off means the flat style: bare letter glyphs, caps only on other keys. */
+    fun keyBorders(c: Context) = get(c).getBoolean(KEY_KEY_BORDERS, false)
     fun narrowGaps(c: Context) = get(c).getBoolean(KEY_NARROW_GAPS, false)
     fun splitMode(c: Context): String = get(c).getString(KEY_SPLIT, "off") ?: "off"
     fun sidePadPct(c: Context) = get(c).getInt(KEY_SIDE_PAD, 0)
