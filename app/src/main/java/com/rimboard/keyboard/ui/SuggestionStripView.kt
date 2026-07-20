@@ -41,6 +41,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     private val settingsBtn: IconView
     private val clipboardBtn: IconView
     private val centerBox: LinearLayout
+    private val toolRow: LinearLayout
     private val emojiRow: LinearLayout
     private val emojiScroll: HorizontalScrollView
     private val incogIcon: IconView
@@ -49,6 +50,17 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     private val expandBtn: IconView
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
+
+    private companion object {
+        /** Width of one pinned tool slot, in dp. */
+        const val TOOL_W = 38
+        /**
+         * Tools kept visible while suggestions occupy the strip. Each one costs
+         * a suggestion slot about 25dp of width, so two is the point where
+         * ordinary words still fit without ellipsis.
+         */
+        const val MAX_TOOLS_WITH_WORDS = 2
+    }
 
 
     /** TalkBack label for a toolbar action; the icons say nothing on their own. */
@@ -112,17 +124,30 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             gravity = Gravity.CENTER
             visibility = GONE
         }
+        // Pinned tools and recent emoji live in separate rows: the tools stay
+        // on the strip while suggestions are showing, the emoji do not.
+        toolRow = LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
         emojiRow = LinearLayout(context).apply {
             orientation = HORIZONTAL
             gravity = Gravity.CENTER
-            visibility = GONE
+        }
+        val rowHolder = LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            addView(toolRow, LayoutParams(
+                LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
+            addView(emojiRow, LayoutParams(
+                LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
         }
         // Scrollable so a long list of pinned shortcuts (plus recent emoji)
         // never gets clipped off the end of the strip.
         emojiScroll = HorizontalScrollView(context).apply {
             isHorizontalScrollBarEnabled = false
             visibility = GONE
-            addView(emojiRow)
+            addView(rowHolder)
         }
         centerBox.addView(emojiScroll,
             LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
@@ -196,8 +221,8 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         dividers.forEach { it.setBackgroundColor(dividerColor) }
         centerLabel.setTextColor(t.keyHint)
         incogIcon.color = t.keyHint
-        for (i in 0 until emojiRow.childCount) {
-            (emojiRow.getChildAt(i) as? IconView)?.color = t.stripText
+        for (i in 0 until toolRow.childCount) {
+            (toolRow.getChildAt(i) as? IconView)?.color = t.stripText
         }
         clipChip.setTextColor(t.stripText)
         settingsBtn.color = t.stripText
@@ -226,8 +251,21 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     fun showSuggestions(words: List<String>, highlightIndex: Int) {
         expandBtn.visibility = GONE
         settingsBtn.visibility = GONE
-        centerBox.visibility = GONE
         clipboardBtn.visibility = GONE
+        // Pinned tools stay put while words are showing — otherwise they were
+        // only ever visible on a completely idle strip, which in practice is
+        // just the moment before you start typing. Capped to three slots so
+        // they take a fixed bite rather than a quarter of the bar.
+        val shown = minOf(toolRow.childCount, MAX_TOOLS_WITH_WORDS)
+        if (shown > 0) {
+            centerBox.visibility = VISIBLE
+            emojiScroll.visibility = VISIBLE
+            toolRow.visibility = VISIBLE
+            emojiRow.visibility = GONE
+            setCenterWidth(dp(TOOL_W) * shown)
+        } else {
+            centerBox.visibility = GONE
+        }
         boldIndex = highlightIndex
         clipChip.visibility = GONE
         centerLabel.visibility = GONE
@@ -257,25 +295,28 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         clipChip.text = label
         clipChip.visibility = VISIBLE
         // The paste chip used to replace the pinned tools outright, so having
-        // anything on the clipboard hid them. The row scrolls; both can show.
-        emojiScroll.visibility = if (emojiRow.childCount > 0) VISIBLE else GONE
+        // anything on the clipboard hid them. Tools stay; recent emoji yield
+        // the room to the chip.
+        emojiRow.visibility = GONE
+        emojiScroll.visibility = if (toolRow.childCount > 0) VISIBLE else GONE
     }
 
-    /**
-     * Fills the idle row with the user's pinned shortcuts followed by their
-     * recent emoji. Both are shown together (the row scrolls), rather than the
-     * shortcuts hiding the emoji as they used to.
-     */
-    fun setIdleRow(items: List<Pair<Int, Int>>, emojis: List<String>) {
-        emojiRow.removeAllViews()
+    /** Rebuilds the pinned tool row. Stays visible while words are showing. */
+    fun setPinnedTools(items: List<Pair<Int, Int>>) {
+        toolRow.removeAllViews()
         val t = theme
         for ((icon, code) in items) {
-            emojiRow.addView(IconView(context, icon).apply {
+            toolRow.addView(IconView(context, icon).apply {
                 color = t?.stripText ?: 0xFF888888.toInt()
                 contentDescription = descFor(code)
                 setOnClickListener { listener?.onQuickAction(code) }
-            }, LayoutParams(dp(38), LayoutParams.MATCH_PARENT))
+            }, LayoutParams(dp(TOOL_W), LayoutParams.MATCH_PARENT))
         }
+    }
+
+    /** Rebuilds the recent-emoji row, which only shows on an idle strip. */
+    fun setRecentEmoji(emojis: List<String>) {
+        emojiRow.removeAllViews()
         for (e in emojis) {
             emojiRow.addView(TextView(context).apply {
                 text = e
@@ -295,7 +336,23 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         centerBox.visibility = VISIBLE
         clipboardBtn.visibility = VISIBLE
         clipChip.visibility = GONE
-        emojiScroll.visibility = if (emojiRow.childCount > 0) VISIBLE else GONE
+        // Idle: tools and recent emoji together, filling the free space.
+        toolRow.visibility = VISIBLE
+        emojiRow.visibility = VISIBLE
+        setCenterWidth(0)
+        emojiScroll.visibility =
+            if (toolRow.childCount + emojiRow.childCount > 0) VISIBLE else GONE
+    }
+
+    /** [w] of 0 means "share the free space by weight"; otherwise a fixed cap. */
+    private fun setCenterWidth(w: Int) {
+        val lp = centerBox.layoutParams as LayoutParams
+        val weight = if (w == 0) 1f else 0f
+        if (lp.width != w || lp.weight != weight) {
+            lp.width = w
+            lp.weight = weight
+            centerBox.layoutParams = lp
+        }
     }
 
     private fun hideAll() {

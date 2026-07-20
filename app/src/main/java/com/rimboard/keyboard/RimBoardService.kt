@@ -271,6 +271,10 @@ class RimBoardService : InputMethodService(),
 
     override fun onStartInputView(info: EditorInfo, restarting: Boolean) {
         super.onStartInputView(info, restarting)
+        // The settings picker writes the same preference from another screen,
+        // so drop the cache here rather than trusting it across a focus change.
+        pinnedCache = null
+        lastTools = null
         composing.setLength(0)
         prevWordForBigram = ""
         revert = null
@@ -978,6 +982,7 @@ class RimBoardService : InputMethodService(),
 
     private fun updateStrip() {
         val s = strip ?: return
+        feedTools(s)
         if (isIncognito()) {
             if (composing.isEmpty()) s.showIncognito(getString(R.string.incognito_label))
             else {
@@ -1306,14 +1311,23 @@ class RimBoardService : InputMethodService(),
     private fun pinnedTools(): List<String> =
         pinnedCache ?: Prefs.pinnedTools(this).also { pinnedCache = it }
 
+    /** Only the tool row: fed on every strip update, so pinned tools survive
+     *  suggestions. Guarded so the views are rebuilt only when the set changes. */
+    private var lastTools: List<String>? = null
+
+    private fun feedTools(s: com.rimboard.keyboard.ui.SuggestionStripView) {
+        val tools = pinnedTools()
+        if (tools == lastTools) return
+        lastTools = tools
+        s.setPinnedTools(
+            tools.mapNotNull { com.rimboard.keyboard.ui.ToolCatalog.byId(it) }
+                .map { it.icon to it.code }
+        )
+    }
+
     private fun feedIdle(s: com.rimboard.keyboard.ui.SuggestionStripView) {
-        // Pinned tools now carry the order the user arranged in settings, so
-        // the strip follows it instead of a fixed catalog order.
-        val pinned = pinnedTools()
-            .mapNotNull { com.rimboard.keyboard.ui.ToolCatalog.byId(it) }
-            .map { it.icon to it.code }
-        s.setIdleRow(
-            pinned,
+        feedTools(s)
+        s.setRecentEmoji(
             if (Prefs.emojiRow(this)) Prefs.emojiRecents(this).take(6) else emptyList()
         )
     }
@@ -1766,6 +1780,7 @@ class RimBoardService : InputMethodService(),
     override fun onPinnedChanged(ids: List<String>) {
         Prefs.setPinnedTools(this, ids)
         pinnedCache = ids
+        lastTools = null
         updateStrip()
     }
 
