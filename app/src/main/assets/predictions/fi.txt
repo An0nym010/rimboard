@@ -1,0 +1,44 @@
+minä	olen en
+sinä	olet et
+hän	on ei
+me	olemme emme
+te	olette
+he	ovat
+en	tiedä voi halua
+et	tiedä voi
+ei	ole voi kiitos
+on	se hyvä
+oli	se hyvä
+mitä	kuuluu teet
+miten	menee voin
+missä	olet on
+milloin	tulet
+miksi	ei
+kiitos	paljon
+ole	hyvä
+hei	vaan
+huomenta	kaikille
+hyvää	yötä päivää huomenta
+näkemiin	pian
+kyllä	se
+voin	tehdä
+voit	tehdä
+pitää	olla
+täytyy	olla
+haluan	että
+tiedän	että
+luulen	että
+nyt	on
+sitten	kun
+tänään	on
+huomenna	on
+eilen	oli
+täällä	on
+siellä	on
+vain	yksi
+aina	kun
+koskaan	ei
+ehkä	ei
+mutta	en
+että	se
+jos	et
