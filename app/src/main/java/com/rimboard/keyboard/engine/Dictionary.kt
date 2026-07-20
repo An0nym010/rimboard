@@ -34,8 +34,16 @@ class Dictionary(
     private val freqs: IntArray
     private val exact = HashSet<String>()
     private val byLen: Array<IntArray>
-    private val charCounts = HashMap<Char, HashMap<Char, Double>>()
-    private val charTotals = HashMap<Char, Double>()
+    // The transition model lives in flat primitive arrays. As a nested
+    // HashMap<Char, HashMap<Char, Double>> it allocated on the order of a
+    // million map nodes while loading a 200k-word list, and boxed both
+    // arguments on every lookup — including the per-keystroke ones on the
+    // typing path. `charSlot` maps a character code to a dense index and
+    // `rows[i]` holds the weight of everything observed after character i.
+    private var charBase = 0
+    private var charSlot = IntArray(0)
+    private var charTotals = DoubleArray(0)
+    private var rows = arrayOfNulls<DoubleArray>(0)
 
     init {
         val entries = ArrayList<Pair<String, Int>>(12000)
@@ -82,15 +90,34 @@ class Dictionary(
         // letter b to follow letter a in this language, weighted by ln(freq) so
         // common words dominate without drowning everything else. ' ' marks
         // the word-initial position.
+        // Pass one assigns every character a dense index, so pass two can
+        // accumulate into plain arrays without allocating or boxing.
+        var lo = WORD_START.code
+        var hi = WORD_START.code
+        for (w in words) for (ch in w) {
+            val c = ch.code
+            if (c < lo) lo = c
+            if (c > hi) hi = c
+        }
+        charBase = lo
+        charSlot = IntArray(hi - lo + 1) { -1 }
+        var dense = 0
+        charSlot[WORD_START.code - lo] = dense++
+        for (w in words) for (ch in w) {
+            val k = ch.code - lo
+            if (charSlot[k] < 0) charSlot[k] = dense++
+        }
+        charTotals = DoubleArray(dense)
+        rows = arrayOfNulls(dense)
         for (i in words.indices) {
-            val w = words[i]
             val wgt = ln((freqs[i] + 1).toDouble())
-            var prev = WORD_START
-            for (ch in w) {
-                val m = charCounts.getOrPut(prev) { HashMap() }
-                m[ch] = (m[ch] ?: 0.0) + wgt
-                charTotals[prev] = (charTotals[prev] ?: 0.0) + wgt
-                prev = ch
+            var pi = 0 // WORD_START always takes the first slot
+            for (ch in words[i]) {
+                val ci = charSlot[ch.code - lo]
+                val row = rows[pi] ?: DoubleArray(dense).also { rows[pi] = it }
+                row[ci] += wgt
+                charTotals[pi] += wgt
+                pi = ci
             }
         }
         val buckets = Array(25) { ArrayList<Int>() }
@@ -114,9 +141,20 @@ class Dictionary(
      * more than a small fraction of a key.
      */
     fun charLogP(prev: Char, next: Char): Double {
-        val total = charTotals[prev] ?: return LN_UNSEEN
-        val c = charCounts[prev]?.get(next) ?: 0.0
-        return maxOf(LN_UNSEEN, ln((c + 0.5) / (total + 40.0)))
+        val pi = slot(prev)
+        if (pi < 0) return LN_UNSEEN
+        // No row means the character was never followed by anything, which is
+        // the same "unseen" case the map lookup used to report as absent.
+        val row = rows[pi] ?: return LN_UNSEEN
+        val ni = slot(next)
+        val c = if (ni < 0) 0.0 else row[ni]
+        return maxOf(LN_UNSEEN, ln((c + 0.5) / (charTotals[pi] + 40.0)))
+    }
+
+    /** Dense index of [ch], or -1 if it never appeared in this dictionary. */
+    private fun slot(ch: Char): Int {
+        val i = ch.code - charBase
+        return if (i >= 0 && i < charSlot.size) charSlot[i] else -1
     }
 
     /** Top [limit] dictionary words starting with [prefixRaw], ranked by frequency. */

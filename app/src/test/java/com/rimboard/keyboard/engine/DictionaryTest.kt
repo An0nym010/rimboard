@@ -6,6 +6,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.Locale
+import kotlin.math.ln
 
 /**
  * Covers the ranking logic behind suggestions, autocorrect and glide typing.
@@ -111,6 +112,31 @@ class DictionaryTest {
     fun `an unseen transition is floored rather than unbounded`() {
         val d = dict("the 9000")
         assertTrue(d.charLogP('q', 'z') >= -6.0)
+    }
+
+    /**
+     * Pins the exact smoothed probability rather than just its ordering, so the
+     * storage behind the model can be reworked without changing what it says.
+     * One word of frequency 999 weighs ln(1000), and every transition in it is
+     * seen exactly once.
+     */
+    @Test
+    fun `transition probability follows the documented smoothing`() {
+        val d = dict("ab 999")
+        val w = ln(1000.0)
+        val seen = ln((w + 0.5) / (w + 40.0))
+        assertEquals(seen, d.charLogP(Dictionary.WORD_START, 'a'), 1e-9)
+        assertEquals(seen, d.charLogP('a', 'b'), 1e-9)
+        // 'b' follows 'a', never the word start, so it falls to the +0.5 floor.
+        assertEquals(ln(0.5 / (w + 40.0)), d.charLogP(Dictionary.WORD_START, 'b'), 1e-9)
+    }
+
+    @Test
+    fun `a character that never begins a transition is unknown, not zero`() {
+        // 'b' ends the only word, so it is never a source character.
+        val d = dict("ab 999")
+        assertEquals(-6.0, d.charLogP('b', 'a'), 1e-9)
+        assertEquals(-6.0, d.charLogP('z', 'a'), 1e-9)
     }
 
     @Test
