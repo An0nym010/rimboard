@@ -89,6 +89,9 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
     var blockOffensive = true
     private val offensiveSets = HashMap<String, Set<String>>()
 
+    /** Synchronized to match [predictionModel]: same pattern, same hazard if a
+     *  future caller loads it off the UI thread. */
+    @Synchronized
     private fun offensive(lang: String): Set<String> =
         offensiveSets.getOrPut(lang) {
             try {
@@ -112,6 +115,7 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
     fun emojiFor(wordLower: String, lang: String): String? =
         emojiMap(lang)[wordLower] ?: if (lang != "en") emojiMap("en")[wordLower] else null
 
+    @Synchronized
     private fun emojiMap(lang: String): Map<String, String> =
         emojiMaps.getOrPut(lang) {
             try {
@@ -286,7 +290,15 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
 
     private val predictionModels = HashMap<String, Map<String, List<String>>>()
 
-    /** Bundled starter next-word model for [lang] (assets/predictions/<lang>.txt). */
+    /**
+     * Bundled starter next-word model for [lang] (assets/predictions/<lang>.txt).
+     *
+     * Synchronized because warm() loads this on a background thread while
+     * predictions() reads it on the UI thread. getOrPut can resize the map, and
+     * concurrent HashMap mutation corrupts it rather than failing cleanly — an
+     * intermittent fault that would look like predictions randomly misbehaving.
+     */
+    @Synchronized
     private fun predictionModel(lang: String): Map<String, List<String>> =
         predictionModels.getOrPut(lang) {
             try {

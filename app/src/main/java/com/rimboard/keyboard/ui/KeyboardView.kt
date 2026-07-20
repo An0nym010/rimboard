@@ -59,6 +59,11 @@ class KeyboardView(context: Context) : View(context) {
         set(value) {
             field = value
             shiftedLabelCache.clear()
+            // Release animations are only retired while their key is being
+            // drawn, so any still in flight for a key the new plane does not
+            // contain would sit in the map for the life of the process.
+            releaseAnim.clear()
+            lastPressed.clear()
             if (width > 0) computeBounds(width)
             requestLayout()
             invalidate()
