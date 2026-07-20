@@ -5,6 +5,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Typeface
+import com.rimboard.keyboard.R
 import com.rimboard.keyboard.model.Codes
 import kotlin.math.cos
 import kotlin.math.sin
@@ -100,10 +101,19 @@ object Icons {
     }
 
     // ---- Lucide vector set ----------------------------------------------
-    // Icons migrating to Lucide (ISC, see NOTICE) are drawn from
-    // VectorDrawables; anything without one falls through to the hand-drawn
-    // glyph below. That fallback is the point: a missing or misrendering
-    // drawable degrades to the icon that already worked, instead of a blank.
+
+    /**
+     * Whether to draw the Lucide VectorDrawables instead of the hand-drawn
+     * glyphs below.
+     *
+     * Off. Every surface that shows an icon — suggestion bar, drawer, tools
+     * panel and the keys — renders through [draw], so this migration is the one
+     * recent change common to all of them, and all of them are reported broken.
+     * The drawables and their mapping stay compiled and attributed; flipping
+     * this back to true is the whole re-enable once they have been seen on a
+     * device. Isolating an unverifiable change beats guessing at its symptoms.
+     */
+    private const val USE_VECTOR_ICONS = false
 
     private var appContext: android.content.Context? = null
     private val vectorRes = HashMap<Int, Int>()
@@ -112,29 +122,31 @@ object Icons {
     /** Called from the views that draw icons; the application context is kept. */
     fun attach(context: android.content.Context) {
         if (appContext != null) return
-        val ctx = context.applicationContext
-        appContext = ctx
-        fun res(name: String) = ctx.resources.getIdentifier(name, "drawable", ctx.packageName)
-        vectorRes[CHEVRON] = res("ic_tool_chevron_right")
-        vectorRes[CHEVRON_L] = res("ic_tool_chevron_left")
-        vectorRes[SETTINGS] = res("ic_tool_settings")
-        vectorRes[CLIPBOARD] = res("ic_tool_clipboard")
-        vectorRes[GRID] = res("ic_tool_grid")
-        vectorRes[GLOBE] = res("ic_tool_globe")
-        vectorRes[EDIT] = res("ic_tool_edit")
-        vectorRes[TRASH] = res("ic_tool_trash")
-        vectorRes[UNDO] = res("ic_tool_undo")
-        vectorRes[REDO] = res("ic_tool_redo")
-        vectorRes[CUT] = res("ic_tool_cut")
-        vectorRes[COPY] = res("ic_tool_copy")
-        vectorRes[TRANSLATE] = res("ic_tool_translate")
-        vectorRes[THEME] = res("ic_tool_theme")
-        vectorRes[SHARE] = res("ic_tool_share")
-        vectorRes[INCOGNITO] = res("ic_tool_incognito")
-        vectorRes[HIDE] = res("ic_tool_chevron_down")
+        appContext = context.applicationContext
+        // Direct R references rather than getIdentifier: these are checked at
+        // compile time, and a name-only lookup would be stripped by resource
+        // shrinking in any build that turns it on.
+        vectorRes[CHEVRON] = R.drawable.ic_tool_chevron_right
+        vectorRes[CHEVRON_L] = R.drawable.ic_tool_chevron_left
+        vectorRes[SETTINGS] = R.drawable.ic_tool_settings
+        vectorRes[CLIPBOARD] = R.drawable.ic_tool_clipboard
+        vectorRes[GRID] = R.drawable.ic_tool_grid
+        vectorRes[GLOBE] = R.drawable.ic_tool_globe
+        vectorRes[EDIT] = R.drawable.ic_tool_edit
+        vectorRes[TRASH] = R.drawable.ic_tool_trash
+        vectorRes[UNDO] = R.drawable.ic_tool_undo
+        vectorRes[REDO] = R.drawable.ic_tool_redo
+        vectorRes[CUT] = R.drawable.ic_tool_cut
+        vectorRes[COPY] = R.drawable.ic_tool_copy
+        vectorRes[TRANSLATE] = R.drawable.ic_tool_translate
+        vectorRes[THEME] = R.drawable.ic_tool_theme
+        vectorRes[SHARE] = R.drawable.ic_tool_share
+        vectorRes[INCOGNITO] = R.drawable.ic_tool_incognito
+        vectorRes[HIDE] = R.drawable.ic_tool_chevron_down
     }
 
     private fun vector(icon: Int): android.graphics.drawable.Drawable? {
+        if (!USE_VECTOR_ICONS) return null
         // Never cache before attach(): a miss recorded then would be permanent,
         // and this can be reached from a view that draws icons without ever
         // constructing an IconView.
