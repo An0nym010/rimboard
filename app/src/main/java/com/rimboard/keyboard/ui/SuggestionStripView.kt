@@ -62,6 +62,8 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     private companion object {
         /** Width of one toolbar tool slot, in dp. */
         const val TOOL_W_DP = 46
+        /** Width of the leading collapse chevron, in dp. */
+        const val CHEVRON_W_DP = 38
     }
 
     /** TalkBack label for a toolbar action; the icons say nothing on their own. */
@@ -216,7 +218,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             color = t?.accent ?: 0xFF3E7BFA.toInt()
             contentDescription = context.getString(R.string.a11y_toolbar_close)
             setOnClickListener { listener?.onToolbarToggle(false) }
-        }, LayoutParams(dp(38), LayoutParams.MATCH_PARENT))
+        }, LayoutParams(dp(CHEVRON_W_DP), LayoutParams.MATCH_PARENT))
         for ((icon, code) in items) {
             val iv = IconView(context, icon).apply {
                 color = t?.stripText ?: 0xFF888888.toInt()
@@ -293,7 +295,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         val idx = toolbarRow.indexOfChild(v)
         if (idx < 1) return
         val toolW = dp(TOOL_W_DP)
-        val chevronW = dp(38)
+        val chevronW = dp(CHEVRON_W_DP)
         val vCentre = chevronW + (idx - 1) * toolW + toolW / 2f + v.translationX
         if (idx > 1) {
             val prevCentre = chevronW + (idx - 2) * toolW + toolW / 2f

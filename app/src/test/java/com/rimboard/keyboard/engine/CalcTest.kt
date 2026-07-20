@@ -88,27 +88,42 @@ class CalcTest {
     }
 
     @Test
-    fun `handles parentheses`() {
-        assertEquals("= 14", chip("(2+3)*4"))
+    fun `parentheses override precedence`() {
+        assertEquals("= 20", chip("(2+3)*4"))
+        assertEquals("= 14", chip("2+3*4"))
         assertEquals("= 3", chip("2*(1+0.5)"))
         assertEquals("= 2", chip("(8+4)/6"))
+        assertEquals("= 24", chip("2*(3*(1+3))"))
     }
 
     @Test
-    fun `handles modulo operator`() {
-        assertEquals("= 2", chip("17%5"))
-        assertEquals("= 1", chip("10%3"))
-        assertEquals("= 0", chip("8%4"))
+    fun `unbalanced parentheses are rejected`() {
+        assertNull(Calc.eval("(1+2"))
+        assertNull(Calc.eval("1+2)"))
+        assertNull(Calc.eval("()"))
     }
 
     @Test
-    fun `modulo binds tighter than addition`() {
-        assertEquals("= 9", chip("2+7%5"))
+    fun `percent of the left-hand side, the way a pocket calculator reads it`() {
+        assertEquals("= 177", chip("150+18%"))   // 150 + 18% of 150
+        assertEquals("= 180", chip("200-10%"))   // the classic discount
     }
 
     @Test
-    fun `rejects division or modulo by zero`() {
-        assertNull(chip("1%0"))
-        assertNull(chip("5/0"))
+    fun `a percent operand on its own is just a hundredth`() {
+        assertEquals("= 10", chip("50*20%"))
+        assertEquals(0.2, Calc.eval("20%")!!, 0.0001)
+    }
+
+    @Test
+    fun `a bare percentage in prose is not hijacked`() {
+        // No operator, so there is nothing to calculate.
+        assertNull(chip("battery at 80%"))
+    }
+
+    @Test
+    fun `trailing junk is rejected rather than half-evaluated`() {
+        assertNull(Calc.eval("1+2)"))
+        assertNull(Calc.eval("1 2"))
     }
 }

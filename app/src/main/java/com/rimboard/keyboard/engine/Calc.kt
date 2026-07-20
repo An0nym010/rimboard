@@ -3,14 +3,17 @@ package com.rimboard.keyboard.engine
 /**
  * The inline calculator behind the "= 408" suggestion chip.
  *
+ * Handles + - * / (and the × ÷ glyphs), parentheses, and percentages.
  * Pure logic with no Android dependencies so it can be unit tested directly:
  * see `CalcTest`.
  */
 object Calc {
 
-    private val expression = Regex(
-        "(?=.*\\d)[0-9.,()\\s+\\-*/%×÷]*=?$"
-    )
+    /** A number, optionally wrapped in parens and/or followed by a percent sign. */
+    private const val OPERAND = "\\(*\\d+(?:[.,]\\d+)?%?\\)*"
+
+    /** At least one operator is required, so a bare "2026" is never a sum. */
+    private val expression = Regex(OPERAND + "(?:\\s*[+\\-*/×÷]\\s*" + OPERAND + ")+=?$")
 
     /**
      * The chip to offer for the text immediately before the cursor, e.g.
@@ -27,7 +30,11 @@ object Calc {
         if (m.range.first == 0 && before.length >= window) return null
         val expr = m.value
         if (!expr.endsWith("=")) {
-            val strongOp = expr.any { it == '+' || it == '*' || it == '×' || it == '÷' }
+            // "-" alone is weak because phone numbers use it, but a percent sign
+            // never appears in one, so it settles "200-10%" as a real sum.
+            val strongOp = expr.any {
+                it == '+' || it == '*' || it == '×' || it == '÷' || it == '%'
+            }
             val slashes = expr.count { it == '/' }
             if (!strongOp && slashes != 1) return null
             if (slashes > 1) return null
@@ -36,59 +43,80 @@ object Calc {
         return "= " + (format(value) ?: return null)
     }
 
-    /** Evaluate with operator precedence: parentheses > * / × ÷ % > + -. Null if malformed. */
+    /**
+     * Evaluates [raw] with normal precedence: parentheses, then * /, then + -.
+     * Null if the input is malformed, unbalanced, or divides by zero.
+     *
+     * The whole string must be consumed, so trailing junk ("1+2)") and two
+     * operands with nothing between them ("1 2") are both rejected rather than
+     * silently producing a number.
+     */
     fun eval(raw: String): Double? {
-        val cleaned = raw.replace(" ", "").replace("×", "*").replace("÷", "/")
-        return try {
-            evalExpr(cleaned, IntArray(1) { 0 })?.first
-        } catch (_: Exception) {
-            null
-        }
+        val s = raw.replace('×', '*').replace('÷', '/')
+        val pos = IntArray(1)
+        val v = evalExpr(s, pos) ?: return null
+        skipSpaces(s, pos)
+        if (pos[0] != s.length) return null
+        return if (v.value.isFinite()) v.value else null
     }
 
-    private fun evalExpr(s: String, pos: IntArray): Pair<Double, Int>? {
-        var term = evalTerm(s, pos) ?: return null
-        while (pos[0] < s.length && s[pos[0]] in "+-") {
-            val op = s[pos[0]++]
-            val right = evalTerm(s, pos) ?: return null
-            term = if (op == '+') term + right else term - right
+    /** An evaluated operand, remembering whether it was written as a percentage. */
+    private class Val(val value: Double, val percent: Boolean)
+
+    private fun evalExpr(s: String, pos: IntArray): Val? {
+        var acc = evalTerm(s, pos) ?: return null
+        while (true) {
+            skipSpaces(s, pos)
+            val op = s.getOrNull(pos[0]) ?: break
+            if (op != '+' && op != '-') break
+            pos[0]++
+            val rhs = evalTerm(s, pos) ?: return null
+            // A pocket calculator reads "150+18%" as 18% *of 150*, not as +0.18.
+            val delta = if (rhs.percent) acc.value * rhs.value else rhs.value
+            acc = Val(if (op == '+') acc.value + delta else acc.value - delta, false)
         }
-        return term to pos[0]
+        return acc
     }
 
-    private fun evalTerm(s: String, pos: IntArray): Double? {
-        var factor = evalFactor(s, pos) ?: return null
-        while (pos[0] < s.length && s[pos[0]] in "*/%" ) {
-            val op = s[pos[0]++]
-            val right = evalFactor(s, pos) ?: return null
-            factor = when (op) {
-                '*' -> factor * right
-                '/' -> if (right == 0.0) return null else factor / right
-                '%' -> if (right == 0.0) return null else factor % right
-                else -> return null
-            }
+    private fun evalTerm(s: String, pos: IntArray): Val? {
+        var acc = evalFactor(s, pos) ?: return null
+        while (true) {
+            skipSpaces(s, pos)
+            val op = s.getOrNull(pos[0]) ?: break
+            if (op != '*' && op != '/') break
+            pos[0]++
+            val rhs = evalFactor(s, pos) ?: return null
+            if (op == '/' && rhs.value == 0.0) return null
+            acc = Val(if (op == '*') acc.value * rhs.value else acc.value / rhs.value, false)
         }
-        return factor
+        return acc
     }
 
-    private fun evalFactor(s: String, pos: IntArray): Double? {
+    private fun evalFactor(s: String, pos: IntArray): Val? {
+        skipSpaces(s, pos)
+        // A sign binds to the operand, which is what lets "-5+3" work and makes
+        // "1++2" read as 1 + (+2) rather than being rejected.
+        var sign = 1.0
+        while (pos[0] < s.length && (s[pos[0]] == '-' || s[pos[0]] == '+')) {
+            if (s[pos[0]] == '-') sign = -sign
+            pos[0]++
+            skipSpaces(s, pos)
+        }
         if (pos[0] >= s.length) return null
-        return when {
-            s[pos[0]] == '(' -> {
-                pos[0]++
-                val result = evalExpr(s, pos) ?: return null
-                if (pos[0] >= s.length || s[pos[0]] != ')') return null
-                pos[0]++
-                result.first
-            }
-            s[pos[0]].isDigit() || s[pos[0]] == ',' || s[pos[0]] == '.' -> parseNumber(s, pos)
-            s[pos[0]] == '-' || s[pos[0]] == '+' -> {
-                val sign = if (s[pos[0]++] == '-') -1.0 else 1.0
-                val n = parseNumber(s, pos) ?: return null
-                sign * n
-            }
-            else -> null
+        val base: Double
+        if (s[pos[0]] == '(') {
+            pos[0]++
+            val inner = evalExpr(s, pos) ?: return null
+            skipSpaces(s, pos)
+            if (pos[0] >= s.length || s[pos[0]] != ')') return null
+            pos[0]++
+            base = inner.value
+        } else {
+            base = parseNumber(s, pos) ?: return null
         }
+        val percent = pos[0] < s.length && s[pos[0]] == '%'
+        if (percent) pos[0]++
+        return Val(sign * base / (if (percent) 100.0 else 1.0), percent)
     }
 
     private fun parseNumber(s: String, pos: IntArray): Double? {
@@ -98,6 +126,10 @@ object Calc {
         }
         if (pos[0] == start) return null
         return s.substring(start, pos[0]).replace(',', '.').toDoubleOrNull()
+    }
+
+    private fun skipSpaces(s: String, pos: IntArray) {
+        while (pos[0] < s.length && s[pos[0]] == ' ') pos[0]++
     }
 
     /** Trims a result to something readable, or null if it is unreasonably big. */

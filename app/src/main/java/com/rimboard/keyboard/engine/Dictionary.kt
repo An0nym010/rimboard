@@ -8,11 +8,21 @@ import kotlin.math.ceil
 import kotlin.math.ln
 
 /**
- * A static word list loaded from an InputStream (typically assets/dictionaries/<lang>.txt).
+ * A static word list read from [dictStream] (in the app, assets/dictionaries/<lang>.txt)
+ * merged with the user's learned words from [userDictStream]. Either may be null,
+ * which simply yields fewer words rather than an error.
+ *
  * File format: one "word frequency" pair per line, ordered by frequency.
  * Internally sorted alphabetically for binary-search prefix lookups.
+ *
+ * Taking streams rather than a Context is what makes the engine unit testable:
+ * see `DictionaryTest`. Both streams are consumed and closed here.
  */
-class Dictionary(dictStream: InputStream, userDictStream: InputStream?, private val locale: Locale) {
+class Dictionary(
+    dictStream: InputStream?,
+    userDictStream: InputStream?,
+    private val locale: Locale
+) {
 
     companion object {
         /** Marker for the word-initial position in the character model. */
@@ -30,7 +40,7 @@ class Dictionary(dictStream: InputStream, userDictStream: InputStream?, private 
     init {
         val entries = ArrayList<Pair<String, Int>>(12000)
         try {
-            dictStream.bufferedReader().useLines { lines ->
+            dictStream?.bufferedReader()?.useLines { lines ->
                 lines.forEach { line ->
                     val sp = line.indexOf(' ')
                     if (sp > 0) {
@@ -42,6 +52,10 @@ class Dictionary(dictStream: InputStream, userDictStream: InputStream?, private 
             }
         } catch (_: Exception) {
             // Missing dictionary: keyboard still works, just without suggestions.
+        } finally {
+            // useLines already closes on the happy path; this covers the case
+            // where the reader itself could not be opened.
+            try { dictStream?.close() } catch (_: Exception) {}
         }
         try {
             userDictStream?.bufferedReader()?.useLines { lines ->
@@ -57,6 +71,8 @@ class Dictionary(dictStream: InputStream, userDictStream: InputStream?, private 
                 }
             }
         } catch (_: Exception) {
+        } finally {
+            try { userDictStream?.close() } catch (_: Exception) {}
         }
         entries.sortBy { it.first }
         words = Array(entries.size) { entries[it].first }
