@@ -231,8 +231,8 @@
     <string name="tb_section_all">ALL TOOLS</string>
     <string name="tb_section_empty">Tap + on any tool below to put it here</string>
     <string name="a11y_reorder_handle">Reorder</string>
-    <string name="a11y_pin_clip">Pin</string>
-    <string name="a11y_unpin_clip">Unpin</string>
+    <string name="a11y_pin">Pin</string>
+    <string name="a11y_unpin">Unpin</string>
     <string name="a11y_move_up">Move up</string>
     <string name="a11y_move_down">Move down</string>
     <string name="tb_undo">Undo</string>

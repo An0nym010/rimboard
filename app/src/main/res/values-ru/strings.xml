@@ -181,6 +181,6 @@
     <string name="a11y_reorder_handle">Изменить порядок</string>
     <string name="a11y_move_up">Переместить вверх</string>
     <string name="a11y_move_down">Переместить вниз</string>
-    <string name="a11y_pin_clip">Закрепить</string>
-    <string name="a11y_unpin_clip">Открепить</string>
+    <string name="a11y_pin">Закрепить</string>
+    <string name="a11y_unpin">Открепить</string>
 </resources>

@@ -181,6 +181,6 @@
     <string name="a11y_reorder_handle">Réorganiser</string>
     <string name="a11y_move_up">Déplacer vers le haut</string>
     <string name="a11y_move_down">Déplacer vers le bas</string>
-    <string name="a11y_pin_clip">Épingler</string>
-    <string name="a11y_unpin_clip">Détacher</string>
+    <string name="a11y_pin">Épingler</string>
+    <string name="a11y_unpin">Détacher</string>
 </resources>

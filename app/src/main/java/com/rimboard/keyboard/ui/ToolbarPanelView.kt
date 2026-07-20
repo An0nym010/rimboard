@@ -4,13 +4,18 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.RectF
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+import androidx.customview.widget.ExploreByTouchHelper
 import com.rimboard.keyboard.R
 import com.rimboard.keyboard.theme.KeyboardTheme
 import kotlin.math.max
@@ -59,6 +64,10 @@ class ToolbarPanelView(context: Context) : View(context) {
         const val MIN_CELL_W_DP = 62f
         /** How long a press must hold before the tool lifts off. */
         const val LIFT_MS = 220L
+        /** Virtual-view ids are section * this + index. */
+        const val SECTION_STRIDE = 1000
+        /** Custom accessibility action standing in for the drag. */
+        const val ACTION_TOGGLE_PIN = 0x10F0
     }
 
     // Layout, recomputed on resize.
@@ -374,6 +383,7 @@ class ToolbarPanelView(context: Context) : View(context) {
         performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
         listener?.onPinnedChanged(pinned.toList())
         invalidate()
+        invalidateRoot()
     }
 
     private fun lift(h: Pair<Int, Int>) {
@@ -403,8 +413,105 @@ class ToolbarPanelView(context: Context) : View(context) {
         dragIndex = -1
         listener?.onPinnedChanged(pinned.toList())
         invalidate()
+        invalidateRoot()
     }
 
     /** Height this panel wants, matching the keyboard it replaces. */
     fun preferredRows(): Int = pinnedRows() + restRows()
+
+    // ---- accessibility ----
+
+    /**
+     * The panel draws itself, so to a screen reader it is one blank rectangle:
+     * twenty tools with no names, no states and no way to reach them. Each cell
+     * is exposed as a virtual view instead, with the drag replaced by an
+     * explicit pin/unpin action — dragging is not a gesture a screen reader
+     * user can perform.
+     */
+    private inner class A11y : ExploreByTouchHelper(this@ToolbarPanelView) {
+
+        override fun getVirtualViewAt(x: Float, y: Float): Int {
+            val h = hit(x, y) ?: return HOST_ID
+            val list = if (h.first == 0) pinned else rest
+            if (h.second !in list.indices) return HOST_ID
+            return virtualId(h.first, h.second)
+        }
+
+        override fun getVisibleVirtualViews(ids: MutableList<Int>) {
+            for (i in pinned.indices) ids.add(virtualId(0, i))
+            for (i in rest.indices) ids.add(virtualId(1, i))
+        }
+
+        override fun onPopulateNodeForVirtualView(id: Int, node: AccessibilityNodeInfoCompat) {
+            val section = id / SECTION_STRIDE
+            val index = id % SECTION_STRIDE
+            val list = if (section == 0) pinned else rest
+            val tool = list.getOrNull(index)?.let { ToolCatalog.byId(it) }
+            if (tool == null) {
+                // Never leave a node unpopulated: an empty bounds throws.
+                node.contentDescription = ""
+                node.setBoundsInParent(Rect(0, 0, 1, 1))
+                return
+            }
+            val name = context.getString(tool.labelRes)
+            val state = context.getString(
+                if (section == 0) R.string.tb_section_pinned else R.string.tb_section_all
+            )
+            node.contentDescription = "$name, $state"
+            node.className = "android.widget.Button"
+            node.isEnabled = true
+            node.isFocusable = true
+            node.addAction(AccessibilityNodeInfoCompat.ACTION_CLICK)
+            node.addAction(
+                AccessibilityNodeInfoCompat.AccessibilityActionCompat(
+                    ACTION_TOGGLE_PIN,
+                    context.getString(
+                        if (section == 0) R.string.a11y_unpin else R.string.a11y_pin
+                    )
+                )
+            )
+            cellRect(index, if (section == 0) pinnedTop() else restTop(), rectF)
+            node.setBoundsInParent(
+                Rect(
+                    rectF.left.toInt(),
+                    (rectF.top - panelScroll).toInt(),
+                    rectF.right.toInt(),
+                    (rectF.bottom - panelScroll).toInt()
+                )
+            )
+        }
+
+        override fun onPerformActionForVirtualView(
+            id: Int, action: Int, arguments: Bundle?
+        ): Boolean {
+            val section = id / SECTION_STRIDE
+            val index = id % SECTION_STRIDE
+            val list = if (section == 0) pinned else rest
+            val tool = list.getOrNull(index)?.let { ToolCatalog.byId(it) } ?: return false
+            return when (action) {
+                AccessibilityNodeInfoCompat.ACTION_CLICK -> {
+                    listener?.onToolAction(tool.code)
+                    true
+                }
+                ACTION_TOGGLE_PIN -> {
+                    togglePin(section, index)
+                    invalidateRoot()
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private val a11y = A11y().also { ViewCompat.setAccessibilityDelegate(this, it) }
+
+    private fun virtualId(section: Int, index: Int) = section * SECTION_STRIDE + index
+
+    /** Rebuilds the whole virtual tree: pinning moves cells between sections. */
+    private fun invalidateRoot() {
+        a11y.invalidateRoot()
+    }
+
+    override fun dispatchHoverEvent(event: MotionEvent): Boolean =
+        a11y.dispatchHoverEvent(event) || super.dispatchHoverEvent(event)
 }

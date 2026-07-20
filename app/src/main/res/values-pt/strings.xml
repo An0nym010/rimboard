@@ -181,6 +181,6 @@
     <string name="a11y_reorder_handle">Reordenar</string>
     <string name="a11y_move_up">Mover para cima</string>
     <string name="a11y_move_down">Mover para baixo</string>
-    <string name="a11y_pin_clip">Fixar</string>
-    <string name="a11y_unpin_clip">Desafixar</string>
+    <string name="a11y_pin">Fixar</string>
+    <string name="a11y_unpin">Desafixar</string>
 </resources>

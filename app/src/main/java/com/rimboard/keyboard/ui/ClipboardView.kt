@@ -127,38 +127,47 @@ class ClipboardView(context: Context) : LinearLayout(context) {
             val item = items[position]
             val th = t
             // Gboard/Yandex-style card: rounded key-coloured tile with the clip
-            // text filling it and the pin riding the top-right corner.
-            val card = FrameLayout(context).apply {
-                background = GradientDrawable().apply {
-                    cornerRadius = dp(12).toFloat()
-                    setColor(th?.keyBg ?: 0xFF333333.toInt())
-                    if (item.pinned && th != null) {
-                        setStroke(dp(1), (th.accent and 0x00FFFFFF) or 0x66000000)
-                    }
-                }
-                foreground = null
+            // text filling it and the pin riding the top-right corner. Built
+            // once and rebound thereafter — the grid recycles, and inflating a
+            // card plus two children per pass allocated on every scroll frame.
+            val card = (convertView as? FrameLayout) ?: FrameLayout(context).apply {
                 minimumHeight = dp(72)
-                setOnClickListener { listener?.onClipPicked(item.text) }
+                addView(TextView(context).apply {
+                    setPadding(dp(12), dp(10), dp(30), dp(10))
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f)
+                    maxLines = 4
+                    ellipsize = TextUtils.TruncateAt.END
+                }, FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+                ))
+                addView(IconView(context, Icons.PIN),
+                    FrameLayout.LayoutParams(dp(34), dp(34), Gravity.TOP or Gravity.END))
             }
-            card.addView(TextView(context).apply {
-                setPadding(dp(12), dp(10), dp(30), dp(10))
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f)
-                maxLines = 4
-                ellipsize = TextUtils.TruncateAt.END
+
+            card.background = GradientDrawable().apply {
+                cornerRadius = dp(12).toFloat()
+                setColor(th?.keyBg ?: 0xFF333333.toInt())
+                if (item.pinned && th != null) {
+                    setStroke(dp(1), (th.accent and 0x00FFFFFF) or 0x66000000)
+                }
+            }
+            card.setOnClickListener { listener?.onClipPicked(item.text) }
+            card.contentDescription = item.text
+
+            (card.getChildAt(0) as TextView).apply {
                 text = item.text
                 setTextColor(th?.keyText ?: 0xFF000000.toInt())
-            }, FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT
-            ))
-            card.addView(IconView(context, Icons.PIN).apply {
+            }
+            (card.getChildAt(1) as IconView).apply {
                 color = if (item.pinned) th?.accent ?: 0xFF888888.toInt()
                     else th?.keyHint ?: 0xFF888888.toInt()
                 alpha = if (item.pinned) 1f else 0.55f
                 contentDescription = context.getString(
-                    if (item.pinned) R.string.a11y_unpin_clip else R.string.a11y_pin_clip
+                    if (item.pinned) R.string.a11y_unpin else R.string.a11y_pin
                 )
                 setOnClickListener { listener?.onClipPinToggle(item.text, !item.pinned) }
-            }, FrameLayout.LayoutParams(dp(34), dp(34), Gravity.TOP or Gravity.END))
+            }
             return card
         }
     }

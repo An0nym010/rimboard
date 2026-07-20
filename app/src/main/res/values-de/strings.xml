@@ -181,6 +181,6 @@
     <string name="a11y_reorder_handle">Neu anordnen</string>
     <string name="a11y_move_up">Nach oben</string>
     <string name="a11y_move_down">Nach unten</string>
-    <string name="a11y_pin_clip">Anheften</string>
-    <string name="a11y_unpin_clip">Lösen</string>
+    <string name="a11y_pin">Anheften</string>
+    <string name="a11y_unpin">Lösen</string>
 </resources>

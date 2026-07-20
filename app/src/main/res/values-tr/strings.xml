@@ -241,6 +241,6 @@
     <string name="a11y_reorder_handle">Yeniden sırala</string>
     <string name="a11y_move_up">Yukarı taşı</string>
     <string name="a11y_move_down">Aşağı taşı</string>
-    <string name="a11y_pin_clip">Sabitle</string>
-    <string name="a11y_unpin_clip">Sabitlemeyi kaldır</string>
+    <string name="a11y_pin">Sabitle</string>
+    <string name="a11y_unpin">Sabitlemeyi kaldır</string>
 </resources>
