@@ -232,7 +232,11 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
         var outAc = acIndex
         if (blockOffensive) {
             val acWord = display.getOrNull(acIndex)
-            outWords = display.filter { !isOffensive(it, lang) }
+            // Slot 0 is the verbatim word and is never filtered: the point is to
+            // stop the keyboard *offering* offensive words, not to censor one
+            // the user deliberately typed and can already see in the field.
+            outWords = listOf(display.first()) +
+                display.drop(1).filter { !isOffensive(it, lang) }
             outAc = if (acWord != null && !isOffensive(acWord, lang))
                 outWords.indexOf(acWord) else -1
         }
