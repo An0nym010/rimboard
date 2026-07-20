@@ -1249,40 +1249,15 @@ class RimBoardService : InputMethodService(),
     }
 
     private fun feedIdle(s: com.rimboard.keyboard.ui.SuggestionStripView) {
-        val sel = Prefs.toolbarKeys(this)
-        if (sel.isNotEmpty()) {
-            val catalog = listOf(
-                "undo" to (Icons.UNDO to Codes.UNDO),
-                "redo" to (Icons.REDO to Codes.REDO),
-                "copy" to (Icons.COPY to Codes.COPY),
-                "paste" to (Icons.PASTE to Codes.PASTE),
-                "cut" to (Icons.CUT to Codes.CUT),
-                "selectall" to (Icons.SELECT_ALL to Codes.SELECT_ALL),
-                "onehanded" to (Icons.ONE_HANDED to Codes.ONE_HANDED),
-                "incognito" to (Icons.INCOGNITO to Codes.INCOGNITO),
-                "edit" to (Icons.EDIT to Codes.EDIT_PANEL),
-                "floating" to (Icons.FLOATING to Codes.FLOATING),
-                "numpad" to (Icons.KEYBOARD to Codes.NUMPAD),
-                "hide" to (Icons.HIDE to Codes.HIDE_KB),
-                "emoji" to (Icons.EMOJI to Codes.EMOJI),
-                "clipboard" to (Icons.CLIPBOARD to Codes.CLIPBOARD),
-                "language" to (Icons.GLOBE to Codes.LANG),
-                "translate" to (Icons.TRANSLATE to Codes.TRANSLATE),
-                "share" to (Icons.SHARE to Codes.SHARE),
-                "theme" to (Icons.THEME to Codes.THEME),
-                "resize" to (Icons.RESIZE to Codes.RESIZE),
-                "settings" to (Icons.SETTINGS to Codes.SETTINGS)
-            )
-            s.setIdleRow(
-                catalog.filter { it.first in sel }.map { it.second },
-                if (Prefs.emojiRow(this)) Prefs.emojiRecents(this).take(6) else emptyList()
-            )
-        } else {
-            s.setIdleRow(
-                emptyList(),
-                if (Prefs.emojiRow(this)) Prefs.emojiRecents(this).take(6) else emptyList()
-            )
-        }
+        // Pinned tools now carry the order the user arranged in settings, so
+        // the strip follows it instead of a fixed catalog order.
+        val pinned = Prefs.pinnedTools(this)
+            .mapNotNull { com.rimboard.keyboard.ui.ToolCatalog.byId(it) }
+            .map { it.icon to it.code }
+        s.setIdleRow(
+            pinned,
+            if (Prefs.emojiRow(this)) Prefs.emojiRecents(this).take(6) else emptyList()
+        )
     }
 
     private fun restoreMainView() {

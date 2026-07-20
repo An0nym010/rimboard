@@ -37,14 +37,11 @@ object Layouts {
         popup = listOf(Key(Codes.IME_PICKER, "\u2328", type = KeyType.FUNCTION))
     )
 
-    /** Long-press menu on the comma key. Language switching lives on the globe
-     *  key and clipboard/settings live on the suggestion strip, so this holds
-     *  only: edit panel, one-handed, floating, incognito, emoji. */
+    /** Long-press menu on the comma key. Edit panel, one-handed, floating and
+     *  incognito all moved to the expandable toolbar, so duplicating them here
+     *  only made the popup harder to aim at. Emoji stays because it is the one
+     *  people reach for mid-word, where opening the toolbar costs a tap. */
     private val commaMenu = listOf(
-        Key(Codes.EDIT_PANEL, "\u2702", type = KeyType.FUNCTION),
-        Key(Codes.ONE_HANDED, "\uD83E\uDD1A", type = KeyType.FUNCTION),
-        Key(Codes.FLOATING, "\u25A3", type = KeyType.FUNCTION),
-        Key(Codes.INCOGNITO, "\uD83D\uDD76", type = KeyType.FUNCTION),
         Key(Codes.EMOJI, "\uD83D\uDE0A", type = KeyType.FUNCTION)
     )
 

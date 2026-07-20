@@ -226,6 +226,7 @@
     <string name="pref_dict_import_summary">Text file with “word frequency” per line, applied to the current language</string>
     <string name="pref_toolbar_title">Toolbar keys</string>
     <string name="pref_toolbar_summary">Choose actions for the idle suggestion bar (replaces the emoji row)</string>
+    <string name="toolbar_picker_hint">Tick the actions you want on the idle suggestion bar. Press and hold a row to drag it into a new order.</string>
     <string name="tb_undo">Undo</string>
     <string name="tb_redo">Redo</string>
     <string name="tb_copy">Copy</string>

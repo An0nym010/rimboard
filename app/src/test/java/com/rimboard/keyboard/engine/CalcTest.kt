@@ -126,4 +126,46 @@ class CalcTest {
         assertNull(Calc.eval("1+2)"))
         assertNull(Calc.eval("1 2"))
     }
+
+    @Test
+    fun `converts between metric and imperial`() {
+        assertEquals("= 3.1069 mi", chip("5km="))
+        assertEquals("= 8.0467 km", chip("5mi="))
+        assertEquals("= 22.0462 lb", chip("10kg="))
+        assertEquals("= 2.54 cm", chip("1in="))
+        assertEquals("= 32.8084 ft", chip("10m="))
+    }
+
+    @Test
+    fun `converts temperature both ways`() {
+        assertEquals("= 212 °F", chip("100c="))
+        assertEquals("= 0 °C", chip("32f="))
+        assertEquals("= 212 °F", chip("100°c="))
+    }
+
+    @Test
+    fun `unit conversion accepts a comma decimal and a space`() {
+        assertEquals("= 1.2427 mi", chip("2,0 km="))
+    }
+
+    @Test
+    fun `unit conversion is case insensitive`() {
+        assertEquals("= 3.1069 mi", chip("5KM="))
+    }
+
+    @Test
+    fun `a unit needs the explicit equals, so prose is left alone`() {
+        assertNull(chip("a 5km run"))
+        assertNull(chip("5km"))
+    }
+
+    @Test
+    fun `a time is not mistaken for a quantity`() {
+        assertNull(chip("3pm="))
+    }
+
+    @Test
+    fun `an unknown unit is ignored`() {
+        assertNull(chip("5xyz="))
+    }
 }

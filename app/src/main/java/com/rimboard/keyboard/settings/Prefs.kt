@@ -64,6 +64,7 @@ object Prefs {
     const val KEY_AS_SUGG = "autospace_suggestion"
     const val KEY_TOOLBAR = "toolbar_keys"
     const val KEY_TOOLBAR_ORDER = "toolbar_order"
+    const val KEY_PINNED_ORDER = "pinned_order"
     const val KEY_CALC = "calc_chip"
     const val KEY_SMART_TAP = "smart_tap"
     const val KEY_SPACE_TEXT = "space_text"
@@ -156,6 +157,28 @@ object Prefs {
     fun autoSpaceSuggestion(c: Context) = get(c).getBoolean(KEY_AS_SUGG, true)
     fun toolbarKeys(c: Context): Set<String> =
         get(c).getStringSet(KEY_TOOLBAR, emptySet()) ?: emptySet()
+
+    /**
+     * Tools pinned to the idle strip, in the order the user arranged them.
+     *
+     * Falls back to the old unordered checkbox selection (in catalog order) so
+     * anyone upgrading keeps exactly the shortcuts they already had.
+     */
+    fun pinnedTools(c: Context): List<String> {
+        val ordered = (get(c).getString(KEY_PINNED_ORDER, null) ?: "")
+            .split(',').map { it.trim() }.filter { it.isNotEmpty() }
+        if (ordered.isNotEmpty()) return ordered
+        val legacy = toolbarKeys(c)
+        return com.rimboard.keyboard.ui.ToolCatalog.defaultOrder.filter { it in legacy }
+    }
+
+    fun setPinnedTools(c: Context, ids: List<String>) {
+        get(c).edit()
+            .putString(KEY_PINNED_ORDER, ids.joinToString(","))
+            // Kept in step so nothing still reading the old set goes stale.
+            .putStringSet(KEY_TOOLBAR, ids.toSet())
+            .apply()
+    }
 
     fun calcChip(c: Context) = get(c).getBoolean(KEY_CALC, true)
 

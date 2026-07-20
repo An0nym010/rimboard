@@ -17,15 +17,26 @@ object DictVersion {
 
 class SuggestionEngine(private val context: Context, private val userData: UserData) {
 
+    private companion object {
+        const val TAG = "RimBoard"
+    }
+
     private val cache = java.util.concurrent.ConcurrentHashMap<String, Dictionary>()
 
     /** Preload dictionaries on a background thread so the first keystroke never stalls. */
     fun warm(lang: String, locale: Locale, altLang: String?, altLocale: Locale?) {
         Thread {
             try {
+                val started = android.os.SystemClock.elapsedRealtime()
                 dictionary(lang, locale)
                 predictionModel(lang)
                 if (altLang != null && altLocale != null) dictionary(altLang, altLocale)
+                // End to end: how long after opening the keyboard suggestions
+                // are actually ready. Nothing here had ever been measured.
+                android.util.Log.i(
+                    TAG, "warm($lang) ready in " +
+                        "${android.os.SystemClock.elapsedRealtime() - started}ms"
+                )
             } catch (_: Exception) {
             }
         }.start()
@@ -35,6 +46,7 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
     fun dictionary(lang: String, locale: Locale): Dictionary {
         val key = lang + "#" + DictVersion.v
         cache[key]?.let { return it }
+        val started = android.os.SystemClock.elapsedRealtime()
         // A missing asset yields an empty dictionary — never an exception, and
         // never another language's words standing in for this one.
         val dictStream = try {
@@ -48,7 +60,16 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
         } catch (_: Exception) {
             null
         }
-        return Dictionary(dictStream, userStream, locale).also { cache[key] = it }
+        // Covers parsing, the character-transition model and the length buckets
+        // — everything on the warm path. `adb logcat -s RimBoard` to read it.
+        return Dictionary(dictStream, userStream, locale).also {
+            cache[key] = it
+            android.util.Log.i(
+                TAG,
+                "dictionary $lang: ${it.size} words in " +
+                    "${android.os.SystemClock.elapsedRealtime() - started}ms"
+            )
+        }
     }
 
     /**

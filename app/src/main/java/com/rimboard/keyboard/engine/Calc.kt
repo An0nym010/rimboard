@@ -26,6 +26,7 @@ object Calc {
      * real one may start further back than we can see.
      */
     fun chipFor(before: String, window: Int = 40): String? {
+        unitChip(before, window)?.let { return it }
         val m = expression.find(before) ?: return null
         if (m.range.first == 0 && before.length >= window) return null
         val expr = m.value
@@ -41,6 +42,49 @@ object Calc {
         }
         val value = eval(expr.removeSuffix("=")) ?: return null
         return "= " + (format(value) ?: return null)
+    }
+
+    /**
+     * A quantity with a unit, e.g. "5km". Longer unit names come first in the
+     * alternation so "mi" is not read as a bare "m".
+     */
+    private val unitExpr = Regex(
+        "(\\d+(?:[.,]\\d+)?)\\s*(km|mi|cm|in|ft|kg|lb|oz|gal|°?c|°?f|m|g|l)=$",
+        RegexOption.IGNORE_CASE
+    )
+
+    /**
+     * "5km=" -> "= 3.1069 mi". Converting between the metric and imperial
+     * counterpart is the only sensible default without asking the user for a
+     * target unit, and it is the direction people actually want on a phone.
+     *
+     * The trailing "=" is required, so ordinary prose ("a 5km run") is left
+     * alone and "3pm=" is not mistaken for a quantity.
+     */
+    private fun unitChip(before: String, window: Int): String? {
+        val m = unitExpr.find(before) ?: return null
+        if (m.range.first == 0 && before.length >= window) return null
+        val value = m.groupValues[1].replace(',', '.').toDoubleOrNull() ?: return null
+        val (converted, unit) = convert(value, m.groupValues[2].lowercase()) ?: return null
+        return "= " + (format(converted) ?: return null) + " " + unit
+    }
+
+    private fun convert(v: Double, unit: String): Pair<Double, String>? = when (unit) {
+        "km" -> v * 0.621371 to "mi"
+        "mi" -> v * 1.609344 to "km"
+        "m" -> v * 3.280840 to "ft"
+        "ft" -> v * 0.3048 to "m"
+        "cm" -> v * 0.393701 to "in"
+        "in" -> v * 2.54 to "cm"
+        "kg" -> v * 2.204623 to "lb"
+        "lb" -> v * 0.453592 to "kg"
+        "g" -> v * 0.035274 to "oz"
+        "oz" -> v * 28.349523 to "g"
+        "l" -> v * 0.264172 to "gal"
+        "gal" -> v * 3.785412 to "l"
+        "c", "°c" -> v * 9.0 / 5.0 + 32.0 to "°F"
+        "f", "°f" -> (v - 32.0) * 5.0 / 9.0 to "°C"
+        else -> null
     }
 
     /**

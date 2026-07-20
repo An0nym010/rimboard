@@ -79,12 +79,14 @@
         android:summary="@string/pref_emoji_row_summary"
         android:defaultValue="true" />
 
-    <MultiSelectListPreference
-        android:key="toolbar_keys"
+    <Preference
+        android:key="toolbar_picker"
         android:title="@string/pref_toolbar_title"
-        android:summary="@string/pref_toolbar_summary"
-        android:entries="@array/toolbar_entries"
-        android:entryValues="@array/toolbar_values" />
+        android:summary="@string/pref_toolbar_summary">
+        <intent
+            android:targetPackage="com.rimboard.keyboard"
+            android:targetClass="com.rimboard.keyboard.settings.ToolbarPickerActivity" />
+    </Preference>
 
     <SwitchPreferenceCompat
             android:key="haptic"

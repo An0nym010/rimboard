@@ -60,6 +60,11 @@
             android:exported="false"
             android:label="@string/pref_stats_title" />
 
+        <activity
+            android:name=".settings.ToolbarPickerActivity"
+            android:exported="false"
+            android:label="@string/pref_toolbar_title" />
+
     </application>
 
 </manifest>
