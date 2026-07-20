@@ -57,11 +57,6 @@ class KeyboardView(context: Context) : View(context) {
 
     var layout: KeyboardLayout? = null
         set(value) {
-            // Cross-fade the labels on a plane change (ABC ↔ ?123 ↔ =\<), but
-            // not on the very first layout, which would fade in from nothing.
-            if (field != null && value !== field) {
-                layoutFadeAt = SystemClock.uptimeMillis()
-            }
             field = value
             shiftedLabelCache.clear()
             if (width > 0) computeBounds(width)
@@ -71,6 +66,24 @@ class KeyboardView(context: Context) : View(context) {
         }
 
     private var layoutFadeAt = 0L
+    private var layoutSignature: String? = null
+
+    /**
+     * Sets the layout, cross-fading the labels only when [signature] shows the
+     * keys actually changed.
+     *
+     * The caller builds a fresh KeyboardLayout every time, so comparing the
+     * object identifies nothing: it made the fade fire on every field focus,
+     * flickering the labels for a layout that was identical. A plane or
+     * language switch changes the signature; refocusing a field does not.
+     */
+    fun setLayout(lay: KeyboardLayout, signature: String) {
+        if (layoutSignature != null && signature != layoutSignature) {
+            layoutFadeAt = SystemClock.uptimeMillis()
+        }
+        layoutSignature = signature
+        layout = lay
+    }
 
     /** Uppercased key labels, cached so the draw loop never allocates strings. */
     private val shiftedLabelCache = HashMap<Key, String>()

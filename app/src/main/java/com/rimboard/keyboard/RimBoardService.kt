@@ -506,7 +506,9 @@ class RimBoardService : InputMethodService(),
             LayoutKind.SYMBOLS2 -> Layouts.symbols2(locale())
             LayoutKind.NUMPAD -> Layouts.numpad(locale())
         }
-        kv.layout = lay
+        // Signature covers everything that changes what is written on the keys,
+        // so refocusing a field rebuilds the layout without fading it.
+        kv.setLayout(lay, "$kind/${currentLangCode()}/$numberRow/$showGlobe")
         kv.spaceLabel = spaceLabelText()
         kv.enterLabel = enterLabelText()
         kv.incognito = isIncognito()
