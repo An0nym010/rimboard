@@ -333,9 +333,28 @@ class EmojiView(context: Context) : LinearLayout(context) {
     }
 
     private fun selectTab(i: Int) {
+        val changed = tab != i
         tab = i
         refresh()
         applyTabColors()
+        if (changed) {
+            // The category swap used to be a hard cut; a short fade reads as
+            // the grid changing content rather than flickering.
+            grid.animate().cancel()
+            grid.alpha = 0.25f
+            grid.animate().alpha(1f).setDuration(120)
+                .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
+            ensureTabVisible(i)
+        }
+    }
+
+    /** Scrolls the tab strip so the selected category sits centred, not offscreen. */
+    private fun ensureTabVisible(i: Int) {
+        val tv = tabViews.getOrNull(i) ?: return
+        tabScroll.post {
+            val target = tv.left - (tabScroll.width - tv.width) / 2
+            tabScroll.smoothScrollTo(target.coerceAtLeast(0), 0)
+        }
     }
 
     private fun refresh() {
@@ -346,6 +365,15 @@ class EmojiView(context: Context) : LinearLayout(context) {
 
     // ---------------------------------------------------------------- search
 
+    /** Same 140ms rise the keyboard's panels use, so search feels related. */
+    private fun rise(v: View) {
+        v.animate().cancel()
+        v.alpha = 0f
+        v.translationY = dp(8).toFloat()
+        v.animate().alpha(1f).translationY(0f).setDuration(140)
+            .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
+    }
+
     private fun enterSearch() {
         searching = true
         query.setLength(0)
@@ -354,6 +382,8 @@ class EmojiView(context: Context) : LinearLayout(context) {
         resultsScroll.visibility = VISIBLE
         keypad.visibility = VISIBLE
         tabScroll.visibility = GONE
+        rise(searchBar)
+        rise(keypad)
         onQueryChanged()
     }
 
@@ -365,6 +395,7 @@ class EmojiView(context: Context) : LinearLayout(context) {
         keypad.visibility = GONE
         tabScroll.visibility = VISIBLE
         grid.visibility = VISIBLE
+        rise(grid)
         refresh()
     }
 
@@ -492,11 +523,28 @@ class EmojiView(context: Context) : LinearLayout(context) {
 
     private fun applyTabColors() {
         val theme = t ?: return
+        fun pill(color: Int): Drawable {
+            val g = GradientDrawable()
+            g.cornerRadius = dp(15).toFloat()
+            g.setColor(color)
+            return InsetDrawable(g, dp(3), dp(7), dp(3), dp(7))
+        }
         tabViews.forEachIndexed { i, tv ->
             tv.setTextColor(if (i == tab) theme.accent else theme.keyHint)
-            tv.setBackgroundColor(
-                if (i == tab) (theme.accent and 0x00FFFFFF) or 0x22000000 else 0x00000000
-            )
+            // Rounded pill under the active category (the old flat rectangle
+            // ignored the keyboard's corner language), plus a pressed state so
+            // the tabs respond to touch like everything else now does.
+            tv.background = StateListDrawable().apply {
+                addState(
+                    intArrayOf(android.R.attr.state_pressed),
+                    pill((theme.keyHint and 0x00FFFFFF) or 0x1E000000)
+                )
+                addState(
+                    intArrayOf(),
+                    if (i == tab) pill((theme.accent and 0x00FFFFFF) or 0x26000000)
+                    else android.graphics.drawable.ColorDrawable(0)
+                )
+            }
         }
     }
 

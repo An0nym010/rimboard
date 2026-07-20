@@ -63,6 +63,12 @@
         <item>AMOLED black</item>
         <item>Material You (dynamic)</item>
         <item>High contrast</item>
+        <item>Ocean</item>
+        <item>Forest</item>
+        <item>Sunset</item>
+        <item>Graphite</item>
+        <item>Rose</item>
+        <item>Mint</item>
         <item>Custom</item>
     </string-array>
 
@@ -73,6 +79,12 @@
         <item>amoled</item>
         <item>dynamic</item>
         <item>contrast</item>
+        <item>ocean</item>
+        <item>forest</item>
+        <item>sunset</item>
+        <item>graphite</item>
+        <item>rose</item>
+        <item>mint</item>
         <item>custom</item>
     </string-array>
 

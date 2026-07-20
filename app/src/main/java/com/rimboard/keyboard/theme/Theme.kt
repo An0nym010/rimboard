@@ -67,6 +67,94 @@ object Themes {
     )
 
 
+    // ---- preset palettes. All original values, tuned around one accent each:
+    // dark ones keep keys ~2 steps above the background, light ones use white
+    // caps on a tinted wash, matching the contrast structure of light()/dark().
+
+    private fun ocean() = KeyboardTheme(
+        background = 0xFF0E1B25.toInt(),
+        keyBg = 0xFF1D3140.toInt(),
+        keyBgFunc = 0xFF15252F.toInt(),
+        keyBgPressed = 0xFF2C495C.toInt(),
+        keyText = 0xFFE2EEF5.toInt(),
+        keyHint = 0xFF7FA0B4.toInt(),
+        accent = 0xFF2EC5CE.toInt(),
+        onAccent = 0xFF00272B.toInt(),
+        stripText = 0xFFD6E6EF.toInt(),
+        previewBg = 0xFF244050.toInt(),
+        isDark = true
+    )
+
+    private fun forest() = KeyboardTheme(
+        background = 0xFF111B14.toInt(),
+        keyBg = 0xFF213528.toInt(),
+        keyBgFunc = 0xFF17251C.toInt(),
+        keyBgPressed = 0xFF304C3A.toInt(),
+        keyText = 0xFFE4F0E7.toInt(),
+        keyHint = 0xFF8AA893.toInt(),
+        accent = 0xFF6BCB77.toInt(),
+        onAccent = 0xFF06210D.toInt(),
+        stripText = 0xFFD8E8DC.toInt(),
+        previewBg = 0xFF2A4235.toInt(),
+        isDark = true
+    )
+
+    private fun sunset() = KeyboardTheme(
+        background = 0xFF1F1418.toInt(),
+        keyBg = 0xFF372227.toInt(),
+        keyBgFunc = 0xFF291A1F.toInt(),
+        keyBgPressed = 0xFF4C3137.toInt(),
+        keyText = 0xFFF5E8E4.toInt(),
+        keyHint = 0xFFB18E90.toInt(),
+        accent = 0xFFFF8A5C.toInt(),
+        onAccent = 0xFF2B1105.toInt(),
+        stripText = 0xFFEBDBD8.toInt(),
+        previewBg = 0xFF422B31.toInt(),
+        isDark = true
+    )
+
+    private fun graphite() = KeyboardTheme(
+        background = 0xFF17181C.toInt(),
+        keyBg = 0xFF262930.toInt(),
+        keyBgFunc = 0xFF1D1F24.toInt(),
+        keyBgPressed = 0xFF383C46.toInt(),
+        keyText = 0xFFEAECEF.toInt(),
+        keyHint = 0xFF8F949E.toInt(),
+        accent = 0xFFFFB454.toInt(),
+        onAccent = 0xFF241300.toInt(),
+        stripText = 0xFFE6E8EB.toInt(),
+        previewBg = 0xFF30343C.toInt(),
+        isDark = true
+    )
+
+    private fun rose() = KeyboardTheme(
+        background = 0xFFF7EDF1.toInt(),
+        keyBg = 0xFFFFFFFF.toInt(),
+        keyBgFunc = 0xFFEEDBE3.toInt(),
+        keyBgPressed = 0xFFDDBFCC.toInt(),
+        keyText = 0xFF2A1E24.toInt(),
+        keyHint = 0xFF87707B.toInt(),
+        accent = 0xFFD4548C.toInt(),
+        onAccent = 0xFFFFFFFF.toInt(),
+        stripText = 0xFF463039.toInt(),
+        previewBg = 0xFFFFFFFF.toInt(),
+        isDark = false
+    )
+
+    private fun mint() = KeyboardTheme(
+        background = 0xFFEAF4EE.toInt(),
+        keyBg = 0xFFFFFFFF.toInt(),
+        keyBgFunc = 0xFFD6E8DD.toInt(),
+        keyBgPressed = 0xFFBBD9C8.toInt(),
+        keyText = 0xFF1C2620.toInt(),
+        keyHint = 0xFF6C8477.toInt(),
+        accent = 0xFF2FA36B.toInt(),
+        onAccent = 0xFFFFFFFF.toInt(),
+        stripText = 0xFF33453B.toInt(),
+        previewBg = 0xFFFFFFFF.toInt(),
+        isDark = false
+    )
+
     private fun isNightMode(context: Context): Boolean =
         (context.resources.configuration.uiMode and
             android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
@@ -161,6 +249,12 @@ object Themes {
             "dark" -> dark()
             "amoled" -> amoled()
             "contrast" -> highContrast()
+            "ocean" -> ocean()
+            "forest" -> forest()
+            "sunset" -> sunset()
+            "graphite" -> graphite()
+            "rose" -> rose()
+            "mint" -> mint()
             "custom" -> custom(context)
             "dynamic" ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) dynamic(context, night)
