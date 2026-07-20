@@ -197,6 +197,10 @@ class RimBoardService : InputMethodService(),
         root.addView(frame, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         rootView = root
+        // The strip is a new instance, so the feed guards must forget what they
+        // sent to the old one or this one is never populated.
+        lastTools = null
+        pinnedCache = null
         strip = s
         keyboardView = kv
         emojiView = ev
@@ -1785,6 +1789,9 @@ class RimBoardService : InputMethodService(),
 
     override fun onToolAction(code: Int) {
         hideToolbarPanel()
+        // "All tools" is itself a tool in the panel, so running it from inside
+        // would close and immediately reopen the panel. Closing is the intent.
+        if (code == Codes.TOOLBAR_PANEL) return
         onQuickAction(code)
     }
 
