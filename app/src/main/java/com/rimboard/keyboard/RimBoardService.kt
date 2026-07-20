@@ -50,7 +50,8 @@ import org.json.JSONArray
 
 class RimBoardService : InputMethodService(),
     KeyboardView.Listener, SuggestionStripView.Listener, EmojiView.Listener,
-    ClipboardView.Listener, EditPanelView.Listener {
+    ClipboardView.Listener, EditPanelView.Listener,
+    com.rimboard.keyboard.ui.ToolbarPanelView.Listener {
 
     private lateinit var userData: UserData
     private lateinit var engine: SuggestionEngine
@@ -67,6 +68,7 @@ class RimBoardService : InputMethodService(),
     private val clipHistory = ArrayDeque<ClipEntry>()
     private var clipChangedListener: ClipboardManager.OnPrimaryClipChangedListener? = null
     private var editPanelView: EditPanelView? = null
+    private var toolbarPanel: com.rimboard.keyboard.ui.ToolbarPanelView? = null
     private var floatingBlock: View? = null
     private var editSelectMode = false
 
@@ -186,6 +188,12 @@ class RimBoardService : InputMethodService(),
         }
         frame.addView(ep, FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
+        val tp = com.rimboard.keyboard.ui.ToolbarPanelView(ctx).apply {
+            listener = this@RimBoardService
+            visibility = View.GONE
+        }
+        frame.addView(tp, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
         root.addView(frame, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         rootView = root
@@ -194,6 +202,7 @@ class RimBoardService : InputMethodService(),
         emojiView = ev
         clipboardView = cv
         editPanelView = ep
+        toolbarPanel = tp
         floatingBlock = null
         if (!Prefs.floating(this)) return root
 
@@ -412,6 +421,7 @@ class RimBoardService : InputMethodService(),
         emojiView?.applyTheme(t)
         clipboardView?.applyTheme(t)
         editPanelView?.applyTheme(t)
+        toolbarPanel?.applyTheme(t)
         rootView?.setBackgroundColor(t.background)
         window?.window?.let { w ->
             w.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
@@ -1264,6 +1274,7 @@ class RimBoardService : InputMethodService(),
         emojiView?.visibility = View.GONE
         clipboardView?.visibility = View.GONE
         editPanelView?.visibility = View.GONE
+        toolbarPanel?.visibility = View.GONE
         keyboardView?.visibility = View.VISIBLE
     }
 
@@ -1387,6 +1398,7 @@ class RimBoardService : InputMethodService(),
         emojiView?.visibility = View.GONE
         clipboardView?.visibility = View.GONE
         editPanelView?.visibility = View.GONE
+        toolbarPanel?.visibility = View.GONE
     }
 
     // ------------------------------------------------------------ clipboard
@@ -1691,7 +1703,51 @@ class RimBoardService : InputMethodService(),
     )
 
     override fun onToolbarToggle(expand: Boolean) {
-        if (expand) strip?.showToolbar(toolbarCatalog()) else updateStrip()
+        // The chevron is a toggle: the collapse control used to live inside the
+        // expanded row, which the panel replaced.
+        if (toolbarPanel?.visibility == View.VISIBLE || !expand) hideToolbarPanel()
+        else showToolbarPanel()
+    }
+
+    // ------------------------------------------------------------ toolbar panel
+
+    private fun showToolbarPanel() {
+        val kv = keyboardView ?: return
+        val tp = toolbarPanel ?: return
+        finishComposingSilently()
+        val lp = tp.layoutParams as FrameLayout.LayoutParams
+        lp.height = kv.measureKeyboardHeight()
+        tp.layoutParams = lp
+        tp.setTools(Prefs.pinnedTools(this))
+        emojiView?.visibility = View.GONE
+        clipboardView?.visibility = View.GONE
+        editPanelView?.visibility = View.GONE
+        toolbarPanel?.visibility = View.GONE
+        kv.visibility = View.GONE
+        tp.visibility = View.VISIBLE
+        strip?.setToolbarOpen(true)
+        animatePanelIn(tp)
+    }
+
+    private fun hideToolbarPanel() {
+        keyboardView?.visibility = View.VISIBLE
+        toolbarPanel?.visibility = View.GONE
+        updateStrip()
+        strip?.setToolbarOpen(false)
+    }
+
+    override fun onToolAction(code: Int) {
+        hideToolbarPanel()
+        onQuickAction(code)
+    }
+
+    override fun onPinnedChanged(ids: List<String>) {
+        Prefs.setPinnedTools(this, ids)
+        updateStrip()
+    }
+
+    override fun onToolbarPanelClosed() {
+        hideToolbarPanel()
     }
 
     /** Hands text to any installed translator via the system process-text

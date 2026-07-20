@@ -206,6 +206,14 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         addView(toolbarScroll, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
     }
 
+    /** Flips the chevron to point back once the toolbar panel is showing. */
+    fun setToolbarOpen(open: Boolean) {
+        expandBtn.icon = if (open) Icons.CHEVRON_L else Icons.CHEVRON
+        expandBtn.contentDescription = context.getString(
+            if (open) R.string.a11y_toolbar_close else R.string.a11y_toolbar_open
+        )
+    }
+
     /** Expand the strip into a scrollable Gboard-style toolbar of [items]
      *  (icon id to action code). A leading chevron collapses it again; the tool
      *  icons can be long-pressed and dragged to reorder. */

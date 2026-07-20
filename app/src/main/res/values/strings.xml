@@ -227,6 +227,9 @@
     <string name="pref_toolbar_title">Toolbar keys</string>
     <string name="pref_toolbar_summary">Choose actions for the idle suggestion bar (replaces the emoji row)</string>
     <string name="toolbar_picker_hint">Tick the actions you want on the idle suggestion bar. Drag the handle on the right to reorder them.</string>
+    <string name="tb_section_pinned">ON THE SUGGESTION BAR</string>
+    <string name="tb_section_all">ALL TOOLS</string>
+    <string name="tb_section_empty">Hold a tool below and drag it here</string>
     <string name="a11y_reorder_handle">Reorder</string>
     <string name="a11y_move_up">Move up</string>
     <string name="a11y_move_down">Move down</string>
