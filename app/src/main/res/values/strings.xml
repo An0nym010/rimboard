@@ -276,4 +276,7 @@
     <string name="dict_invalid">Need at least 30 “word frequency” lines</string>
     <string name="a11y_toolbar_open">Open toolbar</string>
     <string name="a11y_toolbar_close">Close toolbar</string>
+    <string name="tb_all_tools">All tools</string>
+    <string name="a11y_drawer_open">Show tools</string>
+    <string name="a11y_drawer_close">Hide tools</string>
 </resources>

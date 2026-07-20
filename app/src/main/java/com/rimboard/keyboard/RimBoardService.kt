@@ -1710,6 +1710,7 @@ class RimBoardService : InputMethodService(),
     }
 
     override fun onQuickAction(code: Int) {
+        closeDrawerIfOpen()
         when (code) {
             Codes.UNDO -> currentInputConnection?.let {
                 sendCtrl(it, KeyEvent.KEYCODE_Z, shift = false)
@@ -1722,6 +1723,7 @@ class RimBoardService : InputMethodService(),
             Codes.CUT -> currentInputConnection?.performContextMenuAction(android.R.id.cut)
             Codes.SELECT_ALL -> currentInputConnection?.performContextMenuAction(android.R.id.selectAll)
             Codes.HIDE_KB -> requestHideSelf(0)
+            Codes.TOOLBAR_PANEL -> showToolbarPanel()
             Codes.NUMPAD -> toggleNumpad()
             Codes.CLIPBOARD -> showClipPanel()
             Codes.EDIT_PANEL -> showEditPanel()
@@ -1739,14 +1741,20 @@ class RimBoardService : InputMethodService(),
     }
 
     override fun onToolbarToggle(expand: Boolean) {
-        // The chevron is a toggle: the collapse control used to live inside the
-        // expanded row, which the panel replaced.
-        if (toolbarPanel?.visibility == View.VISIBLE || !expand) hideToolbarPanel()
-        else showToolbarPanel()
+        val s = strip ?: return
+        // Fill the row before revealing it: the drawer is shown directly rather
+        // than through updateStrip, which is what normally feeds it.
+        if (expand) feedTools(s)
+        s.setDrawerOpen(expand)
+    }
+
+    override fun onDrawerClosed() {
+        updateStrip()
     }
 
     // ------------------------------------------------------------ toolbar panel
 
+    /** Reached from the "All tools" tool rather than the chevron. */
     private fun showToolbarPanel() {
         val kv = keyboardView ?: return
         val tp = toolbarPanel ?: return
@@ -1761,7 +1769,6 @@ class RimBoardService : InputMethodService(),
         toolbarPanel?.visibility = View.GONE
         kv.visibility = View.GONE
         tp.visibility = View.VISIBLE
-        strip?.setToolbarOpen(true)
         animatePanelIn(tp)
     }
 
@@ -1769,12 +1776,17 @@ class RimBoardService : InputMethodService(),
         showKeyboardBack()
         toolbarPanel?.visibility = View.GONE
         updateStrip()
-        strip?.setToolbarOpen(false)
     }
 
     override fun onToolAction(code: Int) {
         hideToolbarPanel()
         onQuickAction(code)
+    }
+
+    /** Running a tool from the drawer closes it, the way a menu closes. */
+    private fun closeDrawerIfOpen() {
+        val s = strip ?: return
+        if (s.isDrawerOpen()) s.setDrawerOpen(false)
     }
 
     override fun onPinnedChanged(ids: List<String>) {

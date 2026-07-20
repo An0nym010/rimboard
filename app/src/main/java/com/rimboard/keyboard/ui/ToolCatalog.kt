@@ -18,6 +18,7 @@ object ToolCatalog {
     class Tool(val id: String, val icon: Int, val code: Int, val labelRes: Int)
 
     val all: List<Tool> = listOf(
+        Tool("toolbar", Icons.GRID, Codes.TOOLBAR_PANEL, R.string.tb_all_tools),
         Tool("undo", Icons.UNDO, Codes.UNDO, R.string.tb_undo),
         Tool("redo", Icons.REDO, Codes.REDO, R.string.tb_redo),
         Tool("copy", Icons.COPY, Codes.COPY, R.string.tb_copy),

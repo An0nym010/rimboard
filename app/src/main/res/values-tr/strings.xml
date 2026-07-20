@@ -255,4 +255,7 @@
     <string name="a11y_key_letters">Harfler</string>
     <string name="a11y_key_more_symbols">Daha fazla sembol</string>
     <string name="a11y_key_alternatives">Daha fazlası için dokunup basılı tutun</string>
+    <string name="tb_all_tools">Tüm araçlar</string>
+    <string name="a11y_drawer_open">Araçları göster</string>
+    <string name="a11y_drawer_close">Araçları gizle</string>
 </resources>

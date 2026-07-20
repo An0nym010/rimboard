@@ -174,8 +174,16 @@ object Prefs {
                 .split(',').map { it.trim() }.filter { it.isNotEmpty() }
         }
         val legacy = toolbarKeys(c)
-        return com.rimboard.keyboard.ui.ToolCatalog.defaultOrder.filter { it in legacy }
+        if (legacy.isNotEmpty()) {
+            return com.rimboard.keyboard.ui.ToolCatalog.defaultOrder.filter { it in legacy }
+        }
+        // Never configured: the strip has no fixed settings or clipboard button
+        // any more, so an empty drawer would leave a fresh install with no way
+        // to reach either, or to reach the panel that configures them.
+        return DEFAULT_PINNED
     }
+
+    val DEFAULT_PINNED = listOf("toolbar", "settings", "clipboard", "emoji", "onehanded")
 
     fun setPinnedTools(c: Context, ids: List<String>) {
         get(c).edit()

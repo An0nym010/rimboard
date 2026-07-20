@@ -27,8 +27,10 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         fun onQuickAction(code: Int)
         fun onQuickEmoji(emoji: String)
         fun onSuggestionLongPressed(word: String, anchor: View)
-        /** Chevron tapped: expand into the full toolbar, or collapse back. */
+        /** Chevron tapped: open the pinned-tool drawer, or close it. */
         fun onToolbarToggle(expand: Boolean)
+        /** Drawer closed: the strip needs its ordinary contents back. */
+        fun onDrawerClosed()
     }
 
     var listener: Listener? = null
@@ -38,8 +40,6 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     private val dividers = ArrayList<View>(2)
     private val centerLabel: TextView
     private val clipChip: TextView
-    private val settingsBtn: IconView
-    private val clipboardBtn: IconView
     private val centerBox: LinearLayout
     private val toolRow: LinearLayout
     private val emojiRow: LinearLayout
@@ -54,12 +54,6 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     private companion object {
         /** Width of one pinned tool slot, in dp. */
         const val TOOL_W = 38
-        /**
-         * Tools kept visible while suggestions occupy the strip. Each one costs
-         * a suggestion slot about 25dp of width, so two is the point where
-         * ordinary words still fit without ellipsis.
-         */
-        const val MAX_TOOLS_WITH_WORDS = 2
     }
 
 
@@ -93,19 +87,20 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         gravity = Gravity.CENTER_VERTICAL
         setPadding(dp(4), 0, dp(4), 0)
 
+        // Permanently visible: it is the only fixed control on the strip now,
+        // and the one guaranteed route to whatever the user has pinned.
         expandBtn = IconView(context, Icons.CHEVRON).apply {
-            visibility = GONE
-            contentDescription = context.getString(R.string.a11y_toolbar_open)
-            setOnClickListener { listener?.onToolbarToggle(true) }
+            contentDescription = context.getString(R.string.a11y_drawer_open)
+            setOnClickListener { listener?.onToolbarToggle(!drawerOpen) }
+            // Long-press always reaches the full panel. Without it, anyone who
+            // had pinned a set before "All tools" existed would have no route
+            // to the screen that lets them pin it.
+            setOnLongClickListener {
+                listener?.onQuickAction(Codes.TOOLBAR_PANEL)
+                true
+            }
         }
         addView(expandBtn, LayoutParams(dp(34), LayoutParams.MATCH_PARENT))
-
-        settingsBtn = IconView(context, Icons.SETTINGS).apply {
-            visibility = GONE
-            contentDescription = context.getString(R.string.tb_settings)
-            setOnClickListener { listener?.onQuickAction(Codes.SETTINGS) }
-        }
-        addView(settingsBtn, LayoutParams(dp(42), LayoutParams.MATCH_PARENT))
 
         clipChip = TextView(context).apply {
             gravity = Gravity.CENTER
@@ -197,21 +192,37 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         }
         addView(centerLabel, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
 
-        clipboardBtn = IconView(context, Icons.CLIPBOARD).apply {
-            visibility = GONE
-            contentDescription = context.getString(R.string.tb_clipboard)
-            setOnClickListener { listener?.onQuickAction(Codes.CLIPBOARD) }
-        }
-        addView(clipboardBtn, LayoutParams(dp(42), LayoutParams.MATCH_PARENT))
-
     }
 
-    /** Flips the chevron to point back once the toolbar panel is showing. */
-    fun setToolbarOpen(open: Boolean) {
+    private var drawerOpen = false
+
+    /**
+     * Opens or closes the drawer of pinned tools. Open, the tools take the
+     * whole strip; closed, the strip goes back to suggestions. The chevron
+     * turns to point the way out.
+     */
+    fun setDrawerOpen(open: Boolean) {
+        drawerOpen = open
         expandBtn.icon = if (open) Icons.CHEVRON_L else Icons.CHEVRON
         expandBtn.contentDescription = context.getString(
-            if (open) R.string.a11y_toolbar_close else R.string.a11y_toolbar_open
+            if (open) R.string.a11y_drawer_close else R.string.a11y_drawer_open
         )
+        if (open) showDrawer() else listener?.onDrawerClosed()
+    }
+
+    fun isDrawerOpen() = drawerOpen
+
+    /** The pinned tools across the full strip, with nothing competing. */
+    private fun showDrawer() {
+        hideAll()
+        expandBtn.visibility = VISIBLE
+        centerBox.visibility = VISIBLE
+        emojiScroll.visibility = VISIBLE
+        toolRow.visibility = VISIBLE
+        // Recent emoji belong to the idle strip, not the tool drawer.
+        emojiRow.visibility = GONE
+        setCenterWidth(0)
+        emojiScroll.scrollTo(0, 0)
     }
 
     fun applyTheme(t: KeyboardTheme) {
@@ -225,8 +236,6 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             (toolRow.getChildAt(i) as? IconView)?.color = t.stripText
         }
         clipChip.setTextColor(t.stripText)
-        settingsBtn.color = t.stripText
-        clipboardBtn.color = t.stripText
         expandBtn.color = t.accent
         refreshSlotColors()
     }
@@ -249,23 +258,9 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     }
 
     fun showSuggestions(words: List<String>, highlightIndex: Int) {
-        expandBtn.visibility = GONE
-        settingsBtn.visibility = GONE
-        clipboardBtn.visibility = GONE
-        // Pinned tools stay put while words are showing — otherwise they were
-        // only ever visible on a completely idle strip, which in practice is
-        // just the moment before you start typing. Capped to three slots so
-        // they take a fixed bite rather than a quarter of the bar.
-        val shown = minOf(toolRow.childCount, MAX_TOOLS_WITH_WORDS)
-        if (shown > 0) {
-            centerBox.visibility = VISIBLE
-            emojiScroll.visibility = VISIBLE
-            toolRow.visibility = VISIBLE
-            emojiRow.visibility = GONE
-            setCenterWidth(dp(TOOL_W) * shown)
-        } else {
-            centerBox.visibility = GONE
-        }
+        if (drawerOpen) return showDrawer()
+        expandBtn.visibility = VISIBLE
+        centerBox.visibility = GONE
         boldIndex = highlightIndex
         clipChip.visibility = GONE
         centerLabel.visibility = GONE
@@ -291,14 +286,13 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     }
 
     fun showClipboard(label: String) {
+        if (drawerOpen) return showDrawer()
         showEmpty()
         clipChip.text = label
         clipChip.visibility = VISIBLE
-        // The paste chip used to replace the pinned tools outright, so having
-        // anything on the clipboard hid them. Tools stay; recent emoji yield
-        // the room to the chip.
+        // The paste chip takes the room the recent emoji would have used.
         emojiRow.visibility = GONE
-        emojiScroll.visibility = if (toolRow.childCount > 0) VISIBLE else GONE
+        emojiScroll.visibility = GONE
     }
 
     /** Rebuilds the pinned tool row. Stays visible while words are showing. */
@@ -330,18 +324,17 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     }
 
     fun showEmpty() {
+        if (drawerOpen) return showDrawer()
         hideAll()
         expandBtn.visibility = VISIBLE
-        settingsBtn.visibility = VISIBLE
         centerBox.visibility = VISIBLE
-        clipboardBtn.visibility = VISIBLE
         clipChip.visibility = GONE
-        // Idle: tools and recent emoji together, filling the free space.
-        toolRow.visibility = VISIBLE
+        // Idle shows recent emoji only: the pinned tools are what the drawer
+        // is for, and duplicating them here would make the chevron pointless.
+        toolRow.visibility = GONE
         emojiRow.visibility = VISIBLE
         setCenterWidth(0)
-        emojiScroll.visibility =
-            if (toolRow.childCount + emojiRow.childCount > 0) VISIBLE else GONE
+        emojiScroll.visibility = if (emojiRow.childCount > 0) VISIBLE else GONE
     }
 
     /** [w] of 0 means "share the free space by weight"; otherwise a fixed cap. */
@@ -357,13 +350,12 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
 
     private fun hideAll() {
         expandBtn.visibility = GONE
+        toolRow.visibility = GONE
         for (s in slots) { s.text = ""; s.visibility = GONE }
         dividers.forEach { it.visibility = GONE }
-        settingsBtn.visibility = GONE
         centerBox.visibility = GONE
         clipChip.visibility = GONE
         emojiScroll.visibility = GONE
-        clipboardBtn.visibility = GONE
         centerLabel.visibility = GONE
         incogIcon.visibility = GONE
     }

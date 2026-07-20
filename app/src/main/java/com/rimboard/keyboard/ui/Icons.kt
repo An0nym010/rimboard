@@ -44,6 +44,7 @@ object Icons {
     const val RESIZE = 23
     const val CHEVRON = 24      // expand ">"
     const val CHEVRON_L = 25    // collapse "<"
+    const val GRID = 26         // all tools
 
     private val p = Paint(Paint.ANTI_ALIAS_FLAG)
     private val path = Path()
@@ -54,6 +55,7 @@ object Icons {
 
     fun forCode(code: Int): Int? = when (code) {
         Codes.LANG -> GLOBE
+        Codes.TOOLBAR_PANEL -> GRID
         Codes.CLIPBOARD -> CLIPBOARD
         Codes.EDIT_PANEL -> EDIT
         Codes.ONE_HANDED -> ONE_HANDED
@@ -111,6 +113,17 @@ object Icons {
 
         when (icon) {
             // ---------- toolbar set: 24-grid, bold, rounded, filled accents ----------
+            GRID -> grid24(c, cx, cy, s) {
+                // Nine rounded cells: reads as "everything" at strip size, where
+                // a more literal toolbox shape would collapse into a blob.
+                p.style = Paint.Style.FILL
+                for (row in 0 until 3) for (col in 0 until 3) {
+                    val x = 4.2f + col * 6.0f
+                    val y = 4.2f + row * 6.0f
+                    oval.set(x, y, x + 4.0f, y + 4.0f)
+                    c.drawRoundRect(oval, 1.3f, 1.3f, p)
+                }
+            }
             CHEVRON -> grid24(c, cx, cy, s) {
                 p.strokeWidth = 2.7f
                 path.reset()

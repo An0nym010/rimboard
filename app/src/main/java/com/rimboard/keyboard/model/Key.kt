@@ -31,6 +31,10 @@ object Codes {
     const val SHARE = -25
     const val THEME = -26
     const val RESIZE = -27
+
+    /** Opens the full-height tools panel. Used to be the strip chevron's job;
+     *  it is a pinnable tool now, and the chevron drives the drawer instead. */
+    const val TOOLBAR_PANEL = -28
     const val SPACE = 32
 }
 

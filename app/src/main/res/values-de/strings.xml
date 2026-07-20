@@ -247,4 +247,7 @@
     <string name="a11y_key_letters">Buchstaben</string>
     <string name="a11y_key_more_symbols">Weitere Symbole</string>
     <string name="a11y_key_alternatives">Zum Gedrückthalten für mehr</string>
+    <string name="tb_all_tools">Alle Werkzeuge</string>
+    <string name="a11y_drawer_open">Werkzeuge einblenden</string>
+    <string name="a11y_drawer_close">Werkzeuge ausblenden</string>
 </resources>
