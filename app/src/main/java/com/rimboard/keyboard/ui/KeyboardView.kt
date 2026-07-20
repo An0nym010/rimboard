@@ -271,10 +271,26 @@ class KeyboardView(context: Context) : View(context) {
     private var popupShownAt = 0L
     private var previewKb: KeyBounds? = null
         set(value) {
-            if (value !== field && value != null) previewShownAt = SystemClock.uptimeMillis()
+            val old = field
+            if (value !== old) {
+                if (value != null) {
+                    previewShownAt = SystemClock.uptimeMillis()
+                    // Replaced rather than dismissed: during fast typing the next
+                    // key is already down, and fading the old bubble out beneath
+                    // the new one would just look like clutter.
+                    previewOutKb = null
+                } else if (old != null) {
+                    previewOutKb = old
+                    previewOutAt = SystemClock.uptimeMillis()
+                }
+            }
             field = value
         }
     private var previewShownAt = 0L
+
+    /** The bubble left behind when a key is released, shrinking away. */
+    private var previewOutKb: KeyBounds? = null
+    private var previewOutAt = 0L
     private val switchBtn = RectF()
     private val expandBtn = RectF()
 
@@ -306,6 +322,21 @@ class KeyboardView(context: Context) : View(context) {
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         computeBounds(w)
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        // Re-read each time the keyboard is shown: the setting can change while
+        // the process is alive, and a keyboard process is long-lived.
+        Anim.durationScale = try {
+            android.provider.Settings.Global.getFloat(
+                context.contentResolver,
+                android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+                1f
+            )
+        } catch (_: Exception) {
+            1f // setting unavailable: animate normally
+        }
     }
 
     private fun computeBounds(w: Int) {
@@ -389,11 +420,11 @@ class KeyboardView(context: Context) : View(context) {
             if (!pressed) {
                 val rel = releaseAnim[key]
                 if (rel != null) {
-                    val dt = now - rel
-                    if (dt < 150) {
-                        // Ease-out: the key springs back quickly, then settles.
-                        val tt = 1f - dt / 150f
-                        press = tt * tt
+                    val p = Anim.progress(now, rel, Anim.PRESS_RELEASE_MS)
+                    if (p < 1f) {
+                        // Runs the accelerating curve backwards, so the key
+                        // springs back quickly and then settles.
+                        press = Anim.easeIn(1f - p)
                     } else releaseAnim.remove(key)
                 }
             }
@@ -428,10 +459,9 @@ class KeyboardView(context: Context) : View(context) {
             if (pressed) {
                 val ps = pressedPointer(kb)
                 if (ps != null && !ps.glide && !ps.cursorMode) {
-                    val age = now - ps.downTime
-                    if (age < 160) {
-                        val tt = age / 160f
-                        val ease = 1f - (1f - tt) * (1f - tt)
+                    val rp = Anim.progress(now, ps.downTime, Anim.RIPPLE_MS)
+                    if (rp < 1f) {
+                        val ease = Anim.easeOut(rp)
                         val maxR = if (kb.w > kb.h) kb.w else kb.h
                         val alpha = (0x2A * (1f - 0.6f * ease)).toInt()
                         keyPaint.color = (alpha shl 24) or
@@ -552,10 +582,8 @@ class KeyboardView(context: Context) : View(context) {
         val owner = popupOwner ?: return
         if (!owner.popupOpen || popupKeys.isEmpty()) return
         // Entrance: scale up from the key with a slight overshoot, Telegram-style.
-        val et = ((SystemClock.uptimeMillis() - popupShownAt) / 140f).coerceAtMost(1f)
-        val o = et - 1f
-        val overshoot = 2.1f * o * o * o + 1.1f * o * o + 1f // tension 1.1
-        val scale = 0.82f + 0.18f * overshoot
+        val et = Anim.progress(SystemClock.uptimeMillis(), popupShownAt, Anim.POPUP_IN_MS)
+        val scale = 0.82f + 0.18f * Anim.overshoot(et)
         val restore = canvas.save()
         canvas.scale(scale, scale, popupRect.centerX(), popupRect.bottom)
         if (et < 1f) postInvalidateOnAnimation()
@@ -589,8 +617,35 @@ class KeyboardView(context: Context) : View(context) {
     }
 
     private fun drawPreview(canvas: Canvas, t: KeyboardTheme) {
-        val kb = previewKb ?: return
         if (popupOwner?.popupOpen == true) return
+        val now = SystemClock.uptimeMillis()
+
+        // The bubble being dismissed draws first, so a new one always sits on
+        // top of it in the rare frame where both are visible.
+        val out = previewOutKb
+        if (out != null) {
+            val p = Anim.progress(now, previewOutAt, Anim.PREVIEW_OUT_MS)
+            if (p >= 1f) {
+                previewOutKb = null
+            } else {
+                // Mirrors the entrance in reverse: shrinks back toward the key
+                // while fading, instead of blinking out of existence.
+                val e = Anim.easeIn(p)
+                drawPreviewBubble(canvas, t, out, 1f - 0.15f * e, 1f - e)
+                postInvalidateOnAnimation()
+            }
+        }
+
+        val kb = previewKb ?: return
+        val et = Anim.progress(now, previewShownAt, Anim.PREVIEW_IN_MS)
+        drawPreviewBubble(canvas, t, kb, 0.85f + 0.15f * Anim.easeOut(et), 1f)
+        if (et < 1f) postInvalidateOnAnimation()
+    }
+
+    /** Draws [kb]'s preview bubble at [scale], faded to [alpha] (0..1). */
+    private fun drawPreviewBubble(
+        canvas: Canvas, t: KeyboardTheme, kb: KeyBounds, scale: Float, alpha: Float
+    ) {
         if (Icons.forCode(kb.key.code) != null || Icons.forLabel(kb.key.label) != null) return
         val w = max(kb.w * 1.15f, dp(46f))
         val h = kb.h * 1.05f
@@ -600,23 +655,28 @@ class KeyboardView(context: Context) : View(context) {
         var top = kb.y - h - dp(8f)
         if (top < dp(2f)) top = dp(2f)
         rectF.set(left, top, left + w, top + h)
-        // Entrance: quick scale-in from the key below (ease-out, ~90 ms).
-        val et = ((SystemClock.uptimeMillis() - previewShownAt) / 90f).coerceAtMost(1f)
-        val ease = 1f - (1f - et) * (1f - et)
-        val scale = 0.85f + 0.15f * ease
+        val a = (alpha.coerceIn(0f, 1f) * 255f).toInt()
         val restore = canvas.save()
         canvas.scale(scale, scale, rectF.centerX(), rectF.bottom)
-        if (et < 1f) postInvalidateOnAnimation()
         shadowRect.set(rectF)
         shadowRect.offset(0f, dp(2f))
+        // These paints are shared across the whole frame, so every alpha
+        // touched here is put back before returning.
+        val shadowAlpha = shadowPaint.alpha
+        shadowPaint.alpha = shadowAlpha * a / 255
         canvas.drawRoundRect(shadowRect, keyRadius, keyRadius, shadowPaint)
+        shadowPaint.alpha = shadowAlpha
         keyPaint.color = t.previewBg
+        keyPaint.alpha = a
         canvas.drawRoundRect(rectF, keyRadius, keyRadius, keyPaint)
+        keyPaint.alpha = 255
         textPaint.color = t.keyText
+        textPaint.alpha = a
         textPaint.textSize = h * 0.5f
         val cy = rectF.centerY() - (textPaint.ascent() + textPaint.descent()) / 2f
         canvas.drawText(displayLabel(kb.key, layout?.locale ?: Locale.getDefault()),
             rectF.centerX(), cy, textPaint)
+        textPaint.alpha = 255
         canvas.restoreToCount(restore)
     }
 
