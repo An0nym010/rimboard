@@ -191,14 +191,36 @@ class KeyboardView(context: Context) : View(context) {
     private var bgBm: android.graphics.Bitmap? = null
     private var bgBmStamp = -1
 
+    private var bgProbeVersion = -1
+    private var bgFilePresent = false
+
+    /**
+     * Whether a background image is set. Cached against [BgImageState.version]
+     * because this was a File.exists() on every frame — a syscall per frame
+     * for the whole length of any animation.
+     */
+    private fun backgroundImagePresent(): Boolean {
+        if (bgProbeVersion != BgImageState.version) {
+            bgProbeVersion = BgImageState.version
+            bgFilePresent = try {
+                java.io.File(
+                    com.rimboard.keyboard.engine.UserData.dataDir(context), "bg_image.jpg"
+                ).exists()
+            } catch (_: Exception) {
+                false
+            }
+        }
+        return bgFilePresent
+    }
+
     private fun drawBackgroundImage(canvas: Canvas) {
         if (width == 0 || height == 0) return
-        val f = java.io.File(
-            com.rimboard.keyboard.engine.UserData.dataDir(context), "bg_image.jpg")
-        if (!f.exists()) {
+        if (!backgroundImagePresent()) {
             bgBm = null
             return
         }
+        val f = java.io.File(
+            com.rimboard.keyboard.engine.UserData.dataDir(context), "bg_image.jpg")
         val stamp = BgImageState.version * 31 + width * 7 + height
         if (bgBm == null || bgBmStamp != stamp) {
             bgBm = try {
@@ -277,7 +299,7 @@ class KeyboardView(context: Context) : View(context) {
     var labelScale = 1f
     var showTrail = true
     var bgDimAlpha = 110
-    var keyBorders = true
+    var keyBorders = false
     var narrowGaps = false
     var splitFraction = 0f
     var sidePadPct = 0
@@ -462,6 +484,11 @@ class KeyboardView(context: Context) : View(context) {
         val labelAlpha = (255f * Anim.easeOut(lf)).toInt()
         if (lf < 1f) needsAnimFrame = true
 
+        // A photo background leaves bare letters sitting straight on the image
+        // with only the dim overlay between them, so the flat style falls back
+        // to drawing caps whenever one is set.
+        val flat = !keyBorders && !backgroundImagePresent()
+
         for (kb in bounds) {
             val key = kb.key
             val pressed = isPressedKb(kb)
@@ -483,7 +510,6 @@ class KeyboardView(context: Context) : View(context) {
             // with. Flat is the convention every current keyboard settled on:
             // letters are bare glyphs on the background, only the keys that are
             // not letters carry a cap, and nothing casts a shadow.
-            val flat = !keyBorders
             val isLetter = key.type == KeyType.CHARACTER
             val bgColor = when {
                 key.type == KeyType.ENTER -> t.accent
