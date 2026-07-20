@@ -63,7 +63,6 @@ object Prefs {
     const val KEY_OFFENSIVE = "block_offensive"
     const val KEY_AS_SUGG = "autospace_suggestion"
     const val KEY_TOOLBAR = "toolbar_keys"
-    const val KEY_TOOLBAR_ORDER = "toolbar_order"
     const val KEY_PINNED_ORDER = "pinned_order"
     const val KEY_CALC = "calc_chip"
     const val KEY_SMART_TAP = "smart_tap"
@@ -189,14 +188,6 @@ object Prefs {
 
     fun smartTap(c: Context) = get(c).getBoolean(KEY_SMART_TAP, true)
 
-    /** Order the expandable toolbar's icons were dragged into (action codes). */
-    fun toolbarOrder(c: Context): List<Int> =
-        (get(c).getString(KEY_TOOLBAR_ORDER, "") ?: "")
-            .split(',').mapNotNull { it.trim().toIntOrNull() }
-
-    fun setToolbarOrder(c: Context, codes: List<Int>) {
-        get(c).edit().putString(KEY_TOOLBAR_ORDER, codes.joinToString(",")).apply()
-    }
     fun spaceText(c: Context): String = get(c).getString(KEY_SPACE_TEXT, "") ?: ""
 
     fun appLang(c: Context, pkg: String?): String? {

@@ -99,6 +99,23 @@ class KeyboardView(context: Context) : View(context) {
             invalidate()
         }
 
+    /** Language name flashed on the spacebar after a switch, then fading out. */
+    private var spaceFlash = ""
+    private var spaceFlashAt = 0L
+
+    private companion object {
+        /** Full-strength hold before the flashed name starts to fade. */
+        const val FLASH_HOLD_MS = 650L
+        const val FLASH_FADE_MS = 350f
+    }
+
+    /** Shows [text] on the spacebar briefly — Gboard-style switch feedback. */
+    fun flashSpaceLabel(text: String) {
+        spaceFlash = text
+        spaceFlashAt = SystemClock.uptimeMillis()
+        invalidate()
+    }
+
     var enterLabel: String = "\u21B5"
         set(value) {
             field = value
@@ -490,7 +507,18 @@ class KeyboardView(context: Context) : View(context) {
                 }
             }
 
-            val label = displayLabel(key, lay.locale)
+            var label = displayLabel(key, lay.locale)
+            // Freshly switched language: its name rides the spacebar, holds,
+            // then fades back into the ordinary label.
+            var flashAlpha = -1
+            if (key.type == KeyType.SPACE && spaceFlash.isNotEmpty() && !incognito) {
+                val fp = Anim.progress(now, spaceFlashAt + FLASH_HOLD_MS, FLASH_FADE_MS)
+                if (fp < 1f) {
+                    label = spaceFlash
+                    flashAlpha = (255f * (1f - Anim.easeIn(fp))).toInt()
+                    needsAnimFrame = true
+                } else spaceFlash = ""
+            }
             if (label.isNotEmpty()) {
                 textPaint.color = when {
                     key.type == KeyType.ENTER -> t.onAccent
@@ -506,8 +534,16 @@ class KeyboardView(context: Context) : View(context) {
                         kb.h * 0.42f, ic)
                 } else {
                 textPaint.alpha = labelAlpha
+                if (flashAlpha >= 0) {
+                    // The flashed name reads at full text colour, not hint grey.
+                    textPaint.color = t.keyText
+                    textPaint.alpha = minOf(labelAlpha, flashAlpha)
+                }
                 textPaint.textSize = labelScale * when {
-                    key.type == KeyType.SPACE -> if (incognito) kb.h * 0.38f else kb.h * 0.26f
+                    key.type == KeyType.SPACE ->
+                        if (incognito) kb.h * 0.38f
+                        else if (flashAlpha >= 0) kb.h * 0.34f
+                        else kb.h * 0.26f
                     key.type == KeyType.ENTER -> kb.h * 0.38f
                     key.type == KeyType.CHARACTER -> kb.h * 0.42f
                     label.length > 2 -> kb.h * 0.28f

@@ -1047,7 +1047,36 @@ class RimBoardService : InputMethodService(),
         s.showSuggestions(shownWords, shownHi)
     }
 
+    /** Domains offered after "@" in an email field, so a pick is recognised. */
+    private var domainChips: List<String> = emptyList()
+    private var domainTyped = 0
+
+    private val emailDomains = listOf(
+        "gmail.com", "outlook.com", "hotmail.com", "yahoo.com", "icloud.com", "proton.me"
+    )
+
+    /** "name@gm" -> gmail.com chip. Email fields have suggestions off, so this
+     *  is the one thing the strip offers there. */
+    private fun maybeDomainChips(s: SuggestionStripView): Boolean {
+        domainChips = emptyList()
+        if (!isEmailOrUri) return false
+        val ic = currentInputConnection ?: return false
+        val before = ic.getTextBeforeCursor(40, 0)?.toString() ?: return false
+        val at = before.lastIndexOf('@')
+        if (at < 0) return false
+        val after = before.substring(at + 1)
+        // Domain already picked or being typed past its dot: leave it alone.
+        if (after.any { it == ' ' || it == '.' }) return false
+        val hits = emailDomains.filter { it.startsWith(after.lowercase()) }.take(3)
+        if (hits.isEmpty()) return false
+        domainChips = hits
+        domainTyped = after.length
+        s.showSuggestions((hits + listOf("", "", "")).take(3), -1)
+        return true
+    }
+
     private fun maybeClipboardOrEmpty(s: SuggestionStripView) {
+        if (maybeDomainChips(s)) return
         if (clipChipEligible()) {
             s.showClipboard(L10n.wrap(this).getString(android.R.string.paste))
         } else {
@@ -1075,6 +1104,15 @@ class RimBoardService : InputMethodService(),
             return
         }
         if (word.isEmpty() || word.startsWith("\u21A9")) return
+        if (word in domainChips) {
+            val ic0 = currentInputConnection ?: return
+            // Replace what was typed after the "@" with the whole domain.
+            if (domainTyped > 0) ic0.deleteSurroundingText(domainTyped, 0)
+            ic0.commitText(word, 1)
+            domainChips = emptyList()
+            afterEdit()
+            return
+        }
         // Calculator chip (only shown, and only actioned, while not composing \u2014
         // so a text-shortcut expansion like "= mc^2" is never mistaken for it).
         if (composing.isEmpty() && word.startsWith("= ")) {
@@ -1234,6 +1272,10 @@ class RimBoardService : InputMethodService(),
         updateShiftState()
         updateStrip()
         recordAppLang()
+        // Gboard-style confirmation: the new language's name rides the spacebar.
+        com.rimboard.keyboard.model.Languages.all
+            .firstOrNull { it.code == currentLangCode() }
+            ?.let { keyboardView?.flashSpaceLabel(it.nativeName) }
     }
 
     private var cachedFont: android.graphics.Typeface? = null
@@ -1258,10 +1300,16 @@ class RimBoardService : InputMethodService(),
         return cachedFont
     }
 
+    /** Parsed once and invalidated on change: feedIdle runs per keystroke. */
+    private var pinnedCache: List<String>? = null
+
+    private fun pinnedTools(): List<String> =
+        pinnedCache ?: Prefs.pinnedTools(this).also { pinnedCache = it }
+
     private fun feedIdle(s: com.rimboard.keyboard.ui.SuggestionStripView) {
         // Pinned tools now carry the order the user arranged in settings, so
         // the strip follows it instead of a fixed catalog order.
-        val pinned = Prefs.pinnedTools(this)
+        val pinned = pinnedTools()
             .mapNotNull { com.rimboard.keyboard.ui.ToolCatalog.byId(it) }
             .map { it.icon to it.code }
         s.setIdleRow(
@@ -1676,41 +1724,6 @@ class RimBoardService : InputMethodService(),
         }
     }
 
-    /** The full Gboard-style toolbar catalog (icon id to action code). Actions
-     *  that need the internet (GIF, stickers, scan text) are intentionally
-     *  absent — RimBoard has no network permission. */
-    private fun toolbarCatalog(): List<Pair<Int, Int>> {
-        val saved = Prefs.toolbarOrder(this)
-        if (saved.isEmpty()) return defaultToolbarCatalog()
-        // Saved order first (skipping anything no longer offered), then any
-        // tools added since the order was saved, so new actions still show up.
-        val byCode = defaultToolbarCatalog().associateBy { it.second }
-        val ordered = saved.mapNotNull { byCode[it] }
-        return ordered + defaultToolbarCatalog().filter { it.second !in saved }
-    }
-
-    override fun onToolbarReordered(codes: List<Int>) {
-        Prefs.setToolbarOrder(this, codes)
-    }
-
-    private fun defaultToolbarCatalog(): List<Pair<Int, Int>> = listOf(
-        Icons.ONE_HANDED to Codes.ONE_HANDED,
-        Icons.RESIZE to Codes.RESIZE,
-        Icons.FLOATING to Codes.FLOATING,
-        Icons.GLOBE to Codes.LANG,
-        Icons.EDIT to Codes.EDIT_PANEL,
-        Icons.CLIPBOARD to Codes.CLIPBOARD,
-        Icons.EMOJI to Codes.EMOJI,
-        Icons.TRANSLATE to Codes.TRANSLATE,
-        Icons.SHARE to Codes.SHARE,
-        Icons.THEME to Codes.THEME,
-        Icons.UNDO to Codes.UNDO,
-        Icons.REDO to Codes.REDO,
-        Icons.INCOGNITO to Codes.INCOGNITO,
-        Icons.SETTINGS to Codes.SETTINGS,
-        Icons.HIDE to Codes.HIDE_KB
-    )
-
     override fun onToolbarToggle(expand: Boolean) {
         // The chevron is a toggle: the collapse control used to live inside the
         // expanded row, which the panel replaced.
@@ -1727,7 +1740,7 @@ class RimBoardService : InputMethodService(),
         val lp = tp.layoutParams as FrameLayout.LayoutParams
         lp.height = kv.measureKeyboardHeight()
         tp.layoutParams = lp
-        tp.setTools(Prefs.pinnedTools(this))
+        tp.setTools(pinnedTools())
         emojiView?.visibility = View.GONE
         clipboardView?.visibility = View.GONE
         editPanelView?.visibility = View.GONE
@@ -1752,6 +1765,7 @@ class RimBoardService : InputMethodService(),
 
     override fun onPinnedChanged(ids: List<String>) {
         Prefs.setPinnedTools(this, ids)
+        pinnedCache = ids
         updateStrip()
     }
 
