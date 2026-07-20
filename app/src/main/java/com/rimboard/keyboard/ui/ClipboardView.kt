@@ -7,9 +7,11 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.graphics.drawable.GradientDrawable
 import android.widget.BaseAdapter
+import android.widget.FrameLayout
+import android.widget.GridView
 import android.widget.LinearLayout
-import android.widget.ListView
 import android.widget.TextView
 import com.rimboard.keyboard.R
 import com.rimboard.keyboard.theme.KeyboardTheme
@@ -32,7 +34,7 @@ class ClipboardView(context: Context) : LinearLayout(context) {
 
     var listener: Listener? = null
 
-    private val list: ListView
+    private val list: GridView
     private val adapterImpl: ClipAdapter
     private val emptyLabel: TextView
     private val title: TextView
@@ -75,9 +77,15 @@ class ClipboardView(context: Context) : LinearLayout(context) {
         addView(bar, LayoutParams(LayoutParams.MATCH_PARENT, dp(46)))
 
         adapterImpl = ClipAdapter()
-        list = ListView(context).apply {
+        list = GridView(context).apply {
             adapter = adapterImpl
-            divider = null
+            numColumns = 2
+            horizontalSpacing = dp(8)
+            verticalSpacing = dp(8)
+            stretchMode = GridView.STRETCH_COLUMN_WIDTH
+            setPadding(dp(10), dp(2), dp(10), dp(10))
+            clipToPadding = false
+            selector = android.graphics.drawable.ColorDrawable(0)
         }
         addView(list, LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
 
@@ -117,27 +125,41 @@ class ClipboardView(context: Context) : LinearLayout(context) {
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
             val item = items[position]
-            val row = LinearLayout(context).apply {
-                orientation = HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-            }
-            val tv = TextView(context).apply {
-                setPadding(dp(16), dp(10), dp(8), dp(10))
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-                maxLines = 2
-                ellipsize = TextUtils.TruncateAt.END
-                text = item.text
-                setTextColor(t?.keyText ?: 0xFF000000.toInt())
+            val th = t
+            // Gboard/Yandex-style card: rounded key-coloured tile with the clip
+            // text filling it and the pin riding the top-right corner.
+            val card = FrameLayout(context).apply {
+                background = GradientDrawable().apply {
+                    cornerRadius = dp(12).toFloat()
+                    setColor(th?.keyBg ?: 0xFF333333.toInt())
+                    if (item.pinned && th != null) {
+                        setStroke(dp(1), (th.accent and 0x00FFFFFF) or 0x66000000)
+                    }
+                }
+                foreground = null
+                minimumHeight = dp(72)
                 setOnClickListener { listener?.onClipPicked(item.text) }
             }
-            row.addView(tv, LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f))
-            val pin = IconView(context, Icons.PIN).apply {
-                color = t?.keyText ?: 0xFF888888.toInt()
-                alpha = if (item.pinned) 1f else 0.35f
+            card.addView(TextView(context).apply {
+                setPadding(dp(12), dp(10), dp(30), dp(10))
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f)
+                maxLines = 4
+                ellipsize = TextUtils.TruncateAt.END
+                text = item.text
+                setTextColor(th?.keyText ?: 0xFF000000.toInt())
+            }, FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT
+            ))
+            card.addView(IconView(context, Icons.PIN).apply {
+                color = if (item.pinned) th?.accent ?: 0xFF888888.toInt()
+                    else th?.keyHint ?: 0xFF888888.toInt()
+                alpha = if (item.pinned) 1f else 0.55f
+                contentDescription = context.getString(
+                    if (item.pinned) R.string.a11y_unpin_clip else R.string.a11y_pin_clip
+                )
                 setOnClickListener { listener?.onClipPinToggle(item.text, !item.pinned) }
-            }
-            row.addView(pin, LayoutParams(dp(44), dp(40)))
-            return row
+            }, FrameLayout.LayoutParams(dp(34), dp(34), Gravity.TOP or Gravity.END))
+            return card
         }
     }
 }

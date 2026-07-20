@@ -22,10 +22,28 @@ class IconView(context: Context, icon: Int) : View(context) {
             invalidate()
         }
 
+    override fun dispatchSetPressed(pressed: Boolean) {
+        super.dispatchSetPressed(pressed)
+        invalidate()
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         val s = minOf(width, height) * 0.6f
         if (s <= 0f) return
+        // Pressed feedback: a soft disc under the glyph, tinted from the glyph
+        // colour so it works on any theme. These icons previously gave no
+        // visual response to touch at all.
+        if (isPressed && isClickable) {
+            val prev = p.color
+            p.color = (0x2E shl 24) or (color and 0x00FFFFFF)
+            canvas.drawCircle(width / 2f, height / 2f, s * 0.85f, p)
+            p.color = prev
+        }
         Icons.draw(canvas, icon, width / 2f, height / 2f, s, color)
+    }
+
+    private companion object {
+        val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
     }
 }

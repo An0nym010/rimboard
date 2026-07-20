@@ -26,6 +26,10 @@ object Anim {
     const val PREVIEW_OUT_MS = 80f
     /** Long-press alternatives popup. */
     const val POPUP_IN_MS = 140f
+    /** Popup shrinking away after a selection or release. */
+    const val POPUP_OUT_MS = 100f
+    /** Key labels cross-fading when the layout plane changes (ABC ↔ ?123). */
+    const val LAYOUT_FADE_MS = 110f
 
     /** How far the popup overshoots before settling. */
     const val POPUP_TENSION = 1.1f

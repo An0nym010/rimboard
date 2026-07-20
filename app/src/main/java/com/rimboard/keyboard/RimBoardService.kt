@@ -1275,7 +1275,7 @@ class RimBoardService : InputMethodService(),
         clipboardView?.visibility = View.GONE
         editPanelView?.visibility = View.GONE
         toolbarPanel?.visibility = View.GONE
-        keyboardView?.visibility = View.VISIBLE
+        showKeyboardBack()
     }
 
     private fun toggleNumpad() {
@@ -1368,6 +1368,15 @@ class RimBoardService : InputMethodService(),
 
     // ---------------------------------------------------------------- emoji
 
+
+    /** Brings the keyboard back from a panel, animating only if it was hidden. */
+    private fun showKeyboardBack() {
+        val kv = keyboardView ?: return
+        val wasHidden = kv.visibility != View.VISIBLE
+        kv.visibility = View.VISIBLE
+        if (wasHidden) animatePanelIn(kv)
+    }
+
     private fun animatePanelIn(v: View) {
         v.animate().cancel()
         v.alpha = 0f
@@ -1394,7 +1403,7 @@ class RimBoardService : InputMethodService(),
     }
 
     private fun hideEmoji() {
-        keyboardView?.visibility = View.VISIBLE
+        showKeyboardBack()
         emojiView?.visibility = View.GONE
         clipboardView?.visibility = View.GONE
         editPanelView?.visibility = View.GONE
@@ -1730,7 +1739,7 @@ class RimBoardService : InputMethodService(),
     }
 
     private fun hideToolbarPanel() {
-        keyboardView?.visibility = View.VISIBLE
+        showKeyboardBack()
         toolbarPanel?.visibility = View.GONE
         updateStrip()
         strip?.setToolbarOpen(false)

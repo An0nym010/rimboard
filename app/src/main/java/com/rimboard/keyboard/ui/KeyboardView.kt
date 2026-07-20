@@ -51,12 +51,19 @@ class KeyboardView(context: Context) : View(context) {
 
     var layout: KeyboardLayout? = null
         set(value) {
+            // Cross-fade the labels on a plane change (ABC ↔ ?123 ↔ =\<), but
+            // not on the very first layout, which would fade in from nothing.
+            if (field != null && value !== field) {
+                layoutFadeAt = SystemClock.uptimeMillis()
+            }
             field = value
             shiftedLabelCache.clear()
             if (width > 0) computeBounds(width)
             requestLayout()
             invalidate()
         }
+
+    private var layoutFadeAt = 0L
 
     /** Uppercased key labels, cached so the draw loop never allocates strings. */
     private val shiftedLabelCache = HashMap<Key, String>()
@@ -411,6 +418,12 @@ class KeyboardView(context: Context) : View(context) {
         val now = SystemClock.uptimeMillis()
         var needsAnimFrame = false
 
+        // Label cross-fade after a plane switch. Key caps stay put; only what
+        // is written on them changes, so only the writing fades.
+        val lf = Anim.progress(now, layoutFadeAt, Anim.LAYOUT_FADE_MS)
+        val labelAlpha = (255f * Anim.easeOut(lf)).toInt()
+        if (lf < 1f) needsAnimFrame = true
+
         for (kb in bounds) {
             val key = kb.key
             val pressed = isPressedKb(kb)
@@ -488,9 +501,11 @@ class KeyboardView(context: Context) : View(context) {
                 }
                 val keyIcon = Icons.forCode(key.code) ?: Icons.forLabel(label)
                 if (keyIcon != null) {
+                    val ic = (labelAlpha shl 24) or (textPaint.color and 0x00FFFFFF)
                     Icons.draw(canvas, keyIcon, rectF.centerX(), rectF.centerY(),
-                        kb.h * 0.42f, textPaint.color)
+                        kb.h * 0.42f, ic)
                 } else {
+                textPaint.alpha = labelAlpha
                 textPaint.textSize = labelScale * when {
                     key.type == KeyType.SPACE -> if (incognito) kb.h * 0.38f else kb.h * 0.26f
                     key.type == KeyType.ENTER -> kb.h * 0.38f
@@ -500,14 +515,17 @@ class KeyboardView(context: Context) : View(context) {
                 }
                 val cy = rectF.centerY() - (textPaint.ascent() + textPaint.descent()) / 2f
                 canvas.drawText(label, rectF.centerX(), cy, textPaint)
+                textPaint.alpha = 255
                 }
             }
 
             val hint = key.hint
             if (hint != null && showDigitHints && key.type == KeyType.CHARACTER) {
                 hintPaint.color = t.keyHint
+                hintPaint.alpha = hintPaint.alpha * labelAlpha / 255
                 hintPaint.textSize = kb.h * 0.22f
                 canvas.drawText(hint, rectF.right - dp(5f), rectF.top + kb.h * 0.30f, hintPaint)
+                hintPaint.alpha = 255
             }
         }
 
@@ -579,41 +597,90 @@ class KeyboardView(context: Context) : View(context) {
     }
 
     private fun drawPopup(canvas: Canvas, t: KeyboardTheme) {
+        val now = SystemClock.uptimeMillis()
+
+        // A popup that was just dismissed shrinks back into its key instead of
+        // vanishing between frames, mirroring how it arrived.
+        if (popupOutKeys.isNotEmpty()) {
+            val p = Anim.progress(now, popupOutAt, Anim.POPUP_OUT_MS)
+            if (p >= 1f) {
+                popupOutKeys = emptyList()
+            } else {
+                val e = Anim.easeIn(p)
+                val layer = canvas.saveLayerAlpha(
+                    popupOutRect.left - dp(8f), popupOutRect.top - dp(8f),
+                    popupOutRect.right + dp(8f), popupOutRect.bottom + dp(10f),
+                    (255f * (1f - e)).toInt()
+                )
+                canvas.scale(
+                    1f - 0.14f * e, 1f - 0.14f * e,
+                    popupOutRect.centerX(), popupOutRect.bottom
+                )
+                drawPopupBody(canvas, t, popupOutRect, popupOutKeys, popupOutIndex, popupOutCell)
+                canvas.restoreToCount(layer)
+                postInvalidateOnAnimation()
+            }
+        }
+
         val owner = popupOwner ?: return
         if (!owner.popupOpen || popupKeys.isEmpty()) return
         // Entrance: scale up from the key with a slight overshoot, Telegram-style.
-        val et = Anim.progress(SystemClock.uptimeMillis(), popupShownAt, Anim.POPUP_IN_MS)
+        val et = Anim.progress(now, popupShownAt, Anim.POPUP_IN_MS)
         val scale = 0.82f + 0.18f * Anim.overshoot(et)
         val restore = canvas.save()
         canvas.scale(scale, scale, popupRect.centerX(), popupRect.bottom)
         if (et < 1f) postInvalidateOnAnimation()
-        shadowRect.set(popupRect)
+        drawPopupBody(canvas, t, popupRect, popupKeys, owner.popupIndex, popupCell)
+        canvas.restoreToCount(restore)
+    }
+
+    /** Renders one popup: shared by the live popup and its exit animation. */
+    private fun drawPopupBody(
+        canvas: Canvas, t: KeyboardTheme,
+        rect: RectF, keys: List<Key>, selected: Int, cell: Float
+    ) {
+        shadowRect.set(rect)
         shadowRect.offset(0f, dp(2f))
         canvas.drawRoundRect(shadowRect, keyRadius, keyRadius, shadowPaint)
         keyPaint.color = t.previewBg
-        canvas.drawRoundRect(popupRect, keyRadius, keyRadius, keyPaint)
-        textPaint.textSize = popupRect.height() * 0.42f
-        for (i in popupKeys.indices) {
-            val left = popupRect.left + i * popupCell
-            if (i == owner.popupIndex) {
+        canvas.drawRoundRect(rect, keyRadius, keyRadius, keyPaint)
+        textPaint.textSize = rect.height() * 0.42f
+        for (i in keys.indices) {
+            val left = rect.left + i * cell
+            if (i == selected) {
                 keyPaint.color = t.accent
                 rectF.set(
-                    left + dp(2f), popupRect.top + dp(2f),
-                    left + popupCell - dp(2f), popupRect.bottom - dp(2f)
+                    left + dp(2f), rect.top + dp(2f),
+                    left + cell - dp(2f), rect.bottom - dp(2f)
                 )
                 canvas.drawRoundRect(rectF, keyRadius * 0.75f, keyRadius * 0.75f, keyPaint)
             }
-            textPaint.color = if (i == owner.popupIndex) t.onAccent else t.keyText
-            val pIcon = Icons.forCode(popupKeys[i].code) ?: Icons.forLabel(popupKeys[i].label)
+            textPaint.color = if (i == selected) t.onAccent else t.keyText
+            val pIcon = Icons.forCode(keys[i].code) ?: Icons.forLabel(keys[i].label)
             if (pIcon != null) {
-                Icons.draw(canvas, pIcon, left + popupCell / 2f, popupRect.centerY(),
-                    popupRect.height() * 0.46f, textPaint.color)
+                Icons.draw(canvas, pIcon, left + cell / 2f, rect.centerY(),
+                    rect.height() * 0.46f, textPaint.color)
             } else {
-                val cy = popupRect.centerY() - (textPaint.ascent() + textPaint.descent()) / 2f
-                canvas.drawText(popupDisplayLabel(popupKeys[i]), left + popupCell / 2f, cy, textPaint)
+                val cy = rect.centerY() - (textPaint.ascent() + textPaint.descent()) / 2f
+                canvas.drawText(popupDisplayLabel(keys[i]), left + cell / 2f, cy, textPaint)
             }
         }
-        canvas.restoreToCount(restore)
+    }
+
+    /** Snapshot of a dismissed popup, drawn shrinking away. */
+    private val popupOutRect = RectF()
+    private var popupOutKeys: List<Key> = emptyList()
+    private var popupOutIndex = -1
+    private var popupOutCell = 0f
+    private var popupOutAt = 0L
+
+    private fun snapshotPopupOut() {
+        if (popupKeys.isEmpty()) return
+        popupOutRect.set(popupRect)
+        popupOutKeys = popupKeys
+        popupOutIndex = popupOwner?.popupIndex ?: -1
+        popupOutCell = popupCell
+        popupOutAt = SystemClock.uptimeMillis()
     }
 
     private fun drawPreview(canvas: Canvas, t: KeyboardTheme) {
@@ -910,6 +977,7 @@ class KeyboardView(context: Context) : View(context) {
             else -> listener?.onKeyPressed(ps.kb.key)
         }
         if (popupOwner === ps) {
+            snapshotPopupOut()
             popupOwner = null
             popupKeys = emptyList()
         }
@@ -955,6 +1023,7 @@ class KeyboardView(context: Context) : View(context) {
         ps.popupOpen = false
         ps.cancelled = true
         if (popupOwner === ps) {
+            snapshotPopupOut()
             popupOwner = null
             popupKeys = emptyList()
         }
@@ -1020,6 +1089,9 @@ class KeyboardView(context: Context) : View(context) {
     private fun cancelAll() {
         for (i in 0 until pointers.size()) cancelTimers(pointers.valueAt(i))
         pointers.clear()
+        // No exit animation here — the whole keyboard is going away — and any
+        // snapshot mid-flight is dropped so it cannot ghost on the next show.
+        popupOutKeys = emptyList()
         popupOwner = null
         popupKeys = emptyList()
         previewKb = null
