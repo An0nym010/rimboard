@@ -238,4 +238,13 @@
     <string name="dict_invalid">Se necesitan al menos 30 líneas «palabra frecuencia»</string>
     <string name="a11y_toolbar_open">Abrir barra de herramientas</string>
     <string name="a11y_toolbar_close">Cerrar barra de herramientas</string>
+    <string name="a11y_key_shift">Mayúsculas</string>
+    <string name="a11y_key_caps">Bloqueo de mayúsculas</string>
+    <string name="a11y_key_backspace">Borrar</string>
+    <string name="a11y_key_enter">Intro</string>
+    <string name="a11y_key_space">Espacio</string>
+    <string name="a11y_key_symbols">Símbolos</string>
+    <string name="a11y_key_letters">Letras</string>
+    <string name="a11y_key_more_symbols">Más símbolos</string>
+    <string name="a11y_key_alternatives">Mantén pulsado para más opciones</string>
 </resources>

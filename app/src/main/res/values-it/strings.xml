@@ -238,4 +238,13 @@
     <string name="dict_invalid">Servono almeno 30 righe «parola frequenza»</string>
     <string name="a11y_toolbar_open">Apri la barra degli strumenti</string>
     <string name="a11y_toolbar_close">Chiudi la barra degli strumenti</string>
+    <string name="a11y_key_shift">Maiuscolo</string>
+    <string name="a11y_key_caps">Blocco maiuscole</string>
+    <string name="a11y_key_backspace">Cancella</string>
+    <string name="a11y_key_enter">Invio</string>
+    <string name="a11y_key_space">Spazio</string>
+    <string name="a11y_key_symbols">Simboli</string>
+    <string name="a11y_key_letters">Lettere</string>
+    <string name="a11y_key_more_symbols">Altri simboli</string>
+    <string name="a11y_key_alternatives">Tieni premuto per altre opzioni</string>
 </resources>

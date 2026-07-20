@@ -246,4 +246,13 @@
     <string name="st_wpm_short">KDS</string>
     <string name="pref_glide_title">Kaydırarak yazma</string>
     <string name="pref_glide_summary">Bir kelime yazmak için harften harfe kaydırın</string>
+    <string name="a11y_key_shift">Üst karakter</string>
+    <string name="a11y_key_caps">Sürekli büyük harf</string>
+    <string name="a11y_key_backspace">Sil</string>
+    <string name="a11y_key_enter">Enter</string>
+    <string name="a11y_key_space">Boşluk</string>
+    <string name="a11y_key_symbols">Semboller</string>
+    <string name="a11y_key_letters">Harfler</string>
+    <string name="a11y_key_more_symbols">Daha fazla sembol</string>
+    <string name="a11y_key_alternatives">Daha fazlası için dokunup basılı tutun</string>
 </resources>

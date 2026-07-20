@@ -238,4 +238,13 @@
     <string name="dict_invalid">Нужно не менее 30 строк «слово частота»</string>
     <string name="a11y_toolbar_open">Открыть панель инструментов</string>
     <string name="a11y_toolbar_close">Закрыть панель инструментов</string>
+    <string name="a11y_key_shift">Shift</string>
+    <string name="a11y_key_caps">Caps Lock</string>
+    <string name="a11y_key_backspace">Удалить</string>
+    <string name="a11y_key_enter">Ввод</string>
+    <string name="a11y_key_space">Пробел</string>
+    <string name="a11y_key_symbols">Символы</string>
+    <string name="a11y_key_letters">Буквы</string>
+    <string name="a11y_key_more_symbols">Ещё символы</string>
+    <string name="a11y_key_alternatives">Удерживайте для других вариантов</string>
 </resources>

@@ -230,6 +230,15 @@
     <string name="tb_section_pinned">ON THE SUGGESTION BAR</string>
     <string name="tb_section_all">ALL TOOLS</string>
     <string name="tb_section_empty">Tap + on any tool below to put it here</string>
+    <string name="a11y_key_shift">Shift</string>
+    <string name="a11y_key_caps">Caps lock</string>
+    <string name="a11y_key_backspace">Delete</string>
+    <string name="a11y_key_enter">Enter</string>
+    <string name="a11y_key_space">Space</string>
+    <string name="a11y_key_symbols">Symbols</string>
+    <string name="a11y_key_letters">Letters</string>
+    <string name="a11y_key_more_symbols">More symbols</string>
+    <string name="a11y_key_alternatives">Touch and hold for more</string>
     <string name="a11y_reorder_handle">Reorder</string>
     <string name="a11y_pin">Pin</string>
     <string name="a11y_unpin">Unpin</string>

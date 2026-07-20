@@ -238,4 +238,13 @@
     <string name="dict_invalid">Il faut au moins 30 lignes « mot fréquence »</string>
     <string name="a11y_toolbar_open">Ouvrir la barre d\'outils</string>
     <string name="a11y_toolbar_close">Fermer la barre d\'outils</string>
+    <string name="a11y_key_shift">Majuscule</string>
+    <string name="a11y_key_caps">Verrouillage majuscules</string>
+    <string name="a11y_key_backspace">Supprimer</string>
+    <string name="a11y_key_enter">Entrée</string>
+    <string name="a11y_key_space">Espace</string>
+    <string name="a11y_key_symbols">Symboles</string>
+    <string name="a11y_key_letters">Lettres</string>
+    <string name="a11y_key_more_symbols">Plus de symboles</string>
+    <string name="a11y_key_alternatives">Appui long pour plus d\'options</string>
 </resources>

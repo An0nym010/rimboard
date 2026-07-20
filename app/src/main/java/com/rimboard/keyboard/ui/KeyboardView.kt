@@ -6,8 +6,10 @@ import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.Shader
 import android.graphics.Typeface
+import android.os.Bundle
 import android.os.SystemClock
 import android.graphics.RectF
 import android.os.Handler
@@ -17,6 +19,10 @@ import android.view.MotionEvent
 import com.rimboard.keyboard.Haptics
 import android.view.View
 import android.view.ViewConfiguration
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+import androidx.customview.widget.ExploreByTouchHelper
+import com.rimboard.keyboard.R
 import com.rimboard.keyboard.model.Codes
 import com.rimboard.keyboard.model.Key
 import com.rimboard.keyboard.model.KeyType
@@ -61,6 +67,7 @@ class KeyboardView(context: Context) : View(context) {
             if (width > 0) computeBounds(width)
             requestLayout()
             invalidate()
+            refreshA11y()
         }
 
     private var layoutFadeAt = 0L
@@ -78,6 +85,9 @@ class KeyboardView(context: Context) : View(context) {
         set(value) {
             field = value
             invalidate()
+            // Character keys announce the glyph they would produce, so the
+            // spoken names change with shift and the tree must be rebuilt.
+            refreshA11y()
         }
 
     var showDigitHints: Boolean = true
@@ -346,6 +356,7 @@ class KeyboardView(context: Context) : View(context) {
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         computeBounds(w)
+        refreshA11y()
     }
 
     override fun onAttachedToWindow() {
@@ -1170,6 +1181,110 @@ class KeyboardView(context: Context) : View(context) {
         }
         val idx = arb(chars, logp)
         return if (idx in list.indices) list[idx] else primary
+    }
+
+    // ---- accessibility ----
+
+    /**
+     * Spoken name for [key]. Character keys announce the glyph they would
+     * actually produce, so shift state is reflected rather than described.
+     */
+    private fun spokenLabel(key: Key): String {
+        val loc = layout?.locale ?: Locale.getDefault()
+        return when (key.code) {
+            Codes.SHIFT ->
+                context.getString(
+                    if (shiftState == ShiftState.CAPSLOCK) R.string.a11y_key_caps
+                    else R.string.a11y_key_shift
+                )
+            Codes.BACKSPACE -> context.getString(R.string.a11y_key_backspace)
+            Codes.ENTER -> context.getString(R.string.a11y_key_enter)
+            Codes.SPACE -> context.getString(R.string.a11y_key_space)
+            Codes.MODE_SYM -> context.getString(R.string.a11y_key_symbols)
+            Codes.MODE_ABC -> context.getString(R.string.a11y_key_letters)
+            Codes.MODE_SYM2 -> context.getString(R.string.a11y_key_more_symbols)
+            Codes.LANG -> context.getString(R.string.tb_language)
+            Codes.EMOJI -> context.getString(R.string.tb_emoji)
+            Codes.SETTINGS -> context.getString(R.string.tb_settings)
+            Codes.CLIPBOARD -> context.getString(R.string.tb_clipboard)
+            Codes.NUMPAD -> context.getString(R.string.tb_numpad)
+            Codes.HIDE_KB -> context.getString(R.string.tb_hide)
+            Codes.IME_PICKER -> context.getString(R.string.tb_settings)
+            else -> displayLabel(key, loc)
+        }
+    }
+
+    /**
+     * The keyboard is one custom-drawn surface, so a screen reader saw a single
+     * unlabelled rectangle — every key silent and unreachable. Each key is a
+     * virtual view here, named and activatable.
+     *
+     * Hover events only arrive while a touch-exploration service is running, so
+     * ordinary typing never enters this path.
+     */
+    private inner class KeyA11y : ExploreByTouchHelper(this@KeyboardView) {
+
+        override fun getVirtualViewAt(x: Float, y: Float): Int {
+            for (i in bounds.indices) if (bounds[i].contains(x, y)) return i
+            return HOST_ID
+        }
+
+        override fun getVisibleVirtualViews(ids: MutableList<Int>) {
+            for (i in bounds.indices) ids.add(i)
+        }
+
+        override fun onPopulateNodeForVirtualView(id: Int, node: AccessibilityNodeInfoCompat) {
+            val kb = bounds.getOrNull(id)
+            if (kb == null) {
+                // A node with empty bounds throws, so never leave one bare.
+                node.contentDescription = ""
+                node.setBoundsInParent(Rect(0, 0, 1, 1))
+                return
+            }
+            node.contentDescription = spokenLabel(kb.key)
+            node.className = "android.inputmethodservice.Keyboard\$Key"
+            node.isEnabled = true
+            node.isFocusable = true
+            node.addAction(AccessibilityNodeInfoCompat.ACTION_CLICK)
+            if (kb.key.popup.isNotEmpty()) {
+                node.addAction(AccessibilityNodeInfoCompat.ACTION_LONG_CLICK)
+                node.hintText = context.getString(R.string.a11y_key_alternatives)
+            }
+            node.setBoundsInParent(
+                Rect(
+                    kb.x.toInt(), kb.y.toInt(),
+                    (kb.x + kb.w).toInt(), (kb.y + kb.h).toInt()
+                )
+            )
+        }
+
+        override fun onPerformActionForVirtualView(
+            id: Int, action: Int, arguments: Bundle?
+        ): Boolean {
+            val kb = bounds.getOrNull(id) ?: return false
+            return when (action) {
+                AccessibilityNodeInfoCompat.ACTION_CLICK -> {
+                    listener?.onKeyPressed(kb.key)
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private val keyA11y = KeyA11y().also { ViewCompat.setAccessibilityDelegate(this, it) }
+
+    override fun dispatchHoverEvent(event: MotionEvent): Boolean =
+        keyA11y.dispatchHoverEvent(event) || super.dispatchHoverEvent(event)
+
+    /**
+     * Rebuilds the virtual tree after the keys or their names change. Null-safe
+     * because layout and shift can both be assigned before this view's own
+     * property initialisers have run.
+     */
+    private fun refreshA11y() {
+        @Suppress("SENSELESS_COMPARISON")
+        if (keyA11y != null) keyA11y.invalidateRoot()
     }
 
     private fun keyAt(x: Float, y: Float): KeyBounds? {

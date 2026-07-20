@@ -238,4 +238,13 @@
     <string name="dict_invalid">Mindestens 30 Zeilen „Wort Häufigkeit“ nötig</string>
     <string name="a11y_toolbar_open">Werkzeugleiste öffnen</string>
     <string name="a11y_toolbar_close">Werkzeugleiste schließen</string>
+    <string name="a11y_key_shift">Umschalt</string>
+    <string name="a11y_key_caps">Feststelltaste</string>
+    <string name="a11y_key_backspace">Löschen</string>
+    <string name="a11y_key_enter">Eingabe</string>
+    <string name="a11y_key_space">Leertaste</string>
+    <string name="a11y_key_symbols">Symbole</string>
+    <string name="a11y_key_letters">Buchstaben</string>
+    <string name="a11y_key_more_symbols">Weitere Symbole</string>
+    <string name="a11y_key_alternatives">Zum Gedrückthalten für mehr</string>
 </resources>
