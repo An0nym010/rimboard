@@ -23,3 +23,43 @@ language (en, tr, de, es, fr, it, pt, ru) and truncated to the top 10,000
 entries per language. Under the
 CC BY-SA 4.0 terms, these dictionary files (and any derivative dictionary
 files) remain licensed under CC BY-SA 4.0.
+
+
+Interface icons
+---------------
+
+Icons under app/src/main/res/drawable/ic_tool_*.xml are derived from the
+Lucide icon set:
+
+  Lucide — https://lucide.dev
+  Copyright (c) 2026 Lucide Icons and Contributors
+  Licensed under the ISC License.
+
+Lucide is itself a fork of Feather, and icons inherited from that project
+carry:
+
+  Feather — https://feathericons.com
+  Copyright (c) 2013-present Cole Bemis
+  Licensed under the MIT License.
+
+Both licences permit use and redistribution provided the copyright notice
+and permission notice are preserved, which is the purpose of this section.
+
+Modifications made for RimBoard: the source SVGs were converted to Android
+VectorDrawable resources. Geometry is unchanged; <rect>, <circle> and
+<line> elements were rewritten as equivalent path data because
+VectorDrawable accepts only <path>.
+
+ISC License
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.

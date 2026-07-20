@@ -99,7 +99,51 @@ object Icons {
         c.restoreToCount(save)
     }
 
+    // ---- Lucide vector set ----------------------------------------------
+    // Icons migrating to Lucide (ISC, see NOTICE) are drawn from
+    // VectorDrawables; anything without one falls through to the hand-drawn
+    // glyph below. That fallback is the point: a missing or misrendering
+    // drawable degrades to the icon that already worked, instead of a blank.
+
+    private var appContext: android.content.Context? = null
+    private val vectorRes = HashMap<Int, Int>()
+    private val vectorCache = HashMap<Int, android.graphics.drawable.Drawable?>()
+
+    /** Called from the views that draw icons; the application context is kept. */
+    fun attach(context: android.content.Context) {
+        if (appContext != null) return
+        val ctx = context.applicationContext
+        appContext = ctx
+        fun res(name: String) = ctx.resources.getIdentifier(name, "drawable", ctx.packageName)
+        vectorRes[CHEVRON] = res("ic_tool_chevron_right")
+        vectorRes[CHEVRON_L] = res("ic_tool_chevron_left")
+        vectorRes[SETTINGS] = res("ic_tool_settings")
+        vectorRes[CLIPBOARD] = res("ic_tool_clipboard")
+        vectorRes[GRID] = res("ic_tool_grid")
+    }
+
+    private fun vector(icon: Int): android.graphics.drawable.Drawable? {
+        if (!vectorCache.containsKey(icon)) {
+            val ctx = appContext
+            val id = vectorRes[icon] ?: 0
+            vectorCache[icon] = if (ctx == null || id == 0) null else try {
+                androidx.appcompat.content.res.AppCompatResources.getDrawable(ctx, id)
+                    ?.mutate()
+            } catch (_: Exception) {
+                null
+            }
+        }
+        return vectorCache[icon]
+    }
+
     fun draw(c: Canvas, icon: Int, cx: Float, cy: Float, s: Float, color: Int) {
+        vector(icon)?.let { d ->
+            val h = s / 2f
+            d.setBounds((cx - h).toInt(), (cy - h).toInt(), (cx + h).toInt(), (cy + h).toInt())
+            d.setTint(color)
+            d.draw(c)
+            return
+        }
         val r = s / 2f
         p.reset()
         p.isAntiAlias = true

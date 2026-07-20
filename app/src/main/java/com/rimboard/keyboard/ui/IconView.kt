@@ -9,6 +9,10 @@ import android.view.View
 @SuppressLint("ViewConstructor")
 class IconView(context: Context, icon: Int) : View(context) {
 
+    init {
+        Icons.attach(context)
+    }
+
     /** Mutable so a recycled row can be rebound to a different tool. */
     var icon: Int = icon
         set(value) {
