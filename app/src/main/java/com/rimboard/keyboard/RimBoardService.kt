@@ -275,6 +275,7 @@ class RimBoardService : InputMethodService(),
         // so drop the cache here rather than trusting it across a focus change.
         pinnedCache = null
         lastTools = null
+        strip?.setDrawerOpen(false)
         composing.setLength(0)
         prevWordForBigram = ""
         revert = null
@@ -535,6 +536,10 @@ class RimBoardService : InputMethodService(),
         wordUndo.clear()
         Stats.key(this)
         backspaceRepeats = 0
+        // Typing dismisses the drawer. Without this the strip keeps showing
+        // tools while words are being composed, so suggestions and autocorrect
+        // silently vanish for as long as it is open.
+        closeDrawerIfOpen()
         when (key.code) {
             Codes.SHIFT -> handleShift()
             Codes.BACKSPACE -> handleBackspace()

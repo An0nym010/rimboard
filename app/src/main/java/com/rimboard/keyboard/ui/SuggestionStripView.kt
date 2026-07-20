@@ -52,8 +52,16 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
     private companion object {
-        /** Width of one pinned tool slot, in dp. */
-        const val TOOL_W = 38
+        /**
+         * Bounds for a pinned tool slot, in dp. Slots divide the free width
+         * between them, so a couple of tools sit comfortably large and a full
+         * drawer packs tighter before it has to scroll. A fixed width overflowed
+         * the narrower strip of floating mode, which is only 86% of the screen.
+         */
+        const val TOOL_W_MIN = 30
+        const val TOOL_W_MAX = 46
+        /** Width reserved for the chevron, which never scrolls away. */
+        const val CHEVRON_W = 34
     }
 
 
@@ -202,12 +210,16 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
      * turns to point the way out.
      */
     fun setDrawerOpen(open: Boolean) {
+        // Closing an already-closed drawer must not call back: onStartInputView
+        // resets it defensively, and an unguarded callback would run
+        // updateStrip before the new field's state had been read.
+        val changed = drawerOpen != open
         drawerOpen = open
         expandBtn.icon = if (open) Icons.CHEVRON_L else Icons.CHEVRON
         expandBtn.contentDescription = context.getString(
             if (open) R.string.a11y_drawer_close else R.string.a11y_drawer_open
         )
-        if (open) showDrawer() else listener?.onDrawerClosed()
+        if (open) showDrawer() else if (changed) listener?.onDrawerClosed()
     }
 
     fun isDrawerOpen() = drawerOpen
@@ -295,17 +307,46 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         emojiScroll.visibility = GONE
     }
 
-    /** Rebuilds the pinned tool row. Stays visible while words are showing. */
+    private var pinnedItems: List<Pair<Int, Int>> = emptyList()
+
+    /** Rebuilds the pinned tool row shown in the drawer. */
     fun setPinnedTools(items: List<Pair<Int, Int>>) {
+        pinnedItems = items
+        rebuildToolRow()
+    }
+
+    /**
+     * Slot width for [n] tools: the free width split between them, clamped so
+     * they never become untappable and never sprawl. Past the minimum the row
+     * scrolls instead of overflowing.
+     */
+    private fun slotWidth(n: Int): Int {
+        if (n <= 0) return dp(TOOL_W_MAX)
+        val free = width - dp(CHEVRON_W) - dp(8)
+        // Before the first layout there is no width to divide; the row is
+        // rebuilt from onSizeChanged once there is.
+        if (free <= 0) return dp(TOOL_W_MAX)
+        return (free / n).coerceIn(dp(TOOL_W_MIN), dp(TOOL_W_MAX))
+    }
+
+    private fun rebuildToolRow() {
         toolRow.removeAllViews()
         val t = theme
-        for ((icon, code) in items) {
+        val w = slotWidth(pinnedItems.size)
+        for ((icon, code) in pinnedItems) {
             toolRow.addView(IconView(context, icon).apply {
                 color = t?.stripText ?: 0xFF888888.toInt()
                 contentDescription = descFor(code)
                 setOnClickListener { listener?.onQuickAction(code) }
-            }, LayoutParams(dp(TOOL_W), LayoutParams.MATCH_PARENT))
+            }, LayoutParams(w, LayoutParams.MATCH_PARENT))
         }
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        // Width decides the slot size, and it changes with floating mode,
+        // one-handed mode and rotation.
+        if (w != oldw && pinnedItems.isNotEmpty()) rebuildToolRow()
     }
 
     /** Rebuilds the recent-emoji row, which only shows on an idle strip. */
