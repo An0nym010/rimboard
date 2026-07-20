@@ -238,7 +238,10 @@ class KeyboardView(context: Context) : View(context) {
         if (bgBm == null || bgBmStamp != stamp) {
             bgBm = try {
                 decodeCentered(f, width, height)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                // A background that silently fails to decode reads as the
+                // setting simply not working.
+                android.util.Log.w("RimBoard", "background image decode failed", e)
                 null
             }
             bgBmStamp = stamp

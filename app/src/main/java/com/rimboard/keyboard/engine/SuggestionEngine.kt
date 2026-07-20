@@ -37,7 +37,10 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
                     TAG, "warm($lang) ready in " +
                         "${android.os.SystemClock.elapsedRealtime() - started}ms"
                 )
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                // This runs on a background thread, so a throw here vanishes
+                // and the whole engine just appears to have no data.
+                android.util.Log.w(TAG, "warm($lang) failed", e)
             }
         }.start()
     }
@@ -51,7 +54,10 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
         // never another language's words standing in for this one.
         val dictStream = try {
             context.assets.open("dictionaries/$lang.txt")
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            // Silent here means no suggestions at all for this language, which
+            // is indistinguishable from the engine being broken.
+            android.util.Log.w(TAG, "no dictionary asset for $lang", e)
             null
         }
         val userStream = try {
@@ -88,7 +94,8 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
             try {
                 context.assets.open("offensive/$lang.txt").bufferedReader().readLines()
                     .map { it.trim().lowercase() }.filter { it.isNotEmpty() }.toSet()
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                android.util.Log.w(TAG, "no offensive list for $lang", e)
                 emptySet()
             }
         }
@@ -296,7 +303,8 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
                     }
                 }
                 m
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                android.util.Log.w(TAG, "no prediction model for $lang", e)
                 emptyMap()
             }
         }

@@ -39,9 +39,14 @@ class KeyProximity private constructor(rows: List<String>) {
      */
     fun cost(a: Char, b: Char): Double {
         if (a == b) return 0.0
+        // Every lookup is guarded rather than relying on xs and ys being filled
+        // together. This runs per keystroke for tap arbitration, so a null here
+        // would crash the keyboard mid-word.
         val ax = xs[a] ?: return 1.0
         val bx = xs[b] ?: return 1.0
-        val d = hypot((ax - bx).toDouble(), (ys[a]!! - ys[b]!!).toDouble())
+        val ay = ys[a] ?: return 1.0
+        val by = ys[b] ?: return 1.0
+        val d = hypot((ax - bx).toDouble(), (ay - by).toDouble())
         return minOf(1.0, 0.35 * d)
     }
 
