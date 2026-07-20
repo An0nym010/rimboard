@@ -7,7 +7,14 @@ import android.view.View
 
 /** A small view that renders one [Icons] glyph, tinted with [color]. */
 @SuppressLint("ViewConstructor")
-class IconView(context: Context, private val icon: Int) : View(context) {
+class IconView(context: Context, icon: Int) : View(context) {
+
+    /** Mutable so a recycled row can be rebound to a different tool. */
+    var icon: Int = icon
+        set(value) {
+            field = value
+            invalidate()
+        }
 
     var color: Int = 0xFF888888.toInt()
         set(value) {
