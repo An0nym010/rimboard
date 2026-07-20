@@ -407,9 +407,11 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
 
     fun showClipboard(label: String) {
         showEmpty()
-        emojiScroll.visibility = GONE
         clipChip.text = label
         clipChip.visibility = VISIBLE
+        // The paste chip used to replace the pinned tools outright, so having
+        // anything on the clipboard hid them. The row scrolls; both can show.
+        emojiScroll.visibility = if (emojiRow.childCount > 0) VISIBLE else GONE
     }
 
     /**

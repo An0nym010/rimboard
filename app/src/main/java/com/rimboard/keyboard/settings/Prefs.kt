@@ -165,9 +165,14 @@ object Prefs {
      * anyone upgrading keeps exactly the shortcuts they already had.
      */
     fun pinnedTools(c: Context): List<String> {
-        val ordered = (get(c).getString(KEY_PINNED_ORDER, null) ?: "")
-            .split(',').map { it.trim() }.filter { it.isNotEmpty() }
-        if (ordered.isNotEmpty()) return ordered
+        val p = get(c)
+        // Presence of the key, not emptiness of its value: unpinning everything
+        // is a choice, and must not read as "never configured" and resurrect
+        // the old checkbox selection.
+        if (p.contains(KEY_PINNED_ORDER)) {
+            return (p.getString(KEY_PINNED_ORDER, "") ?: "")
+                .split(',').map { it.trim() }.filter { it.isNotEmpty() }
+        }
         val legacy = toolbarKeys(c)
         return com.rimboard.keyboard.ui.ToolCatalog.defaultOrder.filter { it in legacy }
     }

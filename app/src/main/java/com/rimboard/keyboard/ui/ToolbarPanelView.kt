@@ -5,6 +5,8 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
@@ -210,6 +212,21 @@ class ToolbarPanelView(context: Context) : View(context) {
             canvas, tool.icon, cx, cy, dp(ICON_R_DP) * 1.05f,
             if (isPinned) t.onAccent else t.keyText
         )
+        // Explicit pin toggle. Hold-and-drag alone is not discoverable, and it
+        // is the only way to get a tool onto the suggestion bar.
+        val bx = cx + dp(ICON_R_DP) * 0.80f
+        val by = cy - dp(ICON_R_DP) * 0.80f
+        val br = dp(8f)
+        bgPaint.color = if (isPinned) t.keyHint else t.accent
+        canvas.drawCircle(bx, by, br, bgPaint)
+        bgPaint.style = Paint.Style.STROKE
+        bgPaint.strokeWidth = dp(1.9f)
+        bgPaint.strokeCap = Paint.Cap.ROUND
+        bgPaint.color = if (isPinned) t.background else t.onAccent
+        canvas.drawLine(bx - br * 0.42f, by, bx + br * 0.42f, by, bgPaint)
+        if (!isPinned) canvas.drawLine(bx, by - br * 0.42f, bx, by + br * 0.42f, bgPaint)
+        bgPaint.style = Paint.Style.FILL
+
         textPaint.color = t.keyHint
         textPaint.textSize = dp(10f)
         val name = context.getString(tool.labelRes)
@@ -234,9 +251,30 @@ class ToolbarPanelView(context: Context) : View(context) {
     private var dragY = 0f
     private var downX = 0f
     private var downY = 0f
-    private var downAt = 0L
     private var downHit: Pair<Int, Int>? = null
     private var scrolling = false
+
+    // The pick-up has to be driven by a timer, not checked inside ACTION_MOVE:
+    // a finger held perfectly still generates no move events at all, so polling
+    // there means a patient press never lifts anything.
+    private val liftHandler = Handler(Looper.getMainLooper())
+    private var liftArm: Runnable? = null
+
+    private fun armLift(h: Pair<Int, Int>) {
+        val r = Runnable {
+            lift(h)
+            dragX = downX
+            dragY = downY
+            invalidate()
+        }
+        liftArm = r
+        liftHandler.postDelayed(r, LIFT_MS)
+    }
+
+    private fun disarmLift() {
+        liftArm?.let { liftHandler.removeCallbacks(it) }
+        liftArm = null
+    }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -244,9 +282,10 @@ class ToolbarPanelView(context: Context) : View(context) {
             MotionEvent.ACTION_DOWN -> {
                 downX = event.x
                 downY = event.y
-                downAt = SystemClock.uptimeMillis()
                 downHit = hit(event.x, event.y)
                 scrolling = false
+                dragging = null
+                downHit?.let { armLift(it) }
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
@@ -258,26 +297,20 @@ class ToolbarPanelView(context: Context) : View(context) {
                 }
                 val moved = kotlin.math.hypot(event.x - downX, event.y - downY)
                 if (!scrolling && moved > dp(12f)) {
-                    // Moved before the hold elapsed, so this is a scroll.
+                    // Travelled before the hold elapsed, so read it as a scroll
+                    // and give up on lifting this tool.
+                    disarmLift()
                     scrolling = true
                 }
                 if (scrolling) {
                     panelScroll -= event.y - downY
                     downY = event.y
                     invalidate()
-                    return true
-                }
-                // Still holding still: has it been long enough to lift?
-                val h = downHit
-                if (h != null && SystemClock.uptimeMillis() - downAt >= LIFT_MS) {
-                    lift(h)
-                    dragX = event.x
-                    dragY = event.y
-                    invalidate()
                 }
                 return true
             }
             MotionEvent.ACTION_UP -> {
+                disarmLift()
                 val held = dragging
                 if (held != null) {
                     drop(event.x, event.y)
@@ -286,6 +319,11 @@ class ToolbarPanelView(context: Context) : View(context) {
                 if (!scrolling) {
                     val h = downHit
                     if (h != null) {
+                        if (badgeHit(h.first, h.second, event.x, event.y)) {
+                            performClick()
+                            togglePin(h.first, h.second)
+                            return true
+                        }
                         val list = if (h.first == 0) pinned else rest
                         val id = list.getOrNull(h.second)
                         val tool = id?.let { ToolCatalog.byId(it) }
@@ -299,6 +337,7 @@ class ToolbarPanelView(context: Context) : View(context) {
                 return true
             }
             MotionEvent.ACTION_CANCEL -> {
+                disarmLift()
                 if (dragging != null) drop(dragX, dragY)
                 return true
             }
@@ -309,6 +348,32 @@ class ToolbarPanelView(context: Context) : View(context) {
     override fun performClick(): Boolean {
         super.performClick()
         return true
+    }
+
+    /** True if [x],[y] landed on the pin badge of the tool in that slot. */
+    private fun badgeHit(section: Int, index: Int, x: Float, y: Float): Boolean {
+        val list = if (section == 0) pinned else rest
+        if (index !in list.indices) return false
+        cellRect(index, if (section == 0) pinnedTop() else restTop(), rectF)
+        val bx = rectF.centerX() + dp(ICON_R_DP) * 0.80f
+        val by = rectF.top + dp(5f) + dp(ICON_R_DP) - dp(ICON_R_DP) * 0.80f
+        return kotlin.math.hypot(x - bx, (y + panelScroll) - by) <= dp(14f)
+    }
+
+    private fun togglePin(section: Int, index: Int) {
+        val list = if (section == 0) pinned else rest
+        val id = list.getOrNull(index) ?: return
+        if (section == 0) {
+            pinned.remove(id)
+            rest.add(id)
+            rest.sortBy { ToolCatalog.defaultOrder.indexOf(it) }
+        } else {
+            rest.remove(id)
+            pinned.add(id)
+        }
+        performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+        listener?.onPinnedChanged(pinned.toList())
+        invalidate()
     }
 
     private fun lift(h: Pair<Int, Int>) {
