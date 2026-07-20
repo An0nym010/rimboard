@@ -120,13 +120,28 @@ object Icons {
         vectorRes[SETTINGS] = res("ic_tool_settings")
         vectorRes[CLIPBOARD] = res("ic_tool_clipboard")
         vectorRes[GRID] = res("ic_tool_grid")
+        vectorRes[GLOBE] = res("ic_tool_globe")
+        vectorRes[EDIT] = res("ic_tool_edit")
+        vectorRes[TRASH] = res("ic_tool_trash")
+        vectorRes[UNDO] = res("ic_tool_undo")
+        vectorRes[REDO] = res("ic_tool_redo")
+        vectorRes[CUT] = res("ic_tool_cut")
+        vectorRes[COPY] = res("ic_tool_copy")
+        vectorRes[TRANSLATE] = res("ic_tool_translate")
+        vectorRes[THEME] = res("ic_tool_theme")
+        vectorRes[SHARE] = res("ic_tool_share")
+        vectorRes[INCOGNITO] = res("ic_tool_incognito")
+        vectorRes[HIDE] = res("ic_tool_chevron_down")
     }
 
     private fun vector(icon: Int): android.graphics.drawable.Drawable? {
+        // Never cache before attach(): a miss recorded then would be permanent,
+        // and this can be reached from a view that draws icons without ever
+        // constructing an IconView.
+        val ctx = appContext ?: return null
         if (!vectorCache.containsKey(icon)) {
-            val ctx = appContext
             val id = vectorRes[icon] ?: 0
-            vectorCache[icon] = if (ctx == null || id == 0) null else try {
+            vectorCache[icon] = if (id == 0) null else try {
                 androidx.appcompat.content.res.AppCompatResources.getDrawable(ctx, id)
                     ?.mutate()
             } catch (_: Exception) {
