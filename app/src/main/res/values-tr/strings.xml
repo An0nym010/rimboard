@@ -234,4 +234,13 @@
     <string name="dict_invalid">En az 30 “kelime sıklık” satırı gerekli</string>
     <string name="a11y_toolbar_open">Araç çubuğunu aç</string>
     <string name="a11y_toolbar_close">Araç çubuğunu kapat</string>
+    <string name="tb_section_pinned">ÖNERİ ÇUBUĞUNDA</string>
+    <string name="tb_section_all">TÜM ARAÇLAR</string>
+    <string name="tb_section_empty">Aşağıdaki araçlarda + simgesine dokunarak buraya ekleyin</string>
+    <string name="toolbar_picker_hint">Öneri çubuğunda istediğiniz eylemleri işaretleyin. Sıralamak için sağdaki tutamacı sürükleyin.</string>
+    <string name="a11y_reorder_handle">Yeniden sırala</string>
+    <string name="a11y_move_up">Yukarı taşı</string>
+    <string name="a11y_move_down">Aşağı taşı</string>
+    <string name="a11y_pin_clip">Sabitle</string>
+    <string name="a11y_unpin_clip">Sabitlemeyi kaldır</string>
 </resources>
