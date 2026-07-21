@@ -39,7 +39,9 @@ PATTERNS = {
     "pl": r"^[a-z\u0105\u0107\u0119\u0142\u0144\u00f3\u015b\u017a\u017c]+$",
     "sv": r"^[a-z\u00e5\u00e4\u00f6\u00e9]+$",
     "id": r"^[a-z]+$",
-    "ro": r"^[a-z\u0103\u00e2\u00ee\u0219\u021b\u015f\u0163]+$",
+    # No cedilla forms here on purpose: FOLD rewrites them to the comma-below
+    # letters before this pattern is applied, so they cannot reach it.
+    "ro": r"^[a-z\u0103\u00e2\u00ee\u0219\u021b]+$",
     "cs": r"^[a-z\u00e1\u010d\u010f\u00e9\u011b\u00ed\u0148\u00f3\u0159\u0161\u0165\u00fa\u016f\u00fd\u017e]+$",
     "da": r"^[a-z\u00e6\u00f8\u00e5\u00e9]+$",
     "no": r"^[a-z\u00e6\u00f8\u00e5\u00e9]+$",
@@ -51,20 +53,35 @@ PATTERNS = {
     "sk": r"^[a-z\u00e1\u00e4\u010d\u010f\u00e9\u00ed\u013a\u013e\u0148\u00f3\u00f4\u0155\u0161\u0165\u00fa\u00fd\u017e]+$",
 }
 
+# Spellings folded together before counting, per language.
+#
+# Romanian: the corpus mixes the correct comma-below letters (ș U+0219,
+# ț U+021B) with the legacy cedilla ones (ş U+015F, ţ U+0163) inherited from
+# pre-Unicode codepages. They are different characters. The Romanian layout
+# offers only the comma-below pair — which is the standard — so every
+# cedilla-spelled entry was a word the keyboard could suggest but could not
+# type, and the corpus prefers those spellings about ten to one, so they
+# outranked the ones a user can actually produce. Folding also reunites the
+# frequency of a word that the corpus had split across both spellings.
+FOLD = {
+    "ro": str.maketrans({"ş": "ș", "ţ": "ț"}),
+}
+
 OUT_DIR = Path(__file__).resolve().parent.parent / "app/src/main/assets/dictionaries"
 
 
 def fetch(lang: str, top: int) -> str:
     pat = re.compile(PATTERNS[lang])
+    fold = FOLD.get(lang)
     last = "no source had enough usable words"
     for base in BASES:
         url = base.format(lang=lang)
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "rimboard-dict"})
-            out, seen = [], set()
+            counts = {}
             with urllib.request.urlopen(req, timeout=60) as resp:
                 buf = b""
-                while len(out) < top:
+                while len(counts) < top:
                     chunk = resp.read(65536)
                     if not chunk:
                         break
@@ -76,15 +93,32 @@ def fetch(lang: str, top: int) -> str:
                         if sp <= 0:
                             continue
                         w = line[:sp]
-                        if len(w) > 24 or w in seen or not pat.match(w):
+                        if fold:
+                            w = w.translate(fold)
+                        if len(w) > 24 or not pat.match(w):
                             continue
-                        seen.add(w)
-                        out.append(f"{w} {line[sp + 1:]}")
-                        if len(out) >= top:
+                        try:
+                            n = int(line[sp + 1:])
+                        except ValueError:
+                            continue
+                        # Folded spellings have to sum rather than one being
+                        # dropped: the surviving form must carry the frequency
+                        # of both, or it ranks far below where the language
+                        # actually uses it.
+                        if w in counts:
+                            counts[w] += n
+                        elif len(counts) < top:
+                            counts[w] = n
+                        if len(counts) >= top:
                             break
+            # Frequency descending, ties broken alphabetically so a rerun over
+            # the same corpus produces the same file. Folding can move an entry
+            # up, so the source order can no longer be relied on.
+            out = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
             if len(out) >= min(top, 20000) or (out and "50k" in url):
                 OUT_DIR.mkdir(parents=True, exist_ok=True)
-                (OUT_DIR / f"{lang}.txt").write_text("\n".join(out) + "\n", encoding="utf-8")
+                (OUT_DIR / f"{lang}.txt").write_text(
+                    "\n".join(f"{w} {n}" for w, n in out) + "\n", encoding="utf-8")
                 src = url.rsplit("/", 1)[-1]
                 return f"{lang}: {len(out):>7} words  <- {src}"
         except Exception as e:
