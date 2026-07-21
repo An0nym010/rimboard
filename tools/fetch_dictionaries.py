@@ -41,7 +41,6 @@ PATTERNS = {
     "id": r"^[a-z]+$",
     "ro": r"^[a-z\u0103\u00e2\u00ee\u0219\u021b\u015f\u0163]+$",
     "cs": r"^[a-z\u00e1\u010d\u010f\u00e9\u011b\u00ed\u0148\u00f3\u0159\u0161\u0165\u00fa\u016f\u00fd\u017e]+$",
-    "az": r"^[a-z\u00e7\u0259\u011f\u0131\u00f6\u015f\u00fc]+$",
     "da": r"^[a-z\u00e6\u00f8\u00e5\u00e9]+$",
     "no": r"^[a-z\u00e6\u00f8\u00e5\u00e9]+$",
     "fi": r"^[a-z\u00e4\u00f6\u00e5]+$",
@@ -57,6 +56,7 @@ OUT_DIR = Path(__file__).resolve().parent.parent / "app/src/main/assets/dictiona
 
 def fetch(lang: str, top: int) -> str:
     pat = re.compile(PATTERNS[lang])
+    last = "no source had enough usable words"
     for base in BASES:
         url = base.format(lang=lang)
         try:
@@ -88,9 +88,9 @@ def fetch(lang: str, top: int) -> str:
                 src = url.rsplit("/", 1)[-1]
                 return f"{lang}: {len(out):>7} words  <- {src}"
         except Exception as e:
-            last = f"{type(e).__name__}"
+            last = f"{type(e).__name__}: {e}"
             continue
-    return f"{lang}: FAILED"
+    return f"{lang}: FAILED ({last})"
 
 
 if __name__ == "__main__":

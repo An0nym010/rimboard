@@ -56,6 +56,26 @@ class AssetsTest {
     }
 
     @Test
+    fun `no data file belongs to a language the app does not support`() {
+        // The other direction, which nothing checked. tools/fetch_dictionaries.py
+        // regenerates every language it has a pattern for, and it carried one —
+        // Azerbaijani — that the registry never listed, so a no-argument run
+        // would have written a dictionary the app can never read. Nothing would
+        // have failed: it would just have ridden along in the APK, and the
+        // dictionaries are 40 MB of it already.
+        val problems = ArrayList<String>()
+        for (kind in listOf("dictionaries", "offensive", "predictions")) {
+            val files = File(assets(), kind).listFiles().orEmpty()
+                .filter { it.name.endsWith(".txt") }
+                .map { it.name.removeSuffix(".txt") }
+            for (code in files.sorted()) {
+                if (code !in Languages.codes) problems.add("$kind/$code.txt")
+            }
+        }
+        assertTrue("data files for unsupported languages: $problems", problems.isEmpty())
+    }
+
+    @Test
     fun `offensive lists are lowercase, unique and blank-free`() {
         val problems = ArrayList<String>()
         for (f in File(assets(), "offensive").listFiles().orEmpty().sortedBy { it.name }) {
