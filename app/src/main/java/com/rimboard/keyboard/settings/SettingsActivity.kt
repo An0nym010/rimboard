@@ -381,26 +381,60 @@ class SettingsActivity : AppCompatActivity() {
             }.start()
         }
 
+        /**
+         * Decodes and re-encodes on a background thread, then reports.
+         *
+         * This ran on the main thread while holding the whole source image in
+         * memory — a phone photo is easily 5-15MB — decoding it twice and then
+         * JPEG-encoding it. It also swallowed failures silently, so choosing an
+         * unreadable image looked identical to the setting doing nothing.
+         */
         private fun saveBackgroundImage(uri: android.net.Uri) {
-            try {
-                val ctx = requireContext()
-                val bytes = ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return
-                val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
-                var sample = 1
-                while (bounds.outWidth / sample > 1600 || bounds.outHeight / sample > 1600) sample *= 2
-                val opts = android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }
-                val bm = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts) ?: return
-                val f = java.io.File(com.rimboard.keyboard.engine.UserData.dataDir(ctx), "bg_image.jpg")
-                java.io.FileOutputStream(f).use {
-                    bm.compress(android.graphics.Bitmap.CompressFormat.JPEG, 88, it)
-                }
-                bm.recycle()
-                com.rimboard.keyboard.ui.BgImageState.version++
-                android.widget.Toast.makeText(ctx, R.string.bg_saved,
-                    android.widget.Toast.LENGTH_SHORT).show()
-            } catch (_: Exception) {
+            val ctx = requireContext().applicationContext
+            val ui = android.os.Handler(android.os.Looper.getMainLooper())
+            fun toast(res: Int) = ui.post {
+                android.widget.Toast.makeText(ctx, res, android.widget.Toast.LENGTH_SHORT).show()
             }
+            Thread {
+                var bm: android.graphics.Bitmap? = null
+                try {
+                    val bytes = ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                    if (bytes == null) {
+                        toast(R.string.bg_removed)
+                        return@Thread
+                    }
+                    val bounds = android.graphics.BitmapFactory.Options()
+                        .apply { inJustDecodeBounds = true }
+                    android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                    var sample = 1
+                    while (bounds.outWidth / sample > 1600 || bounds.outHeight / sample > 1600) {
+                        sample *= 2
+                    }
+                    val opts = android.graphics.BitmapFactory.Options()
+                        .apply { inSampleSize = sample }
+                    val decoded =
+                        android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
+                    if (decoded == null) {
+                        toast(R.string.bg_removed)
+                        return@Thread
+                    }
+                    bm = decoded
+                    val f = java.io.File(
+                        com.rimboard.keyboard.engine.UserData.dataDir(ctx), "bg_image.jpg")
+                    java.io.FileOutputStream(f).use {
+                        decoded.compress(android.graphics.Bitmap.CompressFormat.JPEG, 88, it)
+                    }
+                    com.rimboard.keyboard.ui.BgImageState.version++
+                    toast(R.string.bg_saved)
+                } catch (e: Exception) {
+                    android.util.Log.w("RimBoard", "background image save failed", e)
+                    toast(R.string.bg_removed)
+                } finally {
+                    // Recycled even when compress throws, which previously left
+                    // a full-size bitmap alive until the collector noticed.
+                    bm?.recycle()
+                }
+            }.start()
         }
         companion object {
             private const val ARG_XML = "xml"
