@@ -2,7 +2,12 @@ name: Build APK
 
 on:
   push:
-    branches: [ main, master ]
+    # main only. master is a stale branch, 54 commits behind and holding a
+    # single commit that reverts the codebase to v2.5.0; nothing is developed
+    # there, so building it on every push was spending minutes on a snapshot
+    # nobody ships. Pull requests are still built by the trigger below,
+    # whatever branch they come from.
+    branches: [ main ]
     tags: [ 'v*' ]
   pull_request:
   workflow_dispatch:
