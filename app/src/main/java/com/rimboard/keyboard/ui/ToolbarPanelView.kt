@@ -280,6 +280,11 @@ class ToolbarPanelView(context: Context) : View(context) {
         liftHandler.postDelayed(r, LIFT_MS)
     }
 
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        disarmLift()
+    }
+
     private fun disarmLift() {
         liftArm?.let { liftHandler.removeCallbacks(it) }
         liftArm = null

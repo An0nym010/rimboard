@@ -281,10 +281,23 @@ class EmojiView(context: Context) : LinearLayout(context) {
         return row
     }
 
+    // Held at class level rather than captured per listener, so a detach can
+    // cancel a repeat that is still in flight.
+    private val repeatHandler = Handler(Looper.getMainLooper())
+    private var repeatRun: Runnable? = null
+
+    private fun stopRepeat() {
+        repeatRun?.let { repeatHandler.removeCallbacks(it) }
+        repeatRun = null
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        stopRepeat()
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private fun setupBackspaceRepeat(v: TextView) {
-        val h = Handler(Looper.getMainLooper())
-        var run: Runnable? = null
         v.setOnTouchListener { view, e ->
             when (e.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
@@ -292,16 +305,15 @@ class EmojiView(context: Context) : LinearLayout(context) {
                     val r = object : Runnable {
                         override fun run() {
                             handleBackspace()
-                            h.postDelayed(this, 60)
+                            repeatHandler.postDelayed(this, 60)
                         }
                     }
-                    run = r
-                    h.postDelayed(r, 350)
+                    repeatRun = r
+                    repeatHandler.postDelayed(r, 350)
                     view.alpha = 0.5f
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    run?.let { h.removeCallbacks(it) }
-                    run = null
+                    stopRepeat()
                     view.alpha = 1f
                 }
             }

@@ -403,6 +403,20 @@ class KeyboardView(context: Context) : View(context) {
         refreshA11y()
     }
 
+    /**
+     * Cancels every pending timer when the view leaves its window.
+     *
+     * These were only cancelled on ACTION_CANCEL, which is not delivered when
+     * the input view is simply replaced — a rotation or settings change while
+     * backspace is held left the old view's repeat runnable firing into a
+     * service that is still alive, deleting text from a keyboard that no
+     * longer exists.
+     */
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        cancelAll()
+    }
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         Icons.attach(context)

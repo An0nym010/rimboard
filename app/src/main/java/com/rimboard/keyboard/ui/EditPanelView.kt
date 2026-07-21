@@ -30,6 +30,14 @@ class EditPanelView(context: Context) : LinearLayout(context) {
 
     private val repeatHandler = Handler(Looper.getMainLooper())
     private var repeatRun: Runnable? = null
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        // Cancelled on touch release, but a panel swapped away mid-hold never
+        // sees one, leaving the repeat firing at a detached view's listener.
+        repeatRun?.let { repeatHandler.removeCallbacks(it) }
+        repeatRun = null
+    }
     private var t: KeyboardTheme? = null
     private var selectOn = false
     private val buttons = ArrayList<Pair<TextView, Action>>()
