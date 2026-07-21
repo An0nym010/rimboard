@@ -1,6 +1,8 @@
 package com.rimboard.keyboard.engine
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
@@ -38,6 +40,7 @@ class UserData(context: Context) {
     private val bigramFile = File(dataDir(context), "bigrams.txt")
     private val trigramFile = File(dataDir(context), "trigrams.txt")
     private val io = Executors.newSingleThreadExecutor()
+    private val main = Handler(Looper.getMainLooper())
 
     private val learned = ConcurrentHashMap<String, Int>()
     private val blocked: MutableSet<String> = ConcurrentHashMap.newKeySet()
@@ -55,8 +58,15 @@ class UserData(context: Context) {
         io.execute { load() }
     }
 
-    /** Discard in-memory state and reload from disk (used after a backup import). */
-    fun reload() {
+    /**
+     * Discard in-memory state and reload from disk (used after a backup import).
+     *
+     * The reload is queued, not performed: [onLoaded] is how a caller that
+     * needs the data finds out it has arrived, and runs on the main thread.
+     * Reading straight after this call sees the cleared maps, not the file —
+     * which is what made the personal dictionary screen come up empty.
+     */
+    fun reload(onLoaded: (() -> Unit)? = null) {
         blocked.clear()
         loadBlocked()
         io.execute {
@@ -65,6 +75,7 @@ class UserData(context: Context) {
             trigrams.clear()
             dirty = false
             load()
+            onLoaded?.let { main.post(it) }
         }
     }
 
