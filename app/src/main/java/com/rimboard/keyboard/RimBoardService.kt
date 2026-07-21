@@ -153,6 +153,9 @@ class RimBoardService : InputMethodService(),
                 .removePrimaryClipChangedListener(it)
         }
         userData.flushBlocking()
+        // onFinishInputView flushes these too, but it is not guaranteed to run
+        // before the service goes away.
+        Stats.flush(this)
         super.onDestroy()
     }
 

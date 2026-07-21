@@ -81,7 +81,11 @@ object Stats {
                     .put("activeMs", activeMs).put("since", since)
                     .toString()
             )
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            // dirty was cleared before the attempt, so without this a single
+            // failed write would mean these counts are never saved again.
+            dirty = true
+            android.util.Log.w("RimBoard", "stats flush failed", e)
         }
     }
 

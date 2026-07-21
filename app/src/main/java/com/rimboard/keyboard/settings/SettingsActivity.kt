@@ -334,34 +334,51 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
+        /**
+         * Imports on a background thread and always reports back.
+         *
+         * This read, parsed and wrote the whole file on the main thread —
+         * dictionaries run to megabytes — and swallowed every failure without a
+         * toast, so a failed import was indistinguishable from the button
+         * simply not working.
+         */
         private fun importDict(uri: android.net.Uri) {
-            try {
-                val ctx = requireContext()
-                val lines = ctx.contentResolver.openInputStream(uri)
-                    ?.bufferedReader()?.use { it.readLines() } ?: return
-                var valid = 0
-                val out = StringBuilder()
-                for (line in lines) {
-                    val sp = line.indexOf(' ')
-                    if (sp > 0 && line.substring(sp + 1).trim().toIntOrNull() != null) {
-                        out.append(line.trim()).append('\n')
-                        valid++
-                    }
-                }
-                if (valid < 30) {
-                    android.widget.Toast.makeText(ctx, R.string.dict_invalid,
-                        android.widget.Toast.LENGTH_LONG).show()
-                    return
-                }
-                val lang = Prefs.currentLang(ctx) ?: "en"
-                java.io.File(com.rimboard.keyboard.engine.UserData.dataDir(ctx),
-                    "userdict_" + lang + ".txt").writeText(out.toString())
-                com.rimboard.keyboard.engine.DictVersion.v++
-                android.widget.Toast.makeText(ctx,
-                    getString(R.string.dict_saved, valid, lang),
-                    android.widget.Toast.LENGTH_LONG).show()
-            } catch (_: Exception) {
+            val ctx = requireContext().applicationContext
+            val lang = Prefs.currentLang(ctx) ?: "en"
+            val ui = android.os.Handler(android.os.Looper.getMainLooper())
+            fun toast(msg: String) = ui.post {
+                android.widget.Toast.makeText(ctx, msg, android.widget.Toast.LENGTH_LONG).show()
             }
+            Thread {
+                try {
+                    val lines = ctx.contentResolver.openInputStream(uri)
+                        ?.bufferedReader()?.use { it.readLines() }
+                    if (lines == null) {
+                        toast(ctx.getString(R.string.dict_invalid))
+                        return@Thread
+                    }
+                    var valid = 0
+                    val out = StringBuilder()
+                    for (line in lines) {
+                        val sp = line.indexOf(' ')
+                        if (sp > 0 && line.substring(sp + 1).trim().toIntOrNull() != null) {
+                            out.append(line.trim()).append('\n')
+                            valid++
+                        }
+                    }
+                    if (valid < 30) {
+                        toast(ctx.getString(R.string.dict_invalid))
+                        return@Thread
+                    }
+                    java.io.File(com.rimboard.keyboard.engine.UserData.dataDir(ctx),
+                        "userdict_" + lang + ".txt").writeText(out.toString())
+                    com.rimboard.keyboard.engine.DictVersion.v++
+                    toast(ctx.getString(R.string.dict_saved, valid, lang))
+                } catch (e: Exception) {
+                    android.util.Log.w("RimBoard", "dictionary import failed", e)
+                    toast(ctx.getString(R.string.dict_invalid))
+                }
+            }.start()
         }
 
         private fun saveBackgroundImage(uri: android.net.Uri) {
