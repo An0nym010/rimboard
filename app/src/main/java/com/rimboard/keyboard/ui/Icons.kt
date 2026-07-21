@@ -143,6 +143,15 @@ object Icons {
         vectorRes[SHARE] = R.drawable.ic_tool_share
         vectorRes[INCOGNITO] = R.drawable.ic_tool_incognito
         vectorRes[HIDE] = R.drawable.ic_tool_chevron_down
+        vectorRes[PIN] = R.drawable.ic_tool_pin
+        vectorRes[SEARCH] = R.drawable.ic_tool_search
+        vectorRes[PASTE] = R.drawable.ic_tool_paste
+        vectorRes[SELECT_ALL] = R.drawable.ic_tool_selectall
+        vectorRes[RESIZE] = R.drawable.ic_tool_resize
+        vectorRes[FLOATING] = R.drawable.ic_tool_floating
+        vectorRes[ONE_HANDED] = R.drawable.ic_tool_onehanded
+        vectorRes[EMOJI] = R.drawable.ic_tool_emoji
+        vectorRes[KEYBOARD] = R.drawable.ic_tool_keyboard
     }
 
     private fun vector(icon: Int): android.graphics.drawable.Drawable? {

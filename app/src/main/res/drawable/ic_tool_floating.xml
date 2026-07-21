@@ -1,0 +1,19 @@
+<!-- Lucide "picture-in-picture-2" — ISC, (c) 2026 Lucide Icons and Contributors. See NOTICE. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h4"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M14,13 h6 a2,2 0 0,1 2,2 v3 a2,2 0 0,1 -2,2 h-6 a2,2 0 0,1 -2,-2 v-3 a2,2 0 0,1 2,-2 z"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>
