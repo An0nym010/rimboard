@@ -121,7 +121,7 @@
     <string name="st_reset">Statistiken zurücksetzen</string>
     <string name="st_reset_confirm">Alle Tipp-Statistiken zurücksetzen? Das kann nicht rückgängig gemacht werden.</string>
     <string name="header_languages">Sprachen</string>
-    <string name="header_offline">100% offline</string>
+    <string name="header_offline" formatted="false">100% offline</string>
     <string name="screen_general">Einstellungen</string>
     <string name="screen_clipboard">Zwischenablage</string>
     <string name="pref_nr_pass_title">Zahlenreihe für Passwörter</string>

@@ -121,7 +121,7 @@
     <string name="st_reset">Azzera statistiche</string>
     <string name="st_reset_confirm">Azzerare tutte le statistiche? Operazione irreversibile.</string>
     <string name="header_languages">lingue</string>
-    <string name="header_offline">100% offline</string>
+    <string name="header_offline" formatted="false">100% offline</string>
     <string name="screen_general">Preferenze</string>
     <string name="screen_clipboard">Appunti</string>
     <string name="pref_nr_pass_title">Fila numeri per password</string>

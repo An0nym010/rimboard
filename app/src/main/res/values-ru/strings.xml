@@ -121,7 +121,7 @@
     <string name="st_reset">Сбросить статистику</string>
     <string name="st_reset_confirm">Сбросить всю статистику набора? Это нельзя отменить.</string>
     <string name="header_languages">языков</string>
-    <string name="header_offline">100% offline</string>
+    <string name="header_offline" formatted="false">100% offline</string>
     <string name="screen_general">Настройки</string>
     <string name="screen_clipboard">Буфер обмена</string>
     <string name="pref_nr_pass_title">Ряд цифр для паролей</string>

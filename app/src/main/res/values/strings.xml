@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">RimBoard</string>
-    <string name="subtype_en">English (RimBoard)</string>
-    <string name="subtype_tr">Türkçe (RimBoard)</string>
+    <string name="subtype_en" translatable="false">English (RimBoard)</string>
+    <string name="subtype_tr" translatable="false">Türkçe (RimBoard)</string>
 
     <!-- Setup -->
     <string name="setup_title">Welcome to RimBoard</string>
@@ -71,12 +71,12 @@
     <!-- In-keyboard -->
     <string name="incognito_label">Incognito · not learning</string>
     <string name="emoji_search">Search emoji</string>
-    <string name="subtype_de">Deutsch (RimBoard)</string>
-    <string name="subtype_es">Español (RimBoard)</string>
-    <string name="subtype_fr">Français (RimBoard)</string>
-    <string name="subtype_it">Italiano (RimBoard)</string>
-    <string name="subtype_pt">Português (RimBoard)</string>
-    <string name="subtype_ru">Русский (RimBoard)</string>
+    <string name="subtype_de" translatable="false">Deutsch (RimBoard)</string>
+    <string name="subtype_es" translatable="false">Español (RimBoard)</string>
+    <string name="subtype_fr" translatable="false">Français (RimBoard)</string>
+    <string name="subtype_it" translatable="false">Italiano (RimBoard)</string>
+    <string name="subtype_pt" translatable="false">Português (RimBoard)</string>
+    <string name="subtype_ru" translatable="false">Русский (RimBoard)</string>
     <string name="pref_glide_title">Glide typing</string>
     <string name="pref_glide_summary">Slide from letter to letter to type a word</string>
     <string name="cat_backup">Backup</string>
@@ -104,12 +104,12 @@
     <string name="timeout_never">Never</string>
     <string name="timeout_15m">After 15 minutes</string>
     <string name="timeout_1h">After 1 hour</string>
-    <string name="subtype_nl">Nederlands</string>
-    <string name="subtype_pl">Polski</string>
-    <string name="subtype_sv">Svenska</string>
-    <string name="subtype_id">Bahasa Indonesia</string>
-    <string name="subtype_ro">Română</string>
-    <string name="subtype_cs">Čeština</string>
+    <string name="subtype_nl" translatable="false">Nederlands</string>
+    <string name="subtype_pl" translatable="false">Polski</string>
+    <string name="subtype_sv" translatable="false">Svenska</string>
+    <string name="subtype_id" translatable="false">Bahasa Indonesia</string>
+    <string name="subtype_ro" translatable="false">Română</string>
+    <string name="subtype_cs" translatable="false">Čeština</string>
     <string name="suggestion_remove">Remove \"%1$s\"</string>
     <string name="cat_suggestions">Suggestions</string>
     <string name="pref_personal_dict_title">Personal dictionary</string>
@@ -141,16 +141,16 @@
     <string name="st_since">Counting since %1$s</string>
     <string name="st_reset">Reset statistics</string>
     <string name="st_reset_confirm">Reset all typing statistics? This cannot be undone.</string>
-    <string name="subtype_da">Dansk (RimBoard)</string>
-    <string name="subtype_no">Norsk (RimBoard)</string>
-    <string name="subtype_fi">Suomi (RimBoard)</string>
-    <string name="subtype_hu">Magyar (RimBoard)</string>
-    <string name="subtype_uk">Українська (RimBoard)</string>
-    <string name="subtype_el">Ελληνικά (RimBoard)</string>
-    <string name="subtype_hr">Hrvatski (RimBoard)</string>
-    <string name="subtype_sk">Slovenčina (RimBoard)</string>
+    <string name="subtype_da" translatable="false">Dansk (RimBoard)</string>
+    <string name="subtype_no" translatable="false">Norsk (RimBoard)</string>
+    <string name="subtype_fi" translatable="false">Suomi (RimBoard)</string>
+    <string name="subtype_hu" translatable="false">Magyar (RimBoard)</string>
+    <string name="subtype_uk" translatable="false">Українська (RimBoard)</string>
+    <string name="subtype_el" translatable="false">Ελληνικά (RimBoard)</string>
+    <string name="subtype_hr" translatable="false">Hrvatski (RimBoard)</string>
+    <string name="subtype_sk" translatable="false">Slovenčina (RimBoard)</string>
     <string name="header_languages">languages</string>
-    <string name="header_offline">100% offline</string>
+    <string name="header_offline" formatted="false">100% offline</string>
     <string name="st_wpm_short">WPM</string>
     <string name="screen_general">Preferences</string>
     <string name="screen_clipboard">Clipboard</string>

@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">RimBoard</string>
-    <string name="subtype_en">English (RimBoard)</string>
-    <string name="subtype_tr">Türkçe (RimBoard)</string>
 
     <!-- Kurulum -->
     <string name="setup_title">RimBoard\'a hoş geldin</string>
@@ -140,7 +138,7 @@
     <string name="st_reset">İstatistikleri sıfırla</string>
     <string name="st_reset_confirm">Tüm yazma istatistikleri sıfırlansın mı? Bu geri alınamaz.</string>
     <string name="header_languages">dil</string>
-    <string name="header_offline">100% çevrimdışı</string>
+    <string name="header_offline" formatted="false">100% çevrimdışı</string>
     <string name="screen_general">Tercihler</string>
     <string name="screen_clipboard">Pano</string>
     <string name="pref_nr_pass_title">Şifreler için sayı satırı</string>

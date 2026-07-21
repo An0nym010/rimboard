@@ -121,7 +121,7 @@
     <string name="st_reset">Restablecer estadísticas</string>
     <string name="st_reset_confirm">¿Restablecer todas las estadísticas? No se puede deshacer.</string>
     <string name="header_languages">idiomas</string>
-    <string name="header_offline">100% offline</string>
+    <string name="header_offline" formatted="false">100% offline</string>
     <string name="screen_general">Preferencias</string>
     <string name="screen_clipboard">Portapapeles</string>
     <string name="pref_nr_pass_title">Fila de números para contraseñas</string>

@@ -31,6 +31,12 @@ jobs:
           chmod +x gradlew
           ./gradlew testDebugUnitTest --no-daemon
 
+      # Fails the build on lint's error-severity issues. Missing translations
+      # and format-string mismatches are errors, and both are invisible until
+      # the string is shown to someone in that language.
+      - name: Lint
+        run: ./gradlew lintDebug --no-daemon
+
       - name: Build debug APK
         run: ./gradlew assembleDebug --no-daemon
 
