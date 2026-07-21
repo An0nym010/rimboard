@@ -926,8 +926,16 @@ class KeyboardView(context: Context) : View(context) {
         if (handleGutterTap(x, y)) return
         // Rollover typing: when a new finger lands, flush every still-held key
         // so keys commit in press order, not release order (GBoard behavior).
-        for (i in 0 until pointers.size()) {
-            val held = pointers.valueAt(i)
+        //
+        // Snapshot before flushing: each branch below runs arbitrary listener
+        // code, and a held key that rebuilds the input view — floating mode, or
+        // settings hiding the keyboard — detaches this view, whose
+        // onDetachedFromWindow calls cancelAll and empties `pointers` mid-loop.
+        // The range fixes its bound up front, so valueAt would then index past
+        // the end: SparseArray throws ArrayIndexOutOfBounds for that on API 31+.
+        val stillHeld = ArrayList<PointerState>(pointers.size())
+        for (i in 0 until pointers.size()) stillHeld.add(pointers.valueAt(i))
+        for (held in stillHeld) {
             if (held.cancelled || held.cursorMode) continue
             if (held.popupOpen) {
                 commitPopup(held)

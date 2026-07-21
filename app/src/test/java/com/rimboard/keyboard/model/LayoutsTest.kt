@@ -104,6 +104,36 @@ class LayoutsTest {
         }
     }
 
+    /**
+     * The spacebar is dispatched on its code, never as an ordinary character.
+     *
+     * [Codes.SPACE] is 32 — the ' ' code point itself, so it is *positive* and
+     * indistinguishable from a character key by sign alone. The service's
+     * `when (key.code)` catches it well before the `else` branch that types a
+     * label, which is why a space-handling branch written on the character path
+     * ("leave symbols after space") silently never ran. Anything that reasons
+     * about the spacebar has to go through the code, so pin it here.
+     */
+    @Test
+    fun `both symbol planes have a spacebar and it carries Codes SPACE`() {
+        val planes = mainLayouts(globe = true) + listOf(
+            "symbols" to Layouts.symbols(Locale.ENGLISH),
+            "symbols2" to Layouts.symbols2(Locale.ENGLISH)
+        )
+        val problems = ArrayList<String>()
+        for ((name, lay) in planes) {
+            val spaces = rowsKeys(lay).filter { it.type == KeyType.SPACE }
+            if (spaces.isEmpty()) {
+                problems.add("$name: no spacebar")
+                continue
+            }
+            for (k in spaces) {
+                if (k.code != Codes.SPACE) problems.add("$name: spacebar has code ${k.code}")
+            }
+        }
+        assertTrue(problems.joinToString("\n"), problems.isEmpty())
+    }
+
     @Test
     fun `popup alternatives are never declared empty`() {
         // An empty popup list opens a panel with nothing in it.

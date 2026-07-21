@@ -46,6 +46,17 @@ Release notes for every RimBoard version. The current release is summarised in t
   correctly switched off and the bar was otherwise idle.
 
 **Fixes and stability**
+- "Leave symbols after space" works. The setting has shipped switched on and
+  doing nothing: its one implementation sat on the code path for ordinary
+  character keys, which the spacebar never takes.
+- Opening emoji, the clipboard or the editing panel from the toolbar drawer
+  while the tools panel is open now actually shows them. The tools panel is
+  the topmost panel and none of the three hid it, so the new panel was drawn
+  underneath and the keyboard looked stuck.
+- Fixed a crash when a held key rebuilt the keyboard (floating mode, or
+  settings hiding it) while a second finger was landing.
+- Fixed a crash when dragging a row in the toolbar arranger if the list was
+  mid-relayout.
 - Fixed a data race between the background dictionary warm-up and the UI
   thread that could corrupt the prediction cache.
 - Held key repeat no longer survives the keyboard being replaced — a rotation

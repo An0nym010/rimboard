@@ -756,11 +756,6 @@ class RimBoardService : InputMethodService(),
             commitTextRaw(text)
         }
         consumeAutoShift()
-            if (raw == " " && Prefs.symbolsReturn(this) && (kind == LayoutKind.SYMBOLS || kind == LayoutKind.SYMBOLS2)) {
-            kind = LayoutKind.MAIN
-            applyLayout()
-            updateShiftState()
-        }
     }
 
     private fun applyShift(label: String): String {
@@ -868,11 +863,31 @@ class RimBoardService : InputMethodService(),
                 autoSpace = false
                 glideWords = emptyList()
                 afterEdit()
+                leaveSymbolsAfterSpace()
                 return
             }
         }
         lastSpaceTime = now
         handleSeparator(" ")
+        leaveSymbolsAfterSpace()
+    }
+
+    /**
+     * "Leave symbols after space": the symbols planes are for the odd character,
+     * so a space goes back to letters.
+     *
+     * This lived in [typeText], which the spacebar never reaches. Every layout
+     * builds its spacebar with [Codes.SPACE], and that is 32 — a positive code,
+     * matched by the `when` in [onKeyPressed] long before the `else` branch that
+     * calls [typeText]. So the preference has shipped defaulting to on and doing
+     * nothing at all.
+     */
+    private fun leaveSymbolsAfterSpace() {
+        if (kind != LayoutKind.SYMBOLS && kind != LayoutKind.SYMBOLS2) return
+        if (!Prefs.symbolsReturn(this)) return
+        kind = LayoutKind.MAIN
+        applyLayout()
+        updateShiftState()
     }
 
     private fun handleBackspace() {
@@ -1463,20 +1478,36 @@ class RimBoardService : InputMethodService(),
             .start()
     }
 
-    private fun showEmoji() {
+    /**
+     * Sizes [panel] to the keyboard and reveals it as the only thing over it.
+     *
+     * Each of the four openers used to hide the panels it happened to know
+     * about, and three of them forgot the toolbar panel — which is the last
+     * child added to the frame, so it sits on top of every other one. The strip
+     * stays visible and tappable while a panel is up, so opening emoji from the
+     * drawer with the toolbar panel showing drew the emoji grid underneath it
+     * and left the keyboard looking stuck. Hiding by exclusion cannot go stale
+     * the way four hand-maintained lists did.
+     */
+    private fun revealPanel(panel: View) {
         val kv = keyboardView ?: return
+        val lp = panel.layoutParams as FrameLayout.LayoutParams
+        lp.height = kv.measureKeyboardHeight()
+        panel.layoutParams = lp
+        for (other in arrayOf(emojiView, clipboardView, editPanelView, toolbarPanel)) {
+            if (other !== panel) other?.visibility = View.GONE
+        }
+        kv.visibility = View.GONE
+        panel.visibility = View.VISIBLE
+        animatePanelIn(panel)
+    }
+
+    private fun showEmoji() {
         val ev = emojiView ?: return
         finishComposingSilently()
-        val lp = ev.layoutParams as FrameLayout.LayoutParams
-        lp.height = kv.measureKeyboardHeight()
-        ev.layoutParams = lp
         ev.setSearchLang(currentLangCode())
         ev.setRecents(if (isIncognito()) emptyList() else Prefs.emojiRecents(this))
-        clipboardView?.visibility = View.GONE
-        editPanelView?.visibility = View.GONE
-        kv.visibility = View.GONE
-        ev.visibility = View.VISIBLE
-        animatePanelIn(ev)
+        revealPanel(ev)
     }
 
     private fun hideEmoji() {
@@ -1490,18 +1521,10 @@ class RimBoardService : InputMethodService(),
     // ------------------------------------------------------------ clipboard
 
     private fun showClipPanel() {
-        val kv = keyboardView ?: return
         val cv = clipboardView ?: return
         finishComposingSilently()
-        val lp = cv.layoutParams as FrameLayout.LayoutParams
-        lp.height = kv.measureKeyboardHeight()
-        cv.layoutParams = lp
         updateClipView()
-        emojiView?.visibility = View.GONE
-        editPanelView?.visibility = View.GONE
-        kv.visibility = View.GONE
-        cv.visibility = View.VISIBLE
-        animatePanelIn(cv)
+        revealPanel(cv)
     }
 
     private fun updateClipView() {
@@ -1510,19 +1533,11 @@ class RimBoardService : InputMethodService(),
     }
 
     private fun showEditPanel() {
-        val kv = keyboardView ?: return
         val ep = editPanelView ?: return
         finishComposingSilently()
-        val lp = ep.layoutParams as FrameLayout.LayoutParams
-        lp.height = kv.measureKeyboardHeight()
-        ep.layoutParams = lp
         editSelectMode = false
         ep.setSelectOn(false)
-        emojiView?.visibility = View.GONE
-        clipboardView?.visibility = View.GONE
-        kv.visibility = View.GONE
-        ep.visibility = View.VISIBLE
-        animatePanelIn(ep)
+        revealPanel(ep)
     }
 
     private fun pinnedFile() = File(UserData.dataDir(this), "pinned_clips.json")
@@ -1771,20 +1786,10 @@ class RimBoardService : InputMethodService(),
 
     /** Reached from the "All tools" tool rather than the chevron. */
     private fun showToolbarPanel() {
-        val kv = keyboardView ?: return
         val tp = toolbarPanel ?: return
         finishComposingSilently()
-        val lp = tp.layoutParams as FrameLayout.LayoutParams
-        lp.height = kv.measureKeyboardHeight()
-        tp.layoutParams = lp
         tp.setTools(pinnedTools())
-        emojiView?.visibility = View.GONE
-        clipboardView?.visibility = View.GONE
-        editPanelView?.visibility = View.GONE
-        toolbarPanel?.visibility = View.GONE
-        kv.visibility = View.GONE
-        tp.visibility = View.VISIBLE
-        animatePanelIn(tp)
+        revealPanel(tp)
     }
 
     private fun hideToolbarPanel() {
