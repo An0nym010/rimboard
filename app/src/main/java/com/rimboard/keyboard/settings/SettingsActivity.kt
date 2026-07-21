@@ -413,7 +413,7 @@ class SettingsActivity : AppCompatActivity() {
                 try {
                     val bytes = ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() }
                     if (bytes == null) {
-                        toast(R.string.bg_removed)
+                        toast(R.string.bg_invalid)
                         return@Thread
                     }
                     val bounds = android.graphics.BitmapFactory.Options()
@@ -428,7 +428,7 @@ class SettingsActivity : AppCompatActivity() {
                     val decoded =
                         android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
                     if (decoded == null) {
-                        toast(R.string.bg_removed)
+                        toast(R.string.bg_invalid)
                         return@Thread
                     }
                     bm = decoded
@@ -441,7 +441,7 @@ class SettingsActivity : AppCompatActivity() {
                     toast(R.string.bg_saved)
                 } catch (e: Exception) {
                     android.util.Log.w("RimBoard", "background image save failed", e)
-                    toast(R.string.bg_removed)
+                    toast(R.string.bg_invalid)
                 } finally {
                     // Recycled even when compress throws, which previously left
                     // a full-size bitmap alive until the collector noticed.
@@ -457,30 +457,55 @@ class SettingsActivity : AppCompatActivity() {
         }
 
 
+        /**
+         * Export and restore both run off the main thread, for the same reason
+         * the dictionary import and the background image above them do: a
+         * backup carries the entire learned word list plus the bigram and
+         * trigram models, so serialising it to JSON, or parsing it and writing
+         * five files back, is not work to do on the UI thread. These two were
+         * the pair that got missed.
+         */
         private fun runExport(uri: Uri) {
-            val ok = Backup.export(requireContext(), uri)
-            Toast.makeText(
-                requireContext(),
-                if (ok) R.string.backup_export_ok else R.string.backup_export_fail,
-                Toast.LENGTH_SHORT
-            ).show()
+            val ctx = requireContext().applicationContext
+            val ui = android.os.Handler(android.os.Looper.getMainLooper())
+            Thread {
+                val ok = Backup.export(ctx, uri)
+                ui.post {
+                    Toast.makeText(
+                        ctx,
+                        if (ok) R.string.backup_export_ok else R.string.backup_export_fail,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }.start()
         }
 
         private fun confirmRestore(uri: Uri) {
             AlertDialog.Builder(requireContext())
                 .setTitle(R.string.import_confirm_title)
                 .setMessage(R.string.import_confirm_msg)
-                .setPositiveButton(R.string.action_restore) { _, _ ->
-                    val ok = Backup.restore(requireContext(), uri)
+                .setPositiveButton(R.string.action_restore) { _, _ -> runRestore(uri) }
+                .setNegativeButton(R.string.action_cancel, null)
+                .show()
+        }
+
+        private fun runRestore(uri: Uri) {
+            val ctx = requireContext().applicationContext
+            val ui = android.os.Handler(android.os.Looper.getMainLooper())
+            Thread {
+                val ok = Backup.restore(ctx, uri)
+                ui.post {
                     Toast.makeText(
-                        requireContext(),
+                        ctx,
                         if (ok) R.string.backup_import_ok else R.string.backup_import_fail,
                         Toast.LENGTH_SHORT
                     ).show()
-                    if (ok) requireActivity().recreate()
+                    // Recreating is how the restored values reach the screen:
+                    // every preference re-reads its stored value. Skipped if the
+                    // fragment went away while the restore was running.
+                    if (ok && isAdded) activity?.recreate()
                 }
-                .setNegativeButton(R.string.action_cancel, null)
-                .show()
+            }.start()
         }
     }
 }

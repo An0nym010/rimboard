@@ -156,6 +156,7 @@
     <string name="pref_bg_clear_title">Hintergrundbild entfernen</string>
     <string name="bg_saved">Hintergrund angewendet</string>
     <string name="bg_removed">Hintergrund entfernt</string>
+    <string name="bg_invalid">Bild konnte nicht gelesen werden</string>
     <string name="tb_undo">Rückgängig</string>
     <string name="tb_redo">Wiederholen</string>
     <string name="tb_copy">Kopieren</string>

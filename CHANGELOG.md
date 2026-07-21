@@ -65,6 +65,11 @@ Release notes for every RimBoard version. The current release is summarised in t
   load off disk had finished, so it opened saying you had none.
 - Text shortcuts restored from a backup now take effect immediately instead
   of waiting for the keyboard process to be killed.
+- Picking an image the phone cannot decode now says so, instead of reporting
+  "Background removed" — which was both wrong and the opposite of what had
+  happened, since the old background was still in place.
+- Exporting and restoring a backup no longer freeze the settings screen while
+  they work.
 - The Theme tool cycles through all thirteen themes. It held its own copy of
   the list, six palettes out of date, so Ocean through Mint were unreachable
   — and starting on one of them threw you back to System with no way in.

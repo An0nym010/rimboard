@@ -156,6 +156,7 @@
     <string name="pref_bg_clear_title">Retirer l\'image d\'arrière-plan</string>
     <string name="bg_saved">Arrière-plan appliqué</string>
     <string name="bg_removed">Arrière-plan retiré</string>
+    <string name="bg_invalid">Impossible de lire cette image</string>
     <string name="tb_undo">Annuler</string>
     <string name="tb_redo">Rétablir</string>
     <string name="tb_copy">Copier</string>

@@ -186,6 +186,7 @@
     <string name="pref_bg_clear_title">Remove background image</string>
     <string name="bg_saved">Background applied</string>
     <string name="bg_removed">Background removed</string>
+    <string name="bg_invalid">Could not read that image</string>
     <string name="screen_advanced">Advanced</string>
     <string name="pref_split_title">Split keyboard</string>
     <string name="split_off">Off</string>

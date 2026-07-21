@@ -173,6 +173,7 @@
     <string name="pref_bg_clear_title">Arka plan görselini kaldır</string>
     <string name="bg_saved">Arka plan uygulandı</string>
     <string name="bg_removed">Arka plan kaldırıldı</string>
+    <string name="bg_invalid">Görsel okunamadı</string>
     <string name="screen_advanced">Gelişmiş</string>
     <string name="pref_split_title">Bölünmüş klavye</string>
     <string name="split_off">Kapalı</string>
