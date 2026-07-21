@@ -96,7 +96,13 @@ The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
   field that requests no personalized learning (e.g. browsers' private tabs).
 - Learned words live in two plain-text files in the app's private storage.
   You can wipe them anytime from Settings → "Delete learned data".
-- `allowBackup=false`, so learned words are never uploaded to device backups.
+- Nothing is uploaded to device backups or copied during a phone-to-phone
+  transfer. `allowBackup=false` covers Android 11 and below; from Android 12
+  that attribute is deprecated, so `res/xml/data_extraction_rules.xml` states
+  the same thing in the form those releases actually read. It excludes the
+  `device_*` domains too, which is where the learned words really are — the
+  keyboard keeps them in device-protected storage so it works on the lock
+  screen, and a rule set covering only the ordinary domains would miss them.
 - Built-in **Export / Import backup** (Settings → Backup): everything —
   settings, learned words, predictions — goes into one JSON file you control,
   written through the system file picker. Move it between devices yourself;

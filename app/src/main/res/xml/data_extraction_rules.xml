@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Nothing RimBoard stores may leave the device — not to a cloud backup, and
+    not to a new phone during a device-to-device transfer.
+
+    android:allowBackup="false" already says this, and is what devices below
+    Android 12 honour, so it stays in the manifest. But it is deprecated from
+    Android 12 and documented as removable, and the day it goes the default
+    would be to back everything up. What "everything" means here is the learned
+    word list, the n-gram model of how this person writes, their pinned
+    clipboard entries, their text shortcuts and their typing statistics.
+
+    Every domain is excluded explicitly, including the device_* ones. That
+    matters more than it looks: RimBoard keeps all of it in device-protected
+    storage so the keyboard works on the lock screen before first unlock, and
+    device-protected files are the device_file / device_sharedpref domains, not
+    the file / sharedpref domains a rule set would otherwise cover.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+        <exclude domain="device_root" />
+        <exclude domain="device_file" />
+        <exclude domain="device_database" />
+        <exclude domain="device_sharedpref" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+        <exclude domain="device_root" />
+        <exclude domain="device_file" />
+        <exclude domain="device_database" />
+        <exclude domain="device_sharedpref" />
+    </device-transfer>
+</data-extraction-rules>
