@@ -65,6 +65,12 @@ Release notes for every RimBoard version. The current release is summarised in t
   load off disk had finished, so it opened saying you had none.
 - Text shortcuts restored from a backup now take effect immediately instead
   of waiting for the keyboard process to be killed.
+- Emoji that are drawn as plain glyphs rather than colour pictures (⏸ 🕳 🗣
+  and friends) now follow the keyboard theme. They were taking their colour
+  from the system light/dark setting instead, so they could come out black
+  on a black keyboard.
+- The skin-tone popup and the "remove word" popup close with the keyboard
+  instead of outliving it.
 - Picking an image the phone cannot decode now says so, instead of reporting
   "Background removed" — which was both wrong and the opposite of what had
   happened, since the old background was still in place.

@@ -148,6 +148,7 @@ class RimBoardService : InputMethodService(),
     }
 
     override fun onDestroy() {
+        dismissPopups()
         clipChangedListener?.let {
             (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
                 .removePrimaryClipChangedListener(it)
@@ -163,6 +164,9 @@ class RimBoardService : InputMethodService(),
     override fun onEvaluateFullscreenMode(): Boolean = false
 
     override fun onCreateInputView(): View {
+        // A rotation or a floating-mode toggle rebuilds the input view, and any
+        // popup still up is anchored to the one being replaced.
+        dismissPopups()
         val ctx = L10n.wrap(this)
         val root = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
         val s = SuggestionStripView(ctx).apply { listener = this@RimBoardService }
@@ -322,6 +326,9 @@ class RimBoardService : InputMethodService(),
 
     override fun onFinishInputView(finishingInput: Boolean) {
         super.onFinishInputView(finishingInput)
+        // Before anything else: the popup is anchored to the input view that is
+        // now going away, and outliving its window token is what leaks it.
+        dismissPopups()
         composing.setLength(0)
         userData.saveIfDirty()
         Stats.flush(this)
@@ -1701,7 +1708,24 @@ class RimBoardService : InputMethodService(),
             pw.dismiss()
             updateStrip()
         }
+        blockWordPopup?.dismiss()
+        blockWordPopup = pw
+        pw.setOnDismissListener { if (blockWordPopup === pw) blockWordPopup = null }
         pw.showAsDropDown(anchor, 0, -(anchor.height * 5) / 2)
+    }
+
+    /**
+     * The block-word popup, held so the keyboard can take it down with itself.
+     *
+     * It hangs off the input view's window token. Nothing dismissed it when the
+     * keyboard went away, so hiding the IME with it open leaked the window and
+     * could leave the chip drawn over whatever the user went to next.
+     */
+    private var blockWordPopup: PopupWindow? = null
+
+    private fun dismissPopups() {
+        blockWordPopup?.dismiss()
+        blockWordPopup = null
     }
 
     override fun onQuickEmoji(emoji: String) {
