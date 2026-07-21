@@ -40,14 +40,22 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug --no-daemon
 
+      # Built on every push, not just tags, so a release-only break shows up
+      # here rather than at the moment someone cuts a release.
+      - name: Build release APK
+        run: ./gradlew assembleRelease --no-daemon
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: RimBoard-debug
           path: app/build/outputs/apk/debug/app-debug.apk
 
+      # Releases must carry the release build. The debug one is debuggable,
+      # which on a keyboard means anything on the device can attach to the
+      # process that sees every keystroke.
       - name: Attach APK to release (tags only)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/debug/app-debug.apk
+          files: app/build/outputs/apk/release/app-release.apk

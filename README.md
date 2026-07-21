@@ -62,9 +62,9 @@ The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
   it, or hold and drag it between the two sections. It is itself a pinnable
   tool, and long-pressing the chevron always opens it.
 - Long-press the comma key for a quick 😊 shortcut.
-- ◨ **One-handed mode** — shrink the keyboard to either side (toolbar → ◨); a
+- ◨ **One-handed mode** — shrink the keyboard to either side (drawer → ◨); a
   rail switches sides or expands back. Auto-off in landscape.
-- 📋 **Clipboard history** — last 10 copied items (toolbar → 📋, or long-press
+- 📋 **Clipboard history** — last 10 copied items (drawer → 📋, or long-press
   the paste chip). Kept in RAM only, never written to disk, cleared when the
   keyboard process ends, disabled in incognito, 🗑 wipes it instantly.
 
@@ -77,7 +77,7 @@ The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
 **Privacy**
 - **Zero permissions.** No `INTERNET`, no contacts, no microphone — nothing.
   Feel free to verify the manifest.
-- **Incognito mode** (🕶): open the toolbar → 🕶, or enable
+- **Incognito mode** (🕶): open the drawer → 🕶, or enable
   "Always incognito" in settings. While active the keyboard learns nothing,
   suggests nothing personal, and records no emoji history.
 - Incognito also turns itself on automatically in password fields and in any
@@ -98,8 +98,9 @@ The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
    the `RimBoard-debug` artifact.
 3. Copy `app-debug.apk` to your phone and install it (allow "install unknown
    apps" for your file manager if asked).
-4. Tagging a commit `v1.0` (or any `v*`) also attaches the APK to a GitHub
-   Release automatically.
+4. Tagging a commit `v1.0` (or any `v*`) attaches the **release** APK to a
+   GitHub Release automatically. Release builds are not debuggable; the debug
+   artifact above is, so it is for testing rather than for handing to anyone.
 
 ### Option B — Android Studio
 Open the project, let Gradle sync, then **Build → Build APK(s)**, or:
@@ -140,8 +141,12 @@ Adding a whole new language also needs a layout in
 - After publishing your fork, update the GitHub URL in
   `app/src/main/res/xml/preferences.xml` (the "Source code" preference) so
   the settings link points at your repository.
-- Debug builds are signed with the debug key. For Play/F-Droid distribution
-  you'd add a release signing config; for personal use the debug APK is fine.
+- Release builds are signed with your own key when `rimboard.keystore` and
+  friends are set (in `~/.gradle/gradle.properties`, or as `RIMBOARD_KEYSTORE`
+  / `_PASSWORD` / `_KEY_ALIAS` / `_KEY_PASSWORD` environment variables), and
+  fall back to the debug key otherwise. The fallback is fine for personal use, but a
+  build signed with the shared debug key carries no proof of who made it, so
+  set a real key before distributing to anyone else.
 
 ## Roadmap / not implemented yet
 
