@@ -68,6 +68,11 @@ Release notes for every RimBoard version. The current release is summarised in t
   settings hiding it) while a second finger was landing.
 - Fixed a crash when dragging a row in the toolbar arranger if the list was
   mid-relayout.
+- "Auto-space after punctuation" no longer inserts a space that was not
+  asked for. Its pending state survived pressing space, pressing enter, and
+  even moving to another app's text field, so the next letter you typed got
+  a space in front of it — a doubled space mid-sentence, or a stray one at
+  the start of an empty field.
 - Typing statistics format their numbers and the "since" date in the
   interface language you picked, rather than the phone's language.
 - The personal dictionary screen shows your words. It read them before the

@@ -737,10 +737,33 @@ class RimBoardService : InputMethodService(),
 
     private fun isSeparator(c: Char): Boolean = c == ' ' || c in ".,;:!?)]}\u2026"
 
+    /**
+     * Whether the cursor really does sit straight after sentence punctuation.
+     *
+     * [pendingPunctSpace] is armed by typing punctuation and cleared by typing
+     * something else or backspacing — and by nothing else at all. Not the space
+     * key, not enter, not a suggestion, not a pasted clip, not even focusing a
+     * different field. So it stayed armed across all of those and the next
+     * letter typed got a space in front of it: "Hi." then space then "there"
+     * gave "Hi.  there", enter gave a line starting with a space, and switching
+     * apps could put a stray space at the front of an empty field.
+     *
+     * Asking the field is one call, and only on the letter-after-punctuation
+     * path — at most once a sentence, never per keystroke. The alternative was
+     * clearing the flag in the ten-odd places that commit text by another
+     * route, which is the arrangement that produced this in the first place.
+     */
+    private fun cursorFollowsPunctuation(): Boolean {
+        val before = currentInputConnection?.getTextBeforeCursor(1, 0) ?: return false
+        return before.length == 1 && before[0] in ".,!?;:"
+    }
+
     private fun typeText(raw: String) {
         if (raw.length == 1) {
             val ch = raw[0]
-            if (pendingPunctSpace && ch.isLetter()) currentInputConnection?.commitText(" ", 1)
+            if (pendingPunctSpace && ch.isLetter() && cursorFollowsPunctuation()) {
+                currentInputConnection?.commitText(" ", 1)
+            }
             pendingPunctSpace = Prefs.autoSpacePunct(this) && ch in ".,!?;:"
         } else {
             pendingPunctSpace = false
