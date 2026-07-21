@@ -58,6 +58,15 @@ android {
         }
     }
 
+    lint {
+        // An unused string is how a removed preference leaves a trace: the
+        // title, summary and option list stay behind, still translated into
+        // every language, while the accessor that fed them sits in Prefs
+        // looking live. Twenty-one of these had accumulated as a warning
+        // nobody read. Failing the build keeps that from happening again.
+        error += "UnusedResources"
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

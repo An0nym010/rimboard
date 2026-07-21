@@ -387,7 +387,6 @@ class RimBoardService : InputMethodService(),
         keyboardView?.let { kv ->
             kv.theme = t
             kv.previewEnabled = Prefs.popupPreview(this)
-            kv.spaceCursorEnabled = Prefs.spaceCursor(this)
             kv.glideEnabled = Prefs.glide(this)
             when (Prefs.repeatSpeed(this)) {
                 "slow" -> { kv.repeatInitialMs = 420L; kv.repeatIntervalMs = 70L }

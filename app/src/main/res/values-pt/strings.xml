@@ -16,7 +16,6 @@
     <string name="setup_pending">Pendente</string>
     <string name="setup_test_hint">Experimente digitar aqui…</string>
     <string name="settings_title">Configurações do RimBoard</string>
-    <string name="cat_languages">Idiomas</string>
     <string name="pref_languages_title">Idiomas ativos</string>
     <string name="pref_languages_summary">Troque com a tecla 🌐 ou segure a vírgula</string>
     <string name="cat_look">Aparência</string>
@@ -43,7 +42,6 @@
     <string name="pref_number_row_summary">Mostrar uma fileira 1–0 dedicada no topo</string>
     <string name="pref_popup_title">Balão ao tocar</string>
     <string name="pref_popup_summary">Mostrar um balão sobre a tecla pressionada</string>
-    <string name="cat_typing">Digitação</string>
     <string name="pref_autocaps_title">Maiúsculas automáticas</string>
     <string name="pref_autocaps_summary">Colocar em maiúscula a primeira palavra das frases</string>
     <string name="pref_autocorrect_title">Correção automática</string>
@@ -54,9 +52,6 @@
     <string name="pref_predictions_summary">Sugerir a próxima palavra com base no seu próprio histórico</string>
     <string name="pref_double_space_title">Ponto com espaço duplo</string>
     <string name="pref_double_space_summary">Toque espaço duas vezes para inserir um ponto</string>
-    <string name="pref_space_cursor_title">Cursor pela barra de espaço</string>
-    <string name="pref_space_cursor_summary">Deslize sobre a barra de espaço para mover o cursor</string>
-    <string name="cat_feedback">Resposta das teclas</string>
     <string name="pref_haptic_title">Vibração ao tocar</string>
     <string name="pref_haptic_summary">Aciona o vibrador diretamente, então funciona mesmo com o feedback tátil do sistema desativado</string>
     <string name="pref_sound_title">Som ao tocar</string>
@@ -100,8 +95,6 @@
     <string name="ui_lang_system">Padrão do sistema</string>
     <string name="edit_title">Editar texto</string>
     <string name="edit_select">Selecionar</string>
-    <string name="pref_quick_actions_title">Barra de ações rápidas</string>
-    <string name="pref_quick_actions_summary">Mostrar ícones de atalho na barra de sugestões quando estiver vazia</string>
     <string name="pref_clip_timeout_title">Limpar área de transferência automaticamente</string>
     <string name="timeout_never">Nunca</string>
     <string name="timeout_15m">Após 15 minutos</string>
@@ -143,14 +136,6 @@
     <string name="screen_clipboard">Área de transferência</string>
     <string name="pref_nr_pass_title">Linha de números para senhas</string>
     <string name="pref_nr_pass_summary">Sempre mostrar a linha de números em campos de senha</string>
-    <string name="pref_longpress_title">Atraso do toque longo</string>
-    <string name="lp_short">Curto</string>
-    <string name="lp_normal">Padrão</string>
-    <string name="lp_long">Longo</string>
-    <string name="pref_label_size_title">Tamanho do texto das teclas</string>
-    <string name="ls_small">Pequeno</string>
-    <string name="ls_normal">Padrão</string>
-    <string name="ls_large">Grande</string>
     <string name="pref_autospace_title">Espaço após pontuação</string>
     <string name="pref_autospace_summary">Inserir espaço quando uma letra segue . , ! ?</string>
     <string name="pref_emoji_row_title">Linha rápida de emojis</string>
@@ -253,8 +238,6 @@
     <string name="font_invalid">Arquivo de fonte inválido</string>
     <string name="dict_saved">%1$d palavras importadas para %2$s</string>
     <string name="dict_invalid">São necessárias pelo menos 30 linhas “palavra frequência”</string>
-    <string name="a11y_toolbar_open">Abrir barra de ferramentas</string>
-    <string name="a11y_toolbar_close">Fechar barra de ferramentas</string>
     <string name="a11y_key_shift">Shift</string>
     <string name="a11y_key_caps">Caps lock</string>
     <string name="a11y_key_backspace">Apagar</string>

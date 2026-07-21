@@ -22,7 +22,6 @@
 
     <!-- Settings -->
     <string name="settings_title">RimBoard settings</string>
-    <string name="cat_languages">Languages</string>
     <string name="pref_languages_title">Active languages</string>
     <string name="pref_languages_summary">Switch with the 🌐 key or long-press comma</string>
     <string name="cat_look">Look and feel</string>
@@ -49,7 +48,6 @@
     <string name="pref_number_row_summary">Show a dedicated 1–0 row on top</string>
     <string name="pref_popup_title">Popup on keypress</string>
     <string name="pref_popup_summary">Show a bubble above the pressed key</string>
-    <string name="cat_typing">Typing</string>
     <string name="pref_autocaps_title">Auto-capitalization</string>
     <string name="pref_autocaps_summary">Capitalize the first word of sentences</string>
     <string name="pref_autocorrect_title">Auto-correction</string>
@@ -60,9 +58,6 @@
     <string name="pref_predictions_summary">Suggest the next word from your own typing history</string>
     <string name="pref_double_space_title">Double-space period</string>
     <string name="pref_double_space_summary">Tap space twice to insert “. ”</string>
-    <string name="pref_space_cursor_title">Spacebar cursor control</string>
-    <string name="pref_space_cursor_summary">Slide on the spacebar to move the cursor</string>
-    <string name="cat_feedback">Key feedback</string>
     <string name="pref_haptic_title">Vibrate on keypress</string>
     <string name="pref_haptic_summary">Drives the vibrator directly, so it keeps working when system touch feedback is off</string>
     <string name="pref_sound_title">Sound on keypress</string>
@@ -115,8 +110,6 @@
     <string name="ui_lang_system">System default</string>
     <string name="edit_title">Edit text</string>
     <string name="edit_select">Select</string>
-    <string name="pref_quick_actions_title">Quick actions bar</string>
-    <string name="pref_quick_actions_summary">Show shortcut icons in the suggestion bar when idle</string>
     <string name="pref_clip_timeout_title">Auto-clear clipboard</string>
     <string name="timeout_never">Never</string>
     <string name="timeout_15m">After 15 minutes</string>
@@ -173,14 +166,6 @@
     <string name="screen_clipboard">Clipboard</string>
     <string name="pref_nr_pass_title">Number row for passwords</string>
     <string name="pref_nr_pass_summary">Always show the number row in password fields</string>
-    <string name="pref_longpress_title">Touch and hold delay</string>
-    <string name="lp_short">Short</string>
-    <string name="lp_normal">Default</string>
-    <string name="lp_long">Long</string>
-    <string name="pref_label_size_title">Key text size</string>
-    <string name="ls_small">Small</string>
-    <string name="ls_normal">Default</string>
-    <string name="ls_large">Large</string>
     <string name="pref_autospace_title">Auto-space after punctuation</string>
     <string name="pref_autospace_summary">Insert a space when a letter follows . , ! ?</string>
     <string name="pref_emoji_row_title">Emoji fast-access row</string>
@@ -291,8 +276,6 @@
     <string name="font_invalid">Not a valid font file</string>
     <string name="dict_saved">%1$d words imported for %2$s</string>
     <string name="dict_invalid">Need at least 30 “word frequency” lines</string>
-    <string name="a11y_toolbar_open">Open toolbar</string>
-    <string name="a11y_toolbar_close">Close toolbar</string>
     <string name="tb_all_tools">All tools</string>
     <string name="a11y_drawer_open">Show tools</string>
     <string name="a11y_drawer_close">Hide tools</string>

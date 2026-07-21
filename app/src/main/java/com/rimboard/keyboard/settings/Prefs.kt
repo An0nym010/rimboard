@@ -17,7 +17,6 @@ object Prefs {
     const val KEY_SUGGESTIONS = "suggestions"
     const val KEY_PREDICTIONS = "predictions"
     const val KEY_DOUBLE_SPACE = "double_space"
-    const val KEY_SPACE_CURSOR = "space_cursor"
     const val KEY_GLIDE = "glide_typing"
     const val KEY_LEARN = "learn_words"
     const val KEY_CLIPBOARD = "clipboard_suggest"
@@ -36,8 +35,6 @@ object Prefs {
     const val KEY_REPEAT_SPEED = "key_repeat_speed"
     const val KEY_NR_PASS = "number_row_passwords"
     const val KEY_AUTOSPACE = "auto_space_punct"
-    const val KEY_LONGPRESS = "long_press_delay"
-    const val KEY_LABEL_SIZE = "label_size"
     const val KEY_SOUND_VOL = "sound_volume"
     const val KEY_HAPTIC_STR = "haptic_strength"
     const val KEY_EMOJI_ROW = "emoji_row"
@@ -103,7 +100,6 @@ object Prefs {
     fun suggestions(c: Context) = get(c).getBoolean(KEY_SUGGESTIONS, true)
     fun predictions(c: Context) = get(c).getBoolean(KEY_PREDICTIONS, true)
     fun doubleSpace(c: Context) = get(c).getBoolean(KEY_DOUBLE_SPACE, true)
-    fun spaceCursor(c: Context) = get(c).getBoolean(KEY_SPACE_CURSOR, true)
     fun glide(c: Context) = get(c).getBoolean(KEY_GLIDE, true)
 
     /** 0 = off, 1 = anchored left, 2 = anchored right. */
@@ -124,8 +120,6 @@ object Prefs {
 
     fun numberRowPasswords(c: Context) = get(c).getBoolean(KEY_NR_PASS, true)
     fun autoSpacePunct(c: Context) = get(c).getBoolean(KEY_AUTOSPACE, false)
-    fun longPressDelay(c: Context): String = get(c).getString(KEY_LONGPRESS, "normal") ?: "normal"
-    fun labelSize(c: Context): String = get(c).getString(KEY_LABEL_SIZE, "normal") ?: "normal"
     fun soundVolume(c: Context): String = get(c).getString(KEY_SOUND_VOL, "normal") ?: "normal"
     fun hapticStrength(c: Context): String = get(c).getString(KEY_HAPTIC_STR, "medium") ?: "medium"
     fun emojiRow(c: Context) = get(c).getBoolean(KEY_EMOJI_ROW, true)
