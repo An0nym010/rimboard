@@ -249,6 +249,22 @@ class UserData(context: Context) {
     }
 
     /**
+     * Stops the writer thread, letting already-queued writes finish first.
+     *
+     * Every UserData owns a single-threaded executor whose thread never exits
+     * on its own, so anything that constructs one for a screen or a one-off
+     * call leaks a thread for the life of the process unless it calls this.
+     */
+    fun shutdown() {
+        io.shutdown()
+        try {
+            io.awaitTermination(1500, TimeUnit.MILLISECONDS)
+        } catch (e: InterruptedException) {
+            Thread.currentThread().interrupt()
+        }
+    }
+
+    /**
      * Saves and waits for the write to reach disk.
      *
      * [saveIfDirty] only queues the write. onDestroy called it and returned

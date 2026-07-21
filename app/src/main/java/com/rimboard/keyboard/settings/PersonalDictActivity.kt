@@ -77,6 +77,13 @@ class PersonalDictActivity : AppCompatActivity() {
         refresh()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        // This screen builds its own UserData, so it owns that executor's
+        // thread and has to stop it.
+        userData.shutdown()
+    }
+
     private fun refresh() {
         items = userData.learnedEntries()
         adapterImpl.notifyDataSetChanged()

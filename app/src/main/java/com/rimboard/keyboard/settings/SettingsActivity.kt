@@ -242,7 +242,12 @@ class SettingsActivity : AppCompatActivity() {
                     .setTitle(R.string.clear_confirm_title)
                     .setMessage(R.string.clear_confirm_msg)
                     .setPositiveButton(R.string.action_delete) { _, _ ->
-                        UserData(requireContext()).clearAll()
+                        // Throwaway instance: shut its writer thread down, or
+                        // every tap of this leaves one behind.
+                        UserData(requireContext()).apply {
+                            clearAll()
+                            shutdown()
+                        }
                         Prefs.setPendingClear(requireContext(), true)
                         Toast.makeText(
                             requireContext(), R.string.clear_done, Toast.LENGTH_SHORT
