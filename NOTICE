@@ -18,11 +18,18 @@ The bundled word-frequency dictionaries
   Licensed under Creative Commons Attribution-ShareAlike 4.0
   (CC BY-SA 4.0): https://creativecommons.org/licenses/by-sa/4.0/
 
-Modifications made for RimBoard: filtered to alphabetic words for each
-language (en, tr, de, es, fr, it, pt, ru) and truncated to the top 10,000
-entries per language. Under the
-CC BY-SA 4.0 terms, these dictionary files (and any derivative dictionary
-files) remain licensed under CC BY-SA 4.0.
+Modifications made for RimBoard: filtered to the alphabetic words of each
+language, deduplicated, and truncated by frequency rank —
+
+  200,000 entries for en, tr, de, es, fr, it, pt and ru
+  100,000 entries for cs, da, el, fi, hr, hu, id, nl, no, pl, ro, sk, sv
+  and uk
+
+The filtering and truncation are done by tools/fetch_dictionaries.py,
+which is the authoritative description of what was changed.
+
+Under the CC BY-SA 4.0 terms, these dictionary files (and any derivative
+dictionary files) remain licensed under CC BY-SA 4.0.
 
 
 Interface icons
