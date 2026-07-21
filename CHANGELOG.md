@@ -57,6 +57,13 @@ Release notes for every RimBoard version. The current release is summarised in t
   settings hiding it) while a second finger was landing.
 - Fixed a crash when dragging a row in the toolbar arranger if the list was
   mid-relayout.
+- The personal dictionary screen shows your words. It read them before the
+  load off disk had finished, so it opened saying you had none.
+- Text shortcuts restored from a backup now take effect immediately instead
+  of waiting for the keyboard process to be killed.
+- The Theme tool cycles through all thirteen themes. It held its own copy of
+  the list, six palettes out of date, so Ocean through Mint were unreachable
+  — and starting on one of them threw you back to System with no way in.
 - Fixed a data race between the background dictionary warm-up and the UI
   thread that could corrupt the prediction cache.
 - Held key repeat no longer survives the keyboard being replaced — a rotation

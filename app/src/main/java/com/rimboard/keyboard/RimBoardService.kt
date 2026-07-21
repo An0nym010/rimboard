@@ -1861,25 +1861,35 @@ class RimBoardService : InputMethodService(),
         }
     }
 
-    private val themeCycle = listOf("system", "light", "dark", "amoled", "dynamic", "contrast")
-
-    /** Steps to the next built-in theme and re-applies it live. */
+    /**
+     * Steps to the next theme and re-applies it live.
+     *
+     * The order comes from the array the settings screen offers, not a copy of
+     * it. The copy that used to live here had drifted six palettes behind, so
+     * the Theme tool could never reach Ocean through Mint — and if you were on
+     * one of them the lookup missed, dropping you back to "system" with no way
+     * to cycle in.
+     */
     private fun cycleTheme() {
-        val cur = Prefs.theme(this)
-        val i = themeCycle.indexOf(cur)
-        val next = themeCycle[(if (i < 0) 0 else i + 1) % themeCycle.size]
+        val values = resources.getStringArray(R.array.theme_values)
+        if (values.isEmpty()) return
+        val i = values.indexOf(Prefs.theme(this))
+        val next = values[(if (i < 0) 0 else i + 1) % values.size]
         Prefs.get(this).edit().putString(Prefs.KEY_THEME, next).apply()
         currentInputEditorInfo?.let { readPrefsAndFieldFlags(it) }
         updateStrip()
     }
 
-    private val heightCycle = listOf("0.85", "1.0", "1.15", "1.3")
-
-    /** Steps keyboard height to the next preset and re-lays out. */
+    /** Steps keyboard height to the next preset and re-lays out. Same array as
+     *  the settings screen, for the same reason as [cycleTheme]. */
     private fun cycleHeight() {
+        val values = resources.getStringArray(R.array.height_values)
+        if (values.isEmpty()) return
         val cur = Prefs.heightFactor(this)
-        val i = heightCycle.indexOfFirst { (it.toFloatOrNull() ?: 1f) == cur }
-        val next = heightCycle[(if (i < 0) 1 else i + 1) % heightCycle.size]
+        val i = values.indexOfFirst { (it.toFloatOrNull() ?: 1f) == cur }
+        // A stored height that is not one of the presets (an old backup, say)
+        // resolves to the normal one rather than the smallest.
+        val next = values[(if (i < 0) values.indexOf("1.0").coerceAtLeast(0) else i + 1) % values.size]
         Prefs.get(this).edit().putString(Prefs.KEY_HEIGHT, next).apply()
         keyboardView?.keyHeightFactor = next.toFloatOrNull() ?: 1f
     }
