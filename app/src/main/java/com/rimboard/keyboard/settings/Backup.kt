@@ -14,6 +14,11 @@ import java.io.File
  */
 object Backup {
 
+    private const val TAG = "RimBoard"
+
+    /** Highest backup layout this build understands. */
+    private const val FORMAT = 1
+
     private val EXCLUDED = setOf(
         Prefs.KEY_INCOGNITO_SESSION,
         Prefs.KEY_PENDING_CLEAR,
@@ -56,7 +61,8 @@ object Backup {
                 out.write(root.toString(2).toByteArray(Charsets.UTF_8))
             } ?: return false
             true
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            android.util.Log.w(TAG, "backup export failed", e)
             false
         }
     }
@@ -68,6 +74,24 @@ object Backup {
             } ?: return false
             val root = JSONObject(text)
             if (root.optString("app") != "RimBoard") return false
+            // Refuse a file written by a newer build rather than importing the
+            // parts that happen to still parse.
+            val format = root.optInt("format", 0)
+            if (format < 1 || format > FORMAT) {
+                android.util.Log.w(TAG, "unsupported backup format: $format")
+                return false
+            }
+
+            // User data is written first. Settings are applied only once it has
+            // all landed, so a failed restore leaves the existing settings
+            // alone instead of replacing them and then reporting failure.
+            var ok = true
+            ok = writeIfPresent(root, "learned", File(UserData.dataDir(context), "learned.txt")) && ok
+            ok = writeIfPresent(root, "bigrams", File(UserData.dataDir(context), "bigrams.txt")) && ok
+            ok = writeIfPresent(root, "trigrams", File(UserData.dataDir(context), "trigrams.txt")) && ok
+            ok = writeIfPresent(root, "pinned", File(UserData.dataDir(context), "pinned_clips.json")) && ok
+            ok = writeIfPresent(root, "shortcuts", File(UserData.dataDir(context), "shortcuts.json")) && ok
+            if (!ok) return false
 
             val settings = root.optJSONObject("settings") ?: JSONObject()
             val editor = Prefs.get(context).edit()
@@ -92,27 +116,32 @@ object Backup {
             }
             editor.apply()
 
-            writeIfPresent(root, "learned", File(UserData.dataDir(context), "learned.txt"))
-            writeIfPresent(root, "bigrams", File(UserData.dataDir(context), "bigrams.txt"))
-            writeIfPresent(root, "trigrams", File(UserData.dataDir(context), "trigrams.txt"))
-            writeIfPresent(root, "pinned", File(UserData.dataDir(context), "pinned_clips.json"))
-            writeIfPresent(root, "shortcuts", File(UserData.dataDir(context), "shortcuts.json"))
-
             // Tell a running keyboard service to reload user data from disk.
             Prefs.setPendingReload(context, true)
             true
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            android.util.Log.w(TAG, "backup restore failed", e)
             false
         }
     }
 
     private fun readFileOrEmpty(f: File): String =
-        try { if (f.exists()) f.readText() else "" } catch (_: Exception) { "" }
-
-    private fun writeIfPresent(root: JSONObject, key: String, f: File) {
         try {
-            if (root.has(key)) f.writeText(root.optString(key))
-        } catch (_: Exception) {
+            if (f.exists()) f.readText() else ""
+        } catch (e: Exception) {
+            android.util.Log.w(TAG, "backup could not read " + f.name, e)
+            ""
         }
+
+    /**
+     * Returns whether the entry was handled. A swallowed failure here meant a
+     * restore that lost the learned data still reported success.
+     */
+    private fun writeIfPresent(root: JSONObject, key: String, f: File): Boolean = try {
+        if (root.has(key)) f.writeText(root.optString(key))
+        true
+    } catch (e: Exception) {
+        android.util.Log.w(TAG, "backup could not write " + f.name, e)
+        false
     }
 }
