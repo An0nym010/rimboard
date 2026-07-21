@@ -41,7 +41,7 @@
     <string name="pref_space_cursor_summary">Desliza sobre la barra espaciadora para mover el cursor</string>
     <string name="cat_feedback">Respuesta de las teclas</string>
     <string name="pref_haptic_title">Vibración al pulsar</string>
-    <string name="pref_haptic_summary">Usa el ajuste del sistema, sin permisos adicionales</string>
+    <string name="pref_haptic_summary">Controla el vibrador directamente, así que funciona aunque la respuesta táctil del sistema esté desactivada</string>
     <string name="pref_sound_title">Sonido al pulsar</string>
     <string name="cat_privacy">Privacidad</string>
     <string name="pref_learn_title">Aprender palabras nuevas</string>

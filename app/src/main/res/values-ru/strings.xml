@@ -41,7 +41,7 @@
     <string name="pref_space_cursor_summary">Проводите по пробелу, чтобы перемещать курсор</string>
     <string name="cat_feedback">Отклик клавиш</string>
     <string name="pref_haptic_title">Вибрация при нажатии</string>
-    <string name="pref_haptic_summary">Использует системную настройку, без дополнительных разрешений</string>
+    <string name="pref_haptic_summary">Управляет вибромотором напрямую, поэтому работает даже при выключенной системной виброотдаче</string>
     <string name="pref_sound_title">Звук при нажатии</string>
     <string name="cat_privacy">Конфиденциальность</string>
     <string name="pref_learn_title">Запоминать новые слова</string>

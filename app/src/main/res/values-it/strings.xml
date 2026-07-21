@@ -41,7 +41,7 @@
     <string name="pref_space_cursor_summary">Scorri sulla barra spaziatrice per muovere il cursore</string>
     <string name="cat_feedback">Feedback dei tasti</string>
     <string name="pref_haptic_title">Vibrazione alla pressione</string>
-    <string name="pref_haptic_summary">Usa l\'impostazione di sistema, nessun permesso aggiuntivo</string>
+    <string name="pref_haptic_summary">Comanda direttamente il vibratore, quindi funziona anche con il feedback tattile di sistema disattivato</string>
     <string name="pref_sound_title">Suono alla pressione</string>
     <string name="cat_privacy">Privacy</string>
     <string name="pref_learn_title">Impara parole nuove</string>

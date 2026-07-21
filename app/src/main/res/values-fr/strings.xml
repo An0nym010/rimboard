@@ -41,7 +41,7 @@
     <string name="pref_space_cursor_summary">Glissez sur la barre d\'espace pour déplacer le curseur</string>
     <string name="cat_feedback">Retour des touches</string>
     <string name="pref_haptic_title">Vibration à l\'appui</string>
-    <string name="pref_haptic_summary">Utilise le réglage système, aucune permission supplémentaire</string>
+    <string name="pref_haptic_summary">Pilote le vibreur directement, donc fonctionne même si le retour haptique du système est désactivé</string>
     <string name="pref_sound_title">Son à l\'appui</string>
     <string name="cat_privacy">Confidentialité</string>
     <string name="pref_learn_title">Apprendre de nouveaux mots</string>

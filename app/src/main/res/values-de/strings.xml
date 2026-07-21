@@ -41,7 +41,7 @@
     <string name="pref_space_cursor_summary">Über die Leertaste wischen, um den Cursor zu bewegen</string>
     <string name="cat_feedback">Tastenfeedback</string>
     <string name="pref_haptic_title">Vibration beim Tippen</string>
-    <string name="pref_haptic_summary">Nutzt die Systemeinstellung, keine zusätzlichen Berechtigungen</string>
+    <string name="pref_haptic_summary">Steuert den Vibrationsmotor direkt und funktioniert auch bei ausgeschaltetem System-Feedback</string>
     <string name="pref_sound_title">Ton beim Tippen</string>
     <string name="cat_privacy">Privatsphäre</string>
     <string name="pref_learn_title">Neue Wörter lernen</string>

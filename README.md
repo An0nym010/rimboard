@@ -2,8 +2,8 @@
 
 A free, open-source Android keyboard with a GBoard-style layout, on-device
 suggestions, and a real incognito mode. No ads, no accounts, no analytics,
-and **zero Android permissions** — the app cannot touch the internet even if
-it wanted to.
+and **one permission** — `VIBRATE`, for key haptics. There is no `INTERNET`
+permission, so the app cannot send anything anywhere even if it wanted to.
 
 - Kotlin, no heavyweight dependencies, single small APK
 - 22 languages built in — English, Turkish, German, Spanish, French, Italian,
@@ -75,8 +75,20 @@ The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
 - Add more languages by dropping a dictionary file and a layout (see below)
 
 **Privacy**
-- **Zero permissions.** No `INTERNET`, no contacts, no microphone — nothing.
-  Feel free to verify the manifest.
+- **One permission: `VIBRATE`.** Key haptics drive the vibrator directly,
+  because several OEM builds ignore view-level haptics once the system touch
+  feedback toggle is off. It grants no access to any data.
+- **No `INTERNET`**, no contacts, no microphone, no storage, no location.
+  Verify it yourself against a built APK rather than taking this on trust:
+
+  ```
+  aapt dump permissions app-release.apk
+  ```
+
+  You will also see `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`, which is not
+  a system permission — AndroidX defines it in the app's own namespace to keep
+  its internal broadcast receivers private, and nothing outside the app can
+  hold it.
 - **Incognito mode** (🕶): open the drawer → 🕶, or enable
   "Always incognito" in settings. While active the keyboard learns nothing,
   suggests nothing personal, and records no emoji history.
