@@ -148,6 +148,7 @@ class RimBoardService : InputMethodService(),
     }
 
     override fun onDestroy() {
+        dismissPopups()
         clipChangedListener?.let {
             (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
                 .removePrimaryClipChangedListener(it)
@@ -163,6 +164,9 @@ class RimBoardService : InputMethodService(),
     override fun onEvaluateFullscreenMode(): Boolean = false
 
     override fun onCreateInputView(): View {
+        // A rotation or a floating-mode toggle rebuilds the input view, and any
+        // popup still up is anchored to the one being replaced.
+        dismissPopups()
         val ctx = L10n.wrap(this)
         val root = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
         val s = SuggestionStripView(ctx).apply { listener = this@RimBoardService }
@@ -322,6 +326,9 @@ class RimBoardService : InputMethodService(),
 
     override fun onFinishInputView(finishingInput: Boolean) {
         super.onFinishInputView(finishingInput)
+        // Before anything else: the popup is anchored to the input view that is
+        // now going away, and outliving its window token is what leaks it.
+        dismissPopups()
         composing.setLength(0)
         userData.saveIfDirty()
         Stats.flush(this)
@@ -387,7 +394,6 @@ class RimBoardService : InputMethodService(),
         keyboardView?.let { kv ->
             kv.theme = t
             kv.previewEnabled = Prefs.popupPreview(this)
-            kv.spaceCursorEnabled = Prefs.spaceCursor(this)
             kv.glideEnabled = Prefs.glide(this)
             when (Prefs.repeatSpeed(this)) {
                 "slow" -> { kv.repeatInitialMs = 420L; kv.repeatIntervalMs = 70L }
@@ -731,10 +737,33 @@ class RimBoardService : InputMethodService(),
 
     private fun isSeparator(c: Char): Boolean = c == ' ' || c in ".,;:!?)]}\u2026"
 
+    /**
+     * Whether the cursor really does sit straight after sentence punctuation.
+     *
+     * [pendingPunctSpace] is armed by typing punctuation and cleared by typing
+     * something else or backspacing — and by nothing else at all. Not the space
+     * key, not enter, not a suggestion, not a pasted clip, not even focusing a
+     * different field. So it stayed armed across all of those and the next
+     * letter typed got a space in front of it: "Hi." then space then "there"
+     * gave "Hi.  there", enter gave a line starting with a space, and switching
+     * apps could put a stray space at the front of an empty field.
+     *
+     * Asking the field is one call, and only on the letter-after-punctuation
+     * path — at most once a sentence, never per keystroke. The alternative was
+     * clearing the flag in the ten-odd places that commit text by another
+     * route, which is the arrangement that produced this in the first place.
+     */
+    private fun cursorFollowsPunctuation(): Boolean {
+        val before = currentInputConnection?.getTextBeforeCursor(1, 0) ?: return false
+        return before.length == 1 && before[0] in ".,!?;:"
+    }
+
     private fun typeText(raw: String) {
         if (raw.length == 1) {
             val ch = raw[0]
-            if (pendingPunctSpace && ch.isLetter()) currentInputConnection?.commitText(" ", 1)
+            if (pendingPunctSpace && ch.isLetter() && cursorFollowsPunctuation()) {
+                currentInputConnection?.commitText(" ", 1)
+            }
             pendingPunctSpace = Prefs.autoSpacePunct(this) && ch in ".,!?;:"
         } else {
             pendingPunctSpace = false
@@ -756,11 +785,6 @@ class RimBoardService : InputMethodService(),
             commitTextRaw(text)
         }
         consumeAutoShift()
-            if (raw == " " && Prefs.symbolsReturn(this) && (kind == LayoutKind.SYMBOLS || kind == LayoutKind.SYMBOLS2)) {
-            kind = LayoutKind.MAIN
-            applyLayout()
-            updateShiftState()
-        }
     }
 
     private fun applyShift(label: String): String {
@@ -868,11 +892,31 @@ class RimBoardService : InputMethodService(),
                 autoSpace = false
                 glideWords = emptyList()
                 afterEdit()
+                leaveSymbolsAfterSpace()
                 return
             }
         }
         lastSpaceTime = now
         handleSeparator(" ")
+        leaveSymbolsAfterSpace()
+    }
+
+    /**
+     * "Leave symbols after space": the symbols planes are for the odd character,
+     * so a space goes back to letters.
+     *
+     * This lived in [typeText], which the spacebar never reaches. Every layout
+     * builds its spacebar with [Codes.SPACE], and that is 32 — a positive code,
+     * matched by the `when` in [onKeyPressed] long before the `else` branch that
+     * calls [typeText]. So the preference has shipped defaulting to on and doing
+     * nothing at all.
+     */
+    private fun leaveSymbolsAfterSpace() {
+        if (kind != LayoutKind.SYMBOLS && kind != LayoutKind.SYMBOLS2) return
+        if (!Prefs.symbolsReturn(this)) return
+        kind = LayoutKind.MAIN
+        applyLayout()
+        updateShiftState()
     }
 
     private fun handleBackspace() {
@@ -1463,20 +1507,36 @@ class RimBoardService : InputMethodService(),
             .start()
     }
 
-    private fun showEmoji() {
+    /**
+     * Sizes [panel] to the keyboard and reveals it as the only thing over it.
+     *
+     * Each of the four openers used to hide the panels it happened to know
+     * about, and three of them forgot the toolbar panel — which is the last
+     * child added to the frame, so it sits on top of every other one. The strip
+     * stays visible and tappable while a panel is up, so opening emoji from the
+     * drawer with the toolbar panel showing drew the emoji grid underneath it
+     * and left the keyboard looking stuck. Hiding by exclusion cannot go stale
+     * the way four hand-maintained lists did.
+     */
+    private fun revealPanel(panel: View) {
         val kv = keyboardView ?: return
+        val lp = panel.layoutParams as FrameLayout.LayoutParams
+        lp.height = kv.measureKeyboardHeight()
+        panel.layoutParams = lp
+        for (other in arrayOf(emojiView, clipboardView, editPanelView, toolbarPanel)) {
+            if (other !== panel) other?.visibility = View.GONE
+        }
+        kv.visibility = View.GONE
+        panel.visibility = View.VISIBLE
+        animatePanelIn(panel)
+    }
+
+    private fun showEmoji() {
         val ev = emojiView ?: return
         finishComposingSilently()
-        val lp = ev.layoutParams as FrameLayout.LayoutParams
-        lp.height = kv.measureKeyboardHeight()
-        ev.layoutParams = lp
         ev.setSearchLang(currentLangCode())
         ev.setRecents(if (isIncognito()) emptyList() else Prefs.emojiRecents(this))
-        clipboardView?.visibility = View.GONE
-        editPanelView?.visibility = View.GONE
-        kv.visibility = View.GONE
-        ev.visibility = View.VISIBLE
-        animatePanelIn(ev)
+        revealPanel(ev)
     }
 
     private fun hideEmoji() {
@@ -1490,18 +1550,10 @@ class RimBoardService : InputMethodService(),
     // ------------------------------------------------------------ clipboard
 
     private fun showClipPanel() {
-        val kv = keyboardView ?: return
         val cv = clipboardView ?: return
         finishComposingSilently()
-        val lp = cv.layoutParams as FrameLayout.LayoutParams
-        lp.height = kv.measureKeyboardHeight()
-        cv.layoutParams = lp
         updateClipView()
-        emojiView?.visibility = View.GONE
-        editPanelView?.visibility = View.GONE
-        kv.visibility = View.GONE
-        cv.visibility = View.VISIBLE
-        animatePanelIn(cv)
+        revealPanel(cv)
     }
 
     private fun updateClipView() {
@@ -1510,19 +1562,11 @@ class RimBoardService : InputMethodService(),
     }
 
     private fun showEditPanel() {
-        val kv = keyboardView ?: return
         val ep = editPanelView ?: return
         finishComposingSilently()
-        val lp = ep.layoutParams as FrameLayout.LayoutParams
-        lp.height = kv.measureKeyboardHeight()
-        ep.layoutParams = lp
         editSelectMode = false
         ep.setSelectOn(false)
-        emojiView?.visibility = View.GONE
-        clipboardView?.visibility = View.GONE
-        kv.visibility = View.GONE
-        ep.visibility = View.VISIBLE
-        animatePanelIn(ep)
+        revealPanel(ep)
     }
 
     private fun pinnedFile() = File(UserData.dataDir(this), "pinned_clips.json")
@@ -1687,7 +1731,24 @@ class RimBoardService : InputMethodService(),
             pw.dismiss()
             updateStrip()
         }
+        blockWordPopup?.dismiss()
+        blockWordPopup = pw
+        pw.setOnDismissListener { if (blockWordPopup === pw) blockWordPopup = null }
         pw.showAsDropDown(anchor, 0, -(anchor.height * 5) / 2)
+    }
+
+    /**
+     * The block-word popup, held so the keyboard can take it down with itself.
+     *
+     * It hangs off the input view's window token. Nothing dismissed it when the
+     * keyboard went away, so hiding the IME with it open leaked the window and
+     * could leave the chip drawn over whatever the user went to next.
+     */
+    private var blockWordPopup: PopupWindow? = null
+
+    private fun dismissPopups() {
+        blockWordPopup?.dismiss()
+        blockWordPopup = null
     }
 
     override fun onQuickEmoji(emoji: String) {
@@ -1771,20 +1832,10 @@ class RimBoardService : InputMethodService(),
 
     /** Reached from the "All tools" tool rather than the chevron. */
     private fun showToolbarPanel() {
-        val kv = keyboardView ?: return
         val tp = toolbarPanel ?: return
         finishComposingSilently()
-        val lp = tp.layoutParams as FrameLayout.LayoutParams
-        lp.height = kv.measureKeyboardHeight()
-        tp.layoutParams = lp
         tp.setTools(pinnedTools())
-        emojiView?.visibility = View.GONE
-        clipboardView?.visibility = View.GONE
-        editPanelView?.visibility = View.GONE
-        toolbarPanel?.visibility = View.GONE
-        kv.visibility = View.GONE
-        tp.visibility = View.VISIBLE
-        animatePanelIn(tp)
+        revealPanel(tp)
     }
 
     private fun hideToolbarPanel() {
@@ -1856,25 +1907,35 @@ class RimBoardService : InputMethodService(),
         }
     }
 
-    private val themeCycle = listOf("system", "light", "dark", "amoled", "dynamic", "contrast")
-
-    /** Steps to the next built-in theme and re-applies it live. */
+    /**
+     * Steps to the next theme and re-applies it live.
+     *
+     * The order comes from the array the settings screen offers, not a copy of
+     * it. The copy that used to live here had drifted six palettes behind, so
+     * the Theme tool could never reach Ocean through Mint — and if you were on
+     * one of them the lookup missed, dropping you back to "system" with no way
+     * to cycle in.
+     */
     private fun cycleTheme() {
-        val cur = Prefs.theme(this)
-        val i = themeCycle.indexOf(cur)
-        val next = themeCycle[(if (i < 0) 0 else i + 1) % themeCycle.size]
+        val values = resources.getStringArray(R.array.theme_values)
+        if (values.isEmpty()) return
+        val i = values.indexOf(Prefs.theme(this))
+        val next = values[(if (i < 0) 0 else i + 1) % values.size]
         Prefs.get(this).edit().putString(Prefs.KEY_THEME, next).apply()
         currentInputEditorInfo?.let { readPrefsAndFieldFlags(it) }
         updateStrip()
     }
 
-    private val heightCycle = listOf("0.85", "1.0", "1.15", "1.3")
-
-    /** Steps keyboard height to the next preset and re-lays out. */
+    /** Steps keyboard height to the next preset and re-lays out. Same array as
+     *  the settings screen, for the same reason as [cycleTheme]. */
     private fun cycleHeight() {
+        val values = resources.getStringArray(R.array.height_values)
+        if (values.isEmpty()) return
         val cur = Prefs.heightFactor(this)
-        val i = heightCycle.indexOfFirst { (it.toFloatOrNull() ?: 1f) == cur }
-        val next = heightCycle[(if (i < 0) 1 else i + 1) % heightCycle.size]
+        val i = values.indexOfFirst { (it.toFloatOrNull() ?: 1f) == cur }
+        // A stored height that is not one of the presets (an old backup, say)
+        // resolves to the normal one rather than the smallest.
+        val next = values[(if (i < 0) values.indexOf("1.0").coerceAtLeast(0) else i + 1) % values.size]
         Prefs.get(this).edit().putString(Prefs.KEY_HEIGHT, next).apply()
         keyboardView?.keyHeightFactor = next.toFloatOrNull() ?: 1f
     }

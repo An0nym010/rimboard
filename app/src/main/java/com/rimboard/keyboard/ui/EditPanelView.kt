@@ -64,12 +64,16 @@ class EditPanelView(context: Context) : LinearLayout(context) {
             setPadding(dp(4), 0, 0, 0)
         }
         bar.addView(title, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
-        for ((icon, action) in listOf(
-            Icons.TRANSLATE to Action.TRANSLATE,
-            Icons.UNDO to Action.UNDO,
-            Icons.REDO to Action.REDO
+        // These three are icon-only, so without a description a screen reader
+        // has nothing to announce them by. The labels already existed for the
+        // same actions on the toolbar.
+        for ((icon, action, desc) in listOf(
+            Triple(Icons.TRANSLATE, Action.TRANSLATE, R.string.tb_translate),
+            Triple(Icons.UNDO, Action.UNDO, R.string.tb_undo),
+            Triple(Icons.REDO, Action.REDO, R.string.tb_redo)
         )) {
             val hb = IconView(context, icon).apply {
+                contentDescription = context.getString(desc)
                 setOnClickListener { listener?.onEditAction(action) }
             }
             headerBtns.add(hb)

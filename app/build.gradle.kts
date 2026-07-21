@@ -58,6 +58,15 @@ android {
         }
     }
 
+    lint {
+        // An unused string is how a removed preference leaves a trace: the
+        // title, summary and option list stay behind, still translated into
+        // every language, while the accessor that fed them sits in Prefs
+        // looking live. Twenty-one of these had accumulated as a warning
+        // nobody read. Failing the build keeps that from happening again.
+        error += "UnusedResources"
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -66,6 +75,23 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+}
+
+/**
+ * The unit tests read res/ and assets/ straight off disk rather than through
+ * generated R fields — that is what lets them run on a plain JVM with no
+ * device. Gradle cannot see those reads, so it had no reason to believe the
+ * test task was out of date when only a resource changed: editing arrays.xml
+ * and running the tests reported UP-TO-DATE and told you nothing, in green.
+ *
+ * Declaring the directories as inputs costs one hash of each tree, which
+ * Gradle then caches; assets is 40 MB of dictionaries but only changes when
+ * tools/fetch_dictionaries.py is re-run, which is exactly when AssetsTest
+ * ought to run again.
+ */
+tasks.withType<Test>().configureEach {
+    inputs.dir("src/main/res").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir("src/main/assets").withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
 dependencies {

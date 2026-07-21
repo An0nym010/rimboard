@@ -115,7 +115,6 @@ class KeyboardView(context: Context) : View(context) {
         }
 
     var previewEnabled: Boolean = true
-    var spaceCursorEnabled: Boolean = true
     var glideEnabled: Boolean = true
     var hapticFeedback: Boolean = true
     var repeatInitialMs: Long = 300L
@@ -483,26 +482,40 @@ class KeyboardView(context: Context) : View(context) {
 
     // ---------- drawing ----------
 
+    /**
+     * Rebuilds the background paint, and only when something it depends on has
+     * changed: a resize, a theme, or the key style. Depth belongs to the raised
+     * style — flat uses a uniform field — so the gradient is part of what the
+     * style switch changes.
+     *
+     * It lives outside onDraw because the gradient allocation looks like a
+     * per-frame allocation there and lint reported it as one. The guard is what
+     * makes it not one, and a suppression on a 190-line onDraw would have
+     * covered every future allocation in it too.
+     */
+    private fun updateBackgroundPaint(t: KeyboardTheme) {
+        if (bgShaderH == height && bgShaderColor == t.background &&
+            bgShaderRaised == keyBorders
+        ) return
+        bgShaderColor = t.background
+        bgShaderH = height
+        bgShaderRaised = keyBorders
+        bgPaint.color = t.background
+        bgPaint.shader = if (keyBorders) {
+            val bottom =
+                mixColor(t.background, 0xFF000000.toInt(), if (t.isDark) 0.20f else 0.07f)
+            LinearGradient(
+                0f, 0f, 0f, height.toFloat(), t.background, bottom, Shader.TileMode.CLAMP
+            )
+        } else {
+            null
+        }
+    }
+
     override fun onDraw(canvas: Canvas) {
         val t = theme ?: return
         val lay = layout ?: return
-        // Depth belongs to the raised style; flat uses a uniform field, so the
-        // gradient is part of what the style switch changes.
-        if (bgShaderH != height || bgShaderColor != t.background || bgShaderRaised != keyBorders) {
-            bgShaderColor = t.background
-            bgShaderH = height
-            bgShaderRaised = keyBorders
-            bgPaint.color = t.background
-            bgPaint.shader = if (keyBorders) {
-                val bottom =
-                    mixColor(t.background, 0xFF000000.toInt(), if (t.isDark) 0.20f else 0.07f)
-                LinearGradient(
-                    0f, 0f, 0f, height.toFloat(), t.background, bottom, Shader.TileMode.CLAMP
-                )
-            } else {
-                null
-            }
-        }
+        updateBackgroundPaint(t)
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bgPaint)
         val tf = customTypeface ?: Typeface.DEFAULT
         if (textPaint.typeface !== tf) {
@@ -926,8 +939,16 @@ class KeyboardView(context: Context) : View(context) {
         if (handleGutterTap(x, y)) return
         // Rollover typing: when a new finger lands, flush every still-held key
         // so keys commit in press order, not release order (GBoard behavior).
-        for (i in 0 until pointers.size()) {
-            val held = pointers.valueAt(i)
+        //
+        // Snapshot before flushing: each branch below runs arbitrary listener
+        // code, and a held key that rebuilds the input view — floating mode, or
+        // settings hiding the keyboard — detaches this view, whose
+        // onDetachedFromWindow calls cancelAll and empties `pointers` mid-loop.
+        // The range fixes its bound up front, so valueAt would then index past
+        // the end: SparseArray throws ArrayIndexOutOfBounds for that on API 31+.
+        val stillHeld = ArrayList<PointerState>(pointers.size())
+        for (i in 0 until pointers.size()) stillHeld.add(pointers.valueAt(i))
+        for (held in stillHeld) {
             if (held.cancelled || held.cursorMode) continue
             if (held.popupOpen) {
                 commitPopup(held)

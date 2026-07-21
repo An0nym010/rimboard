@@ -20,17 +20,32 @@
 
     <!-- Ayarlar -->
     <string name="settings_title">RimBoard ayarları</string>
-    <string name="cat_languages">Diller</string>
     <string name="pref_languages_title">Etkin diller</string>
     <string name="pref_languages_summary">🌐 tuşuyla veya virgüle uzun basarak değiştir</string>
     <string name="cat_look">Görünüm</string>
     <string name="pref_theme_title">Tema</string>
+    <string name="theme_system">Sistem (açık/koyu)</string>
+    <string name="theme_light">Açık</string>
+    <string name="theme_dark">Koyu</string>
+    <string name="theme_amoled">AMOLED siyah</string>
+    <string name="theme_dynamic">Material You (dinamik)</string>
+    <string name="theme_contrast">Yüksek kontrast</string>
+    <string name="theme_ocean">Okyanus</string>
+    <string name="theme_forest">Orman</string>
+    <string name="theme_sunset">Gün batımı</string>
+    <string name="theme_graphite">Grafit</string>
+    <string name="theme_rose">Gül</string>
+    <string name="theme_mint">Nane</string>
+    <string name="theme_custom">Özel</string>
+    <string name="height_compact">Kompakt</string>
+    <string name="height_normal">Normal</string>
+    <string name="height_tall">Uzun</string>
+    <string name="height_xtall">Çok uzun</string>
     <string name="pref_height_title">Klavye yüksekliği</string>
     <string name="pref_number_row_title">Sayı satırı</string>
     <string name="pref_number_row_summary">En üstte ayrı bir 1–0 satırı göster</string>
     <string name="pref_popup_title">Tuş baloncuğu</string>
     <string name="pref_popup_summary">Basılan tuşun üstünde baloncuk göster</string>
-    <string name="cat_typing">Yazma</string>
     <string name="pref_autocaps_title">Otomatik büyük harf</string>
     <string name="pref_autocaps_summary">Cümlelerin ilk kelimesini büyük harfle başlat</string>
     <string name="pref_autocorrect_title">Otomatik düzeltme</string>
@@ -41,9 +56,6 @@
     <string name="pref_predictions_summary">Kendi yazma geçmişinden sonraki kelimeyi öner</string>
     <string name="pref_double_space_title">Çift boşlukla nokta</string>
     <string name="pref_double_space_summary">Boşluğa iki kez basınca “. ” ekle</string>
-    <string name="pref_space_cursor_title">Boşluk tuşuyla imleç</string>
-    <string name="pref_space_cursor_summary">Boşluk tuşunda kaydırarak imleci hareket ettir</string>
-    <string name="cat_feedback">Tuş geri bildirimi</string>
     <string name="pref_haptic_title">Basınca titret</string>
     <string name="pref_haptic_summary">Titreşimi doğrudan çalıştırır; sistem dokunsal geri bildirimi kapalıyken de çalışır</string>
     <string name="pref_sound_title">Basınca ses çal</string>
@@ -100,8 +112,6 @@
     <string name="ui_lang_system">Sistem varsayılanı</string>
     <string name="edit_title">Metin düzenleme</string>
     <string name="edit_select">Seç</string>
-    <string name="pref_quick_actions_title">Hızlı eylemler çubuğu</string>
-    <string name="pref_quick_actions_summary">Boştayken öneri çubuğunda kısayol simgeleri göster</string>
     <string name="pref_clip_timeout_title">Panoyu otomatik temizle</string>
     <string name="timeout_never">Asla</string>
     <string name="timeout_15m">15 dakika sonra</string>
@@ -143,14 +153,6 @@
     <string name="screen_clipboard">Pano</string>
     <string name="pref_nr_pass_title">Şifreler için sayı satırı</string>
     <string name="pref_nr_pass_summary">Şifre alanlarında sayı satırını her zaman göster</string>
-    <string name="pref_longpress_title">Basılı tutma gecikmesi</string>
-    <string name="lp_short">Kısa</string>
-    <string name="lp_normal">Varsayılan</string>
-    <string name="lp_long">Uzun</string>
-    <string name="pref_label_size_title">Tuş yazı boyutu</string>
-    <string name="ls_small">Küçük</string>
-    <string name="ls_normal">Varsayılan</string>
-    <string name="ls_large">Büyük</string>
     <string name="pref_autospace_title">Noktalamadan sonra boşluk</string>
     <string name="pref_autospace_summary">. , ! ? sonrasında harf gelince boşluk ekle</string>
     <string name="pref_emoji_row_title">Hızlı emoji satırı</string>
@@ -171,6 +173,7 @@
     <string name="pref_bg_clear_title">Arka plan görselini kaldır</string>
     <string name="bg_saved">Arka plan uygulandı</string>
     <string name="bg_removed">Arka plan kaldırıldı</string>
+    <string name="bg_invalid">Görsel okunamadı</string>
     <string name="screen_advanced">Gelişmiş</string>
     <string name="pref_split_title">Bölünmüş klavye</string>
     <string name="split_off">Kapalı</string>
@@ -230,8 +233,6 @@
     <string name="font_invalid">Geçerli bir yazı tipi dosyası değil</string>
     <string name="dict_saved">%2$s için %1$d kelime içe aktarıldı</string>
     <string name="dict_invalid">En az 30 “kelime sıklık” satırı gerekli</string>
-    <string name="a11y_toolbar_open">Araç çubuğunu aç</string>
-    <string name="a11y_toolbar_close">Araç çubuğunu kapat</string>
     <string name="tb_section_pinned">ÖNERİ ÇUBUĞUNDA</string>
     <string name="tb_section_all">TÜM ARAÇLAR</string>
     <string name="tb_section_empty">Aşağıdaki araçlarda + simgesine dokunarak buraya ekleyin</string>
@@ -241,6 +242,7 @@
     <string name="a11y_move_down">Aşağı taşı</string>
     <string name="a11y_pin">Sabitle</string>
     <string name="a11y_unpin">Sabitlemeyi kaldır</string>
+    <string name="a11y_clear_clipboard">Panoyu temizle</string>
     <string name="st_wpm_short">KDS</string>
     <string name="pref_glide_title">Kaydırarak yazma</string>
     <string name="pref_glide_summary">Bir kelime yazmak için harften harfe kaydırın</string>

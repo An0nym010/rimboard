@@ -196,7 +196,14 @@ class ToolbarPickerActivity : AppCompatActivity() {
             holder: RecyclerView.ViewHolder,
             target: RecyclerView.ViewHolder
         ): Boolean {
-            move(holder.bindingAdapterPosition, target.bindingAdapterPosition)
+            // Either holder can report NO_POSITION (-1) while a layout pass is
+            // pending, and move() would take that straight to
+            // order.removeAt(-1). The two accessibility reorder actions already
+            // range-check their index; this path was the one that did not.
+            val from = holder.bindingAdapterPosition
+            val to = target.bindingAdapterPosition
+            if (from !in order.indices || to !in order.indices) return false
+            move(from, to)
             return true
         }
 

@@ -65,30 +65,16 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     }
 
 
-    /** TalkBack label for a toolbar action; the icons say nothing on their own. */
-    private fun descFor(code: Int): String? = when (code) {
-        Codes.UNDO -> context.getString(R.string.tb_undo)
-        Codes.REDO -> context.getString(R.string.tb_redo)
-        Codes.COPY -> context.getString(R.string.tb_copy)
-        Codes.PASTE -> context.getString(R.string.tb_paste)
-        Codes.CUT -> context.getString(R.string.tb_cut)
-        Codes.SELECT_ALL -> context.getString(R.string.tb_selectall)
-        Codes.ONE_HANDED -> context.getString(R.string.tb_onehanded)
-        Codes.INCOGNITO -> context.getString(R.string.tb_incognito)
-        Codes.EDIT_PANEL -> context.getString(R.string.tb_edit)
-        Codes.FLOATING -> context.getString(R.string.tb_floating)
-        Codes.NUMPAD -> context.getString(R.string.tb_numpad)
-        Codes.HIDE_KB -> context.getString(R.string.tb_hide)
-        Codes.EMOJI -> context.getString(R.string.tb_emoji)
-        Codes.CLIPBOARD -> context.getString(R.string.tb_clipboard)
-        Codes.LANG -> context.getString(R.string.tb_language)
-        Codes.TRANSLATE -> context.getString(R.string.tb_translate)
-        Codes.SHARE -> context.getString(R.string.tb_share)
-        Codes.THEME -> context.getString(R.string.tb_theme)
-        Codes.RESIZE -> context.getString(R.string.tb_resize)
-        Codes.SETTINGS -> context.getString(R.string.tb_settings)
-        else -> null
-    }
+    /**
+     * TalkBack label for a toolbar action; the icons say nothing on their own.
+     *
+     * Read out of the catalog rather than from a copy of it. The copy that used
+     * to live here listed twenty of the twenty-one tools, and the one it missed
+     * was "All tools" — which is the first entry in the default pinned set, so
+     * every fresh install had an unlabelled icon at the left of the strip.
+     */
+    private fun descFor(code: Int): String? =
+        ToolCatalog.byCode(code)?.let { context.getString(it.labelRes) }
 
     init {
         orientation = HORIZONTAL

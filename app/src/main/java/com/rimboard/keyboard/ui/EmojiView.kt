@@ -189,6 +189,9 @@ class EmojiView(context: Context) : LinearLayout(context) {
         return out
     }
 
+    /** Held so [onDetachedFromWindow] can take it down with the keyboard. */
+    private var variantsPopup: android.widget.PopupWindow? = null
+
     /** Little popup row of tone variants above the long-pressed emoji. */
     private fun showVariants(variants: List<String>, anchor: View) {
         val theme = t
@@ -229,6 +232,9 @@ class EmojiView(context: Context) : LinearLayout(context) {
         val x = (a[0] + anchor.width / 2 - row.measuredWidth / 2)
             .coerceIn(me[0], (me[0] + width - row.measuredWidth).coerceAtLeast(me[0]))
         val y = (a[1] - row.measuredHeight - dp(6)).coerceAtLeast(me[1])
+        variantsPopup?.dismiss()
+        variantsPopup = popup
+        popup.setOnDismissListener { if (variantsPopup === popup) variantsPopup = null }
         popup.showAtLocation(this, Gravity.NO_GRAVITY, x, y)
         performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
     }
@@ -294,6 +300,12 @@ class EmojiView(context: Context) : LinearLayout(context) {
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         stopRepeat()
+        // The tone popup is anchored to this view's window. If the keyboard is
+        // dismissed while it is open — an app hiding the IME, a rotation — the
+        // token it was shown with goes away underneath it, which leaks the
+        // window and can leave the row painted over whatever comes next.
+        variantsPopup?.dismiss()
+        variantsPopup = null
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -574,6 +586,16 @@ class EmojiView(context: Context) : LinearLayout(context) {
                 )
             }
             tv.text = items[position]
+            // Not every entry in the palette is a colour glyph. The ones with
+            // text presentation and no VS16 — ⏸ ⏯ ⏹ ⏺ ⏭ ⏮ 🕳 🗯 🕷 🕸 🕊 🗣 —
+            // are drawn monochrome in the text colour, and this grid was the
+            // one emoji surface that never set one (the search results row and
+            // the skin-tone popup both do). It inherited Material3 DayNight's
+            // default, which follows the *system* dark mode, while the keyboard
+            // theme is picked separately: an AMOLED keyboard on a light-mode
+            // phone drew them near-black on black, and a light keyboard on a
+            // dark-mode phone drew them near-white on white.
+            t?.let { tv.setTextColor(it.keyText) }
             return tv
         }
     }

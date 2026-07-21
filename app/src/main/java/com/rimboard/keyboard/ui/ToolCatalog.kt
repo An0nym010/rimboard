@@ -45,6 +45,17 @@ object ToolCatalog {
 
     fun byId(id: String): Tool? = byId[id]
 
+    private val byCode = all.associateBy { it.code }
+
+    /**
+     * The tool that fires [code], or null if no pinnable tool does.
+     *
+     * Well-defined because the codes are unique, which ToolCatalogTest asserts.
+     * Exists so the suggestion strip can label an icon from the catalog rather
+     * than from a second hand-written code-to-label table, which had drifted.
+     */
+    fun byCode(code: Int): Tool? = byCode[code]
+
     /** Catalog order, used when the user has never arranged the list. */
     val defaultOrder: List<String> = all.map { it.id }
 }

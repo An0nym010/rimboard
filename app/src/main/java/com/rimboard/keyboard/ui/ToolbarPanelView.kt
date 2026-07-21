@@ -89,6 +89,11 @@ class ToolbarPanelView(context: Context) : View(context) {
         panelScroll = 0f
         requestLayout()
         invalidate()
+        // Every cell is a virtual view, and this just replaced all of them.
+        // togglePin and drop both rebuild the tree; this was the one mutator
+        // that did not, so reopening the panel after arranging the tools in
+        // the picker screen left a screen reader describing the old layout.
+        invalidateRoot()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {

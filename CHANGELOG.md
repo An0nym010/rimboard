@@ -34,6 +34,13 @@ Release notes for every RimBoard version. The current release is summarised in t
   seven interface languages.
 
 **Accessibility**
+- Five icon-only buttons that screen readers could not announce now have
+  labels: "All tools" on the suggestion strip (which every fresh install
+  starts with, at the far left), Translate, Undo and Redo in the editing
+  panel, and Clear in the clipboard panel — the one destructive control
+  there. Still to do: the six cursor arrows in the editing panel.
+- Reopening the tools panel after rearranging it in the picker no longer
+  leaves a screen reader describing the previous layout.
 - Screen readers can use the keyboard. Every key is announced, with character
   keys naming the glyph they would produce so shift is reflected rather than
   described, and keys with long-press alternatives say so.
@@ -41,11 +48,51 @@ Release notes for every RimBoard version. The current release is summarised in t
   dragging is not a gesture a screen reader user can perform.
 
 **Typing**
+- The Theme and Keyboard height dropdowns are translated. Twelve of the
+  fourteen settings dropdowns pulled their options from translatable strings;
+  these two had them written inline, so they stayed English in every
+  interface language.
 - Inline calculator gained metric/imperial conversion (`5km=`).
 - Email fields offer domain completions after `@`, where word suggestions are
   correctly switched off and the bar was otherwise idle.
 
 **Fixes and stability**
+- "Leave symbols after space" works. The setting has shipped switched on and
+  doing nothing: its one implementation sat on the code path for ordinary
+  character keys, which the spacebar never takes.
+- Opening emoji, the clipboard or the editing panel from the toolbar drawer
+  while the tools panel is open now actually shows them. The tools panel is
+  the topmost panel and none of the three hid it, so the new panel was drawn
+  underneath and the keyboard looked stuck.
+- Fixed a crash when a held key rebuilt the keyboard (floating mode, or
+  settings hiding it) while a second finger was landing.
+- Fixed a crash when dragging a row in the toolbar arranger if the list was
+  mid-relayout.
+- "Auto-space after punctuation" no longer inserts a space that was not
+  asked for. Its pending state survived pressing space, pressing enter, and
+  even moving to another app's text field, so the next letter you typed got
+  a space in front of it — a doubled space mid-sentence, or a stray one at
+  the start of an empty field.
+- Typing statistics format their numbers and the "since" date in the
+  interface language you picked, rather than the phone's language.
+- The personal dictionary screen shows your words. It read them before the
+  load off disk had finished, so it opened saying you had none.
+- Text shortcuts restored from a backup now take effect immediately instead
+  of waiting for the keyboard process to be killed.
+- Emoji that are drawn as plain glyphs rather than colour pictures (⏸ 🕳 🗣
+  and friends) now follow the keyboard theme. They were taking their colour
+  from the system light/dark setting instead, so they could come out black
+  on a black keyboard.
+- The skin-tone popup and the "remove word" popup close with the keyboard
+  instead of outliving it.
+- Picking an image the phone cannot decode now says so, instead of reporting
+  "Background removed" — which was both wrong and the opposite of what had
+  happened, since the old background was still in place.
+- Exporting and restoring a backup no longer freeze the settings screen while
+  they work.
+- The Theme tool cycles through all thirteen themes. It held its own copy of
+  the list, six palettes out of date, so Ocean through Mint were unreachable
+  — and starting on one of them threw you back to System with no way in.
 - Fixed a data race between the background dictionary warm-up and the UI
   thread that could corrupt the prediction cache.
 - Held key repeat no longer survives the keyboard being replaced — a rotation

@@ -23,6 +23,9 @@ class PersonalDictActivity : AppCompatActivity() {
     private lateinit var emptyView: TextView
     private var items: List<Pair<String, Int>> = emptyList()
 
+    /** Whether the asynchronous load has landed, so "empty" means anything. */
+    private var loaded = false
+
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(L10n.wrap(newBase))
     }
@@ -31,7 +34,6 @@ class PersonalDictActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         supportActionBar?.setTitle(R.string.pref_personal_dict_title)
         userData = UserData(this)
-        userData.reload()
         val d = resources.displayMetrics.density
         fun dp(v: Int) = (v * d).toInt()
 
@@ -74,7 +76,17 @@ class PersonalDictActivity : AppCompatActivity() {
         rootL.addView(emptyView)
 
         setContentView(rootL)
+        // The load runs on UserData's writer thread, so the words are not there
+        // yet. This used to call refresh() straight after reload() and read the
+        // maps reload() had just cleared, so the screen opened empty however
+        // many words had been learned — and only filled in if you happened to
+        // add or remove one, which refreshes again.
         refresh()
+        userData.reload {
+            if (isFinishing || isDestroyed) return@reload
+            loaded = true
+            refresh()
+        }
     }
 
     override fun onDestroy() {
@@ -87,7 +99,9 @@ class PersonalDictActivity : AppCompatActivity() {
     private fun refresh() {
         items = userData.learnedEntries()
         adapterImpl.notifyDataSetChanged()
-        emptyView.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+        // "No words yet" only once that is actually known: saying it while the
+        // load is still in flight is the same wrong answer, just briefer.
+        emptyView.visibility = if (loaded && items.isEmpty()) View.VISIBLE else View.GONE
     }
 
     private inner class Adapter : BaseAdapter() {

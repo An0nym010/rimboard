@@ -64,6 +64,9 @@ class ClipboardView(context: Context) : LinearLayout(context) {
             gravity = Gravity.CENTER_VERTICAL
         })
         clearBtn = IconView(context, Icons.TRASH).apply {
+            // Icon-only, so it was silent to screen readers — and it is the one
+            // destructive control on the panel.
+            contentDescription = context.getString(R.string.a11y_clear_clipboard)
             setOnClickListener { listener?.onClipsCleared() }
         }
         bar.addView(clearBtn, LayoutParams(dp(52), LayoutParams.MATCH_PARENT))

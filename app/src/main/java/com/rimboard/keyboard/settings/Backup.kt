@@ -93,6 +93,12 @@ object Backup {
             ok = writeIfPresent(root, "shortcuts", File(UserData.dataDir(context), "shortcuts.json")) && ok
             if (!ok) return false
 
+            // Shortcuts are cached in a process-wide map that outlives this
+            // call, and the keyboard service shares it. Without this the file
+            // is restored but the stale map keeps answering, so imported text
+            // shortcuts simply do not work until the process is killed.
+            Shortcuts.invalidate()
+
             val settings = root.optJSONObject("settings") ?: JSONObject()
             val editor = Prefs.get(context).edit()
             val keys = settings.keys()
