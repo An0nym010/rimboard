@@ -3,7 +3,9 @@ package com.rimboard.keyboard.engine
 import android.content.Context
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * Learned words and next-word n-grams. Stored only in app-private storage
@@ -236,8 +238,37 @@ class UserData(context: Context) {
                     sb.append(ctx).append('\t').append(b).append('\t').append(c).append('\n')
                 }
                 trigramFile.writeText(sb.toString())
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                // Put the flag back: it was cleared optimistically before the
+                // write, so a failure here would otherwise mean this data is
+                // never attempted again.
+                dirty = true
+                android.util.Log.w("RimBoard", "saving learned data failed", e)
             }
+        }
+    }
+
+    /**
+     * Saves and waits for the write to reach disk.
+     *
+     * [saveIfDirty] only queues the write. onDestroy called it and returned
+     * immediately, so the process could be killed before the executor thread
+     * ran — losing learned words, bigrams and trigrams, which is everything the
+     * keyboard knows about how this person types.
+     *
+     * The executor is single-threaded, so a task queued after the write runs
+     * after it; waiting on that is enough, and avoids shutting the executor
+     * down while callers may still submit to it.
+     */
+    fun flushBlocking(timeoutMs: Long = 1500) {
+        saveIfDirty()
+        val done = CountDownLatch(1)
+        try {
+            io.execute { done.countDown() }
+            done.await(timeoutMs, TimeUnit.MILLISECONDS)
+        } catch (e: InterruptedException) {
+            Thread.currentThread().interrupt()
+        } catch (_: Exception) {
         }
     }
 

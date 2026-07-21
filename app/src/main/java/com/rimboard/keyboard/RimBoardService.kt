@@ -152,7 +152,7 @@ class RimBoardService : InputMethodService(),
             (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
                 .removePrimaryClipChangedListener(it)
         }
-        userData.saveIfDirty()
+        userData.flushBlocking()
         super.onDestroy()
     }
 
