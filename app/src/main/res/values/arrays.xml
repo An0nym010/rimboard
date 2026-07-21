@@ -57,19 +57,19 @@
     </string-array>
 
     <string-array name="theme_entries">
-        <item>System (light/dark)</item>
-        <item>Light</item>
-        <item>Dark</item>
-        <item>AMOLED black</item>
-        <item>Material You (dynamic)</item>
-        <item>High contrast</item>
-        <item>Ocean</item>
-        <item>Forest</item>
-        <item>Sunset</item>
-        <item>Graphite</item>
-        <item>Rose</item>
-        <item>Mint</item>
-        <item>Custom</item>
+        <item>@string/theme_system</item>
+        <item>@string/theme_light</item>
+        <item>@string/theme_dark</item>
+        <item>@string/theme_amoled</item>
+        <item>@string/theme_dynamic</item>
+        <item>@string/theme_contrast</item>
+        <item>@string/theme_ocean</item>
+        <item>@string/theme_forest</item>
+        <item>@string/theme_sunset</item>
+        <item>@string/theme_graphite</item>
+        <item>@string/theme_rose</item>
+        <item>@string/theme_mint</item>
+        <item>@string/theme_custom</item>
     </string-array>
 
     <string-array name="theme_values">
@@ -89,10 +89,10 @@
     </string-array>
 
     <string-array name="height_entries">
-        <item>Compact</item>
-        <item>Normal</item>
-        <item>Tall</item>
-        <item>Extra tall</item>
+        <item>@string/height_compact</item>
+        <item>@string/height_normal</item>
+        <item>@string/height_tall</item>
+        <item>@string/height_xtall</item>
     </string-array>
 
     <string-array name="height_values">

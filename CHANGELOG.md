@@ -41,6 +41,10 @@ Release notes for every RimBoard version. The current release is summarised in t
   dragging is not a gesture a screen reader user can perform.
 
 **Typing**
+- The Theme and Keyboard height dropdowns are translated. Twelve of the
+  fourteen settings dropdowns pulled their options from translatable strings;
+  these two had them written inline, so they stayed English in every
+  interface language.
 - Inline calculator gained metric/imperial conversion (`5km=`).
 - Email fields offer domain completions after `@`, where word suggestions are
   correctly switched off and the bar was otherwise idle.
