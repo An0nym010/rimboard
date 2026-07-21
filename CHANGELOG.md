@@ -39,6 +39,8 @@ Release notes for every RimBoard version. The current release is summarised in t
   starts with, at the far left), Translate, Undo and Redo in the editing
   panel, and Clear in the clipboard panel — the one destructive control
   there. Still to do: the six cursor arrows in the editing panel.
+- Reopening the tools panel after rearranging it in the picker no longer
+  leaves a screen reader describing the previous layout.
 - Screen readers can use the keyboard. Every key is announced, with character
   keys naming the glyph they would produce so shift is reflected rather than
   described, and keys with long-press alternatives say so.
@@ -66,6 +68,8 @@ Release notes for every RimBoard version. The current release is summarised in t
   settings hiding it) while a second finger was landing.
 - Fixed a crash when dragging a row in the toolbar arranger if the list was
   mid-relayout.
+- Typing statistics format their numbers and the "since" date in the
+  interface language you picked, rather than the phone's language.
 - The personal dictionary screen shows your words. It read them before the
   load off disk had finished, so it opened saying you had none.
 - Text shortcuts restored from a backup now take effect immediately instead

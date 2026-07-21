@@ -14,11 +14,27 @@ import androidx.appcompat.app.AppCompatActivity
 import com.rimboard.keyboard.R
 import java.text.DateFormat
 import java.util.Date
+import java.util.Locale
 
 /** Local typing statistics. Everything stays on this device. */
 class StatsActivity : AppCompatActivity() {
 
     private lateinit var container: LinearLayout
+
+    /**
+     * The locale this screen is actually rendered in.
+     *
+     * Deliberately not Locale.getDefault(). The interface-language setting is
+     * applied by building a context with createConfigurationContext (see
+     * [L10n]), which changes what resources resolve to but leaves the process
+     * default locale alone. Formatting through the default meant that picking,
+     * say, German for RimBoard on an English phone gave German labels next to
+     * English thousands separators and an English date.
+     */
+    private val uiLocale: Locale
+        get() = resources.configuration.locales.let {
+            if (it.isEmpty) Locale.getDefault() else it[0]
+        }
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(L10n.wrap(newBase))
@@ -81,19 +97,20 @@ class StatsActivity : AppCompatActivity() {
         lp1.setMargins(0, 0, (6 * d).toInt(), (14 * d).toInt())
         val lp2 = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         lp2.setMargins((6 * d).toInt(), 0, 0, (14 * d).toInt())
-        tiles.addView(tile(if (wpm > 0) "%.0f".format(wpm) else "\u2014", getString(R.string.st_wpm_short)), lp1)
-        tiles.addView(tile("%,d".format(Stats.words), getString(R.string.st_words)), lp2)
+        tiles.addView(tile(if (wpm > 0) "%.0f".format(uiLocale, wpm) else "\u2014", getString(R.string.st_wpm_short)), lp1)
+        tiles.addView(tile("%,d".format(uiLocale, Stats.words), getString(R.string.st_words)), lp2)
         container.addView(tiles)
-        row(getString(R.string.st_words), "%,d".format(Stats.words))
-        row(getString(R.string.st_keys), "%,d".format(Stats.keys))
-        row(getString(R.string.st_backspace), "%.1f%%".format(backRate))
-        row(getString(R.string.st_autocorrect), "%,d".format(Stats.autocorrects))
-        row(getString(R.string.st_time), "%dh %02dm".format(
+        row(getString(R.string.st_words), "%,d".format(uiLocale, Stats.words))
+        row(getString(R.string.st_keys), "%,d".format(uiLocale, Stats.keys))
+        row(getString(R.string.st_backspace), "%.1f%%".format(uiLocale, backRate))
+        row(getString(R.string.st_autocorrect), "%,d".format(uiLocale, Stats.autocorrects))
+        row(getString(R.string.st_time), "%dh %02dm".format(uiLocale,
             Stats.activeMs / 3600000, (Stats.activeMs / 60000) % 60))
-        row(getString(R.string.st_wpm), if (wpm > 0) "%.0f".format(wpm) else "\u2014")
+        row(getString(R.string.st_wpm), if (wpm > 0) "%.0f".format(uiLocale, wpm) else "\u2014")
         container.addView(TextView(this).apply {
             text = getString(R.string.st_since,
-                DateFormat.getDateInstance().format(Date(Stats.since)))
+                DateFormat.getDateInstance(DateFormat.DEFAULT, uiLocale)
+                        .format(Date(Stats.since)))
             textSize = 13f
             setPadding(0, (14 * d).toInt(), 0, (18 * d).toInt())
         })
