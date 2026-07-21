@@ -186,6 +186,7 @@
     <string name="a11y_move_down">Mover abajo</string>
     <string name="a11y_pin">Fijar</string>
     <string name="a11y_unpin">Dejar de fijar</string>
+    <string name="a11y_clear_clipboard">Borrar portapapeles</string>
     <string name="emoji_search">Buscar emoji</string>
     <string name="st_wpm_short">PPM</string>
     <string name="screen_advanced">Avanzado</string>

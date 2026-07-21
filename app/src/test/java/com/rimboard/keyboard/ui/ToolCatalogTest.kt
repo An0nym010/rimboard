@@ -49,6 +49,18 @@ class ToolCatalogTest {
     }
 
     @Test
+    fun `byCode resolves every tool, which is what labels the strip`() {
+        // The suggestion strip has only the action code to go on when it needs
+        // a TalkBack label for a pinned icon. It used to map code to label with
+        // its own table, which was missing "All tools" — the first entry in the
+        // default pinned set — so a fresh install shipped an unlabelled icon.
+        for (t in ToolCatalog.all) {
+            assertEquals("no tool for code ${t.code}", t.id, ToolCatalog.byCode(t.code)?.id)
+        }
+        assertTrue(ToolCatalog.byCode(Int.MIN_VALUE) == null)
+    }
+
+    @Test
     fun `the default pinned set names tools that exist`() {
         // A fresh install has no fixed settings or clipboard button, so this set
         // is the only route to either — an id that no longer resolves would

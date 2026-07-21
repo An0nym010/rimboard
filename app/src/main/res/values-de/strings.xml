@@ -186,6 +186,7 @@
     <string name="a11y_move_down">Nach unten</string>
     <string name="a11y_pin">Anheften</string>
     <string name="a11y_unpin">Lösen</string>
+    <string name="a11y_clear_clipboard">Zwischenablage leeren</string>
     <string name="emoji_search">Emoji suchen</string>
     <string name="st_wpm_short">WPM</string>
     <string name="screen_advanced">Erweitert</string>

@@ -245,6 +245,7 @@
     <string name="a11y_reorder_handle">Reorder</string>
     <string name="a11y_pin">Pin</string>
     <string name="a11y_unpin">Unpin</string>
+    <string name="a11y_clear_clipboard">Clear clipboard</string>
     <string name="a11y_move_up">Move up</string>
     <string name="a11y_move_down">Move down</string>
     <string name="tb_undo">Undo</string>

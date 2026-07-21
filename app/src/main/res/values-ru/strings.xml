@@ -186,6 +186,7 @@
     <string name="a11y_move_down">Переместить вниз</string>
     <string name="a11y_pin">Закрепить</string>
     <string name="a11y_unpin">Открепить</string>
+    <string name="a11y_clear_clipboard">Очистить буфер обмена</string>
     <string name="emoji_search">Поиск эмодзи</string>
     <string name="st_wpm_short">слов/мин</string>
     <string name="screen_advanced">Дополнительно</string>

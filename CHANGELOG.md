@@ -34,6 +34,11 @@ Release notes for every RimBoard version. The current release is summarised in t
   seven interface languages.
 
 **Accessibility**
+- Five icon-only buttons that screen readers could not announce now have
+  labels: "All tools" on the suggestion strip (which every fresh install
+  starts with, at the far left), Translate, Undo and Redo in the editing
+  panel, and Clear in the clipboard panel — the one destructive control
+  there. Still to do: the six cursor arrows in the editing panel.
 - Screen readers can use the keyboard. Every key is announced, with character
   keys naming the glyph they would produce so shift is reflected rather than
   described, and keys with long-press alternatives say so.

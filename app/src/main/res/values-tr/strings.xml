@@ -242,6 +242,7 @@
     <string name="a11y_move_down">Aşağı taşı</string>
     <string name="a11y_pin">Sabitle</string>
     <string name="a11y_unpin">Sabitlemeyi kaldır</string>
+    <string name="a11y_clear_clipboard">Panoyu temizle</string>
     <string name="st_wpm_short">KDS</string>
     <string name="pref_glide_title">Kaydırarak yazma</string>
     <string name="pref_glide_summary">Bir kelime yazmak için harften harfe kaydırın</string>

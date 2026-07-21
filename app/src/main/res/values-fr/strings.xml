@@ -186,6 +186,7 @@
     <string name="a11y_move_down">Déplacer vers le bas</string>
     <string name="a11y_pin">Épingler</string>
     <string name="a11y_unpin">Détacher</string>
+    <string name="a11y_clear_clipboard">Effacer le presse-papiers</string>
     <string name="emoji_search">Rechercher un émoji</string>
     <string name="st_wpm_short">MPM</string>
     <string name="screen_advanced">Avancé</string>

@@ -186,6 +186,7 @@
     <string name="a11y_move_down">Sposta giù</string>
     <string name="a11y_pin">Fissa</string>
     <string name="a11y_unpin">Rimuovi</string>
+    <string name="a11y_clear_clipboard">Svuota appunti</string>
     <string name="emoji_search">Cerca emoji</string>
     <string name="st_wpm_short">PPM</string>
     <string name="screen_advanced">Avanzate</string>
