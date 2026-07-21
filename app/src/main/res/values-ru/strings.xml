@@ -250,4 +250,5 @@
     <string name="tb_all_tools">Все инструменты</string>
     <string name="a11y_drawer_open">Показать инструменты</string>
     <string name="a11y_drawer_close">Скрыть инструменты</string>
+    <string name="cc_reset">Сбросить</string>
 </resources>

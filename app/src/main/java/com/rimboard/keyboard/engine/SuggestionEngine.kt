@@ -6,7 +6,6 @@ import java.util.Locale
 
 class SuggestionsResult(
     val items: List<String>,
-    val typedIndex: Int,        // index of the verbatim typed word, or -1
     val autocorrectIndex: Int   // index that would be committed on space, or -1
 )
 
@@ -184,7 +183,7 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
         altLang: String? = null,
         altLocale: Locale? = null
     ): SuggestionsResult {
-        if (composing.isEmpty()) return SuggestionsResult(emptyList(), -1, -1)
+        if (composing.isEmpty()) return SuggestionsResult(emptyList(), -1)
         val dict = dictionary(lang, locale)
         val lower = composing.lowercase(locale)
 
@@ -251,7 +250,7 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
             outAc = if (acWord != null && !isOffensive(acWord, lang))
                 outWords.indexOf(acWord) else -1
         }
-        return SuggestionsResult(outWords, 0, outAc)
+        return SuggestionsResult(outWords, outAc)
     }
 
     /** Ranked word candidates for a glide key sequence (lowercase results). */

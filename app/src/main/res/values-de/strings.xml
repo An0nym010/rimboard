@@ -250,4 +250,5 @@
     <string name="tb_all_tools">Alle Werkzeuge</string>
     <string name="a11y_drawer_open">Werkzeuge einblenden</string>
     <string name="a11y_drawer_close">Werkzeuge ausblenden</string>
+    <string name="cc_reset">Auf Standard zurücksetzen</string>
 </resources>

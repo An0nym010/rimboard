@@ -250,4 +250,5 @@
     <string name="tb_all_tools">Tous les outils</string>
     <string name="a11y_drawer_open">Afficher les outils</string>
     <string name="a11y_drawer_close">Masquer les outils</string>
+    <string name="cc_reset">Réinitialiser</string>
 </resources>

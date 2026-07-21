@@ -285,6 +285,11 @@ class SettingsActivity : AppCompatActivity() {
                 .show()
         }
 
+        /**
+         * [def] is the colour this slot falls back to when unset. It was passed
+         * in and never used, which left no way back once a custom colour had
+         * been chosen — the grid could only set one.
+         */
         private fun showColorGrid(title: String, prefKey: String, def: Int) {
             val ctx = requireContext()
             val d = resources.displayMetrics.density
@@ -310,6 +315,9 @@ class SettingsActivity : AppCompatActivity() {
             dlg = AlertDialog.Builder(ctx)
                 .setTitle(title)
                 .setView(grid)
+                .setNeutralButton(R.string.cc_reset) { _, _ ->
+                    Prefs.setCustomColor(ctx, prefKey, def)
+                }
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
         }

@@ -279,4 +279,5 @@
     <string name="tb_all_tools">All tools</string>
     <string name="a11y_drawer_open">Show tools</string>
     <string name="a11y_drawer_close">Hide tools</string>
+    <string name="cc_reset">Reset to default</string>
 </resources>

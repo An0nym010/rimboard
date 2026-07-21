@@ -1814,10 +1814,6 @@ class RimBoardService : InputMethodService(),
         updateStrip()
     }
 
-    override fun onToolbarPanelClosed() {
-        hideToolbarPanel()
-    }
-
     /** Hands text to any installed translator via the system process-text
      *  action. RimBoard itself sends nothing anywhere. */
     private fun launchTranslate(ic: InputConnection) {

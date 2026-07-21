@@ -37,8 +37,6 @@ class ToolbarPanelView(context: Context) : View(context) {
         fun onToolAction(code: Int)
         /** The pinned set or its order changed. */
         fun onPinnedChanged(ids: List<String>)
-        /** Back/close was tapped. */
-        fun onToolbarPanelClosed()
     }
 
     var listener: Listener? = null
@@ -420,9 +418,6 @@ class ToolbarPanelView(context: Context) : View(context) {
         invalidate()
         invalidateRoot()
     }
-
-    /** Height this panel wants, matching the keyboard it replaces. */
-    fun preferredRows(): Int = pinnedRows() + restRows()
 
     // ---- accessibility ----
 
