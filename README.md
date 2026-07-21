@@ -52,11 +52,16 @@ The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
   180) and metric/imperial conversion (`5km=` → 3.1069 mi)
 
 **Tools**
-- **Toolbar** — the chevron on the idle suggestion strip expands into a
-  scrollable row of tools: edit panel, one-handed, floating, incognito,
-  clipboard, numpad and more. Long-press and drag any icon to reorder it, or
-  choose which tools appear in Settings. Long-press the comma key for a quick
-  😊 shortcut.
+- **Tool drawer** — the chevron at the left of the suggestion bar is the only
+  fixed control on it; tapping it slides your pinned tools into view, and
+  tapping one runs it and closes the drawer. Settings, clipboard and the rest
+  are pinned, reordered or removed like any other tool rather than being fixed
+  in place.
+- **All tools** — a full-height panel listing every action, with a tray at the
+  top for what is currently on the suggestion bar. Tap **+** on any tool to pin
+  it, or hold and drag it between the two sections. It is itself a pinnable
+  tool, and long-pressing the chevron always opens it.
+- Long-press the comma key for a quick 😊 shortcut.
 - ◨ **One-handed mode** — shrink the keyboard to either side (toolbar → ◨); a
   rail switches sides or expands back. Auto-off in landscape.
 - 📋 **Clipboard history** — last 10 copied items (toolbar → 📋, or long-press

@@ -2,6 +2,67 @@
 
 Release notes for every RimBoard version. The current release is summarised in the [README](README.md).
 
+## Unreleased
+
+**Suggestion bar and tools**
+- The chevron is now a drawer: it slides your pinned tools onto the bar and
+  closes when you run one. The settings and clipboard icons are no longer
+  fixed on the bar — both are ordinary pinnable tools now, so every slot is
+  yours.
+- Opening the full tools panel became its own pinnable tool ("All tools"),
+  and long-pressing the chevron always reaches it.
+- Tool slots size themselves to the bar: a couple sit large, a full drawer
+  packs tighter, and past a minimum the row scrolls. A fixed width had been
+  overflowing the narrower strip of floating mode.
+
+**Look**
+- Flat key style is the default: bare letter glyphs, caps only on the keys
+  that are not letters, no shadows. The raised style is one switch away in
+  Settings, Theme, and returns automatically behind a background image, where
+  bare letters on a photo are unreadable.
+- Six new palettes: Ocean, Forest, Sunset, Graphite, Rose and Mint.
+- Key labels cross-fade on a plane or language switch; the language name
+  flashes on the spacebar when you switch. Motion respects the system
+  "remove animations" setting.
+
+**Languages** — every bundled language now has the same support
+- Native offensive-word lists for all 22 (was English and Turkish; the rest
+  relied on the English fallback).
+- Starter next-word predictions for all 22 (was English and Turkish, with no
+  fallback at all, so the other twenty had none until you had typed enough).
+- Settings, the tools panel and every accessibility label translated into all
+  seven interface languages.
+
+**Accessibility**
+- Screen readers can use the keyboard. Every key is announced, with character
+  keys naming the glyph they would produce so shift is reflected rather than
+  described, and keys with long-press alternatives say so.
+- The tools panel is navigable too, with pin and unpin as explicit actions —
+  dragging is not a gesture a screen reader user can perform.
+
+**Typing**
+- Inline calculator gained metric/imperial conversion (`5km=`).
+- Email fields offer domain completions after `@`, where word suggestions are
+  correctly switched off and the bar was otherwise idle.
+
+**Fixes and stability**
+- Fixed a data race between the background dictionary warm-up and the UI
+  thread that could corrupt the prediction cache.
+- Held key repeat no longer survives the keyboard being replaced — a rotation
+  mid-hold could keep deleting text from a keyboard that no longer existed.
+- Learned words, bigrams and trigrams are now written and waited for at
+  shutdown instead of being queued and possibly lost.
+- Restoring a backup reports honestly: a failed write no longer says
+  "restored", and settings are applied only once the data has landed, so a
+  rejected restore leaves your setup alone.
+- Dictionary import and background images run off the main thread and always
+  report their result; both previously froze the UI on large files and failed
+  silently.
+- Fixed thread leaks from the settings screens, two force-unwraps on the
+  per-keystroke path, and a shortcut save that could throw and vanish.
+- Failures that used to be swallowed now log to `adb logcat -s RimBoard`,
+  alongside dictionary load timings.
+
 ## What's new in 2.8.0
 
 - **Customizable toolbar** — pick your favourite shortcuts in Settings →
