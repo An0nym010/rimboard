@@ -263,6 +263,10 @@ object Themes {
             keyBgPressed = if (darkSurface) 0x66FFFFFF else 0x59000000,
             keyText = fg,
             keyHint = (fg and 0x00FFFFFF) or (0xB4 shl 24),
+            // The suggestion strip sits on the same photo (PhotoBackdrop draws
+            // it behind strip and keys together), so its text adapts with the
+            // keys' — base-theme grey on an arbitrary picture is a coin flip.
+            stripText = fg,
             isDark = darkSurface
         )
     }

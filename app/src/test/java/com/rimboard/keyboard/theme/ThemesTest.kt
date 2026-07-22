@@ -27,6 +27,8 @@ class ThemesTest {
         val onDark = Themes.overPhoto(base, luma = 40, dimAlpha = 0)
         assertTrue(onDark.isDark)
         assertEquals(0xFFFFFFFF.toInt(), onDark.keyText)
+        // The strip sits on the same photo, so its text must follow the keys'.
+        assertEquals(onDark.keyText, onDark.stripText)
 
         val onBright = Themes.overPhoto(base, luma = 220, dimAlpha = 0)
         assertFalse(onBright.isDark)

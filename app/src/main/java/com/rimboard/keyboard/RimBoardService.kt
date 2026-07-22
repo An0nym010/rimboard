@@ -56,7 +56,7 @@ class RimBoardService : InputMethodService(),
     private lateinit var userData: UserData
     private lateinit var engine: SuggestionEngine
 
-    private var rootView: LinearLayout? = null
+    private var rootView: com.rimboard.keyboard.ui.PhotoBackdrop? = null
     private var strip: SuggestionStripView? = null
     private var keyboardView: KeyboardView? = null
     private var emojiView: EmojiView? = null
@@ -168,7 +168,10 @@ class RimBoardService : InputMethodService(),
         // popup still up is anchored to the one being replaced.
         dismissPopups()
         val ctx = L10n.wrap(this)
-        val root = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
+        // The column itself draws the background photo, behind the strip and
+        // the keys alike; a plain LinearLayout here left the strip a flat bar
+        // cutting the picture off at the top of the keyboard.
+        val root = com.rimboard.keyboard.ui.PhotoBackdrop(ctx)
         val s = SuggestionStripView(ctx).apply { listener = this@RimBoardService }
         root.addView(s, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(44)))
         val frame = FrameLayout(ctx)
@@ -392,15 +395,17 @@ class RimBoardService : InputMethodService(),
         kbTheme = Themes.resolve(this, Prefs.theme(this))
         val t = kbTheme ?: return
         val bgDimAlpha = Prefs.bgDimAlpha(this)
-        // With a photo behind the keys, the keys themselves switch to
-        // translucent scrims whose polarity follows the image (see
-        // Themes.overPhoto). Only the keyboard view gets the variant: the
-        // strip and panels have no photo behind them, so they keep the theme.
+        // With a photo, the keys switch to translucent scrims whose polarity
+        // follows the image (see Themes.overPhoto), and the strip — which sits
+        // on the same photo now — takes the adapted colours over a transparent
+        // background. The panels cover the photo with their own opaque surface,
+        // so they keep the base theme.
         val hasBgImage =
             File(UserData.dataDir(this), "bg_image.jpg").exists()
+        val photoTheme =
+            if (hasBgImage) Themes.overPhoto(t, Prefs.bgLuma(this), bgDimAlpha) else null
         keyboardView?.let { kv ->
-            kv.theme =
-                if (hasBgImage) Themes.overPhoto(t, Prefs.bgLuma(this), bgDimAlpha) else t
+            kv.theme = photoTheme ?: t
             kv.previewEnabled = Prefs.popupPreview(this)
             kv.glideEnabled = Prefs.glide(this)
             when (Prefs.repeatSpeed(this)) {
@@ -409,7 +414,6 @@ class RimBoardService : InputMethodService(),
                 else -> { kv.repeatInitialMs = 300L; kv.repeatIntervalMs = 50L }
             }
             kv.showTrail = Prefs.glideTrail(this)
-            kv.bgDimAlpha = bgDimAlpha
             kv.keyBorders = Prefs.keyBorders(this)
             kv.narrowGaps = Prefs.narrowGaps(this)
             kv.sidePadPct = Prefs.sidePadPct(this)
@@ -440,12 +444,13 @@ class RimBoardService : InputMethodService(),
             kv.showDigitHints = !Prefs.numberRow(this)
             kv.incognito = isIncognito()
         }
-        strip?.applyTheme(t)
+        strip?.applyTheme(photoTheme?.copy(background = 0x00000000) ?: t)
         emojiView?.applyTheme(t)
         clipboardView?.applyTheme(t)
         editPanelView?.applyTheme(t)
         toolbarPanel?.applyTheme(t)
         rootView?.setBackgroundColor(t.background)
+        rootView?.dimAlpha = bgDimAlpha
         window?.window?.let { w ->
             w.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
             w.navigationBarColor = t.background

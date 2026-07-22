@@ -205,14 +205,6 @@ class KeyboardView(context: Context) : View(context) {
     private val nowPressed = HashSet<Key>()
     private val releaseAnim = HashMap<Key, Long>()
 
-    private var bgBm: android.graphics.Bitmap? = null
-    private var bgBmStamp = -1
-
-    /** Stamp a background decode is in flight for, so one frame never starts
-     *  a second worker for the same size and image. */
-    private var bgDecodeFor = -1
-    private val bgDst = Rect()
-
     private var bgProbeVersion = -1
     private var bgFilePresent = false
 
@@ -233,72 +225,6 @@ class KeyboardView(context: Context) : View(context) {
             }
         }
         return bgFilePresent
-    }
-
-    private fun drawBackgroundImage(canvas: Canvas) {
-        if (width == 0 || height == 0) return
-        if (!backgroundImagePresent()) {
-            bgBm = null
-            bgBmStamp = -1
-            return
-        }
-        val stamp = BgImageState.version * 31 + width * 7 + height
-        if (bgBmStamp != stamp && bgDecodeFor != stamp) {
-            // Decoding a photo costs tens of milliseconds, and it used to run
-            // right here inside onDraw — so the first frame of every keyboard
-            // open (and every resize) stalled by the price of a JPEG decode.
-            // A worker decodes and posts back; until it lands, the previous
-            // bitmap stands in, stretched to the new bounds, which reads as
-            // the photo settling rather than the keyboard freezing.
-            bgDecodeFor = stamp
-            val w = width
-            val h = height
-            val f = java.io.File(
-                com.rimboard.keyboard.engine.UserData.dataDir(context), "bg_image.jpg")
-            Thread {
-                val bm = try {
-                    decodeCentered(f, w, h)
-                } catch (e: Exception) {
-                    // A background that silently fails to decode reads as the
-                    // setting simply not working.
-                    android.util.Log.w("RimBoard", "background image decode failed", e)
-                    null
-                }
-                post {
-                    if (bgDecodeFor == stamp) {
-                        bgBm = bm
-                        bgBmStamp = stamp
-                        invalidate()
-                    } else {
-                        // A newer size or image superseded this decode.
-                        bm?.recycle()
-                    }
-                }
-            }.start()
-        }
-        bgBm?.let { bm ->
-            bgDst.set(0, 0, width, height)
-            canvas.drawBitmap(bm, null, bgDst, null)
-            keyPaint.color = (bgDimAlpha shl 24)
-            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), keyPaint)
-        }
-    }
-
-    private fun decodeCentered(f: java.io.File, w: Int, h: Int): android.graphics.Bitmap? {
-        val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        android.graphics.BitmapFactory.decodeFile(f.path, bounds)
-        var sample = 1
-        while (bounds.outWidth / (sample * 2) >= w && bounds.outHeight / (sample * 2) >= h) sample *= 2
-        val opts = android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }
-        val raw = android.graphics.BitmapFactory.decodeFile(f.path, opts) ?: return null
-        val scale = maxOf(w.toFloat() / raw.width, h.toFloat() / raw.height)
-        val sw = (raw.width * scale).toInt().coerceAtLeast(w)
-        val sh = (raw.height * scale).toInt().coerceAtLeast(h)
-        val scaled = android.graphics.Bitmap.createScaledBitmap(raw, sw, sh, true)
-        if (scaled !== raw) raw.recycle()
-        val out = android.graphics.Bitmap.createBitmap(scaled, (sw - w) / 2, (sh - h) / 2, w, h)
-        if (out !== scaled) scaled.recycle()
-        return out
     }
 
     private fun mixColor(a: Int, b: Int, f: Float): Int {
@@ -349,7 +275,6 @@ class KeyboardView(context: Context) : View(context) {
         minOf(ViewConfiguration.getLongPressTimeout(), 350).toLong()
     var labelScale = 1f
     var showTrail = true
-    var bgDimAlpha = 110
     var keyBorders = false
     var narrowGaps = false
     var splitFraction = 0f
@@ -546,14 +471,18 @@ class KeyboardView(context: Context) : View(context) {
     override fun onDraw(canvas: Canvas) {
         val t = theme ?: return
         val lay = layout ?: return
-        updateBackgroundPaint(t)
-        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bgPaint)
+        // With a photo set, PhotoBackdrop paints it behind this view and the
+        // strip together; an opaque fill here would blot it back out.
+        val photo = backgroundImagePresent()
+        if (!photo) {
+            updateBackgroundPaint(t)
+            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bgPaint)
+        }
         val tf = customTypeface ?: Typeface.DEFAULT
         if (textPaint.typeface !== tf) {
             textPaint.typeface = tf
             hintPaint.typeface = tf
         }
-        drawBackgroundImage(canvas)
         nowPressed.clear()
         val now = SystemClock.uptimeMillis()
         var needsAnimFrame = false
@@ -570,7 +499,6 @@ class KeyboardView(context: Context) : View(context) {
         // translucent scrims (see Themes.overPhoto) and cast no shadow — a
         // drop shadow under a see-through surface just reads as dirt on the
         // picture.
-        val photo = backgroundImagePresent()
         val flat = !keyBorders && !photo
 
         for (kb in bounds) {

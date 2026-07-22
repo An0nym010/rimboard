@@ -25,6 +25,10 @@ Release notes for every RimBoard version. The current release is summarised in t
   instead of three presets; an upgrade keeps the strength you had chosen.
   The photo also stopped costing a stutter: it used to be decoded inside the
   draw pass on every open and resize, and now loads off the UI thread.
+- The photo covers the whole keyboard now, suggestion bar included. It used
+  to stop at the top of the keys, leaving the bar a flat block of theme
+  colour cutting the picture off; the bar now goes transparent over the
+  image and its text follows the same light-or-dark adaptation as the keys.
 - Flat key style is the default: bare letter glyphs, caps only on the keys
   that are not letters, no shadows. The raised style is one switch away in
   Settings, Theme, and returns automatically behind a background image, where
