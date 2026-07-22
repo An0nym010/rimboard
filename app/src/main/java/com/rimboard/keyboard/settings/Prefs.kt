@@ -122,7 +122,10 @@ object Prefs {
     fun autoSpacePunct(c: Context) = get(c).getBoolean(KEY_AUTOSPACE, false)
     fun soundVolume(c: Context): String = get(c).getString(KEY_SOUND_VOL, "normal") ?: "normal"
     fun hapticStrength(c: Context): String = get(c).getString(KEY_HAPTIC_STR, "medium") ?: "medium"
-    fun emojiRow(c: Context) = get(c).getBoolean(KEY_EMOJI_ROW, true)
+    // Off by default: the idle strip stays clean unless the row is asked for.
+    // Must match the defaultValue in prefs_general.xml or the switch shows one
+    // state while the keyboard obeys the other.
+    fun emojiRow(c: Context) = get(c).getBoolean(KEY_EMOJI_ROW, false)
     fun glideTrail(c: Context) = get(c).getBoolean(KEY_GLIDE_TRAIL, true)
     fun bgDim(c: Context): String = get(c).getString(KEY_BG_DIM, "medium") ?: "medium"
 

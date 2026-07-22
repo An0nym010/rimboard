@@ -176,4 +176,22 @@ class DictionaryTest {
         assertTrue(d.corrections("helko", en, 3).isEmpty())
         assertTrue(d.glideCandidates("helo", 3).isEmpty())
     }
+
+    @Test
+    fun `editDistance is the shared contract personal corrections rank by`() {
+        // UserData scans the learned words with this exact function and the
+        // maxEditDistance rule, so a change here silently reshapes which
+        // personal words qualify as typo corrections. Pin the semantics both
+        // scans rely on: the three single-edit operations plus transposition
+        // all cost one, and anything past the cutoff reports as max + 1.
+        assertEquals(0, Dictionary.editDistance("hello", "hello", 2))
+        assertEquals(1, Dictionary.editDistance("helko", "hello", 2)) // substitution
+        assertEquals(1, Dictionary.editDistance("helo", "hello", 2))  // deletion
+        assertEquals(1, Dictionary.editDistance("heello", "hello", 2)) // insertion
+        assertEquals(1, Dictionary.editDistance("hlelo", "hello", 2)) // transposition
+        assertEquals(3, Dictionary.editDistance("abcd", "wxyz", 2))   // beyond cutoff
+        assertEquals(3, Dictionary.editDistance("a", "abcdef", 2))    // length gap alone
+        assertEquals(1, Dictionary.maxEditDistance(5))
+        assertEquals(2, Dictionary.maxEditDistance(6))
+    }
 }

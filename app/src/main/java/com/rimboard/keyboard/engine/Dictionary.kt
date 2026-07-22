@@ -28,6 +28,44 @@ class Dictionary(
         /** Marker for the word-initial position in the character model. */
         const val WORD_START = ' '
         private const val LN_UNSEEN = -6.0
+
+        /** Longest edit distance a typo may be corrected across: 1, or 2 for
+         *  words of 6+ characters. One rule, shared so the personal-vocabulary
+         *  scan in UserData cannot drift from the dictionary scan here. */
+        fun maxEditDistance(n: Int): Int = if (n >= 6) 2 else 1
+
+        /** Optimal string alignment (Damerau-Levenshtein) distance with early
+         *  cutoff: anything beyond [max] comes back as max + 1. Companion
+         *  because it reads no dictionary state, and UserData uses it to rank
+         *  learned words as correction candidates by the same measure. */
+        fun editDistance(a: String, b: String, max: Int): Int {
+            val m = a.length
+            val n = b.length
+            if (abs(m - n) > max) return max + 1
+            var prevPrev: IntArray? = null
+            var prev = IntArray(n + 1) { it }
+            var curr = IntArray(n + 1)
+            for (i in 1..m) {
+                curr[0] = i
+                var rowMin = curr[0]
+                for (j in 1..n) {
+                    val cost = if (a[i - 1] == b[j - 1]) 0 else 1
+                    var v = minOf(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost)
+                    if (i > 1 && j > 1 && a[i - 1] == b[j - 2] && a[i - 2] == b[j - 1]) {
+                        val pp = prevPrev
+                        if (pp != null && pp[j - 2] + 1 < v) v = pp[j - 2] + 1
+                    }
+                    curr[j] = v
+                    if (v < rowMin) rowMin = v
+                }
+                if (rowMin > max) return max + 1
+                val recycled = prevPrev ?: IntArray(n + 1)
+                prevPrev = prev
+                prev = curr
+                curr = recycled
+            }
+            return prev[n]
+        }
     }
 
     private val words: Array<String>
@@ -189,11 +227,11 @@ class Dictionary(
     fun corrections(typedLower: String, prox: KeyProximity?, limit: Int): List<String> {
         val n = typedLower.length
         if (n < 2 || words.isEmpty()) return emptyList()
-        val maxDist = if (n >= 6) 2 else 1
+        val maxDist = maxEditDistance(n)
         val scored = ArrayList<Pair<String, Double>>()
         for (bl in maxOf(1, n - maxDist)..minOf(24, n + maxDist)) for (i in byLen[bl]) {
             val cand = words[i]
-            val d = damerau(typedLower, cand, maxDist)
+            val d = editDistance(typedLower, cand, maxDist)
             if (d in 1..maxDist) {
                 val score = ln((freqs[i] + 1).toDouble()) - 3.5 * spatialCost(typedLower, cand, prox)
                 scored.add(cand to score)
@@ -299,33 +337,4 @@ class Dictionary(
         return i == needle.length
     }
 
-    /** Optimal string alignment (Damerau-Levenshtein) distance with early cutoff. */
-    private fun damerau(a: String, b: String, max: Int): Int {
-        val m = a.length
-        val n = b.length
-        if (abs(m - n) > max) return max + 1
-        var prevPrev: IntArray? = null
-        var prev = IntArray(n + 1) { it }
-        var curr = IntArray(n + 1)
-        for (i in 1..m) {
-            curr[0] = i
-            var rowMin = curr[0]
-            for (j in 1..n) {
-                val cost = if (a[i - 1] == b[j - 1]) 0 else 1
-                var v = minOf(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost)
-                if (i > 1 && j > 1 && a[i - 1] == b[j - 2] && a[i - 2] == b[j - 1]) {
-                    val pp = prevPrev
-                    if (pp != null && pp[j - 2] + 1 < v) v = pp[j - 2] + 1
-                }
-                curr[j] = v
-                if (v < rowMin) rowMin = v
-            }
-            if (rowMin > max) return max + 1
-            val recycled = prevPrev ?: IntArray(n + 1)
-            prevPrev = prev
-            prev = curr
-            curr = recycled
-        }
-        return prev[n]
-    }
 }

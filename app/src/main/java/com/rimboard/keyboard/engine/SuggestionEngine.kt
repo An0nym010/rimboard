@@ -157,7 +157,16 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
         if (altLang != null && altLocale != null &&
             dictionary(altLang, altLocale).contains(typed.lowercase(altLocale))
         ) return emptyList()
-        return dict.corrections(lower, KeyProximity.forLang(lang), limit + 4)
+        val fromDict = dict.corrections(lower, KeyProximity.forLang(lang), limit + 4)
+        // The user's own vocabulary corrects too: a typo of a name this
+        // keyboard has learned now has a fix, where before only the static
+        // dictionary was consulted. Appended after the dictionary's candidates
+        // on purpose — a personal word must never displace an obvious fix like
+        // teh -> the, but it fills in when the dictionary has nothing to say.
+        val personal = userData.correctionCandidates(
+            lower, Dictionary.maxEditDistance(lower.length))
+        return (fromDict + personal)
+            .distinct()
             .asSequence()
             .filter { !isOffensive(it, lang) && !userData.isBlocked(it) }
             .map { matchCase(typed, it, locale) }
@@ -216,13 +225,26 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
             .toMutableList()
 
         // Up to two corrections, best first, promoted to the front of the strip.
-        val corrs = correctionCandidates(composing, lang, locale, altLang, altLocale, 2)
+        var corrs = correctionCandidates(composing, lang, locale, altLang, altLocale, 2)
+        var crossLanguage = false
+        if (corrs.isEmpty() && altLang != null && altLocale != null) {
+            // The current language has nothing to offer for this word. Before
+            // giving up, ask the user's other enabled language: typing English
+            // on the Turkish layout, "helko" should still put "hello" on the
+            // strip. Display only — the chip is there to tap, but a guess from
+            // the other language is never bold enough to commit on space.
+            corrs = correctionCandidates(composing, altLang, altLocale, lang, locale, 1)
+            crossLanguage = true
+        }
+        val corrLocale = if (crossLanguage) altLocale ?: locale else locale
         for (c in corrs.asReversed()) {
-            val cl = c.lowercase(locale)
+            val cl = c.lowercase(corrLocale)
             ranked.remove(cl)
             ranked.add(0, cl)
+            // Cased with its own language's rules below (Turkish dotted i).
+            if (crossLanguage) altWords.add(cl)
         }
-        val correction = corrs.firstOrNull()
+        val correction = if (crossLanguage) null else corrs.firstOrNull()
 
         val display = mutableListOf(composing) // slot 0: verbatim
         for (w in ranked) {

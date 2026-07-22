@@ -1328,7 +1328,13 @@ class RimBoardService : InputMethodService(),
             imePicker()
             return
         }
-        finishComposingSilently()
+        // The half-typed word survives the switch on purpose. This used to
+        // finishComposingSilently() here, which is exactly backwards for the
+        // person who types an English word on the Turkish layout, sees Turkish
+        // suggestions, and switches language to fix that: their word was
+        // committed as-is and the strip went blank. Composing stays live, and
+        // the updateStrip() below re-runs suggestions against the language
+        // just switched to.
         langIndex = (langIndex + 1) % langs.size
         Prefs.setCurrentLang(this, currentLangCode())
         kind = LayoutKind.MAIN
@@ -1426,6 +1432,10 @@ class RimBoardService : InputMethodService(),
             langIndex = idx
             Prefs.setCurrentLang(this, code)
             if (keyboardView != null && kind == LayoutKind.MAIN) applyLayout()
+            // Same as the globe key: a half-typed word gets its suggestions
+            // recomputed in the language just switched to, rather than the
+            // strip showing the old language's until the next keystroke.
+            updateStrip()
         }
     }
 
@@ -1757,7 +1767,7 @@ class RimBoardService : InputMethodService(),
 
     override fun onLanguageSwipe(direction: Int) {
         if (direction < 0 && langs.size > 1) {
-            finishComposingSilently()
+            // Composing survives, same as cycleLanguage — see the note there.
             altBoost = false
             altBoostStreak = 0
             primStreak = 0

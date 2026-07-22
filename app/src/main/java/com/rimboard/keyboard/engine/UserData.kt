@@ -220,6 +220,33 @@ class UserData(context: Context) {
             .map { it.key to it.value }
             .toList()
 
+    /**
+     * Learned words within [maxDist] edits of [typedLower] — the user's own
+     * vocabulary offered as typo corrections, so a name or word this keyboard
+     * has learned can fix a typo of itself the way a dictionary word can.
+     * Only words past the suggestion bar (3+ uses) qualify; nearest first,
+     * then most used. A straight walk of the map with a cheap length gate in
+     * front of the distance computation — [userMatches] already walks the same
+     * map on the same keystrokes.
+     */
+    fun correctionCandidates(typedLower: String, maxDist: Int): List<String> {
+        if (typedLower.isEmpty()) return emptyList()
+        val n = typedLower.length
+        var hits: ArrayList<Triple<String, Int, Int>>? = null
+        for ((w, c) in learned) {
+            if (c < 3 || w == typedLower) continue
+            if (kotlin.math.abs(w.length - n) > maxDist) continue
+            val d = Dictionary.editDistance(typedLower, w, maxDist)
+            if (d in 1..maxDist) {
+                (hits ?: ArrayList<Triple<String, Int, Int>>(4).also { hits = it })
+                    .add(Triple(w, d, c))
+            }
+        }
+        val found = hits ?: return emptyList()
+        found.sortWith(compareBy({ it.second }, { -it.third }))
+        return found.map { it.first }
+    }
+
     fun userMatches(prefixLower: String, limit: Int): List<Pair<String, Int>> {
         if (prefixLower.isEmpty()) return emptyList()
         return learned.entries.asSequence()

@@ -48,6 +48,17 @@ Release notes for every RimBoard version. The current release is summarised in t
   dragging is not a gesture a screen reader user can perform.
 
 **Typing**
+- Switching language mid-word keeps the word. It used to commit the
+  half-typed word and blank the strip; now the suggestions immediately
+  re-run in the language you switched to — so typing an English word on the
+  Turkish layout and hitting 🌐 gets you English suggestions for it.
+- Spell check reaches further: words the keyboard has learned from you can
+  now fix typos of themselves (after the dictionary's own candidates, never
+  displacing an obvious fix), and when the current language has no idea what
+  you typed, the other enabled language gets to offer a correction chip —
+  shown to tap, never auto-committed.
+- The recent-emoji row on the idle suggestion bar is now off by default; the
+  toggle stays in Settings → General ("Emoji fast-access row").
 - The Theme and Keyboard height dropdowns are translated. Twelve of the
   fourteen settings dropdowns pulled their options from translatable strings;
   these two had them written inline, so they stayed English in every
