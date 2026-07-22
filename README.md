@@ -43,8 +43,8 @@ The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
 - Next-word predictions learned from your own typing (bigrams)
 - Double-space inserts ". ", hold-and-slide the spacebar to move the cursor
 - Long-press popups for accents, digits and symbols; key preview bubbles
-- Two symbol pages, a phone/number pad for numeric fields, ~700 emoji with
-  categories and recents
+- Two symbol pages, a phone/number pad for numeric fields, 1,500+ emoji with
+  categories and recents (anything your Android version can't render is hidden)
 - Long-press Enter inserts a newline in chat apps where Enter sends
 - Multi-touch typing (rollover), repeating backspace
 - Inline calculator — type `12*34` for a "= 408" chip. Handles parentheses,
@@ -94,8 +94,10 @@ The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
   suggests nothing personal, and records no emoji history.
 - Incognito also turns itself on automatically in password fields and in any
   field that requests no personalized learning (e.g. browsers' private tabs).
-- Learned words live in two plain-text files in the app's private storage.
-  You can wipe them anytime from Settings → "Delete learned data".
+- Learned words and the next-word model are plain-text files in the app's
+  private device-protected storage (`learned.txt`, `bigrams.txt`,
+  `trigrams.txt`). You can wipe them anytime from Settings → "Delete learned
+  data".
 - Nothing is uploaded to device backups or copied during a phone-to-phone
   transfer. `allowBackup=false` covers Android 11 and below; from Android 12
   that attribute is deprecated, so `res/xml/data_extraction_rules.xml` states
@@ -142,12 +144,16 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 The bundled lists hold up to 200,000 words for the eight core languages and
 100,000 for the rest (from the OpenSubtitles frequency corpus). To regenerate
-or enlarge them:
+them — the script takes bare language codes, no flags, and writes every
+language when given none:
 
 ```
-python3 tools/fetch_dictionaries.py --top 20000
-python3 tools/fetch_dictionaries.py --langs en tr de --top 15000
+python3 tools/fetch_dictionaries.py            # regenerate all 22
+python3 tools/fetch_dictionaries.py en tr de   # only the ones you name
 ```
+
+The per-language size limits live in the `TOP` table at the top of that
+script; change them there.
 
 Dictionary format is one `word count` pair per line, ordered by frequency.
 Adding a whole new language also needs a layout in

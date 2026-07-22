@@ -140,5 +140,15 @@ def fetch(lang: str, top: int) -> str:
 
 if __name__ == "__main__":
     langs = sys.argv[1:] or list(PATTERNS.keys())
+    # A mistyped code (or a stray flag copied from stale docs) reached
+    # PATTERNS[lang] inside fetch and came out as a bare KeyError traceback.
+    # Name the problem instead, and list what is valid.
+    unknown = [lg for lg in langs if lg not in PATTERNS]
+    if unknown:
+        sys.exit(
+            "unknown language code(s): %s\nknown: %s\n"
+            "usage: fetch_dictionaries.py [LANG ...]   (no flags; omit to do all)"
+            % (" ".join(unknown), " ".join(sorted(PATTERNS)))
+        )
     for lg in langs:
         print(fetch(lg, TOP.get(lg, MID)), flush=True)
