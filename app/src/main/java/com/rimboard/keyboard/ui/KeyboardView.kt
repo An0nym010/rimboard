@@ -208,6 +208,11 @@ class KeyboardView(context: Context) : View(context) {
     private var bgBm: android.graphics.Bitmap? = null
     private var bgBmStamp = -1
 
+    /** Stamp a background decode is in flight for, so one frame never starts
+     *  a second worker for the same size and image. */
+    private var bgDecodeFor = -1
+    private val bgDst = Rect()
+
     private var bgProbeVersion = -1
     private var bgFilePresent = false
 
@@ -234,24 +239,46 @@ class KeyboardView(context: Context) : View(context) {
         if (width == 0 || height == 0) return
         if (!backgroundImagePresent()) {
             bgBm = null
+            bgBmStamp = -1
             return
         }
-        val f = java.io.File(
-            com.rimboard.keyboard.engine.UserData.dataDir(context), "bg_image.jpg")
         val stamp = BgImageState.version * 31 + width * 7 + height
-        if (bgBm == null || bgBmStamp != stamp) {
-            bgBm = try {
-                decodeCentered(f, width, height)
-            } catch (e: Exception) {
-                // A background that silently fails to decode reads as the
-                // setting simply not working.
-                android.util.Log.w("RimBoard", "background image decode failed", e)
-                null
-            }
-            bgBmStamp = stamp
+        if (bgBmStamp != stamp && bgDecodeFor != stamp) {
+            // Decoding a photo costs tens of milliseconds, and it used to run
+            // right here inside onDraw — so the first frame of every keyboard
+            // open (and every resize) stalled by the price of a JPEG decode.
+            // A worker decodes and posts back; until it lands, the previous
+            // bitmap stands in, stretched to the new bounds, which reads as
+            // the photo settling rather than the keyboard freezing.
+            bgDecodeFor = stamp
+            val w = width
+            val h = height
+            val f = java.io.File(
+                com.rimboard.keyboard.engine.UserData.dataDir(context), "bg_image.jpg")
+            Thread {
+                val bm = try {
+                    decodeCentered(f, w, h)
+                } catch (e: Exception) {
+                    // A background that silently fails to decode reads as the
+                    // setting simply not working.
+                    android.util.Log.w("RimBoard", "background image decode failed", e)
+                    null
+                }
+                post {
+                    if (bgDecodeFor == stamp) {
+                        bgBm = bm
+                        bgBmStamp = stamp
+                        invalidate()
+                    } else {
+                        // A newer size or image superseded this decode.
+                        bm?.recycle()
+                    }
+                }
+            }.start()
         }
         bgBm?.let { bm ->
-            canvas.drawBitmap(bm, 0f, 0f, null)
+            bgDst.set(0, 0, width, height)
+            canvas.drawBitmap(bm, null, bgDst, null)
             keyPaint.color = (bgDimAlpha shl 24)
             canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), keyPaint)
         }
@@ -278,7 +305,11 @@ class KeyboardView(context: Context) : View(context) {
         if (f <= 0f) return a
         if (f >= 1f) return b
         fun ch(s: Int) = (((a shr s and 0xFF) * (1 - f)) + ((b shr s and 0xFF) * f)).toInt()
-        return (0xFF shl 24) or (ch(16) shl 16) or (ch(8) shl 8) or ch(0)
+        // The alpha channel interpolates too. Forcing it opaque was fine while
+        // every theme was opaque, but the photo-background theme's key caps
+        // are translucent scrims, and an opaque press-mix made each key flash
+        // solid for the length of the press animation.
+        return (ch(24) shl 24) or (ch(16) shl 16) or (ch(8) shl 8) or ch(0)
     }
 
     private val keyPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -535,8 +566,12 @@ class KeyboardView(context: Context) : View(context) {
 
         // A photo background leaves bare letters sitting straight on the image
         // with only the dim overlay between them, so the flat style falls back
-        // to drawing caps whenever one is set.
-        val flat = !keyBorders && !backgroundImagePresent()
+        // to drawing caps whenever one is set. Over a photo the caps are
+        // translucent scrims (see Themes.overPhoto) and cast no shadow — a
+        // drop shadow under a see-through surface just reads as dirt on the
+        // picture.
+        val photo = backgroundImagePresent()
+        val flat = !keyBorders && !photo
 
         for (kb in bounds) {
             val key = kb.key
@@ -574,7 +609,7 @@ class KeyboardView(context: Context) : View(context) {
             val radius = if (key.type == KeyType.ENTER) rectF.height() / 2f else keyRadius
             val bareLetter = flat && isLetter
             if (!bareLetter || press > 0f) {
-                if (!flat) {
+                if (!flat && !photo) {
                     shadowRect.set(rectF)
                     shadowRect.offset(0f, dp(1.4f))
                     canvas.drawRoundRect(shadowRect, radius, radius, shadowPaint)

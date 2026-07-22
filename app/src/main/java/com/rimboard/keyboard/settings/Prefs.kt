@@ -39,7 +39,10 @@ object Prefs {
     const val KEY_HAPTIC_STR = "haptic_strength"
     const val KEY_EMOJI_ROW = "emoji_row"
     const val KEY_GLIDE_TRAIL = "glide_trail"
+    /** Legacy light/medium/strong choice; read only to seed the slider. */
     const val KEY_BG_DIM = "bg_dim"
+    const val KEY_BG_DIM_PCT = "bg_dim_pct"
+    const val KEY_BG_LUMA = "bg_luma"
     const val KEY_KEY_BORDERS = "key_borders"
     const val KEY_NARROW_GAPS = "narrow_gaps"
     const val KEY_SPLIT = "split_mode"
@@ -127,7 +130,36 @@ object Prefs {
     // state while the keyboard obeys the other.
     fun emojiRow(c: Context) = get(c).getBoolean(KEY_EMOJI_ROW, false)
     fun glideTrail(c: Context) = get(c).getBoolean(KEY_GLIDE_TRAIL, true)
-    fun bgDim(c: Context): String = get(c).getString(KEY_BG_DIM, "medium") ?: "medium"
+    /**
+     * Dim overlay for the background image, as a draw alpha (0..230).
+     *
+     * The setting is a 0..100 slider now; the old light/medium/strong choice
+     * seeds the slider's starting point for anyone who had picked one, so an
+     * upgrade keeps the darkness they chose. Capped below 255 so full slider
+     * never paints the photo out entirely.
+     */
+    fun bgDimAlpha(c: Context): Int = bgDimPct(c) * 230 / 100
+
+    fun bgDimPct(c: Context): Int {
+        val p = get(c)
+        if (p.contains(KEY_BG_DIM_PCT)) return p.getInt(KEY_BG_DIM_PCT, 48).coerceIn(0, 100)
+        return when (p.getString(KEY_BG_DIM, "medium")) {
+            "light" -> 26
+            "strong" -> 72
+            else -> 48
+        }
+    }
+
+    /**
+     * Mean luminance (0..255) of the saved background image, computed once
+     * when it is picked. What decides whether keys over the photo scrim dark
+     * with light lettering or the reverse.
+     */
+    fun bgLuma(c: Context): Int = get(c).getInt(KEY_BG_LUMA, 96)
+
+    fun setBgLuma(c: Context, v: Int) {
+        get(c).edit().putInt(KEY_BG_LUMA, v.coerceIn(0, 255)).apply()
+    }
 
     /** Off means the flat style: bare letter glyphs, caps only on other keys. */
     fun keyBorders(c: Context) = get(c).getBoolean(KEY_KEY_BORDERS, false)

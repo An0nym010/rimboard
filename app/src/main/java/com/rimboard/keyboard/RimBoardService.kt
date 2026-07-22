@@ -391,8 +391,16 @@ class RimBoardService : InputMethodService(),
 
         kbTheme = Themes.resolve(this, Prefs.theme(this))
         val t = kbTheme ?: return
+        val bgDimAlpha = Prefs.bgDimAlpha(this)
+        // With a photo behind the keys, the keys themselves switch to
+        // translucent scrims whose polarity follows the image (see
+        // Themes.overPhoto). Only the keyboard view gets the variant: the
+        // strip and panels have no photo behind them, so they keep the theme.
+        val hasBgImage =
+            File(UserData.dataDir(this), "bg_image.jpg").exists()
         keyboardView?.let { kv ->
-            kv.theme = t
+            kv.theme =
+                if (hasBgImage) Themes.overPhoto(t, Prefs.bgLuma(this), bgDimAlpha) else t
             kv.previewEnabled = Prefs.popupPreview(this)
             kv.glideEnabled = Prefs.glide(this)
             when (Prefs.repeatSpeed(this)) {
@@ -401,11 +409,7 @@ class RimBoardService : InputMethodService(),
                 else -> { kv.repeatInitialMs = 300L; kv.repeatIntervalMs = 50L }
             }
             kv.showTrail = Prefs.glideTrail(this)
-            kv.bgDimAlpha = when (Prefs.bgDim(this)) {
-                "light" -> 60
-                "strong" -> 165
-                else -> 110
-            }
+            kv.bgDimAlpha = bgDimAlpha
             kv.keyBorders = Prefs.keyBorders(this)
             kv.narrowGaps = Prefs.narrowGaps(this)
             kv.sidePadPct = Prefs.sidePadPct(this)

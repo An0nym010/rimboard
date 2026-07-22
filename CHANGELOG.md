@@ -16,6 +16,15 @@ Release notes for every RimBoard version. The current release is summarised in t
   overflowing the narrower strip of floating mode.
 
 **Look**
+- Background photos, done properly. Portrait photos are no longer sideways —
+  the picker now honours the EXIF orientation tag that cameras store the
+  rotation in. Keys over a photo become translucent scrims that let the
+  picture read through, and whether they scrim dark with light lettering or
+  the reverse follows the image itself (measured once, when picked) combined
+  with how much dimming is applied. "Image dimming" is a 0–100 slider now
+  instead of three presets; an upgrade keeps the strength you had chosen.
+  The photo also stopped costing a stutter: it used to be decoded inside the
+  draw pass on every open and resize, and now loads off the UI thread.
 - Flat key style is the default: bare letter glyphs, caps only on the keys
   that are not letters, no shadows. The raised style is one switch away in
   Settings, Theme, and returns automatically behind a background image, where

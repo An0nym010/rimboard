@@ -425,13 +425,62 @@ class SettingsActivity : AppCompatActivity() {
                     }
                     val opts = android.graphics.BitmapFactory.Options()
                         .apply { inSampleSize = sample }
-                    val decoded =
+                    var decoded =
                         android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
                     if (decoded == null) {
                         toast(R.string.bg_invalid)
                         return@Thread
                     }
-                    bm = decoded
+                    bm = decoded // owned by the finally from here on
+                    // Cameras store the photo unrotated and record the real
+                    // orientation in an EXIF tag. Decoding ignores the tag, and
+                    // the JPEG re-encode below strips it — so without applying
+                    // it here, every portrait photo ended up on the keyboard
+                    // sideways, permanently.
+                    val exif = androidx.exifinterface.media.ExifInterface(
+                        java.io.ByteArrayInputStream(bytes))
+                    val matrix = android.graphics.Matrix()
+                    when (exif.getAttributeInt(
+                        androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
+                        androidx.exifinterface.media.ExifInterface.ORIENTATION_NORMAL)) {
+                        androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_90 ->
+                            matrix.postRotate(90f)
+                        androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_180 ->
+                            matrix.postRotate(180f)
+                        androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_270 ->
+                            matrix.postRotate(270f)
+                        androidx.exifinterface.media.ExifInterface.ORIENTATION_FLIP_HORIZONTAL ->
+                            matrix.preScale(-1f, 1f)
+                        androidx.exifinterface.media.ExifInterface.ORIENTATION_FLIP_VERTICAL ->
+                            matrix.preScale(1f, -1f)
+                        androidx.exifinterface.media.ExifInterface.ORIENTATION_TRANSPOSE -> {
+                            matrix.postRotate(90f); matrix.preScale(-1f, 1f)
+                        }
+                        androidx.exifinterface.media.ExifInterface.ORIENTATION_TRANSVERSE -> {
+                            matrix.postRotate(270f); matrix.preScale(-1f, 1f)
+                        }
+                    }
+                    if (!matrix.isIdentity) {
+                        val upright = android.graphics.Bitmap.createBitmap(
+                            decoded, 0, 0, decoded.width, decoded.height, matrix, true)
+                        if (upright !== decoded) {
+                            decoded.recycle()
+                            decoded = upright
+                            bm = decoded
+                        }
+                    }
+                    // Mean luminance, sampled small: what decides whether keys
+                    // over this photo scrim dark with light lettering or the
+                    // reverse. Computed once here rather than on every draw.
+                    val probe = android.graphics.Bitmap.createScaledBitmap(decoded, 24, 24, true)
+                    var luma = 0L
+                    for (y in 0 until probe.height) for (x in 0 until probe.width) {
+                        val p = probe.getPixel(x, y)
+                        luma += (299 * (p shr 16 and 0xFF) +
+                            587 * (p shr 8 and 0xFF) + 114 * (p and 0xFF)) / 1000
+                    }
+                    if (probe !== decoded) probe.recycle()
+                    Prefs.setBgLuma(ctx, (luma / (24 * 24)).toInt())
                     val f = java.io.File(
                         com.rimboard.keyboard.engine.UserData.dataDir(ctx), "bg_image.jpg")
                     java.io.FileOutputStream(f).use {

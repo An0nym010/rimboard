@@ -23,13 +23,13 @@
         android:title="@string/pref_bg_image_title"
         android:summary="@string/pref_bg_image_summary" />
 
-    <ListPreference
-        android:key="bg_dim"
+    <SeekBarPreference
+        android:key="bg_dim_pct"
         android:title="@string/pref_bg_dim_title"
-        android:entries="@array/hs_entries"
-        android:entryValues="@array/hs_values"
-        android:defaultValue="medium"
-        app:useSimpleSummaryProvider="true" />
+        android:max="100"
+        app:min="0"
+        app:showSeekBarValue="true"
+        android:defaultValue="48" />
 
     <Preference
         android:key="bg_clear"

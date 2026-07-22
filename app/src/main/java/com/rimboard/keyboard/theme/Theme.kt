@@ -240,6 +240,33 @@ object Themes {
         )
     }
 
+    /**
+     * The theme variant used while a background photo is showing: key caps
+     * become translucent scrims so the picture reads through them, and the
+     * scrim's polarity — dark caps with light lettering, or the reverse — is
+     * chosen from the image itself.
+     *
+     * [luma] is the photo's mean luminance (0..255, computed when it was
+     * picked) and [dimAlpha] the dim overlay strength; what matters for
+     * legibility is their product, since a bright photo under a heavy dim is a
+     * dark surface by the time the letters are drawn on it. Solid accents
+     * (enter, caps-lock) and the popup surfaces keep the base theme — popups
+     * sit above the photo and have to be readable outright.
+     */
+    fun overPhoto(base: KeyboardTheme, luma: Int, dimAlpha: Int): KeyboardTheme {
+        val effective = luma.coerceIn(0, 255) * (255 - dimAlpha.coerceIn(0, 255)) / 255
+        val darkSurface = effective < 110
+        val fg = if (darkSurface) 0xFFFFFFFF.toInt() else 0xFF14171C.toInt()
+        return base.copy(
+            keyBg = if (darkSurface) 0x2EFFFFFF else 0x30000000,
+            keyBgFunc = if (darkSurface) 0x1AFFFFFF else 0x1C000000,
+            keyBgPressed = if (darkSurface) 0x66FFFFFF else 0x59000000,
+            keyText = fg,
+            keyHint = (fg and 0x00FFFFFF) or (0xB4 shl 24),
+            isDark = darkSurface
+        )
+    }
+
     fun resolve(context: Context, pref: String): KeyboardTheme {
         val night = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
             Configuration.UI_MODE_NIGHT_YES
