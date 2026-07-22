@@ -22,3 +22,7 @@ Thumbs.db
 # Committed on purpose: fixed debug signing key so every CI build
 # shares one signature and updates install over previous versions.
 !app/debug.keystore
+
+# Python (tools/ scripts)
+__pycache__/
+*.pyc
