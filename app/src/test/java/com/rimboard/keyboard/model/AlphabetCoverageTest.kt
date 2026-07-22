@@ -39,13 +39,11 @@ class AlphabetCoverageTest {
         return out
     }
 
-    /** Letters used by the [limit] most frequent words of [code]'s dictionary. */
-    private fun used(code: String, limit: Int): Set<Char> {
-        val f = File(assets(), "dictionaries/$code.txt")
+    /** Every letter occurring anywhere in [code]'s dictionary. */
+    private fun used(code: String): Set<Char> {
         val out = HashSet<Char>()
-        f.useLines { lines ->
-            for ((i, line) in lines.withIndex()) {
-                if (i >= limit) break
+        File(assets(), "dictionaries/$code.txt").useLines { lines ->
+            for (line in lines) {
                 val sp = line.indexOf(' ')
                 val w = if (sp > 0) line.substring(0, sp) else line
                 for (ch in w) if (ch.isLetter()) out.add(ch.lowercaseChar())
@@ -56,9 +54,14 @@ class AlphabetCoverageTest {
 
     @Test
     fun `every language can type its own alphabet`() {
+        // Reads the lists in full rather than sampling their head. Sampling the
+        // top 2000 words was the first version of this, and it passed: Italian
+        // and Portuguese each had a letter they could not type that first
+        // appeared around rank 10,000. A letter is no less unreachable for
+        // being rare, and the suggestion engine ranks over the whole list.
         val problems = ArrayList<String>()
         for (code in Languages.codes) {
-            val missing = (used(code, 2000) - reachable(code)).sorted()
+            val missing = (used(code) - reachable(code)).sorted()
             if (missing.isNotEmpty()) {
                 problems.add("$code cannot type: ${missing.joinToString(" ")}")
             }

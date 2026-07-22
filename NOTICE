@@ -25,11 +25,23 @@ language, deduplicated, and truncated by frequency rank to at most —
   100,000 entries for cs, da, el, fi, hr, hu, id, nl, no, pl, ro, sk, sv
   and uk
 
-Romanian additionally has the legacy cedilla letters (s-cedilla U+015F,
-t-cedilla U+0163) folded to the comma-below letters Romanian actually
-uses (U+0219, U+021B), with the frequencies of the two spellings summed.
-The corpus mixes both; only the comma-below pair is standard. This
-leaves that list below the figure above.
+Three lists have further per-language corrections, which leave them below
+the figures above:
+
+  Romanian — the legacy cedilla letters (s-cedilla U+015F, t-cedilla
+  U+0163) are folded to the comma-below letters Romanian actually uses
+  (U+0219, U+021B), with the frequencies of the two spellings summed.
+  The corpus mixes both; only the comma-below pair is standard.
+
+  Portuguese — the trema (u-diaeresis U+00FC) is folded away, again
+  summing frequencies. It was abolished by the 1990 Orthographic
+  Agreement, so "freqüência" is now "frequência".
+
+  Italian — entries containing i-circumflex (U+00EE) are dropped. It is
+  not modern Italian orthography, and every such entry was another
+  language present in the corpus ("în" is Romanian, "maître" French).
+  Dropped rather than folded, so no Italian word inherits another
+  language's counts.
 
 The filtering, folding and truncation are done by
 tools/fetch_dictionaries.py, which is the authoritative description of

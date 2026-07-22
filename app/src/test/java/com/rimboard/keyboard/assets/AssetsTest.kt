@@ -123,11 +123,14 @@ class AssetsTest {
         for (code in Languages.codes) {
             val f = File(assets(), "dictionaries/$code.txt")
             if (!f.isFile) continue
-            // Sampling the head is enough to catch a format or ordering change;
-            // reading 22 full dictionaries would make this test cost minutes.
+            // Read in full. This used to sample the first 200 lines, on the
+            // stated grounds that reading all 22 dictionaries "would make this
+            // test cost minutes" — measured, it is under half a second, and
+            // sampling the head cannot see a frequency inversion or a malformed
+            // line anywhere below it.
             var last = Int.MAX_VALUE
             f.useLines { seq ->
-                seq.take(200).forEachIndexed { i, line ->
+                seq.forEachIndexed { i, line ->
                     val sp = line.indexOf(' ')
                     val freq = if (sp > 0) line.substring(sp + 1).trim().toIntOrNull() else null
                     if (freq == null) {

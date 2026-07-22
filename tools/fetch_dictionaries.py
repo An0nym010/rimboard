@@ -32,8 +32,13 @@ PATTERNS = {
     "de": r"^[a-z\u00e4\u00f6\u00fc\u00df]+$",
     "es": r"^[a-z\u00e1\u00e9\u00ed\u00f3\u00fa\u00fc\u00f1]+$",
     "fr": r"^[a-z\u00e0\u00e2\u00e7\u00e9\u00e8\u00ea\u00eb\u00ee\u00ef\u00f4\u00f9\u00fb\u00fc\u00ff\u0153\u00e6']+$",
-    "it": r"^[a-z\u00e0\u00e8\u00e9\u00ec\u00ed\u00ee\u00f2\u00f3\u00f9\u00fa']+$",
-    "pt": r"^[a-z\u00e1\u00e2\u00e3\u00e0\u00e7\u00e9\u00ea\u00ed\u00f3\u00f4\u00f5\u00fa\u00fc]+$",
+    # No i-circumflex: it is not modern Italian orthography, and every corpus
+    # entry carrying it was another language leaking in \u2014 "\u00een" is Romanian,
+    # "ma\u00eetre" and "pla\u00eet" are French. Filtered out rather than folded, because
+    # folding "\u00een" to "in" would credit an Italian word with Romanian counts.
+    "it": r"^[a-z\u00e0\u00e8\u00e9\u00ec\u00ed\u00f2\u00f3\u00f9\u00fa']+$",
+    # No trema: FOLD removes it before this pattern is applied.
+    "pt": r"^[a-z\u00e1\u00e2\u00e3\u00e0\u00e7\u00e9\u00ea\u00ed\u00f3\u00f4\u00f5\u00fa]+$",
     "ru": r"^[\u0430-\u044f\u0451]+$",
     "nl": r"^[a-z\u00e9\u00eb\u00ef\u00f6\u00fc']+$",
     "pl": r"^[a-z\u0105\u0107\u0119\u0142\u0144\u00f3\u015b\u017a\u017c]+$",
@@ -63,8 +68,14 @@ PATTERNS = {
 # type, and the corpus prefers those spellings about ten to one, so they
 # outranked the ones a user can actually produce. Folding also reunites the
 # frequency of a word that the corpus had split across both spellings.
+# Portuguese: the trema was abolished by the 1990 Orthographic Agreement, so
+# "freqüência" is now "frequência". The corpus predates the change in places
+# and carries both; the modern form already dominates, so this mostly removes
+# long-tail spellings the keyboard cannot produce and returns their counts to
+# the spelling it can.
 FOLD = {
     "ro": str.maketrans({"ş": "ș", "ţ": "ț"}),
+    "pt": str.maketrans({"ü": "u"}),
 }
 
 OUT_DIR = Path(__file__).resolve().parent.parent / "app/src/main/assets/dictionaries"
