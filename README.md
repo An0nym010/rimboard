@@ -65,8 +65,11 @@ The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
 - ◨ **One-handed mode** — shrink the keyboard to either side (drawer → ◨); a
   rail switches sides or expands back. Auto-off in landscape.
 - 📋 **Clipboard history** — last 10 copied items (drawer → 📋, or long-press
-  the paste chip). Kept in RAM only, never written to disk, cleared when the
-  keyboard process ends, disabled in incognito, 🗑 wipes it instantly.
+  the paste chip). The history is RAM-only: cleared when the keyboard process
+  ends, disabled in incognito, 🗑 wipes it instantly. The one thing that
+  persists is a clip you explicitly 📌 pin — that item is saved to the app's
+  device-protected storage so it survives a restart, and stays only until you
+  unpin it.
 
 **Languages**
 - 22 languages out of the box (see the list at the top) — pick any set in
