@@ -25,6 +25,11 @@ Release notes for every RimBoard version. The current release is summarised in t
   instead of three presets; an upgrade keeps the strength you had chosen.
   The photo also stopped costing a stutter: it used to be decoded inside the
   draw pass on every open and resize, and now loads off the UI thread.
+- Picking a photo now opens a crop screen: the picture sits behind a
+  keyboard-shaped window, drag and pinch position it, the dimming slider
+  previews live, and Apply saves exactly what you framed. Before, the pick
+  saved immediately with a blind centre-crop — whether your subject survived
+  was luck.
 - The photo covers the whole keyboard now, suggestion bar included. It used
   to stop at the top of the keys, leaving the bar a flat block of theme
   colour cutting the picture off; the bar now goes transparent over the

@@ -66,6 +66,11 @@
             android:exported="false"
             android:label="@string/pref_toolbar_title" />
 
+        <activity
+            android:name=".settings.BackgroundCropActivity"
+            android:exported="false"
+            android:label="@string/pref_bg_image_title" />
+
     </application>
 
 </manifest>

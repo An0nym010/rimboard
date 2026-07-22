@@ -150,6 +150,10 @@ object Prefs {
         }
     }
 
+    fun setBgDimPct(c: Context, v: Int) {
+        get(c).edit().putInt(KEY_BG_DIM_PCT, v.coerceIn(0, 100)).apply()
+    }
+
     /**
      * Mean luminance (0..255) of the saved background image, computed once
      * when it is picked. What decides whether keys over the photo scrim dark

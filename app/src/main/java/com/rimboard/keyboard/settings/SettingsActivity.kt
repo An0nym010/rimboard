@@ -133,7 +133,17 @@ class SettingsActivity : AppCompatActivity() {
 
         private val bgLauncher = registerForActivityResult(
             ActivityResultContracts.OpenDocument()
-        ) { uri -> if (uri != null) saveBackgroundImage(uri) }
+        ) { uri ->
+            // Picking no longer saves blindly: the crop screen shows the photo
+            // behind a keyboard-shaped window and saves what the user framed.
+            if (uri != null) {
+                startActivity(
+                    Intent(requireContext(), BackgroundCropActivity::class.java)
+                        .setData(uri)
+                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                )
+            }
+        }
 
         private val fontLauncher = registerForActivityResult(
             ActivityResultContracts.OpenDocument()
@@ -394,110 +404,6 @@ class SettingsActivity : AppCompatActivity() {
             }.start()
         }
 
-        /**
-         * Decodes and re-encodes on a background thread, then reports.
-         *
-         * This ran on the main thread while holding the whole source image in
-         * memory — a phone photo is easily 5-15MB — decoding it twice and then
-         * JPEG-encoding it. It also swallowed failures silently, so choosing an
-         * unreadable image looked identical to the setting doing nothing.
-         */
-        private fun saveBackgroundImage(uri: android.net.Uri) {
-            val ctx = requireContext().applicationContext
-            val ui = android.os.Handler(android.os.Looper.getMainLooper())
-            fun toast(res: Int) = ui.post {
-                android.widget.Toast.makeText(ctx, res, android.widget.Toast.LENGTH_SHORT).show()
-            }
-            Thread {
-                var bm: android.graphics.Bitmap? = null
-                try {
-                    val bytes = ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-                    if (bytes == null) {
-                        toast(R.string.bg_invalid)
-                        return@Thread
-                    }
-                    val bounds = android.graphics.BitmapFactory.Options()
-                        .apply { inJustDecodeBounds = true }
-                    android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
-                    var sample = 1
-                    while (bounds.outWidth / sample > 1600 || bounds.outHeight / sample > 1600) {
-                        sample *= 2
-                    }
-                    val opts = android.graphics.BitmapFactory.Options()
-                        .apply { inSampleSize = sample }
-                    var decoded =
-                        android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
-                    if (decoded == null) {
-                        toast(R.string.bg_invalid)
-                        return@Thread
-                    }
-                    bm = decoded // owned by the finally from here on
-                    // Cameras store the photo unrotated and record the real
-                    // orientation in an EXIF tag. Decoding ignores the tag, and
-                    // the JPEG re-encode below strips it — so without applying
-                    // it here, every portrait photo ended up on the keyboard
-                    // sideways, permanently.
-                    val exif = androidx.exifinterface.media.ExifInterface(
-                        java.io.ByteArrayInputStream(bytes))
-                    val matrix = android.graphics.Matrix()
-                    when (exif.getAttributeInt(
-                        androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
-                        androidx.exifinterface.media.ExifInterface.ORIENTATION_NORMAL)) {
-                        androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_90 ->
-                            matrix.postRotate(90f)
-                        androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_180 ->
-                            matrix.postRotate(180f)
-                        androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_270 ->
-                            matrix.postRotate(270f)
-                        androidx.exifinterface.media.ExifInterface.ORIENTATION_FLIP_HORIZONTAL ->
-                            matrix.preScale(-1f, 1f)
-                        androidx.exifinterface.media.ExifInterface.ORIENTATION_FLIP_VERTICAL ->
-                            matrix.preScale(1f, -1f)
-                        androidx.exifinterface.media.ExifInterface.ORIENTATION_TRANSPOSE -> {
-                            matrix.postRotate(90f); matrix.preScale(-1f, 1f)
-                        }
-                        androidx.exifinterface.media.ExifInterface.ORIENTATION_TRANSVERSE -> {
-                            matrix.postRotate(270f); matrix.preScale(-1f, 1f)
-                        }
-                    }
-                    if (!matrix.isIdentity) {
-                        val upright = android.graphics.Bitmap.createBitmap(
-                            decoded, 0, 0, decoded.width, decoded.height, matrix, true)
-                        if (upright !== decoded) {
-                            decoded.recycle()
-                            decoded = upright
-                            bm = decoded
-                        }
-                    }
-                    // Mean luminance, sampled small: what decides whether keys
-                    // over this photo scrim dark with light lettering or the
-                    // reverse. Computed once here rather than on every draw.
-                    val probe = android.graphics.Bitmap.createScaledBitmap(decoded, 24, 24, true)
-                    var luma = 0L
-                    for (y in 0 until probe.height) for (x in 0 until probe.width) {
-                        val p = probe.getPixel(x, y)
-                        luma += (299 * (p shr 16 and 0xFF) +
-                            587 * (p shr 8 and 0xFF) + 114 * (p and 0xFF)) / 1000
-                    }
-                    if (probe !== decoded) probe.recycle()
-                    Prefs.setBgLuma(ctx, (luma / (24 * 24)).toInt())
-                    val f = java.io.File(
-                        com.rimboard.keyboard.engine.UserData.dataDir(ctx), "bg_image.jpg")
-                    java.io.FileOutputStream(f).use {
-                        decoded.compress(android.graphics.Bitmap.CompressFormat.JPEG, 88, it)
-                    }
-                    com.rimboard.keyboard.ui.BgImageState.version++
-                    toast(R.string.bg_saved)
-                } catch (e: Exception) {
-                    android.util.Log.w("RimBoard", "background image save failed", e)
-                    toast(R.string.bg_invalid)
-                } finally {
-                    // Recycled even when compress throws, which previously left
-                    // a full-size bitmap alive until the collector noticed.
-                    bm?.recycle()
-                }
-            }.start()
-        }
         companion object {
             private const val ARG_XML = "xml"
             fun newInstance(res: Int) = SettingsFragment().apply {
