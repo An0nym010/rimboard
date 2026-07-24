@@ -144,4 +144,57 @@ class AssetsTest {
         }
         assertTrue(problems.joinToString("\n"), problems.isEmpty())
     }
+
+    @Test
+    fun `emoji search keywords are reachable from the mini keypad`() {
+        // The search keypad is letters only — no space — and matches a folded,
+        // lowercased query against the keyword with startsWith. A keyword with
+        // an uppercase letter or a space can therefore never be typed, so the
+        // entry is dead: it loads fine and can never be found.
+        val problems = ArrayList<String>()
+        for (f in File(assets(), "emoji").listFiles().orEmpty()
+            .filter { it.name.startsWith("search_") }.sortedBy { it.name }) {
+            lines(f).forEachIndexed { i, line ->
+                val at = "${f.name}:${i + 1}"
+                val tab = line.indexOf(tab)
+                if (tab <= 0) {
+                    problems.add("$at: no keyword before a tab")
+                    return@forEachIndexed
+                }
+                val kw = line.substring(0, tab)
+                if (kw != kw.lowercase()) problems.add("$at: keyword not lowercase: $kw")
+                if (kw.any { it == ' ' }) problems.add("$at: keyword has a space: $kw")
+                if (line.substring(tab + 1).isBlank()) problems.add("$at: no emoji for $kw")
+            }
+        }
+        assertTrue(problems.joinToString("\n"), problems.isEmpty())
+    }
+
+    @Test
+    fun `word-to-emoji files are one tab-separated pair with no lost duplicates`() {
+        // en.txt and tr.txt map a word to its emoji suggestion. The loader keeps
+        // only lines that split into exactly two fields, and the later of two
+        // duplicate words wins — both are silent, so guard both.
+        val problems = ArrayList<String>()
+        for (name in listOf("en.txt", "tr.txt")) {
+            val f = File(assets(), "emoji/$name")
+            if (!f.isFile) {
+                problems.add("$name: missing")
+                continue
+            }
+            val seen = HashSet<String>()
+            lines(f).forEachIndexed { i, line ->
+                val at = "$name:${i + 1}"
+                val parts = line.split(tab)
+                if (parts.size != 2) {
+                    problems.add("$at: ${parts.size} fields, need 2")
+                    return@forEachIndexed
+                }
+                if (parts[0].isBlank()) problems.add("$at: blank word")
+                if (parts[1].isBlank()) problems.add("$at: blank emoji")
+                if (!seen.add(parts[0])) problems.add("$at: duplicate word ${parts[0]}")
+            }
+        }
+        assertTrue(problems.joinToString("\n"), problems.isEmpty())
+    }
 }
