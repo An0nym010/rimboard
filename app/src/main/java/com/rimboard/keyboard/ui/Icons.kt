@@ -106,14 +106,17 @@ object Icons {
      * Whether to draw the Lucide VectorDrawables instead of the hand-drawn
      * glyphs below.
      *
-     * Off. Every surface that shows an icon — suggestion bar, drawer, tools
-     * panel and the keys — renders through [draw], so this migration is the one
-     * recent change common to all of them, and all of them are reported broken.
-     * The drawables and their mapping stay compiled and attributed; flipping
-     * this back to true is the whole re-enable once they have been seen on a
-     * device. Isolating an unverifiable change beats guessing at its symptoms.
+     * On. The committed path data for all 26 icons was rendered as SVG and
+     * inspected: every conversion I was unsure of — circle-to-arc, rect-to-path,
+     * fill dots — draws correctly. The one renderer-dependent element, Lucide's
+     * zero-length "dot" strokes on the emoji and keyboard glyphs, was replaced
+     * with real filled circles, so nothing here relies on how a given renderer
+     * treats a degenerate segment.
+     *
+     * The fallback below still stands: if a drawable ever fails to load, [draw]
+     * uses the hand-drawn glyph rather than showing nothing.
      */
-    private const val USE_VECTOR_ICONS = false
+    private const val USE_VECTOR_ICONS = true
 
     private var appContext: android.content.Context? = null
     private val vectorRes = HashMap<Int, Int>()

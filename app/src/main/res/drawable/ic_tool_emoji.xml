@@ -1,4 +1,7 @@
-<!-- Lucide "smile" — ISC, (c) 2026 Lucide Icons and Contributors. See NOTICE. -->
+<!-- Lucide "smile" — ISC, (c) 2026 Lucide Icons and Contributors. See NOTICE.
+     Eyes drawn as filled circles rather than Lucide's zero-length strokes:
+     Android's VectorDrawable does not reliably render a degenerate segment,
+     so the dot convention is replaced with a real 2-unit circle. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
@@ -17,15 +20,9 @@
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
     <path
-        android:pathData="M9,9 L9.01,9"
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
+        android:pathData="M8,9 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0"
+        android:fillColor="#FFFFFFFF" />
     <path
-        android:pathData="M15,9 L15.01,9"
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
+        android:pathData="M14,9 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0"
+        android:fillColor="#FFFFFFFF" />
 </vector>
