@@ -298,13 +298,17 @@
     <string name="net_choice_offline_head" tools:ignore="MissingTranslation">Stay fully offline</string>
     <string name="net_choice_offline_body" tools:ignore="MissingTranslation">• Nothing you type can leave this device.\n• No accounts, no API keys, nothing to set up.\n• No GIF search, and no AI translation or rewriting.</string>
     <string name="net_choice_online_head" tools:ignore="MissingTranslation">Turn on online features</string>
-    <string name="net_choice_online_body" tools:ignore="MissingTranslation">These are the only things RimBoard will ever use the network for:\n• GIF search in the emoji panel.\n• Translating or rewriting text you have selected.\n\nWhen you use one, the search words or selected text go to the service that answers it — Tenor for GIFs, Anthropic for text. You supply your own API keys; there is no RimBoard server. Nothing is ever sent in the background, in incognito, in a password field, or for anything you have not just asked for.\n\nTranslation works today and needs your own Anthropic API key (Settings → Network). GIF search is not built yet.</string>
-    <string name="net_choice_footer" tools:ignore="MissingTranslation">You can change this whenever you like in Settings → Network. This build is able to go online: it holds the INTERNET permission whichever option you pick here, and offline mode is enforced by RimBoard\'s own code. If you would rather that were not a matter of trust, install the offline build instead — it does not request the permission at all, so Android refuses it a connection.</string>
+    <string name="net_choice_online_body" tools:ignore="MissingTranslation">These are the only things RimBoard uses the network for:
+• GIF and sticker search.
+• Translating or proofreading text you select.
+
+Your search words or selected text go to the service that answers them. Nothing is sent in the background, in incognito, or in a password field. You supply your own API key.</string>
+    <string name="net_choice_footer" tools:ignore="MissingTranslation">You can change this any time in Settings → Network.</string>
     <string name="net_choice_pick_offline" tools:ignore="MissingTranslation">Stay offline</string>
     <string name="net_choice_pick_online" tools:ignore="MissingTranslation">Enable online</string>
 
     <string name="net_offline_build_title" tools:ignore="MissingTranslation">This is the offline build</string>
-    <string name="net_offline_build_body" tools:ignore="MissingTranslation">RimBoard does not request Android\'s INTERNET permission in this build, so the system will refuse it a network connection even if its code asked for one. Nothing you type can leave this device.\n\nYou do not have to take that on trust — RimBoard can try to open a connection right now and show you the system turning it down.</string>
+    <string name="net_offline_build_body" tools:ignore="MissingTranslation">This build has no internet permission, so Android will not let RimBoard connect at all. Nothing you type can leave this device.</string>
     <string name="net_show_proof" tools:ignore="MissingTranslation">Show me</string>
     <string name="net_dismiss" tools:ignore="MissingTranslation">Got it</string>
 
@@ -319,13 +323,13 @@
     <string name="net_verdict_online" tools:ignore="MissingTranslation">Online</string>
     <string name="net_verdict_online_idle" tools:ignore="MissingTranslation">Online-capable, nothing reachable now</string>
 
-    <string name="net_verdict_proven_detail" tools:ignore="MissingTranslation">This build does not hold the INTERNET permission. RimBoard just tried to open a connection anyway, and Android refused it. The refusal below came from the operating system, not from RimBoard.</string>
-    <string name="net_verdict_permission_detail" tools:ignore="MissingTranslation">This build does not hold the INTERNET permission, so Android will not give it a network connection. The live test could not confirm it just now — see the result below.</string>
-    <string name="net_verdict_online_detail" tools:ignore="MissingTranslation">This build holds the INTERNET permission and can open connections. Whether it makes any is enforced by RimBoard\'s own code, which is a promise rather than something the system stops it doing. The offline build is the one that cannot.</string>
-    <string name="net_verdict_online_idle_detail" tools:ignore="MissingTranslation">This build holds the INTERNET permission. Nothing answered the live test just now, which usually means the device itself is offline — it is not a limit on what this build could do once it is not.</string>
+    <string name="net_verdict_proven_detail" tools:ignore="MissingTranslation">RimBoard just tried to open a connection and Android refused it. That refusal came from the system, not from RimBoard.</string>
+    <string name="net_verdict_permission_detail" tools:ignore="MissingTranslation">This build holds no internet permission, so Android will not let it connect. The live test could not confirm it just now — see below.</string>
+    <string name="net_verdict_online_detail" tools:ignore="MissingTranslation">This build can open connections. Whether it makes any is enforced by RimBoard itself. The offline build is the one that physically cannot.</string>
+    <string name="net_verdict_online_idle_detail" tools:ignore="MissingTranslation">This build can open connections, but nothing answered just now — usually that means the phone itself is offline.</string>
 
     <string name="net_perm_header" tools:ignore="MissingTranslation">Permissions this APK declares</string>
-    <string name="net_perm_note" tools:ignore="MissingTranslation">Read from Android\'s own copy of the manifest. It is the same list you get from <tt>aapt dump permissions</tt> on the APK file, or <tt>adb shell dumpsys package com.rimboard.keyboard</tt> on the phone.</string>
+    <string name="net_perm_note" tools:ignore="MissingTranslation">Read from the manifest Android itself holds, so it is the same list <tt>adb shell dumpsys package com.rimboard.keyboard</tt> reports.</string>
     <string name="net_probe_header" tools:ignore="MissingTranslation">Live connection test</string>
     <string name="net_probe_running" tools:ignore="MissingTranslation">Trying to open a connection…</string>
     <string name="net_probe_again" tools:ignore="MissingTranslation">Test again</string>
@@ -348,7 +352,7 @@
     <string name="pref_keys_header" tools:ignore="MissingTranslation">API keys</string>
     <string name="pref_key_anthropic" tools:ignore="MissingTranslation">Anthropic API key</string>
     <string name="pref_key_none" tools:ignore="MissingTranslation">Not set — the 🌍 tool hands text to another app instead</string>
-    <string name="pref_key_note" tools:ignore="MissingTranslation">Your own key, from console.anthropic.com. There is no RimBoard server and no shared key: an open-source app cannot hide one. It is stored in RimBoard\'s private storage, encrypted by Android until you first unlock the device — which means it is exactly as safe as your lock screen, and no safer.</string>
+    <string name="pref_key_note" tools:ignore="MissingTranslation">Your own key — there is no RimBoard server and no shared key, because an open-source app cannot hide one. Stored in private app storage, which Android encrypts until you unlock the phone.</string>
     <string name="pref_key_save" tools:ignore="MissingTranslation">Save</string>
     <string name="pref_key_clear" tools:ignore="MissingTranslation">Clear</string>
     <string name="pref_key_saved" tools:ignore="MissingTranslation">Key saved</string>

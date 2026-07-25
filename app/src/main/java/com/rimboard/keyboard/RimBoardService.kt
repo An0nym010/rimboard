@@ -336,6 +336,11 @@ class RimBoardService : InputMethodService(),
             }
         }
         keyboardView?.shiftState = KeyboardView.ShiftState.NONE
+        // Panel visibility survives the input view being hidden and shown
+        // again, so without this the keyboard could return still covered by
+        // whatever panel was open when it went away — including the tools
+        // panel, which has no exit of its own.
+        closeAnyPanel()
         captureClip()
         configureAll(info)
     }
@@ -1538,6 +1543,48 @@ class RimBoardService : InputMethodService(),
 
 
     /** Brings the keyboard back from a panel, animating only if it was hidden. */
+    /** Every panel that can cover the keyboard. One list, so none gets missed. */
+    private fun panels() =
+        arrayOf(emojiView, clipboardView, editPanelView, toolbarPanel, gifView)
+
+    private fun anyPanelOpen() = panels().any { it?.visibility == View.VISIBLE }
+
+    /**
+     * Puts the keyboard back, whatever panel was covering it.
+     *
+     * The tools panel had no way out at all: every other panel carries an ABC
+     * button, but that one is a custom-drawn grid whose only listener is "a
+     * tool was tapped", so the sole way to leave it was to run something —
+     * which is not a way to leave a screen, it is a way to be forced into an
+     * action you did not want.
+     */
+    private fun closeAnyPanel() {
+        gifView?.cancelPending()
+        panels().forEach { it?.visibility = View.GONE }
+        gifQueryFromField = null
+        gifQueryFieldLength = 0
+        showKeyboardBack()
+        updateStrip()
+    }
+
+    /**
+     * Back closes the open panel before it closes the keyboard.
+     *
+     * Nothing handled back here before, so it fell through to the default
+     * "hide the whole IME" — which looked like it worked, but left the panel's
+     * visibility set. Tapping the field again brought the keyboard back still
+     * showing the panel, and for the tools panel that was a dead end the user
+     * could not get out of. [onStartInputView] now clears that state too, so
+     * the stale-panel half of the bug cannot come back through another route.
+     */
+    override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent): Boolean {
+        if (keyCode == android.view.KeyEvent.KEYCODE_BACK && anyPanelOpen()) {
+            closeAnyPanel()
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
     private fun showKeyboardBack() {
         val kv = keyboardView ?: return
         val wasHidden = kv.visibility != View.VISIBLE
