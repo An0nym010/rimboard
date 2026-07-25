@@ -210,6 +210,19 @@ class SettingsActivity : AppCompatActivity() {
                     R.string.bg_removed, android.widget.Toast.LENGTH_SHORT).show()
                 true
             }
+            findPreference<androidx.preference.SeekBarPreference>("clip_timeout_min")?.let { sb ->
+                // Seeded from the legacy list preference so an upgrade shows
+                // the value that is actually in force.
+                sb.value = Prefs.clipTimeoutMin(requireContext())
+                fun label(v: Int) =
+                    if (v <= 0) getString(R.string.clip_timeout_never)
+                    else getString(R.string.clip_timeout_mins, v)
+                sb.summary = label(sb.value)
+                sb.setOnPreferenceChangeListener { _, newValue ->
+                    sb.summary = label(newValue as? Int ?: 0)
+                    true
+                }
+            }
             findPreference<Preference>("screen_network")?.setOnPreferenceClickListener {
                 startActivity(Intent(requireContext(), NetworkActivity::class.java))
                 true

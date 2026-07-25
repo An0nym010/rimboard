@@ -96,9 +96,6 @@
     <string name="edit_title">Modifier le texte</string>
     <string name="edit_select">Sélectionner</string>
     <string name="pref_clip_timeout_title">Effacement auto du presse-papiers</string>
-    <string name="timeout_never">Jamais</string>
-    <string name="timeout_15m">Après 15 minutes</string>
-    <string name="timeout_1h">Après 1 heure</string>
     <string name="suggestion_remove">Supprimer \"%1$s\"</string>
     <string name="cat_suggestions">Suggestions</string>
     <string name="pref_personal_dict_title">Dictionnaire personnel</string>

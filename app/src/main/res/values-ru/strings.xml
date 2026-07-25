@@ -96,9 +96,6 @@
     <string name="edit_title">Редактирование текста</string>
     <string name="edit_select">Выделить</string>
     <string name="pref_clip_timeout_title">Автоочистка буфера обмена</string>
-    <string name="timeout_never">Никогда</string>
-    <string name="timeout_15m">Через 15 минут</string>
-    <string name="timeout_1h">Через 1 час</string>
     <string name="suggestion_remove">Убрать \"%1$s\"</string>
     <string name="cat_suggestions">Подсказки</string>
     <string name="pref_personal_dict_title">Личный словарь</string>

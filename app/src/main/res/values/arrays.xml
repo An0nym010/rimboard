@@ -124,16 +124,6 @@
         <item>pt</item>
         <item>ru</item>
     </string-array>
-    <string-array name="clip_timeout_entries">
-        <item>@string/timeout_never</item>
-        <item>@string/timeout_15m</item>
-        <item>@string/timeout_1h</item>
-    </string-array>
-    <string-array name="clip_timeout_values">
-        <item>0</item>
-        <item>15</item>
-        <item>60</item>
-    </string-array>
     <string-array name="repeat_entries">
         <item>@string/repeat_slow</item>
         <item>@string/repeat_normal</item>

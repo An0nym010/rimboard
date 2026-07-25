@@ -96,9 +96,6 @@
     <string name="edit_title">Modifica testo</string>
     <string name="edit_select">Seleziona</string>
     <string name="pref_clip_timeout_title">Svuota appunti automaticamente</string>
-    <string name="timeout_never">Mai</string>
-    <string name="timeout_15m">Dopo 15 minuti</string>
-    <string name="timeout_1h">Dopo 1 ora</string>
     <string name="suggestion_remove">Rimuovi \"%1$s\"</string>
     <string name="cat_suggestions">Suggerimenti</string>
     <string name="pref_personal_dict_title">Dizionario personale</string>

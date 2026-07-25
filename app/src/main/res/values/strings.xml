@@ -111,9 +111,6 @@
     <string name="edit_title">Edit text</string>
     <string name="edit_select">Select</string>
     <string name="pref_clip_timeout_title">Auto-clear clipboard</string>
-    <string name="timeout_never">Never</string>
-    <string name="timeout_15m">After 15 minutes</string>
-    <string name="timeout_1h">After 1 hour</string>
     <string name="subtype_nl" translatable="false">Nederlands</string>
     <string name="subtype_pl" translatable="false">Polski</string>
     <string name="subtype_sv" translatable="false">Svenska</string>
@@ -161,6 +158,8 @@
     <string name="subtype_sk" translatable="false">Slovenčina (RimBoard)</string>
     <string name="header_languages">languages</string>
     <string name="header_offline" formatted="false">100% offline</string>
+    <string name="clip_timeout_never" tools:ignore="MissingTranslation">Never cleared automatically</string>
+    <string name="clip_timeout_mins" tools:ignore="MissingTranslation">Cleared %1$d minutes after copying</string>
     <string name="header_byok" formatted="false" tools:ignore="MissingTranslation">your own API keys</string>
     <string name="st_wpm_short">WPM</string>
     <string name="screen_general">Preferences</string>

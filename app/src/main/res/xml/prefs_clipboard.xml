@@ -8,13 +8,17 @@
             android:summary="@string/pref_clipboard_summary"
             android:defaultValue="true" />
 
-    <ListPreference
-        android:key="clip_timeout"
+    <!-- Minutes, 0 meaning never. A slider rather than three presets because
+         "15 minutes or an hour or forever" is not how anyone thinks about how
+         long a copied password should sit around. The summary is set in code,
+         since 0 has to read as "Never" rather than "0 minutes". -->
+    <SeekBarPreference
+        android:key="clip_timeout_min"
         android:icon="@drawable/ic_pref_clipboard"
         android:title="@string/pref_clip_timeout_title"
-        android:entries="@array/clip_timeout_entries"
-        android:entryValues="@array/clip_timeout_values"
+        app:min="0"
+        android:max="120"
         android:defaultValue="0"
-        app:useSimpleSummaryProvider="true" />
+        app:showSeekBarValue="false" />
 
 </PreferenceScreen>

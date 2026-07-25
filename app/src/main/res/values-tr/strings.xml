@@ -113,9 +113,6 @@
     <string name="edit_title">Metin düzenleme</string>
     <string name="edit_select">Seç</string>
     <string name="pref_clip_timeout_title">Panoyu otomatik temizle</string>
-    <string name="timeout_never">Asla</string>
-    <string name="timeout_15m">15 dakika sonra</string>
-    <string name="timeout_1h">1 saat sonra</string>
     <string name="suggestion_remove">\"%1$s\" önerisini kaldır</string>
     <string name="cat_suggestions">Öneriler</string>
     <string name="pref_personal_dict_title">Kişisel sözlük</string>

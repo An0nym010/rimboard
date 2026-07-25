@@ -30,7 +30,9 @@ object Prefs {
     const val KEY_ONE_HANDED = "one_handed"
     const val KEY_ONE_HANDED_LAST = "one_handed_last"
     const val KEY_UI_LANG = "interface_language"
+    /** Legacy three-option list; read only to seed [KEY_CLIP_TIMEOUT_MIN]. */
     const val KEY_CLIP_TIMEOUT = "clip_timeout"
+    const val KEY_CLIP_TIMEOUT_MIN = "clip_timeout_min"
     const val KEY_FLOATING = "floating_keyboard"
     const val KEY_REPEAT_SPEED = "key_repeat_speed"
     const val KEY_NR_PASS = "number_row_passwords"
@@ -279,8 +281,21 @@ object Prefs {
         get(c).edit().putInt(KEY_FLOAT_X, x).putInt(KEY_FLOAT_Y, y).apply()
     }
 
-    fun clipTimeoutMin(c: Context): Int =
-        (get(c).getString(KEY_CLIP_TIMEOUT, "0") ?: "0").toIntOrNull() ?: 0
+    /**
+     * Minutes before the clipboard history self-clears; 0 means never.
+     *
+     * Reads the slider first and falls back to the old three-option list,
+     * which stored the same number as a *String*. Anyone who had picked 15
+     * minutes or an hour keeps that setting instead of being silently reset to
+     * never — which on this preference means their clips stop expiring.
+     */
+    fun clipTimeoutMin(c: Context): Int {
+        val p = get(c)
+        if (p.contains(KEY_CLIP_TIMEOUT_MIN)) {
+            return p.getInt(KEY_CLIP_TIMEOUT_MIN, 0).coerceIn(0, 120)
+        }
+        return (p.getString(KEY_CLIP_TIMEOUT, "0") ?: "0").toIntOrNull()?.coerceIn(0, 120) ?: 0
+    }
 
     fun oneHandedLast(c: Context) = get(c).getInt(KEY_ONE_HANDED_LAST, 2)
     fun setOneHandedLast(c: Context, v: Int) {
