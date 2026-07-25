@@ -30,7 +30,6 @@ object Klipy {
      */
     const val LIMIT = 24
 
-    enum class Kind { GIF, STICKER }
 
     data class Gif(
         val id: String,
@@ -51,15 +50,14 @@ object Klipy {
      * keyboard ever makes to the same person. The feature is not worth that,
      * and this app is the wrong app to make that trade in.
      */
-    fun search(c: Context, query: String, kind: Kind = Kind.GIF): Result<List<Gif>> {
+    fun search(c: Context, query: String): Result<List<Gif>> {
         val q = query.trim()
         if (q.isEmpty()) return Result.success(emptyList())
         val key = ApiKeys.klipy(c) ?: return Result.failure(GifError.NoKey)
         if (!isSafeKey(key)) return Result.failure(GifError.BadKey)
 
-        val path = if (kind == Kind.STICKER) "stickers" else "gifs"
         val url = buildString {
-            append(BASE).append('/').append(key).append('/').append(path).append("/search")
+            append(BASE).append('/').append(key).append("/gifs/search")
             append("?q=").append(enc(q))
             append("&per_page=").append(LIMIT)
             append("&page=1")
@@ -75,7 +73,7 @@ object Klipy {
         }
         return Net.fetchBytes(
             c, url,
-            reason = if (kind == Kind.STICKER) "Sticker search" else "GIF search",
+            reason = "GIF search",
             // The query is what the user typed, so this is refused in incognito.
             sendsTypedText = true
         ).mapCatching { parse(String(it, Charsets.UTF_8)) }

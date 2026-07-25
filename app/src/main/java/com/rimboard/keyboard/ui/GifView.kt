@@ -37,7 +37,7 @@ import com.rimboard.keyboard.theme.KeyboardTheme
 class GifView(context: Context) : LinearLayout(context) {
 
     interface Listener {
-        fun onGifSearch(query: String, kind: Klipy.Kind)
+        fun onGifSearch(query: String)
         fun onGifPicked(gif: Klipy.Gif)
         fun onGifAbc()
     }
@@ -48,9 +48,6 @@ class GifView(context: Context) : LinearLayout(context) {
     var listener: Listener? = null
 
     private val query = StringBuilder()
-    private var kind = Klipy.Kind.GIF
-    private val gifTab: TextView
-    private val stickerTab: TextView
 
     /**
      * Searching on every keystroke would fire a request per letter — billable,
@@ -82,10 +79,6 @@ class GifView(context: Context) : LinearLayout(context) {
         }
         headerIcon = IconView(context, Icons.SEARCH)
         bar.addView(headerIcon, LayoutParams(dp(30), LayoutParams.MATCH_PARENT))
-        gifTab = tab(context.getString(R.string.tb_gif)) { switchKind(Klipy.Kind.GIF) }
-        bar.addView(gifTab, LayoutParams(dp(52), LayoutParams.MATCH_PARENT))
-        stickerTab = tab(context.getString(R.string.tb_sticker)) { switchKind(Klipy.Kind.STICKER) }
-        bar.addView(stickerTab, LayoutParams(dp(64), LayoutParams.MATCH_PARENT))
         queryView = TextView(context).apply {
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
             setPadding(dp(6), 0, 0, 0)
@@ -96,14 +89,7 @@ class GifView(context: Context) : LinearLayout(context) {
             ellipsize = android.text.TextUtils.TruncateAt.START
         }
         bar.addView(queryView, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
-        abcBtn = TextView(context).apply {
-            text = "ABC"
-            gravity = Gravity.CENTER
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-            setOnClickListener { listener?.onGifAbc() }
-        }
-        bar.addView(abcBtn, LayoutParams(dp(52), LayoutParams.MATCH_PARENT))
-        addView(bar, LayoutParams(LayoutParams.MATCH_PARENT, dp(46)))
+        addView(bar, LayoutParams(LayoutParams.MATCH_PARENT, dp(42)))
 
         chipRow = LinearLayout(context).apply { orientation = HORIZONTAL }
         chipScroll = HorizontalScrollView(context).apply {
@@ -146,9 +132,24 @@ class GifView(context: Context) : LinearLayout(context) {
         }
         addView(attribution, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
 
+        // Closing lives at the bottom, directly above the keys, because that
+        // is where the hand already is and because a control in the top-right
+        // of a panel that sits above a keyboard is nowhere near anything the
+        // user is touching. Labelled rather than an icon: it was missed
+        // entirely when it was a bare "ABC" in the header.
+        abcBtn = TextView(context).apply {
+            text = context.getString(R.string.gif_close)
+            gravity = Gravity.CENTER
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            setPadding(0, dp(8), 0, dp(8))
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { listener?.onGifAbc() }
+        }
+        addView(abcBtn, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+
 
         buildChips()
-        updateTabs()
     }
 
     /**
@@ -167,27 +168,6 @@ class GifView(context: Context) : LinearLayout(context) {
     /** Room for the header, a row of results and the chips on top of them. */
     private fun chipsFit(h: Int) = h >= dp(170)
 
-    private fun tab(label: String, onTap: () -> Unit): TextView = TextView(context).apply {
-        text = label
-        gravity = Gravity.CENTER
-        setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-        setOnClickListener { onTap() }
-    }
-
-    private fun switchKind(next: Klipy.Kind) {
-        if (kind == next) return
-        kind = next
-        updateTabs()
-        // Re-runs the same query against the other index rather than clearing
-        // it: "the same search, as stickers" is the reason to tap this.
-        if (query.isNotBlank()) fireSearch() else setResults(emptyList())
-    }
-
-    private fun updateTabs() {
-        val t = theme ?: return
-        gifTab.setTextColor(if (kind == Klipy.Kind.GIF) t.accent else t.keyHint)
-        stickerTab.setTextColor(if (kind == Klipy.Kind.STICKER) t.accent else t.keyHint)
-    }
 
     fun appendQuery(c: Char) {
         if (query.length >= 40) return
@@ -217,7 +197,7 @@ class GifView(context: Context) : LinearLayout(context) {
 
     private fun fireSearch() {
         val q = query.toString().trim()
-        if (q.isNotEmpty()) listener?.onGifSearch(q, kind)
+        if (q.isNotEmpty()) listener?.onGifSearch(q)
     }
 
     /**
@@ -225,10 +205,8 @@ class GifView(context: Context) : LinearLayout(context) {
      * though it had been typed — so backspacing edits it rather than starting
      * from nothing.
      */
-    fun startWith(seed: String?, startKind: Klipy.Kind = kind) {
+    fun startWith(seed: String?) {
         removeCallbacks(debounce)
-        kind = startKind
-        updateTabs()
         query.setLength(0)
         seed?.let { query.append(it.take(40)) }
         queryView.text = query.toString()
@@ -293,10 +271,13 @@ class GifView(context: Context) : LinearLayout(context) {
         queryView.hint = context.getString(R.string.gif_pick_or_type)
         queryView.setHintTextColor(t.keyHint)
         headerIcon.color = t.stripText
-        abcBtn.setTextColor(t.keyText)
+        abcBtn.setTextColor(t.accent)
+        abcBtn.background = GradientDrawable().apply {
+            cornerRadius = dp(10).toFloat()
+            setColor(t.keyBg)
+        }
         status.setTextColor(t.keyHint)
         attribution.setTextColor(t.keyHint)
-        updateTabs()
         for (i in 0 until chipRow.childCount) {
             (chipRow.getChildAt(i) as TextView).apply {
                 setTextColor(t.keyText)

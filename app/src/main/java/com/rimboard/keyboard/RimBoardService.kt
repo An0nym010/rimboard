@@ -92,6 +92,10 @@ class RimBoardService : InputMethodService(),
     private var clipChangedListener: ClipboardManager.OnPrimaryClipChangedListener? = null
     private var editPanelView: EditPanelView? = null
     private var toolbarPanel: com.rimboard.keyboard.ui.ToolbarPanelView? = null
+
+    /** The panel plus its close bar. Shown and hidden as one; see onCreateInputView. */
+    private var toolbarPanelHost: LinearLayout? = null
+    private var toolbarCloseBtn: TextView? = null
     private var floatingBlock: View? = null
     private var editSelectMode = false
 
@@ -222,9 +226,30 @@ class RimBoardService : InputMethodService(),
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
         val tp = com.rimboard.keyboard.ui.ToolbarPanelView(ctx).apply {
             listener = this@RimBoardService
+        }
+        // Wrapped rather than modified. The panel is a single canvas-drawn view
+        // with its own accessibility node tree, so a control drawn inside it
+        // would have to be hand-registered there to exist for a screen reader.
+        // A plain TextView in a wrapper is a real view: focusable, announced,
+        // and themed like every other control.
+        val tpClose = TextView(ctx).apply {
+            text = getString(R.string.panel_close)
+            gravity = android.view.Gravity.CENTER
+            setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f)
+            setPadding(0, dp(10), 0, dp(10))
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { hideToolbarPanel() }
+        }
+        val tpWrap = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
             visibility = View.GONE
         }
-        frame.addView(tp, FrameLayout.LayoutParams(
+        tpWrap.addView(tp, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+        tpWrap.addView(tpClose, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+        frame.addView(tpWrap, FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
         val gv = com.rimboard.keyboard.ui.GifView(ctx).apply {
             listener = this@RimBoardService
@@ -257,6 +282,8 @@ class RimBoardService : InputMethodService(),
         clipboardView = cv
         editPanelView = ep
         toolbarPanel = tp
+        toolbarPanelHost = tpWrap
+        toolbarCloseBtn = tpClose
         gifView = gv
         floatingBlock = null
         if (!Prefs.floating(this)) return root
@@ -499,6 +526,8 @@ class RimBoardService : InputMethodService(),
         clipboardView?.applyTheme(panelTheme)
         editPanelView?.applyTheme(panelTheme)
         toolbarPanel?.applyTheme(panelTheme)
+        toolbarPanelHost?.setBackgroundColor(panelTheme.background)
+        toolbarCloseBtn?.setTextColor(panelTheme.accent)
         gifView?.applyTheme(panelTheme)
         rootView?.setBackgroundColor(t.background)
         rootView?.dimAlpha = bgDimAlpha
@@ -1470,7 +1499,7 @@ class RimBoardService : InputMethodService(),
         closeSearchHost()
         clipboardView?.visibility = View.GONE
         editPanelView?.visibility = View.GONE
-        toolbarPanel?.visibility = View.GONE
+        toolbarPanelHost?.visibility = View.GONE
         showKeyboardBack()
     }
 
@@ -1572,7 +1601,7 @@ class RimBoardService : InputMethodService(),
     /** Brings the keyboard back from a panel, animating only if it was hidden. */
     /** Every panel that can cover the keyboard. One list, so none gets missed. */
     private fun panels() =
-        arrayOf(clipboardView, editPanelView, toolbarPanel)
+        arrayOf(clipboardView, editPanelView, toolbarPanelHost)
 
     /** The pickers are not in [panels]: they sit above the keyboard, not over it. */
     private fun anyPanelOpen() =
@@ -1647,7 +1676,7 @@ class RimBoardService : InputMethodService(),
         val lp = panel.layoutParams as FrameLayout.LayoutParams
         lp.height = kv.measureKeyboardHeight()
         panel.layoutParams = lp
-        for (other in arrayOf(clipboardView, editPanelView, toolbarPanel)) {
+        for (other in arrayOf(clipboardView, editPanelView, toolbarPanelHost)) {
             if (other !== panel) other?.visibility = View.GONE
         }
         kv.visibility = View.GONE
@@ -1683,7 +1712,7 @@ class RimBoardService : InputMethodService(),
         closeSearchHost()
         clipboardView?.visibility = View.GONE
         editPanelView?.visibility = View.GONE
-        toolbarPanel?.visibility = View.GONE
+        toolbarPanelHost?.visibility = View.GONE
     }
 
     // ------------------------------------------------------------ clipboard
@@ -1949,8 +1978,7 @@ class RimBoardService : InputMethodService(),
             Codes.ONE_HANDED -> toggleOneHanded()
             Codes.FLOATING -> toggleFloating()
             Codes.TRANSLATE -> currentInputConnection?.let { launchTranslate(it) }
-            Codes.GIF -> showGifPanel(com.rimboard.keyboard.net.Klipy.Kind.GIF)
-            Codes.STICKER -> showGifPanel(com.rimboard.keyboard.net.Klipy.Kind.STICKER)
+            Codes.GIF -> showGifPanel()
             Codes.PROOFREAD -> currentInputConnection?.let { proofreadInPlace(it) }
             Codes.SHARE -> currentInputConnection?.let { shareText(it) }
             Codes.THEME -> cycleTheme()
@@ -1977,12 +2005,12 @@ class RimBoardService : InputMethodService(),
         val tp = toolbarPanel ?: return
         finishComposingSilently()
         tp.setTools(pinnedTools())
-        revealPanel(tp)
+        revealPanel(toolbarPanelHost ?: return)
     }
 
     private fun hideToolbarPanel() {
         showKeyboardBack()
-        toolbarPanel?.visibility = View.GONE
+        toolbarPanelHost?.visibility = View.GONE
         updateStrip()
     }
 
@@ -2143,7 +2171,7 @@ class RimBoardService : InputMethodService(),
      * different fixes — wrong build, network off, incognito, no key. A single
      * "GIFs unavailable" would leave the user with no idea which.
      */
-    private fun showGifPanel(kind: com.rimboard.keyboard.net.Klipy.Kind) {
+    private fun showGifPanel() {
         val gv = gifView ?: return
         com.rimboard.keyboard.net.Net.blockedBy(this, sendsTypedText = true)?.let { block ->
             toast(getString(when (block) {
@@ -2174,8 +2202,8 @@ class RimBoardService : InputMethodService(),
         val seed = textBeforeCursorSeed()
         gifQueryFromField = seed?.query
         gifQueryFieldLength = seed?.rawLength ?: 0
-        gv.startWith(seed?.query, kind)
-        seed?.let { runGifSearch(it.query, kind) }
+        gv.startWith(seed?.query)
+        seed?.let { runGifSearch(it.query) }
     }
 
     /**
@@ -2190,7 +2218,7 @@ class RimBoardService : InputMethodService(),
     private fun textBeforeCursorSeed(): FieldSeed? =
         seedFromTextBeforeCursor(currentInputConnection?.getTextBeforeCursor(60, 0)?.toString())
 
-    override fun onGifSearch(query: String, kind: com.rimboard.keyboard.net.Klipy.Kind) {
+    override fun onGifSearch(query: String) {
         // The user edited the query on the panel's keypad, so it no longer
         // matches what is in the field — picking a result must not delete
         // text the search is no longer based on.
@@ -2198,14 +2226,14 @@ class RimBoardService : InputMethodService(),
             gifQueryFromField = null
             gifQueryFieldLength = 0
         }
-        runGifSearch(query, kind)
+        runGifSearch(query)
     }
 
-    private fun runGifSearch(query: String, kind: com.rimboard.keyboard.net.Klipy.Kind) {
+    private fun runGifSearch(query: String) {
         val gv = gifView ?: return
         gv.setStatus(getString(R.string.gif_searching))
         Thread {
-            val result = com.rimboard.keyboard.net.Klipy.search(this, query, kind)
+            val result = com.rimboard.keyboard.net.Klipy.search(this, query)
             main {
                 result.fold(
                     onSuccess = { gifs ->

@@ -39,8 +39,6 @@ object Codes {
     /** GIF search. Only ever reachable on the online build with a KLIPY key. */
     const val GIF = -29
 
-    /** The same panel as [GIF], opened on its sticker tab. */
-    const val STICKER = -30
 
     /** Fix spelling and grammar in the selection. Online build, Anthropic key. */
     const val PROOFREAD = -31

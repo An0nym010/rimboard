@@ -363,7 +363,6 @@ Your search words or selected text go to the service that answers them. Nothing 
     <!-- "GIF" is the same token in every locale RimBoard ships, so it is not
          a translation gap; the surrounding sentences below are. -->
     <string name="tb_gif" translatable="false">GIF</string>
-    <string name="tb_sticker" tools:ignore="MissingTranslation">Sticker</string>
     <string name="net_device_offline" tools:ignore="MissingTranslation">your phone has no internet connection</string>
     <string name="net_unknown_error" tools:ignore="MissingTranslation">unknown error</string>
     <string name="net_locked" tools:ignore="MissingTranslation">Unlock your phone first — the API keys are encrypted until you do</string>
@@ -378,5 +377,7 @@ Your search words or selected text go to the service that answers them. Nothing 
     <string name="gif_no_key" tools:ignore="MissingTranslation">Add your KLIPY API key in Settings → Network</string>
     <string name="gif_copied" tools:ignore="MissingTranslation">GIF copied — long-press the field and paste it</string>
     <string name="gif_insert_failed" tools:ignore="MissingTranslation">Could not insert that GIF</string>
+    <string name="panel_close" tools:ignore="MissingTranslation">⌨  Back to keyboard</string>
+    <string name="gif_close" tools:ignore="MissingTranslation">⌨  Back to keyboard</string>
     <string name="gif_attribution" translatable="false">Powered by KLIPY</string>
 </resources>
