@@ -675,6 +675,15 @@ class RimBoardService : InputMethodService(),
     }
 
     override fun onKeyRepeated(key: Key) {
+        // A repeat is still a keystroke, and while a picker is open keystrokes
+        // belong to its search box. Without this a *held* backspace deleted
+        // from the message behind the picker while a tapped one deleted from
+        // the query — the same key doing two different things depending on how
+        // long it was pressed, and the destructive one being the accident.
+        if (searchRoute != SearchRoute.NONE) {
+            if (key.code == Codes.BACKSPACE) routeKeyToSearch(key)
+            return
+        }
         if (key.code == Codes.BACKSPACE) {
             backspaceRepeats++
             if (backspaceRepeats >= 12) {
@@ -708,6 +717,9 @@ class RimBoardService : InputMethodService(),
     }
 
     override fun onPopupKeySelected(key: Key) {
+        // Accents chosen from a long-press are ordinary typing, so they follow
+        // the same route as everything else while a picker is open.
+        if (searchRoute != SearchRoute.NONE && routeKeyToSearch(key)) return
         when (key.code) {
             Codes.LANG -> cycleLanguage()
             Codes.SETTINGS -> openSettings()
@@ -727,6 +739,30 @@ class RimBoardService : InputMethodService(),
         finishComposingSilently()
         val code = if (steps > 0) KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT
         repeat(abs(steps)) { sendDownUpKeyEvents(code) }
+        // The strip is refreshed from onUpdateSelection rather than here: the
+        // key events above move the cursor asynchronously, so reading the text
+        // around it now would describe the position we just left.
+    }
+
+    /**
+     * Re-derives the next-word context from the text actually before the cursor.
+     *
+     * Sliding along the spacebar finishes any composing word, which left the
+     * strip with nothing to show and a bigram context pointing at wherever the
+     * cursor used to be — so the suggestions went blank and stayed blank. The
+     * words either side of the new position are what predictions should be
+     * based on, and they are cheap to read back.
+     */
+    private fun refreshContextFromCursor() {
+        val ic = currentInputConnection ?: return
+        val before = ic.getTextBeforeCursor(96, 0)?.toString() ?: return
+        // Trailing whitespace means the cursor sits between words, which is
+        // where a next-word prediction makes sense. Mid-word it does not, and
+        // the composing branch of updateStrip handles that case anyway.
+        val loc = locale()
+        val words = Regex("""[\p{L}\p{N}']+""").findAll(before).map { it.value }.toList()
+        prevWordForBigram = words.lastOrNull()?.lowercase(loc).orEmpty()
+        prevWord2 = words.getOrNull(words.size - 2)?.lowercase(loc).orEmpty()
     }
 
     override fun onGlideComplete(sequence: String) {
@@ -754,6 +790,13 @@ class RimBoardService : InputMethodService(),
             }
         }
         val best = words.first()
+        // Glided into a picker's search box: the word goes to the query, and
+        // none of the learning, autospace or bigram bookkeeping below applies
+        // because nothing was committed to a text field.
+        if (searchRoute != SearchRoute.NONE) {
+            best.forEach { routeCharToSearch(it) }
+            return
+        }
         val ic = currentInputConnection ?: return
         ic.beginBatchEdit()
         if (composing.isNotEmpty()) {
@@ -1409,6 +1452,11 @@ class RimBoardService : InputMethodService(),
                     stale = true
                 }
             }
+            // A cursor move lands here with no composing text, and the
+            // next-word context still describes wherever the cursor *was*.
+            // Re-reading it from the new position is what keeps the strip
+            // useful after sliding along the spacebar instead of blanking it.
+            refreshContextFromCursor()
             if (stale || (revert == null && glideWords.isEmpty())) updateStrip()
         }
     }
@@ -1673,6 +1721,11 @@ class RimBoardService : InputMethodService(),
      */
     private fun revealPanel(panel: View) {
         val kv = keyboardView ?: return
+        // Panels live in `frame` and pickers live in `searchHost`, so hiding
+        // one family says nothing about the other. Without this, opening the
+        // clipboard over an open GIF picker left both on screen and left
+        // keystrokes routing into the query underneath.
+        closeSearchHost()
         val lp = panel.layoutParams as FrameLayout.LayoutParams
         lp.height = kv.measureKeyboardHeight()
         panel.layoutParams = lp
@@ -2322,6 +2375,15 @@ class RimBoardService : InputMethodService(),
      * the picker rather than sending a newline into the field behind it, since
      * "done searching" is the only thing it could reasonably mean here.
      */
+    /** Appends one character to whichever search box is open. */
+    private fun routeCharToSearch(c: Char) {
+        when (searchRoute) {
+            SearchRoute.GIF -> gifView?.appendQuery(c)
+            SearchRoute.EMOJI -> emojiView?.appendQuery(c)
+            SearchRoute.NONE -> {}
+        }
+    }
+
     private fun routeKeyToSearch(key: Key): Boolean {
         val append: (Char) -> Unit
         val back: () -> Unit
@@ -2355,11 +2417,28 @@ class RimBoardService : InputMethodService(),
         val lp = host.layoutParams
         // Browsing gets the whole keyboard's height because the keys are
         // hidden underneath it; searching gets a share, because they are not.
-        lp.height = if (withKeyboard) (kbH * 0.72f).toInt().coerceAtMost(dp(240)) else kbH
+        // Sized against what is left after the picker's own header, footer and
+        // attribution rather than against the keyboard alone: at 0.72 the grid
+        // was down to less than a single row of tiles once the close bar was
+        // added, so the picker was mostly chrome.
+        lp.height = if (withKeyboard) {
+            (kbH * 0.95f).toInt().coerceIn(dp(210), dp(320))
+        } else kbH
         host.layoutParams = lp
+        // The reverse of the guard in revealPanel: a picker replaces any panel.
+        for (other in arrayOf(clipboardView, editPanelView, toolbarPanelHost)) {
+            other?.visibility = View.GONE
+        }
         for (i in 0 until host.childCount) {
             host.getChildAt(i).visibility =
                 if (host.getChildAt(i) === panel) View.VISIBLE else View.GONE
+        }
+        // Switching straight from one picker to the other must not leave the
+        // first one's pending search or its field-seed bookkeeping behind.
+        gifView?.cancelPending()
+        if (panel !== gifView) {
+            gifQueryFromField = null
+            gifQueryFieldLength = 0
         }
         host.visibility = View.VISIBLE
         keyboardView?.visibility = if (withKeyboard) View.VISIBLE else View.GONE

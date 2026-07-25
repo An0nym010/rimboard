@@ -5,7 +5,7 @@ import com.rimboard.keyboard.settings.Prefs
 import org.json.JSONObject
 
 /**
- * GIF and sticker search, via KLIPY.
+ * GIF search, via KLIPY.
  *
  * Third provider, and the reason is worth recording so it is not relitigated.
  * Tenor was closed to new API clients in January 2026 and shut down that June.

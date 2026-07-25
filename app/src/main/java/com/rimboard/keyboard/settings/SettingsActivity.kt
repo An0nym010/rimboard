@@ -109,7 +109,13 @@ class SettingsActivity : AppCompatActivity() {
         col.addView(TextView(this).apply {
             text = "v$ver \u2022 " +
                 "${com.rimboard.keyboard.model.Languages.all.size} ${getString(R.string.header_languages)} \u2022 " +
-                getString(R.string.header_offline)
+                // Only true of the build that has no INTERNET permission.
+                // Claiming it on the online build is exactly the kind of
+                // reassurance this app is not supposed to hand out.
+                getString(
+                    if (com.rimboard.keyboard.net.Net.capable) R.string.header_byok
+                    else R.string.header_offline
+                )
             setTextColor(0xDDFFFFFF.toInt())
             textSize = 12f
         })

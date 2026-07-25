@@ -161,6 +161,7 @@
     <string name="subtype_sk" translatable="false">Slovenčina (RimBoard)</string>
     <string name="header_languages">languages</string>
     <string name="header_offline" formatted="false">100% offline</string>
+    <string name="header_byok" formatted="false" tools:ignore="MissingTranslation">your own API keys</string>
     <string name="st_wpm_short">WPM</string>
     <string name="screen_general">Preferences</string>
     <string name="screen_clipboard">Clipboard</string>
@@ -377,7 +378,7 @@ Your search words or selected text go to the service that answers them. Nothing 
     <string name="gif_no_key" tools:ignore="MissingTranslation">Add your KLIPY API key in Settings → Network</string>
     <string name="gif_copied" tools:ignore="MissingTranslation">GIF copied — long-press the field and paste it</string>
     <string name="gif_insert_failed" tools:ignore="MissingTranslation">Could not insert that GIF</string>
-    <string name="panel_close" tools:ignore="MissingTranslation">⌨  Back to keyboard</string>
-    <string name="gif_close" tools:ignore="MissingTranslation">⌨  Back to keyboard</string>
+    <string name="panel_close" tools:ignore="MissingTranslation">Back to keyboard</string>
+    <string name="gif_close" tools:ignore="MissingTranslation">Back to keyboard</string>
     <string name="gif_attribution" translatable="false">Powered by KLIPY</string>
 </resources>
