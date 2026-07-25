@@ -26,12 +26,12 @@ import com.rimboard.keyboard.theme.KeyboardTheme
  * thumbnails in as they arrive. That keeps every request inside the `net`
  * package where `NetGateTest` can see it, and keeps this file a view.
  *
- * There is no text field. An `EditText` inside an IME window fights the very
- * keyboard it is part of for focus — the emoji panel sidesteps this by
- * rendering its query as a label and routing keystrokes into it from the
- * service. Rather than half-build that here, this panel searches for whatever
- * the user already typed and offers category chips when they have typed
- * nothing, which needs no keystroke routing to be useful.
+ * There is no text field and no keys of its own. The panel sits *above* the
+ * real keyboard rather than replacing it, and the service routes keystrokes
+ * into the query here — so searching happens on the same keys as everything
+ * else. An `EditText` would fight the IME it belongs to for focus, and a
+ * miniature keyboard drawn inside the panel was a second, worse set of keys
+ * competing with the good ones directly below it.
  */
 @SuppressLint("ViewConstructor")
 class GifView(context: Context) : LinearLayout(context) {
@@ -49,7 +49,6 @@ class GifView(context: Context) : LinearLayout(context) {
 
     private val query = StringBuilder()
     private var kind = Klipy.Kind.GIF
-    private val keypad: MiniKeypad
     private val gifTab: TextView
     private val stickerTab: TextView
 
@@ -147,40 +146,26 @@ class GifView(context: Context) : LinearLayout(context) {
         }
         addView(attribution, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
 
-        keypad = MiniKeypad(context).apply {
-            listener = object : MiniKeypad.Listener {
-                override fun onKeypadChar(c: Char) = appendQuery(c)
-                override fun onKeypadBackspace() = backspaceQuery()
-            }
-        }
-        addView(keypad, LayoutParams(LayoutParams.MATCH_PARENT, dp(132)))
 
         buildChips()
         updateTabs()
     }
 
     /**
-     * The panel is exactly as tall as the keyboard it replaces, which is not a
-     * fixed quantity: landscape on a short phone, a small device, and the
-     * "compact" height setting can all leave a fraction of what a tall portrait
-     * tablet gives. A fixed-height keypad plus chips plus a grid overflows
-     * there, pushing the results off the bottom.
-     *
-     * So the two optional rows yield in order of how little they are missed —
-     * chips first, since the keypad is the only way to type a query at all —
-     * and the keypad takes a share of the height rather than a constant.
+     * The panel shares the screen with the keyboard now, so it gets a share of
+     * the height rather than all of it — and on a short landscape keyboard
+     * that share is small. The chips are what yields: they are a convenience
+     * for someone who has typed nothing, and the keys below can always be used
+     * instead.
      */
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         if (h <= 0) return
-        chipScroll.visibility =
-            if (h < dp(320) || query.isNotEmpty()) GONE else VISIBLE
-        val keypadH = minOf(dp(132), (h * 0.42f).toInt()).coerceAtLeast(dp(76))
-        if (keypad.layoutParams.height != keypadH) {
-            keypad.layoutParams = keypad.layoutParams.apply { height = keypadH }
-            keypad.requestLayout()
-        }
+        chipScroll.visibility = if (chipsFit(h) && query.isEmpty()) VISIBLE else GONE
     }
+
+    /** Room for the header, a row of results and the chips on top of them. */
+    private fun chipsFit(h: Int) = h >= dp(170)
 
     private fun tab(label: String, onTap: () -> Unit): TextView = TextView(context).apply {
         text = label
@@ -204,13 +189,13 @@ class GifView(context: Context) : LinearLayout(context) {
         stickerTab.setTextColor(if (kind == Klipy.Kind.STICKER) t.accent else t.keyHint)
     }
 
-    private fun appendQuery(c: Char) {
+    fun appendQuery(c: Char) {
         if (query.length >= 40) return
         query.append(c)
         onQueryEdited()
     }
 
-    private fun backspaceQuery() {
+    fun backspaceQuery() {
         if (query.isEmpty()) return
         query.deleteCharAt(query.length - 1)
         onQueryEdited()
@@ -220,7 +205,7 @@ class GifView(context: Context) : LinearLayout(context) {
         queryView.text = query.toString()
         // Height may already have hidden the chips; never un-hide them here.
         chipScroll.visibility =
-            if (query.isEmpty() && height >= dp(320)) VISIBLE else GONE
+            if (query.isEmpty() && chipsFit(height)) VISIBLE else GONE
         removeCallbacks(debounce)
         if (query.isBlank()) {
             setResults(emptyList())
@@ -248,7 +233,7 @@ class GifView(context: Context) : LinearLayout(context) {
         seed?.let { query.append(it.take(40)) }
         queryView.text = query.toString()
         chipScroll.visibility =
-            if (query.isEmpty() && height >= dp(320)) VISIBLE else GONE
+            if (query.isEmpty() && chipsFit(height)) VISIBLE else GONE
         setResults(emptyList())
         setStatus(null)
     }
@@ -267,7 +252,7 @@ class GifView(context: Context) : LinearLayout(context) {
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
                 setPadding(dp(14), dp(6), dp(14), dp(6))
                 // Seeds the query rather than searching past it, so the chip is
-                // a starting point that can then be edited on the keypad.
+                // a starting point that can then be edited on the keyboard.
                 setOnClickListener {
                     startWith(c)
                     fireSearch()
@@ -311,7 +296,6 @@ class GifView(context: Context) : LinearLayout(context) {
         abcBtn.setTextColor(t.keyText)
         status.setTextColor(t.keyHint)
         attribution.setTextColor(t.keyHint)
-        keypad.applyTheme(t)
         updateTabs()
         for (i in 0 until chipRow.childCount) {
             (chipRow.getChildAt(i) as TextView).apply {

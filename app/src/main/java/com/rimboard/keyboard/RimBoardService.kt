@@ -64,6 +64,16 @@ class RimBoardService : InputMethodService(),
     private var clipboardView: ClipboardView? = null
     private var gifView: com.rimboard.keyboard.ui.GifView? = null
 
+    /** Holds a picker shown *above* the keyboard rather than instead of it. */
+    private var searchHost: FrameLayout? = null
+
+    /**
+     * True while the GIF picker is open, which is also what redirects typing.
+     * Keys go to the picker's query instead of the text field, so the search
+     * is typed on the real keyboard.
+     */
+    private var gifSearchActive = false
+
     /**
      * The text that seeded the current GIF search, so picking a result can
      * remove it from the field. Null when the search came from a chip, which
@@ -224,8 +234,18 @@ class RimBoardService : InputMethodService(),
             listener = this@RimBoardService
             visibility = View.GONE
         }
-        frame.addView(gv, FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
+        // Sits between the strip and the keyboard, so a picker can occupy the
+        // top while the real keyboard stays where it always is. The panels in
+        // `frame` replace the keyboard; anything in here sits above it, which
+        // is what lets GIF and emoji search be typed on the actual keys
+        // instead of a second miniature keyboard drawn inside the panel.
+        val sh = FrameLayout(ctx).apply { visibility = View.GONE }
+        sh.addView(gv, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+        root.addView(sh, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, 0))
+        searchHost = sh
+
         root.addView(frame, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         rootView = root
@@ -591,6 +611,12 @@ class RimBoardService : InputMethodService(),
     // ---------------------------------------------------------------- keyboard callbacks
 
     override fun onKeyPressed(key: Key) {
+        // The GIF picker sits above the keyboard rather than replacing it, so
+        // the keys are live while it is open — and what they type belongs to
+        // its search box, not to the field behind it. Handled before anything
+        // else so no typing state (composing, stats, undo) is touched by a
+        // keystroke the text field never receives.
+        if (gifSearchActive && routeKeyToGifSearch(key)) return
         wordUndo.clear()
         Stats.key(this)
         backspaceRepeats = 0
@@ -1545,9 +1571,11 @@ class RimBoardService : InputMethodService(),
     /** Brings the keyboard back from a panel, animating only if it was hidden. */
     /** Every panel that can cover the keyboard. One list, so none gets missed. */
     private fun panels() =
-        arrayOf(emojiView, clipboardView, editPanelView, toolbarPanel, gifView)
+        arrayOf(emojiView, clipboardView, editPanelView, toolbarPanel)
 
-    private fun anyPanelOpen() = panels().any { it?.visibility == View.VISIBLE }
+    /** The GIF picker is not in [panels]: it sits above the keyboard, not over it. */
+    private fun anyPanelOpen() =
+        panels().any { it?.visibility == View.VISIBLE } || gifSearchActive
 
     /**
      * Puts the keyboard back, whatever panel was covering it.
@@ -1559,7 +1587,7 @@ class RimBoardService : InputMethodService(),
      * action you did not want.
      */
     private fun closeAnyPanel() {
-        gifView?.cancelPending()
+        closeSearchHost()
         panels().forEach { it?.visibility = View.GONE }
         gifQueryFromField = null
         gifQueryFieldLength = 0
@@ -2122,6 +2150,7 @@ class RimBoardService : InputMethodService(),
         // picker was unavailable in most places — including this app's own
         // setup screen. GifInsert falls back to the clipboard instead.
         finishComposingSilently()
+        openSearchHost(gv)
         // Seed from whatever the user already typed, as though it had been
         // typed on the panel's own keypad — so it can be edited rather than
         // only accepted or cleared.
@@ -2129,7 +2158,6 @@ class RimBoardService : InputMethodService(),
         gifQueryFromField = seed?.query
         gifQueryFieldLength = seed?.rawLength ?: 0
         gv.startWith(seed?.query, kind)
-        revealPanel(gv)
         seed?.let { runGifSearch(it.query, kind) }
     }
 
@@ -2233,10 +2261,67 @@ class RimBoardService : InputMethodService(),
         }.start()
     }
 
-    override fun onGifAbc() {
-        gifView?.cancelPending()
-        gifView?.visibility = View.GONE
+    /**
+     * Shows [panel] above the keyboard rather than in place of it.
+     *
+     * Height is a share of the keyboard's rather than a constant: the picker
+     * and the keyboard are stacked now, so a fixed panel height would push the
+     * whole input view past what the system will give it on a short screen,
+     * and the keys would be the part that got cut.
+     */
+    /**
+     * Sends a keystroke to the open picker's search box.
+     *
+     * Returns false for keys the picker has no use for — layout switches,
+     * settings, the language cycle — which then behave normally. Enter closes
+     * the picker rather than sending a newline into the field behind it, since
+     * "done searching" is the only thing it could reasonably mean here.
+     */
+    private fun routeKeyToGifSearch(key: Key): Boolean {
+        val gv = gifView ?: return false
+        return when (key.code) {
+            Codes.BACKSPACE -> { gv.backspaceQuery(); true }
+            Codes.SPACE -> { gv.appendQuery(' '); true }
+            Codes.ENTER -> { closeSearchHost(); true }
+            // Shift and the symbol pages still work on the keyboard itself, so
+            // they fall through rather than being swallowed.
+            else -> if (key.code > 0) {
+                key.label.forEach { gv.appendQuery(it) }
+                true
+            } else false
+        }
+    }
+
+    private fun openSearchHost(panel: View) {
+        val host = searchHost ?: return
+        val kbH = keyboardView?.measureKeyboardHeight() ?: return
+        val lp = host.layoutParams
+        lp.height = (kbH * 0.72f).toInt().coerceAtMost(dp(240))
+        host.layoutParams = lp
+        for (i in 0 until host.childCount) {
+            host.getChildAt(i).visibility =
+                if (host.getChildAt(i) === panel) View.VISIBLE else View.GONE
+        }
+        host.visibility = View.VISIBLE
+        // The keyboard stays exactly where it was; that is the whole point.
         keyboardView?.visibility = View.VISIBLE
+        gifSearchActive = true
+        animatePanelIn(host)
+    }
+
+    private fun closeSearchHost() {
+        gifSearchActive = false
+        gifView?.cancelPending()
+        searchHost?.let { host ->
+            host.visibility = View.GONE
+            host.layoutParams = host.layoutParams.apply { height = 0 }
+        }
+        keyboardView?.visibility = View.VISIBLE
+        updateStrip()
+    }
+
+    override fun onGifAbc() {
+        closeSearchHost()
         gifQueryFromField = null
         gifQueryFieldLength = 0
     }
