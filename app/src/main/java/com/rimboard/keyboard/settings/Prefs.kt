@@ -265,6 +265,35 @@ object Prefs {
 
     fun customColor(c: Context, key: String, def: Int): Int = get(c).getInt(key, def)
 
+    /**
+     * The three saveable custom themes.
+     *
+     * Slot 1 deliberately reuses the original unsuffixed keys, so whoever had
+     * already built a custom theme finds it in the first slot rather than
+     * losing it to a rename.
+     */
+    const val CUSTOM_SLOTS = 3
+
+    fun slotKey(base: String, slot: Int): String =
+        if (slot <= 1) base else "${base}_$slot"
+
+    /** A slot counts as used once any of its four colours has been set. */
+    fun customSlotUsed(c: Context, slot: Int): Boolean {
+        val p = get(c)
+        return CC_KEYS.any { p.contains(slotKey(it, slot)) }
+    }
+
+    fun clearCustomSlot(c: Context, slot: Int) {
+        val e = get(c).edit()
+        CC_KEYS.forEach { e.remove(slotKey(it, slot)) }
+        e.apply()
+    }
+
+    val CC_KEYS = listOf(KEY_CC_BG, KEY_CC_KEY, KEY_CC_TEXT, KEY_CC_ACCENT)
+
+    /** Theme id for a slot, matching the values in `theme_values`. */
+    fun customThemeId(slot: Int): String = if (slot <= 1) "custom" else "custom$slot"
+
     fun setCustomColor(c: Context, key: String, v: Int) {
         get(c).edit().putInt(key, v).apply()
     }

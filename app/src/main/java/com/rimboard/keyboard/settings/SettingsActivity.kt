@@ -302,52 +302,99 @@ class SettingsActivity : AppCompatActivity() {
             0xFFAB47BC.toInt(), 0xFFEC407A.toInt(), 0xFFE8EAED.toInt(), 0xFFFFFFFF.toInt()
         )
 
+        /**
+         * Lists the three custom themes.
+         *
+         * Each is a slot rather than a single "custom" theme because one set of
+         * four colours meant experimenting cost you whatever you already had.
+         * Long-press deletes; deleting only clears the stored colours, so the
+         * slot itself stays in the theme list ready to be used again.
+         */
         private fun showCustomColors() {
-            val labels = arrayOf(
-                getString(R.string.cc_background), getString(R.string.cc_keys),
-                getString(R.string.cc_text), getString(R.string.cc_accent)
-            )
-            val keys = arrayOf(Prefs.KEY_CC_BG, Prefs.KEY_CC_KEY, Prefs.KEY_CC_TEXT, Prefs.KEY_CC_ACCENT)
-            val defs = intArrayOf(
-                0xFF1B1E23.toInt(), 0xFF3A3E46.toInt(), 0xFFE8EAED.toInt(), 0xFF8AB4F8.toInt()
-            )
-            AlertDialog.Builder(requireContext())
+            val ctx = requireContext()
+            val labels = (1..Prefs.CUSTOM_SLOTS).map { slot ->
+                val name = getString(R.string.cc_slot, slot)
+                val state = getString(
+                    if (Prefs.customSlotUsed(ctx, slot)) R.string.cc_slot_used
+                    else R.string.cc_slot_empty
+                )
+                "$name\n$state"
+            }.toTypedArray()
+            AlertDialog.Builder(ctx)
                 .setTitle(R.string.pref_custom_colors_title)
-                .setItems(labels) { _, which -> showColorGrid(labels[which], keys[which], defs[which]) }
+                .setItems(labels) { _, which -> showSlotEditor(which + 1) }
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
         }
 
+        /** The four colours of one slot, each opening the wheel. */
+        private fun showSlotEditor(slot: Int) {
+            val ctx = requireContext()
+            val labels = arrayOf(
+                getString(R.string.cc_background), getString(R.string.cc_keys),
+                getString(R.string.cc_text), getString(R.string.cc_accent)
+            )
+            val defs = intArrayOf(
+                0xFF1B1E23.toInt(), 0xFF3A3E46.toInt(), 0xFFE8EAED.toInt(), 0xFF8AB4F8.toInt()
+            )
+            val b = AlertDialog.Builder(ctx)
+                .setTitle(getString(R.string.cc_slot, slot))
+                .setItems(labels) { _, which ->
+                    showColorWheel(
+                        labels[which], Prefs.slotKey(Prefs.CC_KEYS[which], slot),
+                        defs[which], slot
+                    )
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+            if (Prefs.customSlotUsed(ctx, slot)) {
+                b.setNeutralButton(R.string.cc_delete) { _, _ ->
+                    Prefs.clearCustomSlot(ctx, slot)
+                    // Leaving the deleted theme selected would show the
+                    // defaults while claiming to be the user's own theme.
+                    if (Prefs.theme(ctx) == Prefs.customThemeId(slot)) {
+                        Prefs.get(ctx).edit().putString(Prefs.KEY_THEME, "system").apply()
+                    }
+                    Toast.makeText(ctx, R.string.cc_deleted, Toast.LENGTH_SHORT).show()
+                }
+            }
+            b.show()
+        }
+
         /**
-         * [def] is the colour this slot falls back to when unset. It was passed
-         * in and never used, which left no way back once a custom colour had
-         * been chosen — the grid could only set one.
+         * Picks one colour on the wheel, with a live preview.
+         *
+         * Saving also selects the slot as the active theme: editing a theme you
+         * are not looking at is a strange thing to have asked for, and the old
+         * flow left people adjusting colours with no visible effect because the
+         * theme dropdown was still on something else.
          */
-        private fun showColorGrid(title: String, prefKey: String, def: Int) {
+        private fun showColorWheel(title: String, prefKey: String, def: Int, slot: Int) {
             val ctx = requireContext()
             val d = resources.displayMetrics.density
-            val grid = android.widget.GridLayout(ctx).apply {
-                columnCount = 6
-                setPadding((16 * d).toInt(), (16 * d).toInt(), (16 * d).toInt(), (8 * d).toInt())
+            val col = LinearLayout(ctx).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding((20 * d).toInt(), (12 * d).toInt(), (20 * d).toInt(), 0)
             }
-            var dlg: androidx.appcompat.app.AlertDialog? = null
-            for (color in palette) {
-                val v = View(ctx)
-                val lp = android.widget.GridLayout.LayoutParams()
-                lp.width = (44 * d).toInt()
-                lp.height = (44 * d).toInt()
-                lp.setMargins((4 * d).toInt(), (4 * d).toInt(), (4 * d).toInt(), (4 * d).toInt())
-                v.layoutParams = lp
-                v.setBackgroundColor(color)
-                v.setOnClickListener {
-                    Prefs.setCustomColor(ctx, prefKey, color)
-                    dlg?.dismiss()
-                }
-                grid.addView(v)
+            val preview = View(ctx).apply {
+                setBackgroundColor(Prefs.customColor(ctx, prefKey, def))
             }
-            dlg = AlertDialog.Builder(ctx)
+            col.addView(preview, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, (44 * d).toInt()))
+            val wheel = com.rimboard.keyboard.ui.ColorWheelView(ctx).apply {
+                color = Prefs.customColor(ctx, prefKey, def)
+                onColorChanged = { preview.setBackgroundColor(it) }
+            }
+            col.addView(wheel, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT))
+            AlertDialog.Builder(ctx)
                 .setTitle(title)
-                .setView(grid)
+                .setView(col)
+                .setPositiveButton(R.string.cc_apply) { _, _ ->
+                    Prefs.setCustomColor(ctx, prefKey, wheel.color)
+                    Prefs.get(ctx).edit()
+                        .putString(Prefs.KEY_THEME, Prefs.customThemeId(slot)).apply()
+                }
                 .setNeutralButton(R.string.cc_reset) { _, _ ->
                     Prefs.setCustomColor(ctx, prefKey, def)
                 }

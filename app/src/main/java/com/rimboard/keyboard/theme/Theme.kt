@@ -186,15 +186,12 @@ object Themes {
         return (0xFF shl 24) or (ch(16) shl 16) or (ch(8) shl 8) or ch(0)
     }
 
-    private fun custom(context: Context): KeyboardTheme {
-        val bg = com.rimboard.keyboard.settings.Prefs.customColor(
-            context, com.rimboard.keyboard.settings.Prefs.KEY_CC_BG, 0xFF1B1E23.toInt())
-        val key = com.rimboard.keyboard.settings.Prefs.customColor(
-            context, com.rimboard.keyboard.settings.Prefs.KEY_CC_KEY, 0xFF3A3E46.toInt())
-        val text = com.rimboard.keyboard.settings.Prefs.customColor(
-            context, com.rimboard.keyboard.settings.Prefs.KEY_CC_TEXT, 0xFFE8EAED.toInt())
-        val accent = com.rimboard.keyboard.settings.Prefs.customColor(
-            context, com.rimboard.keyboard.settings.Prefs.KEY_CC_ACCENT, 0xFF8AB4F8.toInt())
+    private fun custom(context: Context, slot: Int): KeyboardTheme {
+        val P = com.rimboard.keyboard.settings.Prefs
+        val bg = P.customColor(context, P.slotKey(P.KEY_CC_BG, slot), 0xFF1B1E23.toInt())
+        val key = P.customColor(context, P.slotKey(P.KEY_CC_KEY, slot), 0xFF3A3E46.toInt())
+        val text = P.customColor(context, P.slotKey(P.KEY_CC_TEXT, slot), 0xFFE8EAED.toInt())
+        val accent = P.customColor(context, P.slotKey(P.KEY_CC_ACCENT, slot), 0xFF8AB4F8.toInt())
         val dark = luminance(bg) < 0.5
         return KeyboardTheme(
             background = bg,
@@ -302,7 +299,9 @@ object Themes {
             "graphite" -> graphite()
             "rose" -> rose()
             "mint" -> mint()
-            "custom" -> custom(context)
+            "custom" -> custom(context, 1)
+            "custom2" -> custom(context, 2)
+            "custom3" -> custom(context, 3)
             "dynamic" ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) dynamic(context, night)
                 else if (night) dark() else light()

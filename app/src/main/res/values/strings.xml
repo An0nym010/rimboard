@@ -38,7 +38,9 @@
     <string name="theme_graphite">Graphite</string>
     <string name="theme_rose">Rose</string>
     <string name="theme_mint">Mint</string>
-    <string name="theme_custom">Custom</string>
+    <string name="theme_custom">Custom 1</string>
+    <string name="theme_custom2" tools:ignore="MissingTranslation">Custom 2</string>
+    <string name="theme_custom3" tools:ignore="MissingTranslation">Custom 3</string>
     <string name="pref_height_title">Keyboard height</string>
     <string name="height_compact">Compact</string>
     <string name="height_normal">Normal</string>
@@ -160,6 +162,12 @@
     <string name="header_offline" formatted="false">100% offline</string>
     <string name="clip_timeout_never" tools:ignore="MissingTranslation">Never cleared automatically</string>
     <string name="clip_timeout_mins" tools:ignore="MissingTranslation">Cleared %1$d minutes after copying</string>
+    <string name="cc_slot" tools:ignore="MissingTranslation">Custom %1$d</string>
+    <string name="cc_slot_empty" tools:ignore="MissingTranslation">Not set up yet</string>
+    <string name="cc_slot_used" tools:ignore="MissingTranslation">Tap to edit — editing selects it</string>
+    <string name="cc_delete" tools:ignore="MissingTranslation">Delete</string>
+    <string name="cc_deleted" tools:ignore="MissingTranslation">Custom theme deleted</string>
+    <string name="cc_apply" tools:ignore="MissingTranslation">Save</string>
     <string name="header_byok" formatted="false" tools:ignore="MissingTranslation">your own API keys</string>
     <string name="st_wpm_short">WPM</string>
     <string name="screen_general">Preferences</string>
