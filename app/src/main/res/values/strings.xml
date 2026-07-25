@@ -167,6 +167,8 @@
     <string name="cc_slot_used" tools:ignore="MissingTranslation">Tap to edit — editing selects it</string>
     <string name="cc_delete" tools:ignore="MissingTranslation">Delete</string>
     <string name="cc_deleted" tools:ignore="MissingTranslation">Custom theme deleted</string>
+    <string name="cc_wheel_desc" tools:ignore="MissingTranslation">Colour: hue %1$d degrees, saturation %2$d percent, brightness %3$d percent</string>
+    <string name="cc_hex_label" tools:ignore="MissingTranslation">Hex colour</string>
     <string name="cc_apply" tools:ignore="MissingTranslation">Save</string>
     <string name="header_byok" formatted="false" tools:ignore="MissingTranslation">your own API keys</string>
     <string name="st_wpm_short">WPM</string>

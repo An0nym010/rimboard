@@ -380,10 +380,46 @@ class SettingsActivity : AppCompatActivity() {
             }
             col.addView(preview, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, (44 * d).toInt()))
+            // Hex, and the wheel writes into it. This is the path that does
+            // not need a drag on an unlabelled canvas: typing six characters
+            // works with a screen reader, with a keyboard, and for anyone who
+            // already knows the colour they want.
+            val hex = android.widget.EditText(ctx).apply {
+                setSingleLine()
+                inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                    android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+                contentDescription = getString(R.string.cc_hex_label)
+                hint = getString(R.string.cc_hex_label)
+            }
+            var syncing = false
+            fun setHex(c: Int) {
+                syncing = true
+                hex.setText(String.format("#%06X", c and 0xFFFFFF))
+                syncing = false
+            }
             val wheel = com.rimboard.keyboard.ui.ColorWheelView(ctx).apply {
                 color = Prefs.customColor(ctx, prefKey, def)
-                onColorChanged = { preview.setBackgroundColor(it) }
+                onColorChanged = {
+                    preview.setBackgroundColor(it)
+                    setHex(it)
+                }
             }
+            setHex(wheel.color)
+            hex.addTextChangedListener(object : android.text.TextWatcher {
+                override fun afterTextChanged(e: android.text.Editable?) {
+                    // Guarded so the wheel writing into the field does not read
+                    // straight back out and fight the finger that caused it.
+                    if (syncing) return
+                    val parsed = parseHex(e?.toString()) ?: return
+                    wheel.color = parsed
+                    preview.setBackgroundColor(parsed)
+                }
+                override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            })
+            col.addView(hex, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT))
             col.addView(wheel, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT))
@@ -400,6 +436,18 @@ class SettingsActivity : AppCompatActivity() {
                 }
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
+        }
+
+        /**
+         * Parses `#RRGGBB` or `RRGGBB`, opaque. Null for anything else, so a
+         * half-typed value leaves the wheel alone instead of jumping to black
+         * on every keystroke.
+         */
+        private fun parseHex(text: String?): Int? {
+            val t = text?.trim()?.removePrefix("#") ?: return null
+            if (t.length != 6) return null
+            val v = t.toLongOrNull(16) ?: return null
+            return (0xFF000000L or v).toInt()
         }
 
         private fun saveFont(uri: android.net.Uri) {

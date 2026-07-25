@@ -180,6 +180,7 @@ class RimBoardService : InputMethodService(),
             (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
                 .removePrimaryClipChangedListener(it)
         }
+        thumbPool.shutdownNow()
         userData.flushBlocking()
         userData.shutdown()
         // onFinishInputView flushes these too, but it is not guaranteed to run
@@ -638,12 +639,7 @@ class RimBoardService : InputMethodService(),
     // ---------------------------------------------------------------- keyboard callbacks
 
     override fun onKeyPressed(key: Key) {
-        // The GIF picker sits above the keyboard rather than replacing it, so
-        // the keys are live while it is open — and what they type belongs to
-        // its search box, not to the field behind it. Handled before anything
-        // else so no typing state (composing, stats, undo) is touched by a
-        // keystroke the text field never receives.
-        if (searchRoute != SearchRoute.NONE && routeKeyToSearch(key)) return
+        if (consumedBySearch(key, Source.TAP)) return
         wordUndo.clear()
         Stats.key(this)
         backspaceRepeats = 0
@@ -675,15 +671,7 @@ class RimBoardService : InputMethodService(),
     }
 
     override fun onKeyRepeated(key: Key) {
-        // A repeat is still a keystroke, and while a picker is open keystrokes
-        // belong to its search box. Without this a *held* backspace deleted
-        // from the message behind the picker while a tapped one deleted from
-        // the query — the same key doing two different things depending on how
-        // long it was pressed, and the destructive one being the accident.
-        if (searchRoute != SearchRoute.NONE) {
-            if (key.code == Codes.BACKSPACE) routeKeyToSearch(key)
-            return
-        }
+        if (consumedBySearch(key, Source.REPEAT)) return
         if (key.code == Codes.BACKSPACE) {
             backspaceRepeats++
             if (backspaceRepeats >= 12) {
@@ -717,9 +705,7 @@ class RimBoardService : InputMethodService(),
     }
 
     override fun onPopupKeySelected(key: Key) {
-        // Accents chosen from a long-press are ordinary typing, so they follow
-        // the same route as everything else while a picker is open.
-        if (searchRoute != SearchRoute.NONE && routeKeyToSearch(key)) return
+        if (consumedBySearch(key, Source.POPUP)) return
         when (key.code) {
             Codes.LANG -> cycleLanguage()
             Codes.SETTINGS -> openSettings()
@@ -2285,6 +2271,9 @@ class RimBoardService : InputMethodService(),
     private fun runGifSearch(query: String) {
         val gv = gifView ?: return
         gv.setStatus(getString(R.string.gif_searching))
+        // Supersedes any thumbnails still in flight for the previous query.
+        val generation = ++thumbGeneration
+        thumbPool.queue.clear()
         Thread {
             val result = com.rimboard.keyboard.net.Klipy.search(this, query)
             main {
@@ -2292,7 +2281,7 @@ class RimBoardService : InputMethodService(),
                     onSuccess = { gifs ->
                         gv.setStatus(if (gifs.isEmpty()) getString(R.string.gif_none) else null)
                         gv.setResults(gifs)
-                        gifs.forEach { loadThumb(it) }
+                        gifs.forEach { loadThumb(it, generation) }
                     },
                     onFailure = { gv.setStatus(getString(R.string.gif_failed, netError(it))) }
                 )
@@ -2305,17 +2294,48 @@ class RimBoardService : InputMethodService(),
      * for a search the user has moved on from is dropped by [GifView] because
      * its id is no longer in the list, so there is nothing to cancel.
      */
-    private fun loadThumb(gif: com.rimboard.keyboard.net.Klipy.Gif) {
-        Thread {
+    /**
+     * Downloads thumbnails a few at a time.
+     *
+     * This used to be one thread per tile, so a search fired twenty-four
+     * concurrent downloads and twenty-four decodes at once — on a mid-range
+     * phone that is visible jank in the keyboard the user is still typing on,
+     * and it is more sockets than the connection can usefully serve anyway.
+     * Four at a time keeps the grid filling steadily without the stampede.
+     */
+    private val thumbPool: java.util.concurrent.ThreadPoolExecutor =
+        java.util.concurrent.ThreadPoolExecutor(
+            0, 4, 20L, java.util.concurrent.TimeUnit.SECONDS,
+            java.util.concurrent.LinkedBlockingQueue()
+        ).apply {
+            // Nothing is queued while the panel is closed, so letting the
+            // threads die back keeps an idle keyboard at zero of them.
+            allowCoreThreadTimeOut(true)
+        }
+
+    /**
+     * Rises with each search. A download that finishes after the user has
+     * typed on and triggered a new search belongs to a grid that no longer
+     * exists, so it is dropped rather than decoded and posted.
+     */
+    private var thumbGeneration = 0
+
+    private fun loadThumb(gif: com.rimboard.keyboard.net.Klipy.Gif, generation: Int) {
+        thumbPool.execute {
+            if (generation != thumbGeneration) return@execute
             val bytes = com.rimboard.keyboard.net.Net.fetchBytes(
                 this, gif.previewUrl, reason = "GIF thumbnail", sendsTypedText = false
-            ).getOrNull() ?: return@Thread
+            ).getOrNull() ?: return@execute
+            // Checked again after the download: it is the slow part, and
+            // decoding a bitmap for a discarded search is the cost worth
+            // avoiding.
+            if (generation != thumbGeneration) return@execute
             // Decodes the first frame — a still is all a grid tile needs, and
             // animated decoding is API 28+ while this app supports 26.
             val bmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                ?: return@Thread
-            main { gifView?.setThumbnail(gif.id, bmp) }
-        }.start()
+                ?: return@execute
+            main { if (generation == thumbGeneration) gifView?.setThumbnail(gif.id, bmp) }
+        }
     }
 
     override fun onGifPicked(gif: com.rimboard.keyboard.net.Klipy.Gif) {
@@ -2375,6 +2395,35 @@ class RimBoardService : InputMethodService(),
      * the picker rather than sending a newline into the field behind it, since
      * "done searching" is the only thing it could reasonably mean here.
      */
+    /**
+     * Where a keystroke came from. Only [REPEAT] behaves differently — a held
+     * key that the picker has no use for is swallowed rather than passed on,
+     * because a repeat firing into the field behind an open picker is the
+     * accident this whole seam exists to prevent.
+     */
+    private enum class Source { TAP, REPEAT, POPUP }
+
+    /**
+     * The single place a keystroke is offered to an open picker's search box.
+     *
+     * The keyboard produces input at four entry points — tap, repeat,
+     * long-press popup and glide — and each one previously needed this check
+     * bolted on by hand. Three of them were missed, which is how a *held*
+     * backspace came to delete the user's actual message while a tapped one
+     * edited the search query. Every one of them now asks here instead, so
+     * adding a fifth entry point cannot quietly reintroduce it.
+     *
+     * Returns true when the keystroke has been dealt with and the caller must
+     * do nothing further.
+     */
+    private fun consumedBySearch(key: Key, source: Source): Boolean {
+        if (searchRoute == SearchRoute.NONE) return false
+        if (routeKeyToSearch(key)) return true
+        // Layout switches, shift and settings still work on the keyboard
+        // itself, so a tap or popup falls through to normal handling.
+        return source == Source.REPEAT
+    }
+
     /** Appends one character to whichever search box is open. */
     private fun routeCharToSearch(c: Char) {
         when (searchRoute) {

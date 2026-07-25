@@ -63,10 +63,35 @@ class ColorWheelView(context: Context) : View(context) {
 
     private fun dp(v: Float) = v * resources.displayMetrics.density
 
+    init {
+        // A bare custom View is invisible to a screen reader: no role, no
+        // value, and a drag it cannot perform anyway. Making it focusable with
+        // a spoken value at least announces what is selected; the hex field in
+        // the dialog is the path that does not need the gesture at all.
+        isFocusable = true
+        importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
+        announce()
+    }
+
+    /**
+     * Describes the current colour in words rather than as a hex code.
+     *
+     * "Hue 210 degrees, saturation 60%, brightness 80%" is what the control
+     * actually manipulates, and unlike `#3399CC` it says which way to move to
+     * get what you want.
+     */
+    private fun announce() {
+        contentDescription = context.getString(
+            com.rimboard.keyboard.R.string.cc_wheel_desc,
+            hsv[0].toInt(), (hsv[1] * 100).toInt(), (hsv[2] * 100).toInt()
+        )
+    }
+
     var color: Int
         get() = Color.HSVToColor(hsv)
         set(value) {
             Color.colorToHSV(value, hsv)
+            announce()
             invalidate()
         }
 
@@ -150,6 +175,7 @@ class ColorWheelView(context: Context) : View(context) {
             hsv[0] = ((Math.toDegrees(atan2(dy, dx).toDouble()) + 360.0) % 360.0).toFloat()
             hsv[1] = (hypot(dx, dy) / radius).coerceIn(0f, 1f)
         }
+        announce()
         invalidate()
         onColorChanged?.invoke(color)
         return true
