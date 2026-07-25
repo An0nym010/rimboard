@@ -2117,14 +2117,10 @@ class RimBoardService : InputMethodService(),
             toast(getString(R.string.gif_no_key))
             return
         }
-        // Checked before the panel opens, not after a GIF is chosen: letting
-        // someone browse, pick, and wait through a download only to be told the
-        // field never accepted images is the worst ordering available.
-        if (!com.rimboard.keyboard.net.GifInsert.accepts(currentInputEditorInfo)) {
-            toast(getString(R.string.gif_not_accepted))
-            return
-        }
-
+        // Deliberately no check that the field accepts images. Only apps that
+        // opt into rich content declare it, so refusing to open here meant the
+        // picker was unavailable in most places — including this app's own
+        // setup screen. GifInsert falls back to the clipboard instead.
         finishComposingSilently()
         // Seed from whatever the user already typed, as though it had been
         // typed on the panel's own keypad — so it can be edited rather than
@@ -2214,14 +2210,24 @@ class RimBoardService : InputMethodService(),
                 if (gifQueryFromField != null && gifQueryFieldLength > 0) {
                     ic.deleteSurroundingText(gifQueryFieldLength, 0)
                 }
-                val ok = com.rimboard.keyboard.net.GifInsert.commit(
+                when (com.rimboard.keyboard.net.GifInsert.commit(
                     this, ic, editor, data, gif.description
-                )
-                if (ok) {
-                    gv.setStatus(null)
-                    onGifAbc()
-                } else {
-                    toast(getString(R.string.gif_not_accepted))
+                )) {
+                    com.rimboard.keyboard.net.GifInsert.Result.INSERTED -> {
+                        gv.setStatus(null)
+                        onGifAbc()
+                    }
+                    // The app would not take it directly, so it is on the
+                    // clipboard. Close the panel and say so: leaving it open
+                    // over the field they now need to paste into would hide
+                    // the thing the message is telling them to do.
+                    com.rimboard.keyboard.net.GifInsert.Result.COPIED -> {
+                        gv.setStatus(null)
+                        onGifAbc()
+                        toast(getString(R.string.gif_copied))
+                    }
+                    com.rimboard.keyboard.net.GifInsert.Result.FAILED ->
+                        gv.setStatus(getString(R.string.gif_insert_failed))
                 }
             }
         }.start()
