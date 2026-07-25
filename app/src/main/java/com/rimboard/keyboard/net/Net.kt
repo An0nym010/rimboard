@@ -142,20 +142,20 @@ object Net {
         transport: () -> T
     ): Result<T> {
         blockedBy(c, sendsTypedText)?.let {
-            NetLog.record(reason, url, NetLog.Outcome.REFUSED, it.name)
+            NetLog.record(c, reason, url, NetLog.Outcome.REFUSED, it.name)
             return Result.failure(NetBlockedException(it))
         }
         val host = hostOf(url)
         if (host == null || host !in ALLOWED_HOSTS) {
-            NetLog.record(reason, url, NetLog.Outcome.REFUSED, "HOST_NOT_ALLOWED")
+            NetLog.record(c, reason, url, NetLog.Outcome.REFUSED, "HOST_NOT_ALLOWED")
             return Result.failure(NetBlockedException(Block.HOST_NOT_ALLOWED))
         }
         return try {
             val out = transport()
-            NetLog.record(reason, url, NetLog.Outcome.SENT, null)
+            NetLog.record(c, reason, url, NetLog.Outcome.SENT, null)
             Result.success(out)
         } catch (e: Exception) {
-            NetLog.record(reason, url, NetLog.Outcome.FAILED, e.javaClass.simpleName)
+            NetLog.record(c, reason, url, NetLog.Outcome.FAILED, e.javaClass.simpleName)
             Result.failure(e)
         }
     }
@@ -228,31 +228,50 @@ object NetLog {
     private val entries = ArrayDeque<Entry>()
 
     @Synchronized
-    fun record(reason: String, url: String, outcome: Outcome, detail: String?) {
+    fun record(c: Context, reason: String, url: String, outcome: Outcome, detail: String?) {
         // The URL is deliberately reduced to its host before being stored: the
         // path and query of a GIF search are the user's search terms.
         val host = Net.hostOf(url) ?: "?"
         entries.addFirst(Entry(System.currentTimeMillis(), reason, host, outcome, detail))
         while (entries.size > MAX) entries.removeLast()
-        if (outcome == Outcome.SENT) sentCount++
+        if (outcome == Outcome.SENT) bump(c)
     }
 
     @Synchronized
     fun recent(): List<Entry> = entries.toList()
 
     /**
-     * Requests actually put on the wire since install. Held in memory and
-     * flushed by [load]/[save] around the settings screen that shows it.
+     * Requests actually put on the wire since install.
+     *
+     * Read through here rather than from a field the caller refreshes. It used
+     * to be an in-memory counter that the settings screen loaded on open and
+     * saved on close — but the keyboard *service* is what increments it, and
+     * never saved. Opening Settings -> Network therefore overwrote the live
+     * count with a stale one and silently under-reported, on the one screen
+     * whose entire job is to be trustworthy about this number.
+     *
+     * Now: seeded from storage once per process, authoritative in memory after
+     * that, and persisted on every increment.
      */
     @Volatile
-    var sentCount: Int = 0
-        private set
+    private var count = 0
+    private var loaded = false
 
-    fun load(c: Context) {
-        sentCount = Prefs.get(c).getInt(Prefs.KEY_NET_SENT, 0)
+    @Synchronized
+    private fun ensureLoaded(c: Context) {
+        if (loaded) return
+        count = Prefs.get(c).getInt(Prefs.KEY_NET_SENT, 0)
+        loaded = true
     }
 
-    fun save(c: Context) {
-        Prefs.get(c).edit().putInt(Prefs.KEY_NET_SENT, sentCount).apply()
+    fun sentCount(c: Context): Int {
+        ensureLoaded(c)
+        return count
+    }
+
+    private fun bump(c: Context) {
+        ensureLoaded(c)
+        count++
+        Prefs.get(c).edit().putInt(Prefs.KEY_NET_SENT, count).apply()
     }
 }

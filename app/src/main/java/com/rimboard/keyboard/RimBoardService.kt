@@ -71,6 +71,12 @@ class RimBoardService : InputMethodService(),
      */
     private var gifQueryFromField: String? = null
 
+    /**
+     * How many characters that seed occupies in the field. Tracked separately
+     * because the query is normalised and the field is not.
+     */
+    private var gifQueryFieldLength: Int = 0
+
     /** Clipboard history lives only in memory; it is never written to disk. */
     private class ClipEntry(val text: String, val at: Long)
 
@@ -2068,26 +2074,34 @@ class RimBoardService : InputMethodService(),
         // Seed from whatever the user already typed, as though it had been
         // typed on the panel's own keypad — so it can be edited rather than
         // only accepted or cleared.
-        val typed = textBeforeCursorWord()
-        gifQueryFromField = typed
-        gv.startWith(typed, kind)
+        val seed = textBeforeCursorSeed()
+        gifQueryFromField = seed?.query
+        gifQueryFieldLength = seed?.rawLength ?: 0
+        gv.startWith(seed?.query, kind)
         revealPanel(gv)
-        if (typed != null) runGifSearch(typed, kind)
+        seed?.let { runGifSearch(it.query, kind) }
     }
 
-    /** The last few words before the cursor, as a search seed. */
-    private fun textBeforeCursorWord(): String? {
-        val ic = currentInputConnection ?: return null
-        val before = ic.getTextBeforeCursor(60, 0)?.toString()?.trim() ?: return null
-        if (before.isEmpty()) return null
-        return before.split(Regex("\\s+")).takeLast(3).joinToString(" ").takeIf { it.isNotBlank() }
-    }
+    /**
+     * The last few words before the cursor, as a search seed.
+     *
+     * Returns the query *and* how many characters it actually occupies in the
+     * field, which are not the same number: the query is trimmed and has its
+     * whitespace collapsed for searching, so using its length to delete from
+     * the field leaves the difference behind. "hey  there  cat" typed with
+     * double spaces normalises to 13 characters over a 15-character span.
+     */
+    private fun textBeforeCursorSeed(): FieldSeed? =
+        seedFromTextBeforeCursor(currentInputConnection?.getTextBeforeCursor(60, 0)?.toString())
 
     override fun onGifSearch(query: String, kind: com.rimboard.keyboard.net.Tenor.Kind) {
         // The user edited the query on the panel's keypad, so it no longer
         // matches what is in the field — picking a result must not delete
         // text the search is no longer based on.
-        if (query != gifQueryFromField) gifQueryFromField = null
+        if (query != gifQueryFromField) {
+            gifQueryFromField = null
+            gifQueryFieldLength = 0
+        }
         runGifSearch(query, kind)
     }
 
@@ -2142,7 +2156,9 @@ class RimBoardService : InputMethodService(),
                 }
                 // Remove the words that seeded the search — they were the query,
                 // not part of the message. Only when the field supplied them.
-                gifQueryFromField?.let { ic.deleteSurroundingText(it.length, 0) }
+                if (gifQueryFromField != null && gifQueryFieldLength > 0) {
+                    ic.deleteSurroundingText(gifQueryFieldLength, 0)
+                }
                 val ok = com.rimboard.keyboard.net.GifInsert.commit(
                     this, ic, editor, data, gif.description
                 )
@@ -2161,6 +2177,7 @@ class RimBoardService : InputMethodService(),
         gifView?.visibility = View.GONE
         keyboardView?.visibility = View.VISIBLE
         gifQueryFromField = null
+        gifQueryFieldLength = 0
     }
 
     private fun main(block: () -> Unit) {
@@ -2316,4 +2333,42 @@ class RimBoardService : InputMethodService(),
     // ---------------------------------------------------------------- misc
 
     private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
+}
+
+/**
+ * A GIF search seed taken from the field: the query to search for, and how many
+ * characters it occupies in the field.
+ *
+ * The two are different numbers, which is the whole reason this exists. The
+ * query is trimmed and has its whitespace collapsed so it reads as a search
+ * term; the field holds whatever the user actually typed. Deleting
+ * `query.length` characters after picking a GIF therefore left the difference
+ * behind — "hey  there  cat" typed with double spaces normalises to 13
+ * characters over a 15-character span, so two letters survived the deletion.
+ */
+internal class FieldSeed(val query: String, val rawLength: Int)
+
+/**
+ * Top-level and internal rather than a method on the service, purely so it can
+ * be tested: the walk below is fiddly, its failure mode is silent, and it is
+ * the kind of thing that regresses the next time someone changes how many
+ * words the seed takes.
+ */
+internal fun seedFromTextBeforeCursor(raw: String?, maxWords: Int = 3): FieldSeed? {
+    if (raw.isNullOrBlank()) return null
+    var i = raw.length
+    var words = 0
+    while (i > 0 && words < maxWords) {
+        // Trailing and inter-word whitespace belongs to the slice, so that a
+        // seed ending in a space deletes that space too.
+        while (i > 0 && raw[i - 1].isWhitespace()) i--
+        if (i == 0) break
+        val wordEnd = i
+        while (i > 0 && !raw[i - 1].isWhitespace()) i--
+        if (wordEnd > i) words++
+    }
+    val slice = raw.substring(i)
+    val query = slice.trim().replace(Regex("\\s+"), " ")
+    if (query.isEmpty()) return null
+    return FieldSeed(query, slice.length)
 }

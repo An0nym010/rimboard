@@ -105,6 +105,11 @@ class MiniKeypad(context: Context) : LinearLayout(context) {
         v.setOnTouchListener { view, e ->
             when (e.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
+                    // The touch listener consumes the event, so the click
+                    // listener that gives every other key its haptic never
+                    // runs — backspace was the one silent key on the pad.
+                    view.performHapticFeedback(
+                        android.view.HapticFeedbackConstants.KEYBOARD_TAP)
                     listener?.onKeypadBackspace()
                     val r = object : Runnable {
                         override fun run() {

@@ -48,7 +48,6 @@ class NetworkActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.setTitle(R.string.pref_network_title)
-        NetLog.load(this)
         val d = resources.displayMetrics.density
         container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -57,11 +56,6 @@ class NetworkActivity : AppCompatActivity() {
         setContentView(ScrollView(this).apply { addView(container) })
         render()
         probe()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        NetLog.save(this)
     }
 
     /**
@@ -197,14 +191,15 @@ class NetworkActivity : AppCompatActivity() {
 
         section(d, getString(R.string.net_log_header))
         val log = NetLog.recent()
-        if (NetLog.sentCount == 0 && log.isEmpty()) {
+        val sent = NetLog.sentCount(this)
+        if (sent == 0 && log.isEmpty()) {
             container.addView(TextView(this).apply {
                 text = getString(R.string.net_log_none)
                 textSize = 14f
             })
         } else {
             container.addView(TextView(this).apply {
-                text = getString(R.string.net_log_count, NetLog.sentCount)
+                text = getString(R.string.net_log_count, sent)
                 textSize = 14f
                 setTypeface(typeface, Typeface.BOLD)
             })
