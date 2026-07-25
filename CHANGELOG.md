@@ -68,14 +68,22 @@ Release notes for every RimBoard version. The current release is summarised in t
 - **Hold to delete in panel search.** The GIF and sticker panel's keypad now
   repeats on a held backspace and draws proper key caps, matching the emoji
   panel's. Clearing a mistyped search was one tap per character.
-- GIF and sticker search use **Giphy**. The first cut used Tenor, which could
-  never have worked for anyone new: Google stopped accepting Tenor API clients
-  in January 2026 and wound the service down that June, so only people who
-  already held a key could have used it. Giphy still issues keys self-serve.
-  There is no keyless option worth having — every production GIF service needs
-  a key, and the ways around that are shipping a shared one in an open-source
-  APK, where the first `strings` run finds it, or scraping, which breaks their
-  terms and this keyboard's own.
+- GIF and sticker search use **KLIPY**. It took three attempts to land there.
+  Tenor could never have worked for anyone new — Google stopped accepting API
+  clients in January 2026 and shut the service down that June. Giphy still
+  issues keys but moved production access to paid, with developers reporting
+  four-figure quotes. KLIPY has a lifetime free tier, still issues keys, and
+  its advertising is opt-in for developers rather than injected into results,
+  which is the only reason it fits a keyboard that promises no ads. RimBoard
+  does not enable it. Attribution is shown in the panel because that is a
+  condition of use, and no `customer_id` is sent — KLIPY accepts a stable
+  per-user identifier and taking it would hand over a durable handle joining up
+  every search this keyboard makes.
+- There is still no keyless option, and there is unlikely to be one: every
+  production GIF service needs a key. The ways around that are shipping a
+  shared one in an open-source APK, where the first `strings` run finds it and
+  one rate limit is shared by every install, or scraping, which breaks the
+  provider's terms and this keyboard's own.
 - **Failures say which thing went wrong.** `ACCESS_NETWORK_STATE` is now
   actually used — it was declared and unused, which on this app is exactly the
   sort of thing that should not ship. A request that fails while the phone has

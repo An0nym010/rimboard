@@ -163,8 +163,8 @@ class NetworkActivity : AppCompatActivity() {
             section(d, getString(R.string.pref_keys_header))
             keyRow(d, R.string.pref_key_anthropic, R.string.pref_key_none, "sk-ant-…",
                 ApiKeys.anthropic(this)) { ApiKeys.setAnthropic(this, it) }
-            keyRow(d, R.string.pref_key_giphy, R.string.pref_key_giphy_none, "abc123…",
-                ApiKeys.giphy(this)) { ApiKeys.setGiphy(this, it) }
+            keyRow(d, R.string.pref_key_klipy, R.string.pref_key_klipy_none, "abc123…",
+                ApiKeys.klipy(this)) { ApiKeys.setKlipy(this, it) }
             container.addView(TextView(this).apply {
                 text = getString(R.string.pref_key_note)
                 textSize = 12f

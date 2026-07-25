@@ -357,8 +357,8 @@ Your search words or selected text go to the service that answers them. Nothing 
     <string name="pref_key_clear" tools:ignore="MissingTranslation">Clear</string>
     <string name="pref_key_saved" tools:ignore="MissingTranslation">Key saved</string>
     <string name="pref_key_cleared" tools:ignore="MissingTranslation">Key cleared</string>
-    <string name="pref_key_giphy" tools:ignore="MissingTranslation">Giphy API key</string>
-    <string name="pref_key_giphy_none" tools:ignore="MissingTranslation">Not set — GIF and sticker search need this</string>
+    <string name="pref_key_klipy" tools:ignore="MissingTranslation">KLIPY API key</string>
+    <string name="pref_key_klipy_none" tools:ignore="MissingTranslation">Not set — GIF and sticker search need this</string>
 
     <!-- "GIF" is the same token in every locale RimBoard ships, so it is not
          a translation gap; the surrounding sentences below are. -->
@@ -375,6 +375,7 @@ Your search words or selected text go to the service that answers them. Nothing 
     <string name="gif_offline_build" tools:ignore="MissingTranslation">This is the offline build of RimBoard — it has no network access</string>
     <string name="gif_network_off" tools:ignore="MissingTranslation">Turn on online features in Settings → Network</string>
     <string name="gif_incognito" tools:ignore="MissingTranslation">Not available in incognito — a GIF search sends what you typed</string>
-    <string name="gif_no_key" tools:ignore="MissingTranslation">Add your Giphy API key in Settings → Network</string>
+    <string name="gif_no_key" tools:ignore="MissingTranslation">Add your KLIPY API key in Settings → Network</string>
     <string name="gif_not_accepted" tools:ignore="MissingTranslation">This app does not accept GIFs</string>
+    <string name="gif_attribution" translatable="false">Powered by KLIPY</string>
 </resources>

@@ -121,14 +121,14 @@ class NetGateTest {
     fun `only https urls on the allowlist are accepted`() {
         // The check is on the parsed host, so neither a lookalike host nor the
         // allowed name appearing elsewhere in the URL gets through.
-        assertEquals("api.giphy.com", Net.hostOf("https://api.giphy.com/v1/gifs/search?q=cat"))
-        assertEquals("evil.test", Net.hostOf("https://evil.test/?x=api.giphy.com"))
-        assertFalse(Net.hostAllowed(Net.hostOf("https://evil.test/?x=api.giphy.com")))
-        assertFalse(Net.hostAllowed(Net.hostOf("https://api.giphy.com.evil.test/")))
+        assertEquals("api.klipy.com", Net.hostOf("https://api.klipy.com/api/v1/KEY/gifs/search?q=cat"))
+        assertEquals("evil.test", Net.hostOf("https://evil.test/?x=api.klipy.com"))
+        assertFalse(Net.hostAllowed(Net.hostOf("https://evil.test/?x=api.klipy.com")))
+        assertFalse(Net.hostAllowed(Net.hostOf("https://api.klipy.com.evil.test/")))
 
         // Plaintext is refused outright: a keyboard's traffic is the last thing
         // that should be readable by everything between here and the server.
-        assertNull(Net.hostOf("http://api.giphy.com/v1/gifs/search"))
+        assertNull(Net.hostOf("http://api.klipy.com/v1/gifs/search"))
         assertNull(Net.hostOf("not a url"))
     }
 

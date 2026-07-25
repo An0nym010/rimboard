@@ -11,7 +11,7 @@ import com.rimboard.keyboard.model.Codes
  * a tool id means — they each used to carry their own copy of this list.
  *
  * "GIF" and "Sticker" are here but are not universally usable: they need the
- * online build, the network switch on, and a Giphy key. They stay in the
+ * online build, the network switch on, and a KLIPY key. They stay in the
  * catalog on every build so the pinned-tool order does not shift underneath
  * someone who switches flavors — they report why they are unavailable instead
  * of vanishing. Scan-text remains absent.

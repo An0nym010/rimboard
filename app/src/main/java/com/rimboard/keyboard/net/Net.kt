@@ -35,29 +35,29 @@ object Net {
      * here in a diff someone can read.
      */
     val ALLOWED_HOSTS = setOf(
-        "api.giphy.com",          // GIF and sticker search metadata
+        "api.klipy.com",          // GIF and sticker search metadata
         "api.anthropic.com"       // translation and proofreading
     )
 
     /**
      * Domains allowed in full, for services that spread one job across many
-     * hostnames. Giphy picks a CDN host per result from `media0`–`media4` and
-     * `i.giphy.com`, so an exact list would break the first time they added
-     * `media5` — and it would break as a blank grid, which reads as the
+     * hostnames. KLIPY serves media from `static`, `static1` and `static2`
+     * under `klipy.com`, so an exact list would break the first time they
+     * added `static3` — and it would break as a blank grid, which reads as the
      * feature being broken rather than the allowlist being stale.
      *
      * Deliberately a *suffix on a dot*, not a substring: see [hostAllowed].
      * Kept to domains an endpoint above already talks to, so this widens which
      * machines answer, never which company does.
      */
-    val ALLOWED_SUFFIXES = setOf("giphy.com")
+    val ALLOWED_SUFFIXES = setOf("klipy.com")
 
     /**
      * Whether [host] may be contacted.
      *
      * The suffix test matches either the domain itself or something below a
-     * dot within it. Without the dot, `evilgiphy.com` would pass; without the
-     * equality case, `giphy.com` itself would not. Both directions are pinned
+     * dot within it. Without the dot, `evilklipy.com` would pass; without the
+     * equality case, `klipy.com` itself would not. Both directions are pinned
      * by `NetGateTest`.
      */
     internal fun hostAllowed(host: String?): Boolean {

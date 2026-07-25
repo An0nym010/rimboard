@@ -15,7 +15,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.rimboard.keyboard.R
-import com.rimboard.keyboard.net.Giphy
+import com.rimboard.keyboard.net.Klipy
 import com.rimboard.keyboard.theme.KeyboardTheme
 
 /**
@@ -37,8 +37,8 @@ import com.rimboard.keyboard.theme.KeyboardTheme
 class GifView(context: Context) : LinearLayout(context) {
 
     interface Listener {
-        fun onGifSearch(query: String, kind: Giphy.Kind)
-        fun onGifPicked(gif: Giphy.Gif)
+        fun onGifSearch(query: String, kind: Klipy.Kind)
+        fun onGifPicked(gif: Klipy.Gif)
         fun onGifAbc()
     }
 
@@ -48,7 +48,7 @@ class GifView(context: Context) : LinearLayout(context) {
     var listener: Listener? = null
 
     private val query = StringBuilder()
-    private var kind = Giphy.Kind.GIF
+    private var kind = Klipy.Kind.GIF
     private val keypad: MiniKeypad
     private val gifTab: TextView
     private val stickerTab: TextView
@@ -63,6 +63,7 @@ class GifView(context: Context) : LinearLayout(context) {
 
     private val queryView: TextView
     private val status: TextView
+    private val attribution: TextView
     private val grid: GridView
     private val adapterImpl = GifAdapter()
     private val chipRow: LinearLayout
@@ -82,9 +83,9 @@ class GifView(context: Context) : LinearLayout(context) {
         }
         headerIcon = IconView(context, Icons.SEARCH)
         bar.addView(headerIcon, LayoutParams(dp(30), LayoutParams.MATCH_PARENT))
-        gifTab = tab(context.getString(R.string.tb_gif)) { switchKind(Giphy.Kind.GIF) }
+        gifTab = tab(context.getString(R.string.tb_gif)) { switchKind(Klipy.Kind.GIF) }
         bar.addView(gifTab, LayoutParams(dp(52), LayoutParams.MATCH_PARENT))
-        stickerTab = tab(context.getString(R.string.tb_sticker)) { switchKind(Giphy.Kind.STICKER) }
+        stickerTab = tab(context.getString(R.string.tb_sticker)) { switchKind(Klipy.Kind.STICKER) }
         bar.addView(stickerTab, LayoutParams(dp(64), LayoutParams.MATCH_PARENT))
         queryView = TextView(context).apply {
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
@@ -135,6 +136,17 @@ class GifView(context: Context) : LinearLayout(context) {
         }
         addView(status, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
 
+        // Attribution is a condition of using the API, not a nicety, so it is
+        // always present rather than shown when there is room. It sits outside
+        // the results so an empty or failed search still carries it.
+        attribution = TextView(context).apply {
+            text = context.getString(R.string.gif_attribution)
+            gravity = Gravity.CENTER
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 10f)
+            setPadding(0, dp(2), 0, dp(2))
+        }
+        addView(attribution, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+
         keypad = MiniKeypad(context).apply {
             listener = object : MiniKeypad.Listener {
                 override fun onKeypadChar(c: Char) = appendQuery(c)
@@ -177,7 +189,7 @@ class GifView(context: Context) : LinearLayout(context) {
         setOnClickListener { onTap() }
     }
 
-    private fun switchKind(next: Giphy.Kind) {
+    private fun switchKind(next: Klipy.Kind) {
         if (kind == next) return
         kind = next
         updateTabs()
@@ -188,8 +200,8 @@ class GifView(context: Context) : LinearLayout(context) {
 
     private fun updateTabs() {
         val t = theme ?: return
-        gifTab.setTextColor(if (kind == Giphy.Kind.GIF) t.accent else t.keyHint)
-        stickerTab.setTextColor(if (kind == Giphy.Kind.STICKER) t.accent else t.keyHint)
+        gifTab.setTextColor(if (kind == Klipy.Kind.GIF) t.accent else t.keyHint)
+        stickerTab.setTextColor(if (kind == Klipy.Kind.STICKER) t.accent else t.keyHint)
     }
 
     private fun appendQuery(c: Char) {
@@ -228,7 +240,7 @@ class GifView(context: Context) : LinearLayout(context) {
      * though it had been typed — so backspacing edits it rather than starting
      * from nothing.
      */
-    fun startWith(seed: String?, startKind: Giphy.Kind = kind) {
+    fun startWith(seed: String?, startKind: Klipy.Kind = kind) {
         removeCallbacks(debounce)
         kind = startKind
         updateTabs()
@@ -266,7 +278,7 @@ class GifView(context: Context) : LinearLayout(context) {
         }
     }
 
-    fun setResults(results: List<Giphy.Gif>) {
+    fun setResults(results: List<Klipy.Gif>) {
         adapterImpl.items = results.mapTo(mutableListOf()) { Tile(it, null) }
         adapterImpl.notifyDataSetChanged()
         grid.visibility = if (results.isEmpty()) GONE else VISIBLE
@@ -298,6 +310,7 @@ class GifView(context: Context) : LinearLayout(context) {
         headerIcon.color = t.stripText
         abcBtn.setTextColor(t.keyText)
         status.setTextColor(t.keyHint)
+        attribution.setTextColor(t.keyHint)
         keypad.applyTheme(t)
         updateTabs()
         for (i in 0 until chipRow.childCount) {
@@ -312,7 +325,7 @@ class GifView(context: Context) : LinearLayout(context) {
         adapterImpl.notifyDataSetChanged()
     }
 
-    private class Tile(val gif: Giphy.Gif, var bitmap: Bitmap?)
+    private class Tile(val gif: Klipy.Gif, var bitmap: Bitmap?)
 
     private inner class GifAdapter : BaseAdapter() {
         var items: MutableList<Tile> = mutableListOf()

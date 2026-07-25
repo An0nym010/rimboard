@@ -225,19 +225,30 @@ deletes it, because it was the query rather than part of your message.
   incognito, and no API key have four different fixes, so they produce four
   different messages.
 - **Two hosts, both on the allowlist and both checked.**
-  `api.giphy.com` serves the search results and the images come from Giphy's
-  CDN, which spreads across `media0`–`media4` and `i.giphy.com` and picks one
-  per result. That is why the allowlist has a bounded domain-suffix rule
-  alongside its exact hosts — an exact list would break as a blank grid the
-  first time Giphy added a machine. The rule matches the domain or something
-  below a dot within it, so `evilgiphy.com` and `giphy.com.evil.test` are both
-  refused; both directions are pinned by tests. Image URLs come from Giphy's
-  response rather than from RimBoard, so they are re-checked before being
-  fetched and a response pointing elsewhere fails closed.
+  `api.klipy.com` serves the search results and the images come from KLIPY's
+  CDN (`static`, `static1`, `static2`). That is why the allowlist has a bounded
+  domain-suffix rule alongside its exact hosts — an exact list would break as a
+  blank grid the first time they added `static3`. The rule matches the domain
+  or something below a dot within it, so `evilklipy.com` and
+  `klipy.com.evil.test` are both refused; both directions are pinned by tests.
+  Image URLs come from the response rather than from RimBoard, so they are
+  re-checked before being fetched and a response pointing elsewhere fails
+  closed.
+- **No `customer_id` is ever sent.** KLIPY accepts a stable per-user identifier
+  to personalise results and drive a "recents" feature. Sending one would hand
+  the provider a durable handle tying every search this keyboard makes to the
+  same person, which is not a trade worth making in this app.
+- **Attribution is shown in the panel** because it is a condition of using the
+  API, so it is always present rather than shown when there happens to be room.
+  KLIPY's advertising is opt-in for developers and RimBoard does not enable it.
 - **The search query is typed text**, so it is refused in incognito. Fetching a
   chosen GIF is not, since by then the URL is fixed and carries nothing you
   typed.
-- **The key is a query parameter** because that is where Giphy accepts one. That is normally the wrong place for a credential — it is tolerable here
+- **The key is a URL path segment**, which is where KLIPY takes it. That is a
+  sharper edge than a query parameter: a key containing a slash would not break
+  the request, it would address a *different* endpoint on a host the gate has
+  already allowed. Keys are therefore checked for path characters before use.
+  It stays out of the request log either way, which records only hosts. That is normally the wrong place for a credential — it is tolerable here
   only because the request log records the host and never the path or query, so
   neither the key nor your search terms are written down.
 
