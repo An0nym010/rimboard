@@ -271,6 +271,22 @@ object Themes {
         )
     }
 
+    /**
+     * Panel surface (emoji, clipboard, editing, tools) over a background
+     * photo: the base theme with a translucent background, so the picture
+     * carries on behind the panel instead of being blanked out by an opaque
+     * block the moment one opens.
+     *
+     * Deliberately still mostly opaque, unlike the key scrims. A panel is
+     * dense content — an emoji grid, or clipboard entries of arbitrary text —
+     * and it has to stay readable over an arbitrary picture. At this alpha the
+     * surface is still close enough to the base background that every other
+     * colour in the theme remains correct against it, so nothing else has to
+     * adapt and no text can land on a colour it was not designed for.
+     */
+    fun panelOverPhoto(base: KeyboardTheme): KeyboardTheme =
+        base.copy(background = (base.background and 0x00FFFFFF) or (0xD8 shl 24))
+
     fun resolve(context: Context, pref: String): KeyboardTheme {
         val night = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
             Configuration.UI_MODE_NIGHT_YES

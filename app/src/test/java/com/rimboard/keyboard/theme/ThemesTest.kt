@@ -48,6 +48,24 @@ class ThemesTest {
     }
 
     @Test
+    fun `a panel over a photo ghosts it without becoming unreadable`() {
+        val p = Themes.panelOverPhoto(base)
+        val alpha = p.background ushr 24
+        // See-through enough that the photo carries on behind the panel...
+        assertTrue("panel must not be opaque", alpha < 0xFF)
+        // ...but dense content sits on it, so not so far that an emoji grid or
+        // a list of clipboard text has to compete with the picture.
+        assertTrue("panel must stay mostly opaque", alpha >= 0xC0)
+        // The surface stays the base colour, which is what lets every other
+        // colour in the theme carry over untouched.
+        assertEquals(base.background and 0x00FFFFFF, p.background and 0x00FFFFFF)
+        assertEquals(base.keyText, p.keyText)
+        assertEquals(base.stripText, p.stripText)
+        assertEquals(base.accent, p.accent)
+        assertEquals(base.keyBg, p.keyBg)
+    }
+
+    @Test
     fun `caps are translucent scrims and solid surfaces keep the base theme`() {
         val t = Themes.overPhoto(base, luma = 40, dimAlpha = 0)
         assertTrue("cap must be see-through", (t.keyBg ushr 24) < 0x80)

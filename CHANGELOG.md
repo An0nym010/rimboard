@@ -30,6 +30,10 @@ Release notes for every RimBoard version. The current release is summarised in t
   previews live, and Apply saves exactly what you framed. Before, the pick
   saved immediately with a blind centre-crop — whether your subject survived
   was luck.
+- The emoji, clipboard, editing and tools panels let the photo through too,
+  so opening one no longer blanks the picture out with a flat slab. They
+  keep a mostly-opaque surface on purpose — an emoji grid has to stay
+  readable over whatever you picked.
 - The photo covers the whole keyboard now, suggestion bar included. It used
   to stop at the top of the keys, leaving the bar a flat block of theme
   colour cutting the picture off; the bar now goes transparent over the

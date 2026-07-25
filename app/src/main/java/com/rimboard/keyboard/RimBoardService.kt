@@ -445,10 +445,15 @@ class RimBoardService : InputMethodService(),
             kv.incognito = isIncognito()
         }
         strip?.applyTheme(photoTheme?.copy(background = 0x00000000) ?: t)
-        emojiView?.applyTheme(t)
-        clipboardView?.applyTheme(t)
-        editPanelView?.applyTheme(t)
-        toolbarPanel?.applyTheme(t)
+        // Panels sit on the same backdrop, so with a photo set they take a
+        // translucent surface and the picture carries on behind them instead
+        // of stopping dead the moment one opens. Everything else in the theme
+        // is unchanged — see Themes.panelOverPhoto for why that is safe.
+        val panelTheme = if (photoTheme != null) Themes.panelOverPhoto(t) else t
+        emojiView?.applyTheme(panelTheme)
+        clipboardView?.applyTheme(panelTheme)
+        editPanelView?.applyTheme(panelTheme)
+        toolbarPanel?.applyTheme(panelTheme)
         rootView?.setBackgroundColor(t.background)
         rootView?.dimAlpha = bgDimAlpha
         window?.window?.let { w ->
