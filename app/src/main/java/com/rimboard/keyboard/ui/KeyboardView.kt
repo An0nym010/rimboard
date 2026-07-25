@@ -1186,7 +1186,12 @@ class KeyboardView(context: Context) : View(context) {
         val maxW = width - dp(8f)
         val cell = if (total > maxW) maxW / keys.size else cellW
         total = cell * keys.size
-        var left = kb.centerX() - total / 2f
+        // The popup grows rightward from the key rather than centring on it, so
+        // the *first* entry sits under the finger that opened it. Centring put
+        // the middle of the list there instead, which meant the entry the order
+        // was designed around — the digit on the top row — was off to the left
+        // and had to be hunted for.
+        var left = kb.centerX() - cell / 2f
         val maxLeft = width - total - dp(4f)
         left = if (maxLeft < dp(4f)) dp(4f) else left.coerceIn(dp(4f), maxLeft)
         val h = kb.h * 1.1f

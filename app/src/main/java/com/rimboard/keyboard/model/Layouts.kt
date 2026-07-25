@@ -58,18 +58,18 @@ object Layouts {
             Key(
                 ch.code, ch.toString(), width = w,
                 hint = if (hintsOn && d != null) d else null,
-                popup = chars((d ?: "") + (pops[ch] ?: ""))
+                popup = chars(KeyPopups.forLetter(ch, pops[ch], d))
             )
         })
     }
 
     private fun midRow(letters: String, pops: Map<Char, String>): Row =
-        Row(letters.map { ch -> k(ch, pops[ch] ?: "") })
+        Row(letters.map { ch -> k(ch, KeyPopups.forLetter(ch, pops[ch], null)) })
 
     private fun thirdRow(letters: String, pops: Map<Char, String>, sideW: Float = 1.5f): Row =
         Row(
             listOf(shift(sideW)) +
-                letters.map { ch -> k(ch, pops[ch] ?: "") } +
+                letters.map { ch -> k(ch, KeyPopups.forLetter(ch, pops[ch], null)) } +
                 listOf(backspace(sideW))
         )
 
