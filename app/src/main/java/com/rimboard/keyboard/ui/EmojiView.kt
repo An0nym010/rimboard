@@ -30,6 +30,13 @@ class EmojiView(context: Context) : LinearLayout(context) {
         fun onEmoji(emoji: String)
         fun onAbc()
         fun onBackspace()
+
+        /**
+         * Emoji search opened or closed. The panel has no keys of its own any
+         * more, so the service uses this to bring the real keyboard up beneath
+         * it and to start routing keystrokes into [appendQuery].
+         */
+        fun onEmojiSearchMode(active: Boolean)
     }
 
     var listener: Listener? = null
@@ -58,8 +65,6 @@ class EmojiView(context: Context) : LinearLayout(context) {
     private val clearBtn: TextView
     private val resultsScroll: HorizontalScrollView
     private val resultsRow: LinearLayout
-    private val keypad: LinearLayout
-    private val keypadKeys = ArrayList<TextView>()
     private val query = StringBuilder()
     private var searching = false
     private var searchLang = "en"
@@ -126,15 +131,6 @@ class EmojiView(context: Context) : LinearLayout(context) {
         }
         addView(resultsScroll, LayoutParams(LayoutParams.MATCH_PARENT, dp(52)))
 
-        // -- mini QWERTY keypad (hidden until searching) --
-        keypad = LinearLayout(context).apply {
-            orientation = VERTICAL
-            visibility = GONE
-        }
-        keypad.addView(keypadRow("qwertyuiop", null), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
-        keypad.addView(keypadRow("asdfghjkl", null), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
-        keypad.addView(keypadRow("zxcvbnm", "⌫"), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
-        addView(keypad, LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
 
         // -- bottom bar (always visible): ABC | search | tabs | backspace --
         val bar = LinearLayout(context).apply {
@@ -261,31 +257,6 @@ class EmojiView(context: Context) : LinearLayout(context) {
             setOnClickListener { onClick() }
         }
 
-    /** One row of the mini search keypad; [trailing] adds a wide backspace key. */
-    private fun keypadRow(letters: String, trailing: String?): LinearLayout {
-        val row = LinearLayout(context).apply { orientation = HORIZONTAL }
-        for (ch in letters) {
-            val key = TextView(context).apply {
-                text = ch.toString()
-                gravity = Gravity.CENTER
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
-                setOnClickListener { appendQuery(ch) }
-            }
-            keypadKeys.add(key)
-            row.addView(key, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
-        }
-        if (trailing != null) {
-            val bk = TextView(context).apply {
-                text = trailing
-                gravity = Gravity.CENTER
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
-            }
-            keypadKeys.add(bk)
-            setupBackspaceRepeat(bk)
-            row.addView(bk, LayoutParams(0, LayoutParams.MATCH_PARENT, 3f))
-        }
-        return row
-    }
 
     // Held at class level rather than captured per listener, so a detach can
     // cancel a repeat that is still in flight.
@@ -334,7 +305,7 @@ class EmojiView(context: Context) : LinearLayout(context) {
     }
 
     /** Backspace deletes from the search query while searching, else from text. */
-    private fun handleBackspace() {
+    fun handleBackspace() {
         if (searching) {
             if (query.isNotEmpty()) {
                 query.deleteCharAt(query.length - 1)
@@ -400,23 +371,22 @@ class EmojiView(context: Context) : LinearLayout(context) {
 
     private fun enterSearch() {
         searching = true
+        listener?.onEmojiSearchMode(true)
         query.setLength(0)
         searchBar.visibility = VISIBLE
         grid.visibility = GONE
         resultsScroll.visibility = VISIBLE
-        keypad.visibility = VISIBLE
         tabScroll.visibility = GONE
         rise(searchBar)
-        rise(keypad)
         onQueryChanged()
     }
 
     private fun exitSearch() {
         searching = false
+        listener?.onEmojiSearchMode(false)
         query.setLength(0)
         searchBar.visibility = GONE
         resultsScroll.visibility = GONE
-        keypad.visibility = GONE
         tabScroll.visibility = VISIBLE
         grid.visibility = VISIBLE
         rise(grid)
@@ -432,7 +402,7 @@ class EmojiView(context: Context) : LinearLayout(context) {
         }
     }
 
-    private fun appendQuery(ch: Char) {
+    fun appendQuery(ch: Char) {
         if (query.length >= 24) return
         query.append(ch)
         onQueryChanged()
@@ -460,7 +430,7 @@ class EmojiView(context: Context) : LinearLayout(context) {
     }
 
     /**
-     * Fold letters to ASCII so the ascii search keypad can reach accented
+     * Fold letters to ASCII so the ASCII keyboard can reach accented
      * keywords (type "kopek" to find "köpek", "cicek" to find "çiçek").
      */
     private fun fold(s: String): String {
@@ -536,10 +506,6 @@ class EmojiView(context: Context) : LinearLayout(context) {
         clearBtn.setTextColor(theme.keyHint)
         val panelTint = (theme.accent and 0x00FFFFFF) or 0x14000000
         searchBar.setBackgroundColor(panelTint)
-        keypadKeys.forEach {
-            it.setTextColor(theme.keyText)
-            it.background = keyBackground(theme)
-        }
         applyTabColors()
         adapterImpl.notifyDataSetChanged()
         if (searching) onQueryChanged()
