@@ -211,7 +211,7 @@ deletes it, because it was the query rather than part of your message.
 - **Searches fire on a pause in typing, not per keystroke** — otherwise every
   letter is a billable, rate-limited request for a prefix nobody wants results
   for.
-- **Stickers use Tenor's transparent GIF formats, not WebP.** Animated WebP only
+- **Stickers come back as transparent GIFs, not WebP.** Animated WebP only
   decodes from API 28, and the grid thumbnails are drawn with `BitmapFactory`.
   Choosing WebP would have left the sticker grid blank on Android 8.0 and 8.1
   while looking fine on a modern test device. Transparent GIF decodes
@@ -225,15 +225,19 @@ deletes it, because it was the query rather than part of your message.
   incognito, and no API key have four different fixes, so they produce four
   different messages.
 - **Two hosts, both on the allowlist and both checked.**
-  `tenor.googleapis.com` serves the search results and `media.tenor.com` serves
-  the image bytes. The image URLs come from Tenor's response rather than from
-  RimBoard, so they are re-checked against the allowlist before being fetched —
-  a response pointing anywhere else fails closed.
+  `api.giphy.com` serves the search results and the images come from Giphy's
+  CDN, which spreads across `media0`–`media4` and `i.giphy.com` and picks one
+  per result. That is why the allowlist has a bounded domain-suffix rule
+  alongside its exact hosts — an exact list would break as a blank grid the
+  first time Giphy added a machine. The rule matches the domain or something
+  below a dot within it, so `evilgiphy.com` and `giphy.com.evil.test` are both
+  refused; both directions are pinned by tests. Image URLs come from Giphy's
+  response rather than from RimBoard, so they are re-checked before being
+  fetched and a response pointing elsewhere fails closed.
 - **The search query is typed text**, so it is refused in incognito. Fetching a
   chosen GIF is not, since by then the URL is fixed and carries nothing you
   typed.
-- **The key is a query parameter** because that is the only place Tenor accepts
-  one. That is normally the wrong place for a credential — it is tolerable here
+- **The key is a query parameter** because that is where Giphy accepts one. That is normally the wrong place for a credential — it is tolerable here
   only because the request log records the host and never the path or query, so
   neither the key nor your search terms are written down.
 

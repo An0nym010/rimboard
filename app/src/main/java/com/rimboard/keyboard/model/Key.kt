@@ -36,7 +36,7 @@ object Codes {
      *  it is a pinnable tool now, and the chevron drives the drawer instead. */
     const val TOOLBAR_PANEL = -28
 
-    /** GIF search. Only ever reachable on the online build with a Tenor key. */
+    /** GIF search. Only ever reachable on the online build with a Giphy key. */
     const val GIF = -29
 
     /** The same panel as [GIF], opened on its sticker tab. */

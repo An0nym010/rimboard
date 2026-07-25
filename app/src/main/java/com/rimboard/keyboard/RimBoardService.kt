@@ -1904,8 +1904,8 @@ class RimBoardService : InputMethodService(),
             Codes.ONE_HANDED -> toggleOneHanded()
             Codes.FLOATING -> toggleFloating()
             Codes.TRANSLATE -> currentInputConnection?.let { launchTranslate(it) }
-            Codes.GIF -> showGifPanel(com.rimboard.keyboard.net.Tenor.Kind.GIF)
-            Codes.STICKER -> showGifPanel(com.rimboard.keyboard.net.Tenor.Kind.STICKER)
+            Codes.GIF -> showGifPanel(com.rimboard.keyboard.net.Giphy.Kind.GIF)
+            Codes.STICKER -> showGifPanel(com.rimboard.keyboard.net.Giphy.Kind.STICKER)
             Codes.PROOFREAD -> currentInputConnection?.let { proofreadInPlace(it) }
             Codes.SHARE -> currentInputConnection?.let { shareText(it) }
             Codes.THEME -> cycleTheme()
@@ -2098,7 +2098,7 @@ class RimBoardService : InputMethodService(),
      * different fixes — wrong build, network off, incognito, no key. A single
      * "GIFs unavailable" would leave the user with no idea which.
      */
-    private fun showGifPanel(kind: com.rimboard.keyboard.net.Tenor.Kind) {
+    private fun showGifPanel(kind: com.rimboard.keyboard.net.Giphy.Kind) {
         val gv = gifView ?: return
         com.rimboard.keyboard.net.Net.blockedBy(this, sendsTypedText = true)?.let { block ->
             toast(getString(when (block) {
@@ -2113,7 +2113,7 @@ class RimBoardService : InputMethodService(),
             toast(getString(R.string.net_locked))
             return
         }
-        if (com.rimboard.keyboard.net.ApiKeys.tenor(this) == null) {
+        if (com.rimboard.keyboard.net.ApiKeys.giphy(this) == null) {
             toast(getString(R.string.gif_no_key))
             return
         }
@@ -2149,7 +2149,7 @@ class RimBoardService : InputMethodService(),
     private fun textBeforeCursorSeed(): FieldSeed? =
         seedFromTextBeforeCursor(currentInputConnection?.getTextBeforeCursor(60, 0)?.toString())
 
-    override fun onGifSearch(query: String, kind: com.rimboard.keyboard.net.Tenor.Kind) {
+    override fun onGifSearch(query: String, kind: com.rimboard.keyboard.net.Giphy.Kind) {
         // The user edited the query on the panel's keypad, so it no longer
         // matches what is in the field — picking a result must not delete
         // text the search is no longer based on.
@@ -2160,11 +2160,11 @@ class RimBoardService : InputMethodService(),
         runGifSearch(query, kind)
     }
 
-    private fun runGifSearch(query: String, kind: com.rimboard.keyboard.net.Tenor.Kind) {
+    private fun runGifSearch(query: String, kind: com.rimboard.keyboard.net.Giphy.Kind) {
         val gv = gifView ?: return
         gv.setStatus(getString(R.string.gif_searching))
         Thread {
-            val result = com.rimboard.keyboard.net.Tenor.search(this, query, kind)
+            val result = com.rimboard.keyboard.net.Giphy.search(this, query, kind)
             main {
                 result.fold(
                     onSuccess = { gifs ->
@@ -2183,7 +2183,7 @@ class RimBoardService : InputMethodService(),
      * for a search the user has moved on from is dropped by [GifView] because
      * its id is no longer in the list, so there is nothing to cancel.
      */
-    private fun loadThumb(gif: com.rimboard.keyboard.net.Tenor.Gif) {
+    private fun loadThumb(gif: com.rimboard.keyboard.net.Giphy.Gif) {
         Thread {
             val bytes = com.rimboard.keyboard.net.Net.fetchBytes(
                 this, gif.previewUrl, reason = "GIF thumbnail", sendsTypedText = false
@@ -2196,11 +2196,11 @@ class RimBoardService : InputMethodService(),
         }.start()
     }
 
-    override fun onGifPicked(gif: com.rimboard.keyboard.net.Tenor.Gif) {
+    override fun onGifPicked(gif: com.rimboard.keyboard.net.Giphy.Gif) {
         val gv = gifView ?: return
         gv.setStatus(getString(R.string.gif_inserting))
         Thread {
-            val bytes = com.rimboard.keyboard.net.Tenor.download(this, gif)
+            val bytes = com.rimboard.keyboard.net.Giphy.download(this, gif)
             main {
                 val data = bytes.getOrNull()
                 val ic = currentInputConnection

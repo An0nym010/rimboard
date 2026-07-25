@@ -30,7 +30,7 @@ object ApiKeys {
 
     private const val FILE = "rimboard_keys"
     private const val KEY_ANTHROPIC = "anthropic_api_key"
-    private const val KEY_TENOR = "tenor_api_key"
+    private const val KEY_GIPHY = "giphy_api_key"
 
     private fun prefs(c: Context): SharedPreferences? {
         // The flip side of keeping these out of device-protected storage: this
@@ -70,9 +70,9 @@ object ApiKeys {
 
     fun setAnthropic(c: Context, key: String?) = set(c, KEY_ANTHROPIC, key)
 
-    fun tenor(c: Context): String? = get(c, KEY_TENOR)
+    fun giphy(c: Context): String? = get(c, KEY_GIPHY)
 
-    fun setTenor(c: Context, key: String?) = set(c, KEY_TENOR, key)
+    fun setGiphy(c: Context, key: String?) = set(c, KEY_GIPHY, key)
 
     private fun get(c: Context, name: String): String? =
         prefs(c)?.getString(name, null)?.trim()?.takeIf { it.isNotEmpty() }

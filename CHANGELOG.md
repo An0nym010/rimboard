@@ -16,7 +16,7 @@ Release notes for every RimBoard version. The current release is summarised in t
   shared `MiniKeypad`. Searches fire on a pause in typing rather than per
   letter. Anything already typed in the field seeds the query, and picking a
   result deletes it, since it was the query and not part of the message.
-  Stickers use Tenor's transparent **GIF** formats rather than WebP: animated
+  Stickers come back as transparent **GIFs** rather than WebP: animated
   WebP only decodes from API 28, so WebP would have left the sticker grid blank
   on Android 8.0 and 8.1 while looking fine on a newer test device. It checks the field
   accepts images *before* opening rather than after a download, and the four
@@ -68,6 +68,14 @@ Release notes for every RimBoard version. The current release is summarised in t
 - **Hold to delete in panel search.** The GIF and sticker panel's keypad now
   repeats on a held backspace and draws proper key caps, matching the emoji
   panel's. Clearing a mistyped search was one tap per character.
+- GIF and sticker search use **Giphy**. The first cut used Tenor, which could
+  never have worked for anyone new: Google stopped accepting Tenor API clients
+  in January 2026 and wound the service down that June, so only people who
+  already held a key could have used it. Giphy still issues keys self-serve.
+  There is no keyless option worth having — every production GIF service needs
+  a key, and the ways around that are shipping a shared one in an open-source
+  APK, where the first `strings` run finds it, or scraping, which breaks their
+  terms and this keyboard's own.
 - **Failures say which thing went wrong.** `ACCESS_NETWORK_STATE` is now
   actually used — it was declared and unused, which on this app is exactly the
   sort of thing that should not ship. A request that fails while the phone has

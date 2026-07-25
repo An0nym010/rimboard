@@ -35,14 +35,36 @@ object Net {
      * here in a diff someone can read.
      */
     val ALLOWED_HOSTS = setOf(
-        "tenor.googleapis.com",   // GIF search metadata
-        // Where Tenor actually serves the image bytes. A separate entry
-        // because it is a separate host: allowing the search API does not
-        // allow the CDN, and a GIF picker that could only reach the metadata
-        // would fail at the point of showing a picture.
-        "media.tenor.com",
-        "api.anthropic.com"       // translation / rewrite suggestions
+        "api.giphy.com",          // GIF and sticker search metadata
+        "api.anthropic.com"       // translation and proofreading
     )
+
+    /**
+     * Domains allowed in full, for services that spread one job across many
+     * hostnames. Giphy picks a CDN host per result from `media0`–`media4` and
+     * `i.giphy.com`, so an exact list would break the first time they added
+     * `media5` — and it would break as a blank grid, which reads as the
+     * feature being broken rather than the allowlist being stale.
+     *
+     * Deliberately a *suffix on a dot*, not a substring: see [hostAllowed].
+     * Kept to domains an endpoint above already talks to, so this widens which
+     * machines answer, never which company does.
+     */
+    val ALLOWED_SUFFIXES = setOf("giphy.com")
+
+    /**
+     * Whether [host] may be contacted.
+     *
+     * The suffix test matches either the domain itself or something below a
+     * dot within it. Without the dot, `evilgiphy.com` would pass; without the
+     * equality case, `giphy.com` itself would not. Both directions are pinned
+     * by `NetGateTest`.
+     */
+    internal fun hostAllowed(host: String?): Boolean {
+        if (host == null) return false
+        if (host in ALLOWED_HOSTS) return true
+        return ALLOWED_SUFFIXES.any { host == it || host.endsWith(".$it") }
+    }
 
     /** True only on the `online` flavor, whose manifest carries INTERNET. */
     val capable: Boolean get() = NetBackend.CAPABLE
@@ -146,7 +168,7 @@ object Net {
             return Result.failure(NetBlockedException(it))
         }
         val host = hostOf(url)
-        if (host == null || host !in ALLOWED_HOSTS) {
+        if (!hostAllowed(host)) {
             NetLog.record(c, reason, url, NetLog.Outcome.REFUSED, "HOST_NOT_ALLOWED")
             return Result.failure(NetBlockedException(Block.HOST_NOT_ALLOWED))
         }

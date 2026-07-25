@@ -79,7 +79,7 @@ class AiTextTest {
     fun `the endpoint host is on the allowlist`() {
         // The gate checks the parsed host; a typo here would fail closed at
         // runtime rather than at build time without this.
-        assertTrue(Net.hostOf("https://api.anthropic.com/v1/messages") in Net.ALLOWED_HOSTS)
+        assertTrue(Net.hostAllowed(Net.hostOf("https://api.anthropic.com/v1/messages")))
     }
 
     @Test
