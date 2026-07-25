@@ -22,7 +22,15 @@ object Backup {
     private val EXCLUDED = setOf(
         Prefs.KEY_INCOGNITO_SESSION,
         Prefs.KEY_PENDING_CLEAR,
-        Prefs.KEY_PENDING_RELOAD
+        Prefs.KEY_PENDING_RELOAD,
+        // Deliberately not carried between installs. Restoring a file is not
+        // the same act as consenting to network access, and a backup taken on
+        // an online build would otherwise switch a fresh install on without
+        // ever showing the choice. Leaving it out makes the new install ask.
+        Prefs.KEY_NET_MODE,
+        // A count of requests made by *this* install. Copying it forward would
+        // put someone else's number under a claim about your device.
+        Prefs.KEY_NET_SENT
     )
 
     fun export(context: Context, uri: Uri): Boolean {

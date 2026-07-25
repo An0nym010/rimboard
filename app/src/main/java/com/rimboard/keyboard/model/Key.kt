@@ -35,6 +35,15 @@ object Codes {
     /** Opens the full-height tools panel. Used to be the strip chevron's job;
      *  it is a pinnable tool now, and the chevron drives the drawer instead. */
     const val TOOLBAR_PANEL = -28
+
+    /** GIF search. Only ever reachable on the online build with a Tenor key. */
+    const val GIF = -29
+
+    /** The same panel as [GIF], opened on its sticker tab. */
+    const val STICKER = -30
+
+    /** Fix spelling and grammar in the selection. Online build, Anthropic key. */
+    const val PROOFREAD = -31
     const val SPACE = 32
 }
 

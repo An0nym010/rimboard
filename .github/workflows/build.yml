@@ -31,36 +31,62 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      # Both flavors, everywhere. The offline build is the one whose whole
+      # value is a permission it does not have, so a green run that only
+      # covered `online` would be testing the wrong half of the claim.
       - name: Run unit tests
         run: |
           chmod +x gradlew
-          ./gradlew testDebugUnitTest --no-daemon
+          ./gradlew testOfflineDebugUnitTest testOnlineDebugUnitTest --no-daemon
 
       # Fails the build on lint's error-severity issues. Missing translations
       # and format-string mismatches are errors, and both are invisible until
       # the string is shown to someone in that language.
       - name: Lint
-        run: ./gradlew lintDebug --no-daemon
+        run: ./gradlew lintOfflineDebug lintOnlineDebug --no-daemon
 
-      - name: Build debug APK
-        run: ./gradlew assembleDebug --no-daemon
+      - name: Build debug APKs
+        run: ./gradlew assembleOfflineDebug assembleOnlineDebug --no-daemon
 
       # Built on every push, not just tags, so a release-only break shows up
       # here rather than at the moment someone cuts a release.
-      - name: Build release APK
-        run: ./gradlew assembleRelease --no-daemon
+      - name: Build release APKs
+        run: ./gradlew assembleOfflineRelease assembleOnlineRelease --no-daemon
 
-      - name: Upload APK artifact
+      # The check that the two-flavor split actually did what it claims. The
+      # unit tests read the manifest sources; this reads the packaged APKs,
+      # which is what someone actually installs and what `aapt` will tell them.
+      # A merger change or a stray <uses-permission> would sail past everything
+      # else in this file and land in a release.
+      - name: Verify the offline APK cannot reach the network
+        run: |
+          AAPT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)/aapt"
+          offline="$("$AAPT" dump permissions app/build/outputs/apk/offline/release/app-offline-release.apk)"
+          online="$("$AAPT" dump permissions app/build/outputs/apk/online/release/app-online-release.apk)"
+          echo "$offline"
+          if echo "$offline" | grep -q 'android.permission.INTERNET'; then
+            echo "::error::the offline APK requests INTERNET"; exit 1
+          fi
+          if ! echo "$online" | grep -q 'android.permission.INTERNET'; then
+            echo "::error::the online APK is missing INTERNET"; exit 1
+          fi
+          echo "offline APK declares no INTERNET permission; online APK does"
+
+      - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
           name: RimBoard-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: |
+            app/build/outputs/apk/offline/debug/app-offline-debug.apk
+            app/build/outputs/apk/online/debug/app-online-debug.apk
 
       # Releases must carry the release build. The debug one is debuggable,
       # which on a keyboard means anything on the device can attach to the
       # process that sees every keystroke.
-      - name: Attach APK to release (tags only)
+      - name: Attach APKs to release (tags only)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/release/app-release.apk
+          files: |
+            app/build/outputs/apk/offline/release/app-offline-release.apk
+            app/build/outputs/apk/online/release/app-online-release.apk

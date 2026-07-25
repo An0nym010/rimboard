@@ -4,7 +4,7 @@
 
     <!-- Kurulum -->
     <string name="setup_title">RimBoard\'a hoş geldin</string>
-    <string name="setup_subtitle">Gizliliğe saygılı, açık kaynak bir klavye. İnternet izni yok, hiçbir şey telefondan çıkmaz.</string>
+    <string name="setup_subtitle">Gizliliğe saygılı, açık kaynak bir klavye.</string>
     <string name="setup_step1_title">1. RimBoard\'u etkinleştir</string>
     <string name="setup_step1_desc">Sistem klavye listesinde RimBoard\'u aç.</string>
     <string name="setup_step1_button">Klavye ayarlarını aç</string>

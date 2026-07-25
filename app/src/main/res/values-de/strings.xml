@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">RimBoard</string>
     <string name="setup_title">Willkommen bei RimBoard</string>
-    <string name="setup_subtitle">Eine private Open-Source-Tastatur. Keine Internetberechtigung – nichts verlässt jemals dein Telefon.</string>
+    <string name="setup_subtitle">Eine private Open-Source-Tastatur.</string>
     <string name="setup_step1_title">1. RimBoard aktivieren</string>
     <string name="setup_step1_desc">Aktiviere RimBoard in der Tastaturliste deines Systems.</string>
     <string name="setup_step1_button">Tastatureinstellungen öffnen</string>

@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- RimBoard requests no network or data permissions. The only permission
-         is VIBRATE, used for key-press haptics. Without INTERNET the keyboard
-         is physically unable to send anything off the device. -->
+    <!-- VIBRATE, for key-press haptics, is the only permission every build of
+         RimBoard requests. It grants no access to any data.
+
+         INTERNET is deliberately NOT here. The `online` flavor adds it from
+         src/online/AndroidManifest.xml; the `offline` flavor has no manifest
+         of its own, so its APK carries no network permission and the kernel
+         refuses it a socket regardless of what the code above asks for. Keep
+         it that way: moving the permission into this file would silently give
+         network access to the build whose whole purpose is not having it. -->
 
     <uses-permission android:name="android.permission.VIBRATE" />
 
@@ -65,6 +71,11 @@
             android:name=".settings.ToolbarPickerActivity"
             android:exported="false"
             android:label="@string/pref_toolbar_title" />
+
+        <activity
+            android:name=".settings.NetworkActivity"
+            android:exported="false"
+            android:label="@string/pref_network_title" />
 
         <activity
             android:name=".settings.BackgroundCropActivity"

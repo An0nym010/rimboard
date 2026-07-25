@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The single directory a GIF can be shared out of.
+
+    Scoped to cache/gifs and nothing wider: a FileProvider path is the exact
+    boundary of what another app can be handed a URI into, so pointing it at
+    the cache root — let alone files/ — would put the keyboard's own data
+    within reach of a mis-issued grant. Matches GifInsert.dir().
+-->
+<paths>
+    <cache-path name="gifs" path="gifs/" />
+</paths>

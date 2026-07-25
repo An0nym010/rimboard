@@ -4,6 +4,87 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Network — RimBoard now ships as two builds**
+- There are two APKs from now on. **`offline`** is what RimBoard has always
+  been: `VIBRATE` and nothing else, no `INTERNET`, so Android refuses it a
+  connection outright. **`online`** adds `INTERNET`, AI translation, and GIF
+  search.
+- **GIF and sticker search.** Tabs switch between the two and re-run the same
+  query against the other index. The panel carries its own compact keypad, so
+  you can type a search into it — an `EditText` inside an IME window fights the
+  keyboard it belongs to for focus, so the panel draws keys instead, now as a
+  shared `MiniKeypad`. Searches fire on a pause in typing rather than per
+  letter. Anything already typed in the field seeds the query, and picking a
+  result deletes it, since it was the query and not part of the message.
+  Stickers use Tenor's transparent **GIF** formats rather than WebP: animated
+  WebP only decodes from API 28, so WebP would have left the sticker grid blank
+  on Android 8.0 and 8.1 while looking fine on a newer test device. It checks the field
+  accepts images *before* opening rather than after a download, and the four
+  reasons it can be unavailable produce four different messages instead of one
+  shrug. Insertion goes through a `FileProvider` scoped to a single cache
+  directory and declared only in the online build — the offline APK ships no
+  such component, which `aapt dump xmltree` will show you.
+- **🌍 translates in place** on the online build, into whichever language the
+  keyboard is set to. It is the same tool as before, not a second icon: with no
+  key, with network off, or on the offline build it still just hands the text
+  to another app. It needs your own Anthropic API key — an open-source APK has
+  nowhere to hide a shared one — and that key is the one piece of RimBoard data
+  kept out of device-protected storage, so Android keeps it encrypted until
+  first unlock rather than readable on the lock screen. A reply that was
+  declined, errored, or cut off at the token limit is reported instead of
+  committed; a truncated translation looks finished and would eat the end of
+  your sentence.
+- The split is a build dimension rather than a setting because it could not
+  honestly be a setting. `INTERNET` is a normal install-time permission: an
+  APK that declares it is granted it forever, and no in-app toggle can take
+  it back. An "offline mode" inside a build holding the permission is the app
+  vouching for itself, which is exactly what this keyboard has spent every
+  release refusing to ask for. Leaving the permission out of one build keeps
+  `aapt dump permissions` a real answer.
+- **A first-run dialog** now asks which mode you want, with both sides of the
+  trade-off, before the keyboard has been enabled for anything. The offline
+  build shows the same dialog as a statement instead of a question, so
+  installing the wrong APK is something you find out immediately rather than
+  the first time a feature is missing. Your answer is deliberately excluded
+  from Export/Import — restoring a backup is not the same act as consenting
+  to network access.
+- **Settings → Network proves it rather than asserting it.** The screen reads
+  the permission list back from Android's own copy of the manifest, then
+  actually attempts a TCP connection while you watch and prints whatever the
+  system says — on the offline build, `EACCES (Permission denied)`, straight
+  from the kernel. It is built so it cannot flatter the build it runs on: the
+  same probe on the online build connects, and it says so.
+- All network access goes through one function, and a unit test fails the
+  build if any other file in the app so much as names a networking API. CI
+  now builds both flavors and checks the packaged APKs with `aapt`, so a
+  manifest-merger change cannot quietly hand the offline build a socket.
+- **Proofread tool.** Fixes spelling, grammar and punctuation in the selection
+  and changes nothing else. It shares its whole code path with 🌍, so the
+  guards that matter — needs a selection, never on the main thread, re-checks
+  the field before committing, refuses in incognito — exist once rather than in
+  two copies where one of them quietly lacks the staleness check.
+- The generic "rewrite this more nicely" task was removed rather than left
+  sitting there: nothing could invoke it, so nothing had ever judged its output.
+- **Hold to delete in panel search.** The GIF and sticker panel's keypad now
+  repeats on a held backspace and draws proper key caps, matching the emoji
+  panel's. Clearing a mistyped search was one tap per character.
+- **Failures say which thing went wrong.** `ACCESS_NETWORK_STATE` is now
+  actually used — it was declared and unused, which on this app is exactly the
+  sort of thing that should not ship. A request that fails while the phone has
+  no signal says so, instead of showing a socket timeout and leaving you to
+  guess between the keyboard, the API key and the café wifi. The check lives in
+  the online flavor's backend rather than in shared code, so the build without
+  the permission never compiles a call that needs it.
+- **The GIF panel adapts to short keyboards.** Its height is whatever the
+  keyboard's is, which in landscape, on small phones, or at the "compact"
+  height setting is a fraction of a tall portrait tablet's. The keypad takes a
+  share of the height rather than a fixed 132dp, and the category chips yield
+  first — the keypad is the only way to type a query, so it is the last thing
+  to give up room.
+- The setup screen no longer claims "no internet permission" in its subtitle,
+  since that now depends on which APK you installed. The claim moved to the
+  places that can back it up.
+
 **Suggestion bar and tools**
 - The chevron is now a drawer: it slides your pinned tools onto the bar and
   closes when you run one. The settings and clipboard icons are no longer

@@ -41,6 +41,13 @@
         android:icon="@drawable/ic_pref_shield"
         android:title="@string/cat_privacy" />
 
+    <!-- Directly under Privacy: on this app the two are the same subject. -->
+    <Preference
+        android:key="screen_network"
+        android:icon="@drawable/ic_pref_shield"
+        android:title="@string/pref_network_title"
+        android:summary="@string/pref_network_summary" />
+
     <Preference
         android:key="screen_advanced"
         android:icon="@drawable/ic_pref_wrench"

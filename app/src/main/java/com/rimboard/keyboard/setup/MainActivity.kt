@@ -32,6 +32,11 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_settings).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+
+        // First launch only. Deliberately before the user has enabled the
+        // keyboard: what it can reach is worth knowing while deciding whether
+        // to hand it every keystroke, not after.
+        NetChoiceDialog.showIfNeeded(this)
     }
 
     override fun onResume() {

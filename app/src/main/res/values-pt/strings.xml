@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">RimBoard</string>
     <string name="setup_title">Bem-vindo ao RimBoard</string>
-    <string name="setup_subtitle">Um teclado privado e de código aberto. Sem permissão de Internet: nada sai do seu telefone.</string>
+    <string name="setup_subtitle">Um teclado privado e de código aberto.</string>
     <string name="setup_step1_title">1. Ativar o RimBoard</string>
     <string name="setup_step1_desc">Ative o RimBoard na lista de teclados do sistema.</string>
     <string name="setup_step1_button">Abrir configurações de teclado</string>

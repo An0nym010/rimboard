@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Merged into the main manifest for the `online` flavor only.
+
+    These two lines are the entire difference in what the OS will let the app
+    do. The `offline` flavor has no manifest of its own precisely so that this
+    file is the single, greppable place where network access enters the build.
+
+    ACCESS_NETWORK_STATE is here so the keyboard can tell "you are offline"
+    apart from "the request failed", and report the difference instead of
+    retrying into a dead radio. It reads connectivity status only.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application>
+        <!--
+            Lets a downloaded GIF be handed to the app the user is typing in.
+            A keyboard cannot "type" an image: the only route is commitContent,
+            which needs a content:// URI the receiving app can be granted a
+            read on, and that means a provider.
+
+            Online flavor only, for the same reason as the permission above —
+            the offline build has nothing to insert, so it ships no provider,
+            no authority, and no exported component at all.
+
+            Not exported, and grantUriPermissions is what makes the per-insert
+            grant possible without opening the directory to everything.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.gifs"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/gif_paths" />
+        </provider>
+    </application>
+
+</manifest>

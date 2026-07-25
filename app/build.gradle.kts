@@ -15,6 +15,39 @@ android {
         versionName = "2.8.0"
     }
 
+    /**
+     * Two builds from one source tree, split on whether the APK asks for
+     * INTERNET at all.
+     *
+     * This is a dimension rather than a setting because `INTERNET` is a normal
+     * install-time permission: once it is in the manifest it is granted at
+     * install and neither the user nor the app can ever take it back. An
+     * in-app "offline mode" on a build that holds the permission is a promise
+     * the app makes about itself. Leaving the permission out is a fact about
+     * the APK that anyone can check with `aapt dump permissions`, and that the
+     * kernel enforces against us whether or not our code is honest.
+     *
+     * So: `offline` ships no permission and no network backend, and is the
+     * build the README points at when it says the keyboard cannot phone home.
+     * `online` adds the permission plus the features that need it, and its
+     * offline switch is enforced in code — a weaker guarantee, labelled as one
+     * wherever it is shown to the user.
+     */
+    flavorDimensions += "net"
+
+    productFlavors {
+        create("offline") {
+            dimension = "net"
+            // Surfaced in Settings → About → Version, so a screenshot of the
+            // version is enough to tell the two builds apart.
+            versionNameSuffix = "-offline"
+        }
+        create("online") {
+            dimension = "net"
+            versionNameSuffix = "-online"
+        }
+    }
+
     signingConfigs {
         getByName("debug") {
             storeFile = file("debug.keystore")
@@ -96,6 +129,13 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     testImplementation("junit:junit:4.13.2")
+    // Test classpath only, and it never reaches the APK. The android.jar the
+    // unit tests compile against ships org.json as a stub whose every method
+    // throws "Stub!", so any test that parses a response body fails for a
+    // reason that has nothing to do with the code under test. This puts a real
+    // implementation in front of the stub; the app itself keeps using the one
+    // built into Android.
+    testImplementation("org.json:json:20240303")
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.preference:preference-ktx:1.2.1")

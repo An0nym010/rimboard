@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">RimBoard</string>
     <string name="setup_title">Bienvenue dans RimBoard</string>
-    <string name="setup_subtitle">Un clavier privé et open source. Aucune permission Internet : rien ne quitte jamais votre téléphone.</string>
+    <string name="setup_subtitle">Un clavier privé et open source.</string>
     <string name="setup_step1_title">1. Activer RimBoard</string>
     <string name="setup_step1_desc">Activez RimBoard dans la liste des claviers du système.</string>
     <string name="setup_step1_button">Ouvrir les réglages du clavier</string>

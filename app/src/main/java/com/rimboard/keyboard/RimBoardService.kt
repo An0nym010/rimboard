@@ -51,7 +51,8 @@ import org.json.JSONArray
 class RimBoardService : InputMethodService(),
     KeyboardView.Listener, SuggestionStripView.Listener, EmojiView.Listener,
     ClipboardView.Listener, EditPanelView.Listener,
-    com.rimboard.keyboard.ui.ToolbarPanelView.Listener {
+    com.rimboard.keyboard.ui.ToolbarPanelView.Listener,
+    com.rimboard.keyboard.ui.GifView.Listener {
 
     private lateinit var userData: UserData
     private lateinit var engine: SuggestionEngine
@@ -61,6 +62,14 @@ class RimBoardService : InputMethodService(),
     private var keyboardView: KeyboardView? = null
     private var emojiView: EmojiView? = null
     private var clipboardView: ClipboardView? = null
+    private var gifView: com.rimboard.keyboard.ui.GifView? = null
+
+    /**
+     * The text that seeded the current GIF search, so picking a result can
+     * remove it from the field. Null when the search came from a chip, which
+     * put nothing in the field to clean up.
+     */
+    private var gifQueryFromField: String? = null
 
     /** Clipboard history lives only in memory; it is never written to disk. */
     private class ClipEntry(val text: String, val at: Long)
@@ -205,6 +214,12 @@ class RimBoardService : InputMethodService(),
         }
         frame.addView(tp, FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
+        val gv = com.rimboard.keyboard.ui.GifView(ctx).apply {
+            listener = this@RimBoardService
+            visibility = View.GONE
+        }
+        frame.addView(gv, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
         root.addView(frame, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         rootView = root
@@ -218,6 +233,7 @@ class RimBoardService : InputMethodService(),
         clipboardView = cv
         editPanelView = ep
         toolbarPanel = tp
+        gifView = gv
         floatingBlock = null
         if (!Prefs.floating(this)) return root
 
@@ -454,6 +470,7 @@ class RimBoardService : InputMethodService(),
         clipboardView?.applyTheme(panelTheme)
         editPanelView?.applyTheme(panelTheme)
         toolbarPanel?.applyTheme(panelTheme)
+        gifView?.applyTheme(panelTheme)
         rootView?.setBackgroundColor(t.background)
         rootView?.dimAlpha = bgDimAlpha
         window?.window?.let { w ->
@@ -1547,7 +1564,7 @@ class RimBoardService : InputMethodService(),
         val lp = panel.layoutParams as FrameLayout.LayoutParams
         lp.height = kv.measureKeyboardHeight()
         panel.layoutParams = lp
-        for (other in arrayOf(emojiView, clipboardView, editPanelView, toolbarPanel)) {
+        for (other in arrayOf(emojiView, clipboardView, editPanelView, toolbarPanel, gifView)) {
             if (other !== panel) other?.visibility = View.GONE
         }
         kv.visibility = View.GONE
@@ -1834,6 +1851,9 @@ class RimBoardService : InputMethodService(),
             Codes.ONE_HANDED -> toggleOneHanded()
             Codes.FLOATING -> toggleFloating()
             Codes.TRANSLATE -> currentInputConnection?.let { launchTranslate(it) }
+            Codes.GIF -> showGifPanel(com.rimboard.keyboard.net.Tenor.Kind.GIF)
+            Codes.STICKER -> showGifPanel(com.rimboard.keyboard.net.Tenor.Kind.STICKER)
+            Codes.PROOFREAD -> currentInputConnection?.let { proofreadInPlace(it) }
             Codes.SHARE -> currentInputConnection?.let { shareText(it) }
             Codes.THEME -> cycleTheme()
             Codes.RESIZE -> cycleHeight()
@@ -1889,9 +1909,267 @@ class RimBoardService : InputMethodService(),
         updateStrip()
     }
 
+    /**
+     * The 🌍 tool. Translates in place when this build can and the user has
+     * opted in, and otherwise does what it has always done: hand the text to
+     * another app.
+     *
+     * One tool, two implementations, chosen by what is actually available —
+     * rather than a second icon that is dead on the offline build. The offline
+     * build, and the online build with network off or no API key, keep exactly
+     * the previous behaviour.
+     */
+    private fun launchTranslate(ic: InputConnection) {
+        val inPlace = com.rimboard.keyboard.net.Net.allowed(this, sendsTypedText = true) &&
+            com.rimboard.keyboard.net.ApiKeys.anthropic(this) != null
+        if (inPlace) translateInPlace(ic) else launchExternalTranslate(ic)
+    }
+
+    /**
+     * Replaces the selection with its translation, into whichever language the
+     * keyboard is currently set to — so the target is the language you are
+     * typing in, which is nearly always the one you want and needs no picker.
+     *
+     * Requires a selection rather than falling back to the whole field: this
+     * one overwrites text, and "translate everything I can see" is not a thing
+     * to do to someone's half-written message by accident.
+     */
+    private fun translateInPlace(ic: InputConnection) {
+        val target = java.util.Locale(currentLangCode())
+            .getDisplayLanguage(java.util.Locale.ENGLISH)
+        aiTransform(ic, com.rimboard.keyboard.net.AiText.Task.TRANSLATE, target,
+            R.string.ai_translating)
+    }
+
+    /**
+     * Fixes spelling, grammar and punctuation in the selection, leaving the
+     * wording alone.
+     *
+     * Falls back to nothing rather than to an external app the way 🌍 does:
+     * there is no system action for "proofread", so on a build that cannot
+     * reach the network this simply reports why.
+     */
+    private fun proofreadInPlace(ic: InputConnection) {
+        com.rimboard.keyboard.net.Net.blockedBy(this, sendsTypedText = true)?.let { block ->
+            toast(getString(when (block) {
+                com.rimboard.keyboard.net.Net.Block.NO_PERMISSION -> R.string.gif_offline_build
+                com.rimboard.keyboard.net.Net.Block.INCOGNITO -> R.string.ai_incognito
+                else -> R.string.gif_network_off
+            }))
+            return
+        }
+        if (com.rimboard.keyboard.net.ApiKeys.anthropic(this) == null) {
+            toast(getString(R.string.ai_no_key))
+            return
+        }
+        aiTransform(ic, com.rimboard.keyboard.net.AiText.Task.PROOFREAD, null,
+            R.string.ai_proofreading)
+    }
+
+    /**
+     * Runs an [AiText] task over the selection and replaces it.
+     *
+     * Shared by both AI actions so the guards that matter — requires a
+     * selection, off the main thread, and re-check the field before committing
+     * — exist once. A second copy is how one of them ends up missing the
+     * staleness check and pastes into the wrong app.
+     */
+    private fun aiTransform(
+        ic: InputConnection,
+        task: com.rimboard.keyboard.net.AiText.Task,
+        target: String?,
+        busyRes: Int
+    ) {
+        val selected = ic.getSelectedText(0)?.toString()
+        if (selected.isNullOrBlank()) {
+            toast(getString(R.string.ai_needs_selection))
+            return
+        }
+        toast(getString(busyRes))
+        // Off the main thread: this is a network round trip, and the IME's main
+        // thread is the one drawing the keyboard the user is still typing on.
+        Thread {
+            val result = com.rimboard.keyboard.net.AiText.run(this, task, selected, target)
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                result.fold(
+                    onSuccess = { text ->
+                        // Re-fetched rather than captured: the request took a
+                        // second or two, and the field the reply belongs to may
+                        // not be the focused one any more. Committing into
+                        // whatever is focused now would paste a translation
+                        // into an unrelated app.
+                        val live = currentInputConnection
+                        if (live == null || live.getSelectedText(0)?.toString() != selected) {
+                            toast(getString(R.string.ai_moved_on))
+                        } else {
+                            live.commitText(text, 1)
+                        }
+                    },
+                    onFailure = { e ->
+                        toast(getString(R.string.ai_failed, netError(e)))
+                    }
+                )
+            }
+        }.start()
+    }
+
+    private fun toast(msg: String) {
+        android.widget.Toast.makeText(this, msg, android.widget.Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * Turns a network failure into something worth reading.
+     *
+     * A raw `SocketTimeoutException` tells the user nothing they can act on,
+     * and the single most common cause is simply having no signal — which is
+     * not a fault in the keyboard, the API key, or the service.
+     */
+    private fun netError(e: Throwable?): String =
+        if (com.rimboard.keyboard.net.Net.deviceOnline(this) == false) {
+            getString(R.string.net_device_offline)
+        } else {
+            e?.message ?: getString(R.string.net_unknown_error)
+        }
+
+    // ---- GIF search -------------------------------------------------------
+
+    /**
+     * Opens the GIF panel, refusing with a specific reason rather than a
+     * generic failure.
+     *
+     * Four different things can make this unavailable and they have four
+     * different fixes — wrong build, network off, incognito, no key. A single
+     * "GIFs unavailable" would leave the user with no idea which.
+     */
+    private fun showGifPanel(kind: com.rimboard.keyboard.net.Tenor.Kind) {
+        val gv = gifView ?: return
+        com.rimboard.keyboard.net.Net.blockedBy(this, sendsTypedText = true)?.let { block ->
+            toast(getString(when (block) {
+                com.rimboard.keyboard.net.Net.Block.NO_PERMISSION -> R.string.gif_offline_build
+                com.rimboard.keyboard.net.Net.Block.USER_OFFLINE -> R.string.gif_network_off
+                com.rimboard.keyboard.net.Net.Block.INCOGNITO -> R.string.gif_incognito
+                com.rimboard.keyboard.net.Net.Block.HOST_NOT_ALLOWED -> R.string.gif_network_off
+            }))
+            return
+        }
+        if (com.rimboard.keyboard.net.ApiKeys.tenor(this) == null) {
+            toast(getString(R.string.gif_no_key))
+            return
+        }
+        // Checked before the panel opens, not after a GIF is chosen: letting
+        // someone browse, pick, and wait through a download only to be told the
+        // field never accepted images is the worst ordering available.
+        if (!com.rimboard.keyboard.net.GifInsert.accepts(currentInputEditorInfo)) {
+            toast(getString(R.string.gif_not_accepted))
+            return
+        }
+
+        finishComposingSilently()
+        // Seed from whatever the user already typed, as though it had been
+        // typed on the panel's own keypad — so it can be edited rather than
+        // only accepted or cleared.
+        val typed = textBeforeCursorWord()
+        gifQueryFromField = typed
+        gv.startWith(typed, kind)
+        revealPanel(gv)
+        if (typed != null) runGifSearch(typed, kind)
+    }
+
+    /** The last few words before the cursor, as a search seed. */
+    private fun textBeforeCursorWord(): String? {
+        val ic = currentInputConnection ?: return null
+        val before = ic.getTextBeforeCursor(60, 0)?.toString()?.trim() ?: return null
+        if (before.isEmpty()) return null
+        return before.split(Regex("\\s+")).takeLast(3).joinToString(" ").takeIf { it.isNotBlank() }
+    }
+
+    override fun onGifSearch(query: String, kind: com.rimboard.keyboard.net.Tenor.Kind) {
+        // The user edited the query on the panel's keypad, so it no longer
+        // matches what is in the field — picking a result must not delete
+        // text the search is no longer based on.
+        if (query != gifQueryFromField) gifQueryFromField = null
+        runGifSearch(query, kind)
+    }
+
+    private fun runGifSearch(query: String, kind: com.rimboard.keyboard.net.Tenor.Kind) {
+        val gv = gifView ?: return
+        gv.setStatus(getString(R.string.gif_searching))
+        Thread {
+            val result = com.rimboard.keyboard.net.Tenor.search(this, query, kind)
+            main {
+                result.fold(
+                    onSuccess = { gifs ->
+                        gv.setStatus(if (gifs.isEmpty()) getString(R.string.gif_none) else null)
+                        gv.setResults(gifs)
+                        gifs.forEach { loadThumb(it) }
+                    },
+                    onFailure = { gv.setStatus(getString(R.string.gif_failed, netError(it))) }
+                )
+            }
+        }.start()
+    }
+
+    /**
+     * One thread per thumbnail, deliberately fire-and-forget: a stale result
+     * for a search the user has moved on from is dropped by [GifView] because
+     * its id is no longer in the list, so there is nothing to cancel.
+     */
+    private fun loadThumb(gif: com.rimboard.keyboard.net.Tenor.Gif) {
+        Thread {
+            val bytes = com.rimboard.keyboard.net.Net.fetchBytes(
+                this, gif.previewUrl, reason = "GIF thumbnail", sendsTypedText = false
+            ).getOrNull() ?: return@Thread
+            // Decodes the first frame — a still is all a grid tile needs, and
+            // animated decoding is API 28+ while this app supports 26.
+            val bmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                ?: return@Thread
+            main { gifView?.setThumbnail(gif.id, bmp) }
+        }.start()
+    }
+
+    override fun onGifPicked(gif: com.rimboard.keyboard.net.Tenor.Gif) {
+        val gv = gifView ?: return
+        gv.setStatus(getString(R.string.gif_inserting))
+        Thread {
+            val bytes = com.rimboard.keyboard.net.Tenor.download(this, gif)
+            main {
+                val data = bytes.getOrNull()
+                val ic = currentInputConnection
+                val editor = currentInputEditorInfo
+                if (data == null || ic == null || editor == null) {
+                    gv.setStatus(getString(R.string.gif_failed, netError(bytes.exceptionOrNull())))
+                    return@main
+                }
+                // Remove the words that seeded the search — they were the query,
+                // not part of the message. Only when the field supplied them.
+                gifQueryFromField?.let { ic.deleteSurroundingText(it.length, 0) }
+                val ok = com.rimboard.keyboard.net.GifInsert.commit(
+                    this, ic, editor, data, gif.description
+                )
+                if (ok) {
+                    gv.setStatus(null)
+                    onGifAbc()
+                } else {
+                    toast(getString(R.string.gif_not_accepted))
+                }
+            }
+        }.start()
+    }
+
+    override fun onGifAbc() {
+        gifView?.cancelPending()
+        gifView?.visibility = View.GONE
+        keyboardView?.visibility = View.VISIBLE
+        gifQueryFromField = null
+    }
+
+    private fun main(block: () -> Unit) {
+        android.os.Handler(android.os.Looper.getMainLooper()).post(block)
+    }
+
     /** Hands text to any installed translator via the system process-text
      *  action. RimBoard itself sends nothing anywhere. */
-    private fun launchTranslate(ic: InputConnection) {
+    private fun launchExternalTranslate(ic: InputConnection) {
         val selected = ic.getSelectedText(0)?.toString()
         val text = if (!selected.isNullOrBlank()) {
             selected

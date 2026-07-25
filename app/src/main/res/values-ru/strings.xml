@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">RimBoard</string>
     <string name="setup_title">Добро пожаловать в RimBoard</string>
-    <string name="setup_subtitle">Приватная клавиатура с открытым кодом. Без доступа в интернет — ничего не покидает ваш телефон.</string>
+    <string name="setup_subtitle">Приватная клавиатура с открытым кодом.</string>
     <string name="setup_step1_title">1. Включите RimBoard</string>
     <string name="setup_step1_desc">Включите RimBoard в списке клавиатур системы.</string>
     <string name="setup_step1_button">Открыть настройки клавиатуры</string>

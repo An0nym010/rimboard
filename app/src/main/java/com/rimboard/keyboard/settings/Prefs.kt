@@ -73,6 +73,13 @@ object Prefs {
     const val KEY_CC_ACCENT = "cc_accent"
     const val KEY_FLOAT_X = "float_x"
     const val KEY_FLOAT_Y = "float_y"
+    /**
+     * "offline" or "online". Read through `Net.mode`, never directly: on the
+     * offline build the answer is fixed regardless of what is stored here, and
+     * a caller reading the string itself would miss that.
+     */
+    const val KEY_NET_MODE = "net_mode"
+    const val KEY_NET_SENT = "net_sent_count"
 
     @Volatile
     private var cached: SharedPreferences? = null

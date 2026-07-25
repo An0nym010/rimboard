@@ -10,8 +10,11 @@ import com.rimboard.keyboard.model.Codes
  * Shared so the keyboard and the settings picker can never disagree about what
  * a tool id means — they each used to carry their own copy of this list.
  *
- * Actions that need the internet (GIF, stickers, scan text) are intentionally
- * absent: RimBoard has no network permission.
+ * "GIF" and "Sticker" are here but are not universally usable: they need the
+ * online build, the network switch on, and a Tenor key. They stay in the
+ * catalog on every build so the pinned-tool order does not shift underneath
+ * someone who switches flavors — they report why they are unavailable instead
+ * of vanishing. Scan-text remains absent.
  */
 object ToolCatalog {
 
@@ -35,6 +38,9 @@ object ToolCatalog {
         Tool("clipboard", Icons.CLIPBOARD, Codes.CLIPBOARD, R.string.tb_clipboard),
         Tool("language", Icons.GLOBE, Codes.LANG, R.string.tb_language),
         Tool("translate", Icons.TRANSLATE, Codes.TRANSLATE, R.string.tb_translate),
+        Tool("gif", Icons.SEARCH, Codes.GIF, R.string.tb_gif),
+        Tool("sticker", Icons.EMOJI, Codes.STICKER, R.string.tb_sticker),
+        Tool("proofread", Icons.SPELLCHECK, Codes.PROOFREAD, R.string.tb_proofread),
         Tool("share", Icons.SHARE, Codes.SHARE, R.string.tb_share),
         Tool("theme", Icons.THEME, Codes.THEME, R.string.tb_theme),
         Tool("resize", Icons.RESIZE, Codes.RESIZE, R.string.tb_resize),

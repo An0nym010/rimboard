@@ -46,6 +46,7 @@ object Icons {
     const val CHEVRON = 24      // expand ">"
     const val CHEVRON_L = 25    // collapse "<"
     const val GRID = 26         // all tools
+    const val SPELLCHECK = 27   // proofread: a tick over a text baseline
 
     private val p = Paint(Paint.ANTI_ALIAS_FLAG)
     private val path = Path()
@@ -413,6 +414,18 @@ object Icons {
                 c.drawCircle(cx - r * 0.18f, cy - r * 0.18f, r * 0.5f, p)
                 p.strokeWidth = s * 0.14f
                 c.drawLine(cx + r * 0.2f, cy + r * 0.2f, cx + r * 0.72f, cy + r * 0.72f, p)
+            }
+            SPELLCHECK -> {
+                // A tick sitting on a text baseline — "this text has been
+                // checked". Distinct at toolbar size from EDIT (a pencil) and
+                // TRANSLATE, which are the two it could otherwise be confused
+                // with in the same row.
+                path.reset()
+                path.moveTo(cx - r * 0.7f, cy - r * 0.05f)
+                path.lineTo(cx - r * 0.2f, cy + r * 0.35f)
+                path.lineTo(cx + r * 0.72f, cy - r * 0.62f)
+                c.drawPath(path, p)
+                c.drawLine(cx - r * 0.7f, cy + r * 0.7f, cx + r * 0.7f, cy + r * 0.7f, p)
             }
             COPY -> {
                 oval.set(cx - r * 0.75f, cy - r * 0.75f, cx + r * 0.25f, cy + r * 0.25f)

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">RimBoard</string>
     <string name="subtype_en" translatable="false">English (RimBoard)</string>
     <string name="subtype_tr" translatable="false">Türkçe (RimBoard)</string>
 
     <!-- Setup -->
     <string name="setup_title">Welcome to RimBoard</string>
-    <string name="setup_subtitle">A private, open-source keyboard. No internet permission, nothing ever leaves your phone.</string>
+    <string name="setup_subtitle">A private, open-source keyboard.</string>
     <string name="setup_step1_title">1. Enable RimBoard</string>
     <string name="setup_step1_desc">Turn on RimBoard in your system keyboard list.</string>
     <string name="setup_step1_button">Open keyboard settings</string>
@@ -282,4 +282,94 @@
     <string name="a11y_drawer_open">Show tools</string>
     <string name="a11y_drawer_close">Hide tools</string>
     <string name="cc_reset">Reset to default</string>
+
+    <!--
+        Network: the first-run choice, and the screen that backs it with evidence.
+
+        English-only on purpose, and suppressed one string at a time rather
+        than on the <resources> tag so every other string in the app is still
+        checked. This block is the text someone reads while deciding whether
+        their keystrokes may leave the device; a machine translation that
+        softens "sent to the service that answers them" is worse than showing
+        an English sentence the reader can tell is English. They need a native
+        speaker before they get values-de and friends.
+    -->
+    <string name="net_choice_title" tools:ignore="MissingTranslation">Choose how RimBoard connects</string>
+    <string name="net_choice_offline_head" tools:ignore="MissingTranslation">Stay fully offline</string>
+    <string name="net_choice_offline_body" tools:ignore="MissingTranslation">• Nothing you type can leave this device.\n• No accounts, no API keys, nothing to set up.\n• No GIF search, and no AI translation or rewriting.</string>
+    <string name="net_choice_online_head" tools:ignore="MissingTranslation">Turn on online features</string>
+    <string name="net_choice_online_body" tools:ignore="MissingTranslation">These are the only things RimBoard will ever use the network for:\n• GIF search in the emoji panel.\n• Translating or rewriting text you have selected.\n\nWhen you use one, the search words or selected text go to the service that answers it — Tenor for GIFs, Anthropic for text. You supply your own API keys; there is no RimBoard server. Nothing is ever sent in the background, in incognito, in a password field, or for anything you have not just asked for.\n\nTranslation works today and needs your own Anthropic API key (Settings → Network). GIF search is not built yet.</string>
+    <string name="net_choice_footer" tools:ignore="MissingTranslation">You can change this whenever you like in Settings → Network. This build is able to go online: it holds the INTERNET permission whichever option you pick here, and offline mode is enforced by RimBoard\'s own code. If you would rather that were not a matter of trust, install the offline build instead — it does not request the permission at all, so Android refuses it a connection.</string>
+    <string name="net_choice_pick_offline" tools:ignore="MissingTranslation">Stay offline</string>
+    <string name="net_choice_pick_online" tools:ignore="MissingTranslation">Enable online</string>
+
+    <string name="net_offline_build_title" tools:ignore="MissingTranslation">This is the offline build</string>
+    <string name="net_offline_build_body" tools:ignore="MissingTranslation">RimBoard does not request Android\'s INTERNET permission in this build, so the system will refuse it a network connection even if its code asked for one. Nothing you type can leave this device.\n\nYou do not have to take that on trust — RimBoard can try to open a connection right now and show you the system turning it down.</string>
+    <string name="net_show_proof" tools:ignore="MissingTranslation">Show me</string>
+    <string name="net_dismiss" tools:ignore="MissingTranslation">Got it</string>
+
+    <string name="pref_network_title" tools:ignore="MissingTranslation">Network</string>
+    <string name="pref_network_summary" tools:ignore="MissingTranslation">What this build can reach, and proof of it</string>
+    <string name="net_mode_title" tools:ignore="MissingTranslation">Online features</string>
+    <string name="net_mode_on" tools:ignore="MissingTranslation">On — GIF search and AI text tools can reach the internet</string>
+    <string name="net_mode_off" tools:ignore="MissingTranslation">Off — RimBoard makes no network requests</string>
+
+    <string name="net_verdict_proven" tools:ignore="MissingTranslation">Offline, and just proved it</string>
+    <string name="net_verdict_permission" tools:ignore="MissingTranslation">Offline</string>
+    <string name="net_verdict_online" tools:ignore="MissingTranslation">Online</string>
+    <string name="net_verdict_online_idle" tools:ignore="MissingTranslation">Online-capable, nothing reachable now</string>
+
+    <string name="net_verdict_proven_detail" tools:ignore="MissingTranslation">This build does not hold the INTERNET permission. RimBoard just tried to open a connection anyway, and Android refused it. The refusal below came from the operating system, not from RimBoard.</string>
+    <string name="net_verdict_permission_detail" tools:ignore="MissingTranslation">This build does not hold the INTERNET permission, so Android will not give it a network connection. The live test could not confirm it just now — see the result below.</string>
+    <string name="net_verdict_online_detail" tools:ignore="MissingTranslation">This build holds the INTERNET permission and can open connections. Whether it makes any is enforced by RimBoard\'s own code, which is a promise rather than something the system stops it doing. The offline build is the one that cannot.</string>
+    <string name="net_verdict_online_idle_detail" tools:ignore="MissingTranslation">This build holds the INTERNET permission. Nothing answered the live test just now, which usually means the device itself is offline — it is not a limit on what this build could do once it is not.</string>
+
+    <string name="net_perm_header" tools:ignore="MissingTranslation">Permissions this APK declares</string>
+    <string name="net_perm_note" tools:ignore="MissingTranslation">Read from Android\'s own copy of the manifest. It is the same list you get from <tt>aapt dump permissions</tt> on the APK file, or <tt>adb shell dumpsys package com.rimboard.keyboard</tt> on the phone.</string>
+    <string name="net_probe_header" tools:ignore="MissingTranslation">Live connection test</string>
+    <string name="net_probe_running" tools:ignore="MissingTranslation">Trying to open a connection…</string>
+    <string name="net_probe_again" tools:ignore="MissingTranslation">Test again</string>
+    <string name="net_log_header" tools:ignore="MissingTranslation">Requests this install has made</string>
+    <string name="net_log_none" tools:ignore="MissingTranslation">None. RimBoard has not sent a single network request since you installed it.</string>
+    <string name="net_log_count" tools:ignore="MissingTranslation">%1$d sent since install</string>
+    <string name="net_log_entry" tools:ignore="MissingTranslation">%1$s → %2$s</string>
+
+    <string name="ai_needs_selection" tools:ignore="MissingTranslation">Select the text you want translated first</string>
+    <string name="ai_translating" tools:ignore="MissingTranslation">Translating…</string>
+    <string name="ai_proofreading" tools:ignore="MissingTranslation">Proofreading…</string>
+    <string name="ai_incognito" tools:ignore="MissingTranslation">Not available in incognito — it would send what you typed</string>
+    <string name="ai_no_key" tools:ignore="MissingTranslation">Add your Anthropic API key in Settings → Network</string>
+    <string name="tb_proofread" tools:ignore="MissingTranslation">Proofread</string>
+    <!-- Shared by translate and proofread, so deliberately not named after
+         either one — they used to say "Translation failed" for both. -->
+    <string name="ai_failed" tools:ignore="MissingTranslation">Could not finish: %1$s</string>
+    <string name="ai_moved_on" tools:ignore="MissingTranslation">Discarded — the text changed while it was being worked on</string>
+
+    <string name="pref_keys_header" tools:ignore="MissingTranslation">API keys</string>
+    <string name="pref_key_anthropic" tools:ignore="MissingTranslation">Anthropic API key</string>
+    <string name="pref_key_none" tools:ignore="MissingTranslation">Not set — the 🌍 tool hands text to another app instead</string>
+    <string name="pref_key_note" tools:ignore="MissingTranslation">Your own key, from console.anthropic.com. There is no RimBoard server and no shared key: an open-source app cannot hide one. It is stored in RimBoard\'s private storage, encrypted by Android until you first unlock the device — which means it is exactly as safe as your lock screen, and no safer.</string>
+    <string name="pref_key_save" tools:ignore="MissingTranslation">Save</string>
+    <string name="pref_key_clear" tools:ignore="MissingTranslation">Clear</string>
+    <string name="pref_key_saved" tools:ignore="MissingTranslation">Key saved</string>
+    <string name="pref_key_cleared" tools:ignore="MissingTranslation">Key cleared</string>
+    <string name="pref_key_tenor" tools:ignore="MissingTranslation">Tenor API key</string>
+    <string name="pref_key_tenor_none" tools:ignore="MissingTranslation">Not set — the GIF tool needs this</string>
+
+    <!-- "GIF" is the same token in every locale RimBoard ships, so it is not
+         a translation gap; the surrounding sentences below are. -->
+    <string name="tb_gif" translatable="false">GIF</string>
+    <string name="tb_sticker" tools:ignore="MissingTranslation">Sticker</string>
+    <string name="net_device_offline" tools:ignore="MissingTranslation">your phone has no internet connection</string>
+    <string name="net_unknown_error" tools:ignore="MissingTranslation">unknown error</string>
+    <string name="gif_pick_or_type" tools:ignore="MissingTranslation">Type to search</string>
+    <string name="gif_searching" tools:ignore="MissingTranslation">Searching…</string>
+    <string name="gif_none" tools:ignore="MissingTranslation">No GIFs found</string>
+    <string name="gif_failed" tools:ignore="MissingTranslation">GIF search failed: %1$s</string>
+    <string name="gif_inserting" tools:ignore="MissingTranslation">Inserting…</string>
+    <string name="gif_offline_build" tools:ignore="MissingTranslation">This is the offline build of RimBoard — it has no network access</string>
+    <string name="gif_network_off" tools:ignore="MissingTranslation">Turn on online features in Settings → Network</string>
+    <string name="gif_incognito" tools:ignore="MissingTranslation">Not available in incognito — a GIF search sends what you typed</string>
+    <string name="gif_no_key" tools:ignore="MissingTranslation">Add your Tenor API key in Settings → Network</string>
+    <string name="gif_not_accepted" tools:ignore="MissingTranslation">This app does not accept GIFs</string>
 </resources>

@@ -204,6 +204,10 @@ class SettingsActivity : AppCompatActivity() {
                     R.string.bg_removed, android.widget.Toast.LENGTH_SHORT).show()
                 true
             }
+            findPreference<Preference>("screen_network")?.setOnPreferenceClickListener {
+                startActivity(Intent(requireContext(), NetworkActivity::class.java))
+                true
+            }
             findPreference<Preference>("personal_dict")?.setOnPreferenceClickListener {
                 startActivity(Intent(requireContext(), PersonalDictActivity::class.java))
                 true

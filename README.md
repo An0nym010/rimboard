@@ -1,9 +1,26 @@
 # RimBoard
 
 A free, open-source Android keyboard with a GBoard-style layout, on-device
-suggestions, and a real incognito mode. No ads, no accounts, no analytics,
-and **one permission** — `VIBRATE`, for key haptics. There is no `INTERNET`
-permission, so the app cannot send anything anywhere even if it wanted to.
+suggestions, and a real incognito mode. No ads, no accounts, no analytics.
+
+RimBoard ships as **two builds**, and which one you install is the privacy
+decision:
+
+- **`offline`** — **one permission**, `VIBRATE`, for key haptics. No
+  `INTERNET`, so Android will not give the app a network connection even if
+  its code asked for one. This is the default recommendation and the build the
+  privacy claims below are about.
+- **`online`** — adds `INTERNET` for AI translation and GIF search. Its offline
+  switch is enforced by RimBoard's own code rather than by the system, and each
+  feature needs an API key you supply yourself — there is no RimBoard server
+  and no shared key.
+
+The split exists because `INTERNET` is a normal, install-time Android
+permission: once an APK declares it, it is granted at install and neither you
+nor the app can revoke it. An "offline mode" inside a build that holds the
+permission is a promise the app makes about itself. Leaving the permission out
+is a fact about the APK that you can check without trusting anyone — see
+[Proving it](#proving-it).
 
 - Kotlin, no heavyweight dependencies, single small APK
 - 22 languages built in — English, Turkish, German, Spanish, French, Italian,
@@ -18,6 +35,16 @@ permission, so the app cannot send anything anywhere even if it wanted to.
 ## Device compatibility
 
 Runs on any Android 8.0+ phone or tablet (API 26, ~97% of devices) — Samsung, Xiaomi, Pixel, OnePlus, Oppo, Huawei and everything else. No Google services required, pure Kotlin with no native code, works on every CPU architecture.
+
+Both builds are checked against this rather than assumed. `aapt dump badging`
+on either release APK reports `sdkVersion:'26'`, all four screen buckets, **no
+`native-code` line** (so no ABI restriction) and **no `uses-feature`** (so no
+hardware requirement — no camera, no telephony, nothing that would filter a
+device out). Lint runs with `NewApi` at error severity on both flavors, so an
+API newer than 26 cannot reach a release without a version guard. The online
+build's extra features degrade rather than crash: an app that will not accept
+a GIF is detected before the picker opens, and sticker thumbnails deliberately
+avoid a format that only decodes from API 28.
 
 - **Direct boot aware** — the keyboard works on the lock screen right after a reboot, before your first unlock
 - **No fullscreen extract mode** — landscape typing keeps your app visible, Gboard-style
@@ -78,20 +105,30 @@ The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
 - Add more languages by dropping a dictionary file and a layout (see below)
 
 **Privacy**
-- **One permission: `VIBRATE`.** Key haptics drive the vibrator directly,
+- **`VIBRATE` in every build.** Key haptics drive the vibrator directly,
   because several OEM builds ignore view-level haptics once the system touch
   feedback toggle is off. It grants no access to any data.
-- **No `INTERNET`**, no contacts, no microphone, no storage, no location.
-  Verify it yourself against a built APK rather than taking this on trust:
-
-  ```
-  aapt dump permissions app-release.apk
-  ```
-
-  You will also see `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`, which is not
-  a system permission — AndroidX defines it in the app's own namespace to keep
-  its internal broadcast receivers private, and nothing outside the app can
-  hold it.
+- **No contacts, no microphone, no storage, no location** — in either build.
+- **No `INTERNET` in the `offline` build**, which is what makes its guarantee
+  a guarantee rather than a promise. The `online` build declares `INTERNET`
+  and `ACCESS_NETWORK_STATE`. Don't take either on trust; see
+  [Proving it](#proving-it) below.
+- **A first-run dialog** asks which mode you want, with the trade-offs spelled
+  out, before you have enabled the keyboard for anything. The answer is not
+  carried over by Export/Import — restoring a backup is not the same act as
+  consenting to network access, so a fresh install asks again.
+- **All network access goes through one function**, `Net.fetch` in
+  [`net/Net.kt`](app/src/main/java/com/rimboard/keyboard/net/Net.kt), which
+  refuses a request unless the build holds the permission, the user has
+  switched online features on, the target host is on a short allowlist in that
+  same file, and — for anything carrying text you typed — you are not in
+  incognito. A unit test fails the build if any other file in the app so much
+  as names a networking API, so reading that one file tells you everywhere the
+  keyboard can talk to.
+- **Nothing is sent in the background, ever.** There is no telemetry, no update
+  check, and no sync. On the `online` build a request happens only in the
+  moment you tap a GIF search or a translate action, and Settings → Network
+  shows you the running count and what it was for.
 - **Incognito mode** (🕶): open the drawer → 🕶, or enable
   "Always incognito" in settings. While active the keyboard learns nothing,
   suggests nothing personal, and records no emoji history.
@@ -113,25 +150,181 @@ The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
   written through the system file picker. Move it between devices yourself;
   nothing ever leaves the phone otherwise.
 
+## AI translation and proofreading (`online` build only)
+
+Select some text and tap 🌍 to replace it with its translation into whichever
+language the keyboard is currently set to — so the target is the language you
+are already typing in, and there is no picker. The **Proofread** tool does the
+same round trip but fixes spelling, grammar and punctuation while leaving your
+wording, tone and language alone.
+
+Both go through the same code path, so every guard below applies to both: they
+require a selection, run off the main thread, and re-check the field before
+committing.
+
+- **The 🌍 tool is the same tool it has always been.** On the `offline` build,
+  with online features off, or with no API key set, it does exactly what it did
+  before: hands the text to whatever translator app you have installed, and
+  sends nothing itself. The in-place version is what you get when all three of
+  those are satisfied — one tool, not a second dead icon.
+- **Bring your own key.** Settings → Network → API keys, from
+  `console.anthropic.com`. The billing relationship is yours. An open-source
+  APK has nowhere to hide a shared key — anything compiled in ships to
+  everyone who installs it.
+- **The key is not stored where everything else is.** Every other preference
+  lives in device-protected storage so the keyboard works on the lock screen,
+  which also means it is readable at rest before first unlock. The key goes in
+  ordinary credential-protected storage instead — encrypted until you unlock
+  the device, because nothing here is reachable from a lock screen. That makes
+  it as safe as your lock screen and no safer; root or a full backup taken
+  while unlocked can still read it.
+- **It requires a selection.** It overwrites text, so it will not run on the
+  whole field — translating a half-written message by accident is not a thing
+  it should be able to do.
+- **It refuses itself in incognito and in password fields**, because the
+  request carries what you typed. That check is in [`Net.fetch`](app/src/main/java/com/rimboard/keyboard/net/Net.kt),
+  not in the feature, so it cannot be forgotten by the next thing added.
+- **The reply is checked before it lands.** A safety decline, an API error, or
+  a response cut off at the token limit all surface as a message rather than
+  being committed — a truncated translation looks finished, and would silently
+  eat the end of your sentence. If the selection changed while the request was
+  in flight, the result is discarded rather than committed into whatever is
+  focused now.
+
+Requests go to `api.anthropic.com` and carry the selected text. Nothing else is
+sent, and nothing is sent in the background — see Settings → Network for the
+running count.
+
+## GIF and sticker search (`online` build only)
+
+Tap the **GIF** or **Sticker** tool. The panel has its own compact keypad, so
+you can type a query into it directly; tabs at the top switch between GIFs and
+stickers and re-run the same search against the other index. If you had already
+typed something in the field, that seeds the query — and picking a result
+deletes it, because it was the query rather than part of your message.
+
+- **The panel draws its own keys instead of using a text field.** An `EditText`
+  inside an IME window competes for focus with the keyboard it belongs to, and
+  the field being typed into belongs to a different app entirely. The emoji
+  panel has always solved this by drawing a mini-keypad; that is now a shared
+  `MiniKeypad` view.
+- **Searches fire on a pause in typing, not per keystroke** — otherwise every
+  letter is a billable, rate-limited request for a prefix nobody wants results
+  for.
+- **Stickers use Tenor's transparent GIF formats, not WebP.** Animated WebP only
+  decodes from API 28, and the grid thumbnails are drawn with `BitmapFactory`.
+  Choosing WebP would have left the sticker grid blank on Android 8.0 and 8.1
+  while looking fine on a modern test device. Transparent GIF decodes
+  everywhere and costs only file size. Results with no transparent variant fall
+  back to the opaque one rather than leaving a hole in the grid.
+- **It checks the field will take a GIF before it opens.** Plenty of apps and
+  fields accept only text. Finding that out *after* browsing, choosing, and
+  waiting for a download would read as a broken keyboard rather than an app
+  that does not support images.
+- **Unavailable is never just "unavailable."** Wrong build, network off,
+  incognito, and no API key have four different fixes, so they produce four
+  different messages.
+- **Two hosts, both on the allowlist and both checked.**
+  `tenor.googleapis.com` serves the search results and `media.tenor.com` serves
+  the image bytes. The image URLs come from Tenor's response rather than from
+  RimBoard, so they are re-checked against the allowlist before being fetched —
+  a response pointing anywhere else fails closed.
+- **The search query is typed text**, so it is refused in incognito. Fetching a
+  chosen GIF is not, since by then the URL is fixed and carries nothing you
+  typed.
+- **The key is a query parameter** because that is the only place Tenor accepts
+  one. That is normally the wrong place for a credential — it is tolerable here
+  only because the request log records the host and never the path or query, so
+  neither the key nor your search terms are written down.
+
+Insertion uses `commitContent` through a `FileProvider` scoped to one cache
+directory — declared **only in the online build**, so the offline APK ships no
+such component at all. You can check that the same way as the permission:
+
+```bash
+aapt dump xmltree app-offline-release.apk AndroidManifest.xml | grep authorities
+```
+
+## Proving it
+
+Three checks, in increasing order of how little they ask you to trust.
+
+**1. Ask the phone, from the phone.** Settings → **Network** shows the
+permission list Android holds for the installed app — not a constant compiled
+into RimBoard — and then *actually tries to open a TCP connection to
+1.1.1.1:443 while you watch*, reporting whatever the system says back,
+verbatim. On the offline build that is:
+
+```
+java.net.SocketException: socket failed: EACCES (Permission denied)
+```
+
+That is the kernel refusing the app, not the app declining to try. The screen
+is deliberately incapable of flattering the build it is running on: on the
+`online` build the same probe connects, and the screen says so.
+
+**2. Ask the APK file.** The permission list comes from the manifest, so it
+cannot be affected by what the code does at runtime:
+
+```bash
+aapt dump permissions app-offline-release.apk
+```
+
+```
+package: com.rimboard.keyboard
+uses-permission: name='android.permission.VIBRATE'
+permission: com.rimboard.keyboard.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+uses-permission: name='com.rimboard.keyboard.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
+```
+
+The same command against `app-online-release.apk` additionally lists
+`android.permission.INTERNET` and `android.permission.ACCESS_NETWORK_STATE`.
+`DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` is not a system permission —
+AndroidX defines it in the app's own namespace to keep its internal broadcast
+receivers private, and nothing outside the app can hold it.
+
+**3. Ask the installed package,** if you would rather not trust the APK file
+you were handed either:
+
+```bash
+adb shell dumpsys package com.rimboard.keyboard | grep -A20 "requested permissions"
+```
+
+CI runs check 2 against both release APKs on every push and fails if the
+offline one has picked up `INTERNET` or the online one has lost it, so a
+merger change cannot quietly undo the split between releases.
+
+None of this depends on believing the source is what was built. If you want
+that too, build it yourself — the whole point of the flavor split is that the
+guarantee survives not trusting us.
+
 ## Install
 
 ### Option A — GitHub Actions (no Android Studio needed)
 1. Push this repository to GitHub (or fork it).
 2. The **Build APK** workflow runs automatically; open the run and download
    the `RimBoard-debug` artifact.
-3. Copy `app-debug.apk` to your phone and install it (allow "install unknown
-   apps" for your file manager if asked).
-4. Tagging a commit `v1.0` (or any `v*`) attaches the **release** APK to a
+3. The artifact holds both builds. Copy **`app-offline-debug.apk`** to your
+   phone unless you specifically want the network features, and install it
+   (allow "install unknown apps" for your file manager if asked).
+4. Tagging a commit `v1.0` (or any `v*`) attaches both **release** APKs to a
    GitHub Release automatically. Release builds are not debuggable; the debug
-   artifact above is, so it is for testing rather than for handing to anyone.
+   artifacts above are, so they are for testing rather than for handing to
+   anyone.
 
 ### Option B — Android Studio
-Open the project, let Gradle sync, then **Build → Build APK(s)**, or:
+Open the project, let Gradle sync, pick the **offlineDebug** or **onlineDebug**
+variant in the Build Variants panel, then **Build → Build APK(s)**, or:
 
 ```
-./gradlew assembleDebug
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+./gradlew assembleOfflineDebug
+adb install -r app/build/outputs/apk/offline/debug/app-offline-debug.apk
 ```
+
+Swap `Offline` for `Online` to build the other one. The two share an
+`applicationId`, so installing one replaces the other and your settings and
+learned words survive the switch — but the network choice does not, and a
+switch to the online build asks again on first launch.
 
 ### Enable it (Xiaomi/HyperOS example — Poco phones)
 1. Open the RimBoard app and follow the three steps, or go to
@@ -140,8 +333,11 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 2. Tap any text field, then use the keyboard switcher (or the app's
    "Switch keyboard" button) to select RimBoard.
 3. Android will show a standard warning that third-party keyboards may
-   collect what you type — that applies to any IME; RimBoard has no network
-   permission, so it has no way to send anything anywhere.
+   collect what you type — that applies to any IME. On the `offline` build it
+   is the one case where the warning overstates things: that APK has no
+   network permission, so it has no way to send anything anywhere, and
+   Settings → Network will demonstrate it. On the `online` build, take the
+   warning at face value.
 
 ## Extending the dictionaries
 
@@ -177,7 +373,16 @@ Adding a whole new language also needs a layout in
 
 ## Roadmap / not implemented yet
 
-- Voice input
+- **Voice input.** Not started, and it needs a decision before it can be: a
+  keyboard that records audio wants `RECORD_AUDIO`, which is a bigger privacy
+  step than `INTERNET` was and would need its own build dimension or a hard
+  opt-in. The alternative — handing off to whatever voice IME is installed —
+  needs no permission at all. That choice is the blocker, not the code.
+- `EmojiView` still has its own inline copy of the mini-keypad rather than
+  using the shared `MiniKeypad`. It is now a true no-regression swap —
+  `MiniKeypad` gained the hold-to-repeat backspace and key caps that
+  `EmojiView` had and it lacked — but it still wants an on-device check of
+  emoji search, so it was left alone rather than changed blind.
 
 ## License
 
