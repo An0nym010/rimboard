@@ -362,6 +362,7 @@
     <string name="tb_sticker" tools:ignore="MissingTranslation">Sticker</string>
     <string name="net_device_offline" tools:ignore="MissingTranslation">your phone has no internet connection</string>
     <string name="net_unknown_error" tools:ignore="MissingTranslation">unknown error</string>
+    <string name="net_locked" tools:ignore="MissingTranslation">Unlock your phone first — the API keys are encrypted until you do</string>
     <string name="gif_pick_or_type" tools:ignore="MissingTranslation">Type to search</string>
     <string name="gif_searching" tools:ignore="MissingTranslation">Searching…</string>
     <string name="gif_none" tools:ignore="MissingTranslation">No GIFs found</string>

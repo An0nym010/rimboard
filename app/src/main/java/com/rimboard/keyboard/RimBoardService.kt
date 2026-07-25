@@ -1964,6 +1964,10 @@ class RimBoardService : InputMethodService(),
             }))
             return
         }
+        if (!com.rimboard.keyboard.net.ApiKeys.unlocked(this)) {
+            toast(getString(R.string.net_locked))
+            return
+        }
         if (com.rimboard.keyboard.net.ApiKeys.anthropic(this) == null) {
             toast(getString(R.string.ai_no_key))
             return
@@ -2056,6 +2060,10 @@ class RimBoardService : InputMethodService(),
                 com.rimboard.keyboard.net.Net.Block.INCOGNITO -> R.string.gif_incognito
                 com.rimboard.keyboard.net.Net.Block.HOST_NOT_ALLOWED -> R.string.gif_network_off
             }))
+            return
+        }
+        if (!com.rimboard.keyboard.net.ApiKeys.unlocked(this)) {
+            toast(getString(R.string.net_locked))
             return
         }
         if (com.rimboard.keyboard.net.ApiKeys.tenor(this) == null) {

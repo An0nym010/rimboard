@@ -32,9 +32,39 @@ object ApiKeys {
     private const val KEY_ANTHROPIC = "anthropic_api_key"
     private const val KEY_TENOR = "tenor_api_key"
 
-    private fun prefs(c: Context): SharedPreferences =
-        // Explicitly NOT createDeviceProtectedStorageContext(); see the note above.
-        c.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+    private fun prefs(c: Context): SharedPreferences? {
+        // The flip side of keeping these out of device-protected storage: this
+        // file does not exist yet on a phone that has not been unlocked since
+        // boot, and asking for it there throws rather than returning empty.
+        //
+        // RimBoard's service is directBootAware, so it genuinely runs in that
+        // window — the keyboard is up on the lock screen. Without this check,
+        // tapping the translate or GIF tool before the first unlock took the
+        // keyboard down, which is the worst failure this app has.
+        if (!unlocked(c)) return null
+        return try {
+            // Explicitly NOT createDeviceProtectedStorageContext(); see above.
+            c.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+        } catch (_: IllegalStateException) {
+            // Belt and braces: the unlock state can change between the check
+            // and the call, and the race lands exactly here.
+            null
+        }
+    }
+
+    /**
+     * Whether credential-protected storage is readable yet.
+     *
+     * Public because "locked" and "no key set" are different situations that
+     * happen to look identical from [anthropic] — a caller that wants to tell
+     * the user which one applies needs to be able to ask.
+     */
+    fun unlocked(c: Context): Boolean = try {
+        val um = c.getSystemService(Context.USER_SERVICE) as android.os.UserManager
+        um.isUserUnlocked
+    } catch (_: Exception) {
+        false
+    }
 
     fun anthropic(c: Context): String? = get(c, KEY_ANTHROPIC)
 
@@ -45,13 +75,13 @@ object ApiKeys {
     fun setTenor(c: Context, key: String?) = set(c, KEY_TENOR, key)
 
     private fun get(c: Context, name: String): String? =
-        prefs(c).getString(name, null)?.trim()?.takeIf { it.isNotEmpty() }
+        prefs(c)?.getString(name, null)?.trim()?.takeIf { it.isNotEmpty() }
 
     private fun set(c: Context, name: String, key: String?) {
         val v = key?.trim().orEmpty()
-        prefs(c).edit().apply {
+        prefs(c)?.edit()?.apply {
             if (v.isEmpty()) remove(name) else putString(name, v)
-        }.apply()
+        }?.apply()
     }
 
     /**
