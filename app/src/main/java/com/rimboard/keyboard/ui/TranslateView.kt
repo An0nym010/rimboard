@@ -21,14 +21,15 @@ import com.rimboard.keyboard.theme.KeyboardTheme
  * look for it.
  *
  * The one thing deliberately not copied from Gboard is translating on every
- * keystroke. Google's translation is free to Google; here each request is a
- * metered call against the user's own key, so a 40-character sentence would be
- * twenty-odd requests instead of one. The result is inserted automatically —
- * so text appears in the field on its own, as it does in Gboard — but on a
- * pause in typing rather than per letter.
+ * keystroke. Google's translation is free to Google; here a request is either
+ * a metered call against the user's own key or a free call against a public
+ * service that is under no obligation to keep answering, and a 40-character
+ * sentence would be twenty-odd of them instead of one. The result is inserted
+ * automatically — so text appears in the field on its own, as it does in
+ * Gboard — but on a pause in typing rather than per letter.
  *
- * There is no swap button because there is nothing to swap: the source
- * language is detected by the model rather than declared. Translating
+ * There is no swap button because there is nothing to swap: every supported
+ * service detects the source language rather than being told it. Translating
  * something *into* your own language is done by setting that as the target,
  * which the same control already does.
  */
@@ -157,12 +158,6 @@ class TranslateView(context: Context) : LinearLayout(context) {
 
     fun setTargetLabel(label: String) {
         targetChip.text = label
-    }
-
-    /** The language the text is being translated *from*: "Detect" for the model
-     *  path, the actual source for the keyless one that cannot detect it. */
-    fun setSourceLabel(label: String) {
-        sourceLabel.text = label
     }
 
     fun appendQuery(c: Char) {

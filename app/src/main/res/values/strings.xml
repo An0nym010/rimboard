@@ -186,6 +186,18 @@
     <string name="tr_detect" tools:ignore="MissingTranslation">Detect</string>
     <string name="tr_source_hint" tools:ignore="MissingTranslation">Type what you want translated…</string>
     <string name="tr_target_title" tools:ignore="MissingTranslation">Translate into</string>
+    <string name="tr_src_title" tools:ignore="MissingTranslation">Translation service</string>
+    <string name="tr_src_current" tools:ignore="MissingTranslation">Using: %1$s</string>
+    <string name="tr_src_note" tools:ignore="MissingTranslation">Shows the service actually in use. A choice that cannot work — a key you have not set, or LibreTranslate with no instance of your own — falls back to the keyless one rather than failing on every request.</string>
+    <string name="tr_src_auto" tools:ignore="MissingTranslation">Automatic — best available</string>
+    <string name="tr_src_lingva" tools:ignore="MissingTranslation">Lingva — no key needed</string>
+    <string name="tr_src_libre" tools:ignore="MissingTranslation">LibreTranslate — self-hosted or key</string>
+    <string name="tr_src_anthropic" tools:ignore="MissingTranslation">Anthropic — your API key, best quality</string>
+    <string name="tr_host_title" tools:ignore="MissingTranslation">Your own instance (optional)</string>
+    <string name="tr_host_none" tools:ignore="MissingTranslation">Not set — using the public service</string>
+    <string name="tr_host_hint" tools:ignore="MissingTranslation">translate.example.com</string>
+    <string name="tr_host_bad" tools:ignore="MissingTranslation">That is not a hostname</string>
+    <string name="tr_host_note" tools:ignore="MissingTranslation">If you run Lingva or LibreTranslate yourself, put its hostname here and your text goes only to your own server. This is the one address the built-in allowlist cannot know in advance, so setting it widens what this app may contact — by exactly this one host, and only over HTTPS.</string>
     <string name="header_byok" formatted="false" tools:ignore="MissingTranslation">your own API keys</string>
     <string name="st_wpm_short">WPM</string>
     <string name="screen_general">Preferences</string>
@@ -378,9 +390,9 @@ Your search words or selected text go to the service that answers them. Nothing 
     <string name="pref_keys_header" tools:ignore="MissingTranslation">API keys</string>
     <string name="pref_key_anthropic" tools:ignore="MissingTranslation">Anthropic API key</string>
     <string name="pref_key_anthropic_none" tools:ignore="MissingTranslation">Not set — optional, better quality for the 🌍 tool</string>
-    <string name="pref_key_mymemory" tools:ignore="MissingTranslation">MyMemory (optional)</string>
-    <string name="pref_key_mymemory_none" tools:ignore="MissingTranslation">Not set — translation works without it; an email raises the free limit</string>
-    <string name="pref_key_note" tools:ignore="MissingTranslation">Translation works with no key at all, through MyMemory. An Anthropic key is optional and used instead when set, for better quality and longer text. GIF search needs a KLIPY key. All keys are your own — there is no RimBoard server and no shared key — and are kept in private app storage, which Android encrypts until you unlock the phone. Whatever you translate is sent to the service that does it, exactly as with any online translator.</string>
+    <string name="pref_key_libre" tools:ignore="MissingTranslation">LibreTranslate key (optional)</string>
+    <string name="pref_key_libre_none" tools:ignore="MissingTranslation">Not set — only needed for the public LibreTranslate instance</string>
+    <string name="pref_key_note" tools:ignore="MissingTranslation">Translation works with no key at all. An Anthropic key is optional and used instead when set, for better quality and longer text. GIF search needs a KLIPY key. All keys are your own — there is no RimBoard server and no shared key — and are kept in private app storage, which Android encrypts until you unlock the phone. Whatever you translate is sent to the service that does it, exactly as with any online translator — unless you run your own.</string>
     <string name="pref_key_save" tools:ignore="MissingTranslation">Save</string>
     <string name="pref_key_clear" tools:ignore="MissingTranslation">Clear</string>
     <string name="pref_key_saved" tools:ignore="MissingTranslation">Key saved</string>

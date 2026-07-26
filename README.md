@@ -154,14 +154,29 @@ The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
 ## Translation and proofreading (`online` build only)
 
 Tap 🌍 to open a translate bar and type — the translation goes into the field
-as you pause. **This needs no API key:** it uses MyMemory, a keyless service,
-by default. If you set an Anthropic key it uses that instead, for better
-quality and longer text, and adding a MyMemory key or email raises the keyless
-daily limit. The **Proofread** tool fixes spelling, grammar and punctuation in
-a selection and is Anthropic-only.
+as you pause. **This needs no API key.** Three services are supported, and
+Settings → Network shows which one is actually in use:
 
-Whichever engine translates sees the text, exactly as any online translator
-does; nothing is sent in the background, in incognito, or in a password field.
+| Service | Needs | Why you would pick it |
+| --- | --- | --- |
+| **Lingva** *(default)* | nothing | Works on a fresh install. No key, no account, no quota to think about. |
+| **LibreTranslate** | your own server, or a key | Open source and self-hostable — the only option where the text never reaches anyone else. |
+| **Anthropic** | your own API key | Best quality, and the only one that handles long text. |
+
+"Automatic" picks the best one you have set up, so setting an Anthropic key is
+all it takes to use it. All three detect what language you are typing.
+
+If you run Lingva or LibreTranslate yourself, put the hostname in Settings →
+Network and your text goes only to your own machine. That is the single
+exception to the built-in host allowlist, it widens it by exactly that one
+host, and it is still HTTPS-only.
+
+The **Proofread** tool fixes spelling, grammar and punctuation in a selection
+and is Anthropic-only.
+
+Unless you self-host, whichever service translates sees the text, exactly as
+any online translator does; nothing is sent in the background, in incognito, or
+in a password field.
 
 Both go through the same code path, so every guard below applies to both: they
 require a selection, run off the main thread, and re-check the field before

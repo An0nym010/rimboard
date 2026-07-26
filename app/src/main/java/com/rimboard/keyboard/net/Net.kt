@@ -37,7 +37,8 @@ object Net {
     val ALLOWED_HOSTS = setOf(
         "api.klipy.com",                    // GIF search metadata
         "api.anthropic.com",                // AI translation and proofreading
-        "api.mymemory.translated.net"       // keyless translation
+        "lingva.ml",                        // keyless translation
+        "libretranslate.com"                // translation, self-hostable
     )
 
     /**
@@ -61,9 +62,10 @@ object Net {
      * equality case, `klipy.com` itself would not. Both directions are pinned
      * by `NetGateTest`.
      */
-    internal fun hostAllowed(host: String?): Boolean {
+    internal fun hostAllowed(host: String?, userHost: String? = null): Boolean {
         if (host == null) return false
         if (host in ALLOWED_HOSTS) return true
+        if (userHost != null && host == userHost) return true
         return ALLOWED_SUFFIXES.any { host == it || host.endsWith(".$it") }
     }
 
@@ -169,7 +171,12 @@ object Net {
             return Result.failure(NetBlockedException(it))
         }
         val host = hostOf(url)
-        if (!hostAllowed(host)) {
+        // The one entry that is not in the source: a translation instance the
+        // user is hosting themselves. Nobody could have listed their address in
+        // advance, so it is read back from the setting where they typed it —
+        // matched exactly, never as a suffix. The network screen shows it
+        // alongside the static list so the effective allowlist stays visible.
+        if (!hostAllowed(host, Translate.customHost(c))) {
             NetLog.record(c, reason, url, NetLog.Outcome.REFUSED, "HOST_NOT_ALLOWED")
             return Result.failure(NetBlockedException(Block.HOST_NOT_ALLOWED))
         }

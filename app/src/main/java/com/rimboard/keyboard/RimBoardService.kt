@@ -98,6 +98,9 @@ class RimBoardService : InputMethodService(),
     /** Holds a picker shown *above* the keyboard rather than instead of it. */
     private var searchHost: FrameLayout? = null
 
+    /** Holds the translate bar, above the suggestion strip. See where it is built. */
+    private var barHost: FrameLayout? = null
+
     /** Which picker, if any, is currently eating keystrokes for its search box. */
     private enum class SearchRoute { NONE, GIF, EMOJI, TRANSLATE }
 
@@ -312,11 +315,21 @@ class RimBoardService : InputMethodService(),
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
         sh.addView(gv, FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
-        sh.addView(tv, FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
         root.addView(sh, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, 0))
         searchHost = sh
+
+        // The translate bar goes *above* the suggestion strip rather than into
+        // `sh` with the pickers. Below it, the bar pushed the strip up and away
+        // from the keys and took its place at the edge — so opening 🌍 looked
+        // like the suggestion bar had been replaced. Suggestions still work
+        // while translating, and the strip belongs next to the keyboard.
+        val bh = FrameLayout(ctx).apply { visibility = View.GONE }
+        bh.addView(tv, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+        root.addView(bh, 0, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, 0))
+        barHost = bh
 
         root.addView(frame, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
@@ -1697,7 +1710,8 @@ class RimBoardService : InputMethodService(),
     /** The pickers are not in [panels]: they sit above the keyboard, not over it. */
     private fun anyPanelOpen() =
         panels().any { it?.visibility == View.VISIBLE } ||
-            searchHost?.visibility == View.VISIBLE
+            searchHost?.visibility == View.VISIBLE ||
+            barHost?.visibility == View.VISIBLE
 
     /**
      * Puts the keyboard back, whatever panel was covering it.
@@ -2242,10 +2256,12 @@ class RimBoardService : InputMethodService(),
      * keyboard translator for — was impossible. Seeding also means the result
      * is previewed rather than overwriting the selection sight-unseen.
      */
-    /** True when an Anthropic key is available, which the translate path prefers. */
+    /** The translation service in force; see `Translate.effective`. */
+    private fun translateSrc(): com.rimboard.keyboard.net.Translate.Src =
+        com.rimboard.keyboard.net.Translate.effective(this)
+
     private fun translateWithAnthropic(): Boolean =
-        com.rimboard.keyboard.net.ApiKeys.unlocked(this) &&
-            com.rimboard.keyboard.net.ApiKeys.anthropic(this) != null
+        translateSrc() == com.rimboard.keyboard.net.Translate.Src.ANTHROPIC
 
     private fun showTranslatePanel(ic: InputConnection) {
         val tv = translateView ?: return
@@ -2253,16 +2269,12 @@ class RimBoardService : InputMethodService(),
         val selected = ic.getSelectedText(0)?.toString()?.takeIf { it.isNotBlank() }
         val TT = com.rimboard.keyboard.model.TranslateTargets
         if (translateWithAnthropic()) {
-            // The model detects the source; the chip shows the chosen target.
             tv.start(selected, TT.currentLabel(this, effLocale()))
-            tv.setSourceLabel(getString(R.string.tr_detect))
         } else {
-            // Keyless: the source is what you are typing, and the target has to
-            // be a real language different from it — shown so the pair is honest.
-            val source = currentLangCode()
-            val target = TT.keylessTarget(this, source)
-            tv.start(selected, TT.labelFor(target, effLocale()))
-            tv.setSourceLabel(TT.labelFor(source, effLocale()))
+            // The keyless services cannot be asked for "whatever my keyboard
+            // language is", so an "auto" target resolves to a concrete other
+            // language here — shown on the chip, so the pair is honest.
+            tv.start(selected, TT.labelFor(TT.keylessTarget(this, currentLangCode()), effLocale()))
         }
         translateInserted = null
         translateLastSource = null
@@ -2299,17 +2311,17 @@ class RimBoardService : InputMethodService(),
         tv.setRequestCount(translateCount)
         tv.setStatus(getString(R.string.ai_translating))
         val TT = com.rimboard.keyboard.model.TranslateTargets
-        val anthropic = translateWithAnthropic()
+        val src = translateSrc()
         val source = currentLangCode()
         Thread {
-            val result = if (anthropic) {
+            val result = if (src == com.rimboard.keyboard.net.Translate.Src.ANTHROPIC) {
                 com.rimboard.keyboard.net.AiText.run(
                     this, com.rimboard.keyboard.net.AiText.Task.TRANSLATE, text,
                     TT.promptName(this, source)
                 )
             } else {
-                com.rimboard.keyboard.net.MyMemory.translate(
-                    this, text, source, TT.keylessTarget(this, source)
+                com.rimboard.keyboard.net.Translate.run(
+                    this, src, text, TT.keylessTarget(this, source)
                 )
             }
             main {
@@ -2743,7 +2755,13 @@ class RimBoardService : InputMethodService(),
             // Shift and the symbol pages still work on the keyboard itself, so
             // they fall through rather than being swallowed.
             else -> if (key.code > 0) {
-                key.label.forEach { append(it) }
+                // Through the same case transform the message field gets. The
+                // key label is always lower case, so without this the shift and
+                // caps-lock keys visibly changed the keyboard and then had no
+                // effect whatsoever on what was typed into a search or translate
+                // box — you could not type a capital in either.
+                applyShift(key.label).forEach { append(it) }
+                consumeAutoShift()
                 true
             } else false
         }
@@ -2755,7 +2773,10 @@ class RimBoardService : InputMethodService(),
         withKeyboard: Boolean,
         compact: Boolean = false
     ) {
-        val host = searchHost ?: return
+        // The translate bar lives above the strip and the pickers below it, so
+        // which container is opened follows the panel rather than the route.
+        val host = (if (panel === translateView) barHost else searchHost) ?: return
+        val other = if (host === barHost) searchHost else barHost
         val kbH = keyboardView?.measureKeyboardHeight() ?: return
         val lp = host.layoutParams
         // Browsing gets the whole keyboard's height because the keys are
@@ -2789,9 +2810,17 @@ class RimBoardService : InputMethodService(),
             gifQueryFieldLength = 0
         }
         host.visibility = View.VISIBLE
+        // Opening the bar must collapse the picker container and vice versa, or
+        // the one left behind keeps its height and leaves a gap.
+        other?.let { collapse(it) }
         keyboardView?.visibility = if (withKeyboard) View.VISIBLE else View.GONE
         searchRoute = route
         animatePanelIn(host)
+    }
+
+    private fun collapse(host: FrameLayout) {
+        host.visibility = View.GONE
+        host.layoutParams = host.layoutParams.apply { height = 0 }
     }
 
     private fun closeSearchHost() {
@@ -2802,10 +2831,8 @@ class RimBoardService : InputMethodService(),
         translateLastSource = null
         translateLastAt = 0L
         translateCount = 0
-        searchHost?.let { host ->
-            host.visibility = View.GONE
-            host.layoutParams = host.layoutParams.apply { height = 0 }
-        }
+        searchHost?.let { collapse(it) }
+        barHost?.let { collapse(it) }
         keyboardView?.visibility = View.VISIBLE
         updateStrip()
     }

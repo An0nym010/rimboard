@@ -18,6 +18,7 @@ import com.rimboard.keyboard.net.Net
 import com.rimboard.keyboard.net.NetLog
 import com.rimboard.keyboard.model.TranslateTargets
 import com.rimboard.keyboard.net.NetProbe
+import com.rimboard.keyboard.net.Translate
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
@@ -166,13 +167,31 @@ class NetworkActivity : AppCompatActivity() {
                 ApiKeys.anthropic(this)) { ApiKeys.setAnthropic(this, it) }
             keyRow(d, R.string.pref_key_klipy, R.string.pref_key_klipy_none, "abc123…",
                 ApiKeys.klipy(this)) { ApiKeys.setKlipy(this, it) }
-            keyRow(d, R.string.pref_key_mymemory, R.string.pref_key_mymemory_none, "you@example.com",
-                ApiKeys.mymemory(this)) { ApiKeys.setMymemory(this, it) }
+            keyRow(d, R.string.pref_key_libre, R.string.pref_key_libre_none, "abc123…",
+                ApiKeys.libre(this)) { ApiKeys.setLibre(this, it) }
             container.addView(TextView(this).apply {
                 text = getString(R.string.pref_key_note)
                 textSize = 12f
                 setPadding(0, (8 * d).toInt(), 0, 0)
             })
+
+            section(d, getString(R.string.tr_src_title))
+            container.addView(TextView(this).apply {
+                text = getString(R.string.tr_src_current, srcLabel(Translate.effective(this@NetworkActivity)))
+                textSize = 16f
+                setPadding(0, (6 * d).toInt(), 0, (6 * d).toInt())
+                isClickable = true
+                isFocusable = true
+                setOnClickListener { showSourcePicker() }
+            })
+            container.addView(TextView(this).apply {
+                text = getString(R.string.tr_src_note)
+                textSize = 12f
+            })
+
+            // A self-hosted instance is the only address the app cannot know in
+            // advance, so it is entered here and the network gate reads it back.
+            hostRow(d)
 
             // Lives beside the Anthropic key because that is what makes the
             // feature work at all; it is the first thing anyone will look for
@@ -294,6 +313,106 @@ class NetworkActivity : AppCompatActivity() {
             }
         })
         container.addView(buttons)
+    }
+
+    private fun srcLabel(s: Translate.Src): String = getString(
+        when (s) {
+            Translate.Src.ANTHROPIC -> R.string.tr_src_anthropic
+            Translate.Src.LIBRE -> R.string.tr_src_libre
+            Translate.Src.LINGVA -> R.string.tr_src_lingva
+            Translate.Src.AUTO -> R.string.tr_src_auto
+        }
+    )
+
+    /**
+     * Which service does the translating.
+     *
+     * The list shows what each one costs you — a key, a server, or nothing —
+     * because that is the only axis anyone is actually choosing on. "Automatic"
+     * is first and is what a fresh install uses.
+     */
+    private fun showSourcePicker() {
+        val order = listOf(
+            Translate.Src.AUTO, Translate.Src.LINGVA,
+            Translate.Src.LIBRE, Translate.Src.ANTHROPIC
+        )
+        val labels = order.map { srcLabel(it) }.toTypedArray()
+        val current = order.indexOf(Translate.stored(this))
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(R.string.tr_src_title)
+            .setSingleChoiceItems(labels, current) { dlg, which ->
+                Translate.store(this, order[which])
+                dlg.dismiss()
+                render()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /**
+     * The self-hosted instance field.
+     *
+     * Not a [keyRow]: this is not a secret, so it is shown in full rather than
+     * masked — being able to read back the address you typed is the whole point
+     * when a translation is failing and you are checking for a typo.
+     */
+    private fun hostRow(d: Float) {
+        val current = Translate.customHost(this)
+        container.addView(TextView(this).apply {
+            text = getString(R.string.tr_host_title)
+            textSize = 15f
+            setPadding(0, (14 * d).toInt(), 0, 0)
+        })
+        container.addView(TextView(this).apply {
+            text = current ?: getString(R.string.tr_host_none)
+            textSize = 13f
+            typeface = Typeface.MONOSPACE
+            setPadding(0, (2 * d).toInt(), 0, (6 * d).toInt())
+        })
+        val field = EditText(this).apply {
+            hint = getString(R.string.tr_host_hint)
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                android.text.InputType.TYPE_TEXT_VARIATION_URI or
+                android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            setSingleLine()
+        }
+        container.addView(field)
+        val buttons = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, (6 * d).toInt(), 0, 0)
+        }
+        buttons.addView(Button(this).apply {
+            text = getString(R.string.pref_key_save)
+            setOnClickListener {
+                Translate.setCustomHost(this@NetworkActivity, field.text.toString())
+                // Rejected silently would look like it saved, and the user
+                // would go hunting for the failure in the wrong place.
+                if (Translate.customHost(this@NetworkActivity) == null &&
+                    field.text.isNotBlank()
+                ) {
+                    toast(R.string.tr_host_bad)
+                } else {
+                    field.setText("")
+                    toast(R.string.pref_key_saved)
+                }
+                render()
+            }
+        })
+        buttons.addView(Button(this).apply {
+            text = getString(R.string.pref_key_clear)
+            isEnabled = current != null
+            setOnClickListener {
+                Translate.setCustomHost(this@NetworkActivity, null)
+                toast(R.string.pref_key_cleared)
+                render()
+            }
+        })
+        container.addView(buttons)
+        container.addView(TextView(this).apply {
+            text = getString(R.string.tr_host_note)
+            textSize = 12f
+            setPadding(0, (6 * d).toInt(), 0, 0)
+        })
     }
 
     /**

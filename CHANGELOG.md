@@ -5,16 +5,32 @@ Release notes for every RimBoard version. The current release is summarised in t
 ## Unreleased
 
 **Translation**
-- Translation no longer needs an API key. The 🌍 bar works out of the box
-  through MyMemory, a keyless service — anonymous requests just work. An
-  Anthropic key stays optional and is preferred when set, for better quality
-  and longer text; a MyMemory key or email is optional too and raises the
-  keyless daily limit. Because that engine cannot detect the source language
-  the way the model does, the bar shows the pair it is translating (your
-  keyboard language into the target) instead of "Detect".
+- Translation no longer needs an API key, and now supports three services
+  chosen in Settings → Network: **Lingva** (keyless, the default),
+  **LibreTranslate** (self-hostable, or the public instance with a key) and
+  **Anthropic** (your own key, best quality and long text). "Automatic" uses
+  the best one you have actually set up, and the screen names the one in force
+  — a choice that cannot work falls back rather than failing every request.
+- MyMemory is gone. It could not detect the source language, so the bar had to
+  make you declare what you were typing, and its free tier capped a request at
+  500 bytes. All three replacements detect the language, so the bar says
+  "Detect" again whichever service is doing the work.
+- **Self-hosting.** Set your own Lingva or LibreTranslate hostname and the text
+  goes nowhere else. This is the one address the static allowlist cannot know
+  in advance, so the gate reads it back from that setting — matched exactly,
+  never as a suffix, and still HTTPS-only.
 - The translate tool is marked ready in the tools panel whenever the network
   is on, rather than only when an Anthropic key is set, since it no longer
   needs one.
+
+**Fixes**
+- Shift and caps lock had no effect on the translate, GIF or emoji search box:
+  the keyboard visibly changed case and then typed lower case anyway, so a
+  capital letter could not be entered in any of them. They now go through the
+  same case handling as the message field.
+- Opening 🌍 appeared to replace the suggestion bar. The translate bar now sits
+  *above* it, so suggestions and the tool row stay where they are, next to the
+  keys.
 
 **Typing**
 - Type accented languages on the bare keys and get the accents back: "cafe"

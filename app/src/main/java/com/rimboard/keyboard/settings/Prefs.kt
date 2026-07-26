@@ -89,6 +89,23 @@ object Prefs {
      */
     const val KEY_TRANSLATE_TARGET = "translate_target"
 
+    /**
+     * Which translation service 🌍 uses, or "auto" to pick the best available.
+     * Read through `Translate.effective`, which resolves "auto" and drops back
+     * to a usable source when the chosen one has no key.
+     */
+    const val KEY_TRANSLATE_SOURCE = "translate_source"
+
+    /**
+     * Optional self-hosted instance for the chosen service, as a bare hostname.
+     *
+     * This is the one host the network allowlist cannot be static about, and
+     * `Net.hostAllowed` consults it deliberately: the point of self-hosting is
+     * that the address is yours and nobody could have listed it in advance.
+     * Empty unless the user typed one in.
+     */
+    const val KEY_TRANSLATE_HOST = "translate_host"
+
     @Volatile
     private var cached: SharedPreferences? = null
 
