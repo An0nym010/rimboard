@@ -66,11 +66,12 @@ class RimBoardService : InputMethodService(),
     private var gifView: com.rimboard.keyboard.ui.GifView? = null
     private var translateView: com.rimboard.keyboard.ui.TranslateView? = null
 
+
     /**
-     * What the translate panel was seeded from, so inserting replaces it
-     * rather than appending beside it. Null when it opened empty.
+     * The translation currently sitting in the field, so the next one replaces
+     * it instead of piling up after it. Null once nothing has been inserted.
      */
-    private var translateSeed: String? = null
+    private var translateInserted: String? = null
 
     /** Holds a picker shown *above* the keyboard rather than instead of it. */
     private var searchHost: FrameLayout? = null
@@ -1700,6 +1701,15 @@ class RimBoardService : InputMethodService(),
      * the stale-panel half of the bug cannot come back through another route.
      */
     override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent): Boolean {
+        // One level at a time: the language list is a layer inside the
+        // translate bar, so Back should dismiss that before dismissing the bar
+        // and losing what was typed into it.
+        if (keyCode == android.view.KeyEvent.KEYCODE_BACK &&
+            translateView?.isPickingLanguage() == true
+        ) {
+            translateView?.closeLanguageList()
+            return true
+        }
         if (keyCode == android.view.KeyEvent.KEYCODE_BACK && anyPanelOpen()) {
             closeAnyPanel()
             return true
@@ -2169,12 +2179,16 @@ class RimBoardService : InputMethodService(),
         val tv = translateView ?: return
         finishComposingSilently()
         val selected = ic.getSelectedText(0)?.toString()?.takeIf { it.isNotBlank() }
-        translateSeed = selected
         tv.start(
             selected,
             com.rimboard.keyboard.model.TranslateTargets.promptName(this, currentLangCode())
         )
-        openSearchHost(tv, SearchRoute.TRANSLATE, withKeyboard = true)
+        translateInserted = null
+        tv.setLanguages(
+            com.rimboard.keyboard.model.TranslateTargets.list(this, effLocale())
+                .map { it.code to it.label }
+        ) { code -> onTranslateTargetPicked(code) }
+        openSearchHost(tv, SearchRoute.TRANSLATE, withKeyboard = true, compact = true)
     }
 
     override fun onTranslateRequest(text: String) {
@@ -2195,15 +2209,51 @@ class RimBoardService : InputMethodService(),
         }.start()
     }
 
-    override fun onTranslateInsert(text: String) {
+    /**
+     * Puts a translation in the field, replacing the one already there.
+     *
+     * This is what makes the text appear on its own as you type, the way
+     * Gboard's does — the bar shows what you typed and the field shows the
+     * translation. Each new result deletes the previous one first, so pausing
+     * twice does not leave two translations end to end.
+     *
+     * The delete is conditional on the text still being there: the user may
+     * have tapped elsewhere or the app may have reformatted, and blindly
+     * deleting that many characters would eat something else.
+     */
+    override fun onTranslateApply(text: String) {
         val ic = currentInputConnection ?: return
-        // commitText replaces the current selection when there is one and
-        // inserts at the cursor when there is not, which is exactly the two
-        // behaviours wanted here — seeded from a selection, or composed from
-        // nothing. No branch needed.
+        ic.beginBatchEdit()
+        val prev = translateInserted
+        if (prev != null) {
+            val before = ic.getTextBeforeCursor(prev.length, 0)?.toString()
+            if (before == prev) ic.deleteSurroundingText(prev.length, 0)
+        }
+        // commitText replaces a selection when there is one, which is what
+        // seeds the first insert when the bar was opened on selected text.
         ic.commitText(text, 1)
-        closeSearchHost()
+        ic.endBatchEdit()
+        translateInserted = text
         afterEdit()
+    }
+
+    override fun onTranslateTargetPicked(code: String) {
+        com.rimboard.keyboard.model.TranslateTargets.store(this, code)
+        translateView?.setTargetLabel(
+            com.rimboard.keyboard.model.TranslateTargets.currentLabel(this, effLocale())
+        )
+        // The target changed, so whatever is in the field is a translation into
+        // the wrong language. Redo it rather than leaving it there.
+        translateView?.flush()
+    }
+
+    /** The language list needs more room than the bar; give it the picker height. */
+    override fun onTranslateExpand(expanded: Boolean) {
+        val tv = translateView ?: return
+        openSearchHost(
+            tv, SearchRoute.TRANSLATE, withKeyboard = true,
+            compact = !expanded
+        )
     }
 
     override fun onTranslateClose() {
@@ -2564,7 +2614,7 @@ class RimBoardService : InputMethodService(),
             // Enter commits the translation rather than discarding it. On the
             // other pickers there is nothing to commit, so it just closes.
             Codes.ENTER -> {
-                if (searchRoute == SearchRoute.TRANSLATE) translateView?.insertResult()
+                if (searchRoute == SearchRoute.TRANSLATE) translateView?.flush()
                 else closeSearchHost()
                 true
             }
@@ -2577,7 +2627,12 @@ class RimBoardService : InputMethodService(),
         }
     }
 
-    private fun openSearchHost(panel: View, route: SearchRoute, withKeyboard: Boolean) {
+    private fun openSearchHost(
+        panel: View,
+        route: SearchRoute,
+        withKeyboard: Boolean,
+        compact: Boolean = false
+    ) {
         val host = searchHost ?: return
         val kbH = keyboardView?.measureKeyboardHeight() ?: return
         val lp = host.layoutParams
@@ -2587,9 +2642,14 @@ class RimBoardService : InputMethodService(),
         // attribution rather than against the keyboard alone: at 0.72 the grid
         // was down to less than a single row of tiles once the close bar was
         // added, so the picker was mostly chrome.
-        lp.height = if (withKeyboard) {
-            (kbH * 0.95f).toInt().coerceIn(dp(210), dp(320))
-        } else kbH
+        lp.height = when {
+            // The translate bar shows a language pair and one line of source;
+            // the translation itself goes into the message field, so it needs
+            // nothing like a picker's height.
+            compact -> dp(84)
+            withKeyboard -> (kbH * 0.95f).toInt().coerceIn(dp(210), dp(320))
+            else -> kbH
+        }
         host.layoutParams = lp
         // The reverse of the guard in revealPanel: a picker replaces any panel.
         for (other in arrayOf(clipboardView, editPanelView, toolbarPanelHost)) {
@@ -2616,7 +2676,7 @@ class RimBoardService : InputMethodService(),
         searchRoute = SearchRoute.NONE
         gifView?.cancelPending()
         translateView?.cancelPending()
-        translateSeed = null
+        translateInserted = null
         searchHost?.let { host ->
             host.visibility = View.GONE
             host.layoutParams = host.layoutParams.apply { height = 0 }
