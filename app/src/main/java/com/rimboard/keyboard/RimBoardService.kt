@@ -146,7 +146,18 @@ class RimBoardService : InputMethodService(),
     private var autoSpace = false
     private var glideWords: List<String> = emptyList()
 
-    private class Revert(val original: String, val committed: String, val separator: String)
+    /**
+     * [learnable] is false for whole-phrase reverts such as a translation.
+     * Reverting a corrected *word* teaches the dictionary that word and moves
+     * the bigram context onto it; doing either with an entire sentence would
+     * file the sentence away as a word and poison the next-word context.
+     */
+    private class Revert(
+        val original: String,
+        val committed: String,
+        val separator: String,
+        val learnable: Boolean = true
+    )
 
     private var revert: Revert? = null
 
@@ -1375,13 +1386,15 @@ class RimBoardService : InputMethodService(),
         ic.deleteSurroundingText(rv.committed.length + rv.separator.length, 0)
         ic.commitText(rv.original + rv.separator, 1)
         ic.endBatchEdit()
-        if (Prefs.learnWords(this) && !isIncognito()) {
+        if (rv.learnable && Prefs.learnWords(this) && !isIncognito()) {
             userData.markKnown(rv.original.lowercase(locale()))
         }
-        // Reverting swaps the last word in place; keep the trigram context.
-        val keep2 = prevWord2
-        prevWordForBigram = rv.original.lowercase(locale())
-        prevWord2 = keep2
+        if (rv.learnable) {
+            // Reverting swaps the last word in place; keep the trigram context.
+            val keep2 = prevWord2
+            prevWordForBigram = rv.original.lowercase(locale())
+            prevWord2 = keep2
+        }
         revert = null
         afterEdit()
     }
@@ -2100,8 +2113,11 @@ class RimBoardService : InputMethodService(),
      * to do to someone's half-written message by accident.
      */
     private fun translateInPlace(ic: InputConnection) {
-        val target = java.util.Locale(currentLangCode())
-            .getDisplayLanguage(java.util.Locale.ENGLISH)
+        // The target is its own setting now rather than whichever layout
+        // happens to be active — wanting Turkish output never implied wanting
+        // a Turkish keyboard. "auto" still means the keyboard language.
+        val target = com.rimboard.keyboard.model.TranslateTargets
+            .promptName(this, currentLangCode())
         aiTransform(ic, com.rimboard.keyboard.net.AiText.Task.TRANSLATE, target,
             R.string.ai_translating)
     }
@@ -2172,6 +2188,14 @@ class RimBoardService : InputMethodService(),
                             toast(getString(R.string.ai_moved_on))
                         } else {
                             live.commitText(text, 1)
+                            // Replacing a whole selection with model output is
+                            // the most destructive thing this keyboard does,
+                            // and it was irreversible. The strip already has a
+                            // revert chip for autocorrect; this reuses it, so
+                            // a translation that came back wrong costs one tap
+                            // rather than the text.
+                            revert = Revert(selected, text, "", learnable = false)
+                            updateStrip()
                         }
                     },
                     onFailure = { e ->

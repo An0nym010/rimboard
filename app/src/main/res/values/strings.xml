@@ -170,6 +170,9 @@
     <string name="cc_wheel_desc" tools:ignore="MissingTranslation">Colour: hue %1$d degrees, saturation %2$d percent, brightness %3$d percent</string>
     <string name="cc_hex_label" tools:ignore="MissingTranslation">Hex colour</string>
     <string name="cc_apply" tools:ignore="MissingTranslation">Save</string>
+    <string name="tr_target_auto" tools:ignore="MissingTranslation">Keyboard language (%1$s)</string>
+    <string name="tr_target_note" tools:ignore="MissingTranslation">Applies to the 🌍 tool. Any language the phone can name, not only the ones you type in.</string>
+    <string name="tr_target_title" tools:ignore="MissingTranslation">Translate into</string>
     <string name="header_byok" formatted="false" tools:ignore="MissingTranslation">your own API keys</string>
     <string name="st_wpm_short">WPM</string>
     <string name="screen_general">Preferences</string>

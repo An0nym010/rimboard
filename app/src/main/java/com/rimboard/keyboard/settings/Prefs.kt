@@ -83,6 +83,12 @@ object Prefs {
     const val KEY_NET_MODE = "net_mode"
     const val KEY_NET_SENT = "net_sent_count"
 
+    /**
+     * ISO code 🌍 translates into, or "auto" to follow the keyboard language.
+     * Read through `TranslateTargets`, which resolves "auto" and names it.
+     */
+    const val KEY_TRANSLATE_TARGET = "translate_target"
+
     @Volatile
     private var cached: SharedPreferences? = null
 

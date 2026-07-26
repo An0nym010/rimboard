@@ -16,6 +16,7 @@ import com.rimboard.keyboard.R
 import com.rimboard.keyboard.net.ApiKeys
 import com.rimboard.keyboard.net.Net
 import com.rimboard.keyboard.net.NetLog
+import com.rimboard.keyboard.model.TranslateTargets
 import com.rimboard.keyboard.net.NetProbe
 import java.text.DateFormat
 import java.util.Date
@@ -170,6 +171,24 @@ class NetworkActivity : AppCompatActivity() {
                 textSize = 12f
                 setPadding(0, (8 * d).toInt(), 0, 0)
             })
+
+            // Lives beside the Anthropic key because that is what makes the
+            // feature work at all; it is the first thing anyone will look for
+            // after setting one.
+            section(d, getString(R.string.tr_target_title))
+            val targetRow = TextView(this).apply {
+                text = TranslateTargets.currentLabel(this@NetworkActivity, uiLocale)
+                textSize = 16f
+                setPadding(0, (6 * d).toInt(), 0, (6 * d).toInt())
+                isClickable = true
+                isFocusable = true
+                setOnClickListener { showTargetPicker() }
+            }
+            container.addView(targetRow)
+            container.addView(TextView(this).apply {
+                text = getString(R.string.tr_target_note)
+                textSize = 12f
+            })
         }
 
         section(d, getString(R.string.net_perm_header))
@@ -272,6 +291,30 @@ class NetworkActivity : AppCompatActivity() {
             }
         })
         container.addView(buttons)
+    }
+
+    /**
+     * The full platform language list, with the user's keyboard languages on
+     * top.
+     *
+     * Deliberately not limited to the 22 bundled layouts: those exist so you
+     * can *type* a language, and translating into one has nothing to do with
+     * having its keyboard. The names come from the platform, so they arrive
+     * already translated into whatever the UI is set to.
+     */
+    private fun showTargetPicker() {
+        val targets = TranslateTargets.list(this, uiLocale)
+        val labels = targets.map { it.label }.toTypedArray()
+        val current = targets.indexOfFirst { it.code == TranslateTargets.stored(this) }
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(R.string.tr_target_title)
+            .setSingleChoiceItems(labels, current) { dlg, which ->
+                TranslateTargets.store(this, targets[which].code)
+                dlg.dismiss()
+                render()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun toast(res: Int) {
