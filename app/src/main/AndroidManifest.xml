@@ -13,6 +13,28 @@
 
     <uses-permission android:name="android.permission.VIBRATE" />
 
+    <!--
+        From API 30 an app sees no other packages unless it declares which it
+        cares about, and that filtering applies to queryIntentActivities too.
+        Without this the keyboard could not tell whether a translator was
+        installed even on a phone with one, so the 🌍 fallback had no way to
+        know it was about to do nothing.
+
+        This grants visibility of apps handling these two actions and nothing
+        else — it is not the broad QUERY_ALL_PACKAGES permission, and it reads
+        no package list.
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT" />
+            <data android:mimeType="text/plain" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="text/plain" />
+        </intent>
+    </queries>
+
     <application
         android:localeConfig="@xml/locales_config"
         android:allowBackup="false"

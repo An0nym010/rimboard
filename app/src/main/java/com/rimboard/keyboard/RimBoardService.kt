@@ -2098,9 +2098,42 @@ class RimBoardService : InputMethodService(),
      * the previous behaviour.
      */
     private fun launchTranslate(ic: InputConnection) {
-        val inPlace = com.rimboard.keyboard.net.Net.allowed(this, sendsTypedText = true) &&
+        val block = com.rimboard.keyboard.net.Net.blockedBy(this, sendsTypedText = true)
+        val hasKey = com.rimboard.keyboard.net.ApiKeys.unlocked(this) &&
             com.rimboard.keyboard.net.ApiKeys.anthropic(this) != null
-        if (inPlace) translateInPlace(ic) else launchExternalTranslate(ic)
+        if (block == null && hasKey) {
+            translateInPlace(ic)
+            return
+        }
+        // No in-place translation. Hand off to another app if one can take it,
+        // and otherwise say why nothing happened.
+        //
+        // This whole branch used to be silent: it fell through to the external
+        // app for any of four reasons and that app then failed quietly too, so
+        // tapping 🌍 with no Anthropic key set — the overwhelmingly common
+        // case, since the GIF key is a different one — did nothing whatsoever
+        // and gave no clue that a second key existed.
+        if (launchExternalTranslate(ic)) return
+        toast(getString(
+            when {
+                block != null -> netBlockMessage(block)
+                com.rimboard.keyboard.net.ApiKeys.unlocked(this) -> R.string.ai_no_key
+                else -> R.string.net_locked
+            }
+        ))
+    }
+
+    /**
+     * Why a network feature is unavailable, as one message.
+     *
+     * The GIF picker, proofread and translate all refuse for the same four
+     * reasons and each had its own copy of this mapping. Three copies of a
+     * four-way branch is three chances for one of them to fall behind.
+     */
+    private fun netBlockMessage(block: com.rimboard.keyboard.net.Net.Block): Int = when (block) {
+        com.rimboard.keyboard.net.Net.Block.NO_PERMISSION -> R.string.gif_offline_build
+        com.rimboard.keyboard.net.Net.Block.INCOGNITO -> R.string.ai_incognito
+        else -> R.string.gif_network_off
     }
 
     /**
@@ -2131,12 +2164,8 @@ class RimBoardService : InputMethodService(),
      * reach the network this simply reports why.
      */
     private fun proofreadInPlace(ic: InputConnection) {
-        com.rimboard.keyboard.net.Net.blockedBy(this, sendsTypedText = true)?.let { block ->
-            toast(getString(when (block) {
-                com.rimboard.keyboard.net.Net.Block.NO_PERMISSION -> R.string.gif_offline_build
-                com.rimboard.keyboard.net.Net.Block.INCOGNITO -> R.string.ai_incognito
-                else -> R.string.gif_network_off
-            }))
+        com.rimboard.keyboard.net.Net.blockedBy(this, sendsTypedText = true)?.let {
+            toast(getString(netBlockMessage(it)))
             return
         }
         if (!com.rimboard.keyboard.net.ApiKeys.unlocked(this)) {
@@ -2237,12 +2266,10 @@ class RimBoardService : InputMethodService(),
     private fun showGifPanel() {
         val gv = gifView ?: return
         com.rimboard.keyboard.net.Net.blockedBy(this, sendsTypedText = true)?.let { block ->
-            toast(getString(when (block) {
-                com.rimboard.keyboard.net.Net.Block.NO_PERMISSION -> R.string.gif_offline_build
-                com.rimboard.keyboard.net.Net.Block.USER_OFFLINE -> R.string.gif_network_off
-                com.rimboard.keyboard.net.Net.Block.INCOGNITO -> R.string.gif_incognito
-                com.rimboard.keyboard.net.Net.Block.HOST_NOT_ALLOWED -> R.string.gif_network_off
-            }))
+            toast(getString(
+                if (block == com.rimboard.keyboard.net.Net.Block.INCOGNITO)
+                    R.string.gif_incognito else netBlockMessage(block)
+            ))
             return
         }
         if (!com.rimboard.keyboard.net.ApiKeys.unlocked(this)) {
@@ -2542,7 +2569,15 @@ class RimBoardService : InputMethodService(),
 
     /** Hands text to any installed translator via the system process-text
      *  action. RimBoard itself sends nothing anywhere. */
-    private fun launchExternalTranslate(ic: InputConnection) {
+    /**
+     * Hands the text to any installed translator. Returns whether that
+     * actually happened, so the caller can explain the silence otherwise.
+     *
+     * Every exit here used to be silent — blank text, no installed handler, a
+     * refused activity start — which is how the tool came to do nothing at all
+     * with no indication why.
+     */
+    private fun launchExternalTranslate(ic: InputConnection): Boolean {
         val selected = ic.getSelectedText(0)?.toString()
         val text = if (!selected.isNullOrBlank()) {
             selected
@@ -2550,16 +2585,25 @@ class RimBoardService : InputMethodService(),
             val et = ic.getExtractedText(android.view.inputmethod.ExtractedTextRequest(), 0)
             et?.text?.toString() ?: ""
         }
-        if (text.isBlank()) return
-        try {
-            val send = Intent(Intent.ACTION_PROCESS_TEXT).apply {
-                type = "text/plain"
-                putExtra(Intent.EXTRA_PROCESS_TEXT, text.take(1000))
-                putExtra(Intent.EXTRA_PROCESS_TEXT_READONLY, true)
-            }
+        if (text.isBlank()) {
+            toast(getString(R.string.ai_needs_selection))
+            return true
+        }
+        val send = Intent(Intent.ACTION_PROCESS_TEXT).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_PROCESS_TEXT, text.take(1000))
+            putExtra(Intent.EXTRA_PROCESS_TEXT_READONLY, true)
+        }
+        // Needs the <queries> entry in the manifest to see anything at all on
+        // API 30+, where package visibility is filtered by default. Without it
+        // this returns empty even on a phone with Google Translate installed.
+        if (packageManager.queryIntentActivities(send, 0).isEmpty()) return false
+        return try {
             startActivity(Intent.createChooser(send, null)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            true
         } catch (_: Exception) {
+            false
         }
     }
 
