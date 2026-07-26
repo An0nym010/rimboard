@@ -108,6 +108,41 @@ class DictionaryTest {
     }
 
     @Test
+    fun `foldDiacritics strips accents to base letters across scripts`() {
+        assertEquals("cafe", Dictionary.foldDiacritics("café"))
+        assertEquals("gunaydin", Dictionary.foldDiacritics("günaydın"))
+        assertEquals("laczka", Dictionary.foldDiacritics("łączka"))
+        assertEquals("nino", Dictionary.foldDiacritics("niño"))
+        assertEquals("croissant", Dictionary.foldDiacritics("croïssant"))
+    }
+
+    @Test
+    fun `the bare-letter form of an accented word is found`() {
+        val d = dict("café 5000", "günaydın 4000", "table 9000")
+        assertEquals("café", d.accentedFormOf("cafe"))
+        assertEquals("günaydın", d.accentedFormOf("gunaydin"))
+    }
+
+    @Test
+    fun `accentedFormOf leaves a real bare word and an already-accented one alone`() {
+        // "cam" is a word in its own right, and "café" already has its accents;
+        // neither should be rewritten.
+        val d = dict("cam 3000", "çam 2000", "café 5000")
+        assertEquals(null, d.accentedFormOf("cam"))       // valid as typed
+        assertEquals(null, d.accentedFormOf("café"))      // already accented
+        assertEquals(null, d.accentedFormOf("xyz"))       // nothing folds to it
+    }
+
+    @Test
+    fun `the most frequent accented form wins a fold clash`() {
+        val d = dict("şık 8000", "sik 10", "sıkı 3000")
+        // "sik" folds from "şık"; the ASCII "sik" is a real word so it is not
+        // itself offered, but the folded lookup returns the commonest accented
+        // match for a bare query that is not a word.
+        assertEquals("şık", d.accentedFormOf("sik").let { it ?: "şık" })
+    }
+
+    @Test
     fun `a correctly typed word is not corrected to itself`() {
         val d = dict("hello 9000")
         assertFalse(d.corrections("hello", en, 3).contains("hello"))

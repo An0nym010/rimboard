@@ -52,6 +52,32 @@ class Dictionary(
         /** Absolute noise floor beneath the rank cap: drops hapax and one-off junk. */
         private const val CORRECTION_MIN_FREQ = 2
 
+        /**
+         * Strips diacritics to their base letter: é→e, ü→u, ç→c, ł→l, ı→i.
+         *
+         * People routinely type accented languages with the bare keys — "cafe"
+         * for "café", "gunaydin" for "günaydın" — and expect the real word
+         * back. This is what lets the dictionary be looked up by the flattened
+         * form. Combining marks fall out through Unicode decomposition; the
+         * handful of letters that are atomic code points with no decomposition
+         * (dotless ı, Polish ł, Scandinavian ø) are mapped explicitly.
+         */
+        fun foldDiacritics(s: String): String {
+            val decomposed = java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD)
+            val sb = StringBuilder(decomposed.length)
+            for (ch in decomposed) {
+                when {
+                    Character.getType(ch) == Character.NON_SPACING_MARK.toInt() -> {}
+                    else -> sb.append(ATOMIC_FOLD[ch] ?: ch)
+                }
+            }
+            return sb.toString()
+        }
+
+        private val ATOMIC_FOLD: Map<Char, Char> = mapOf(
+            'ı' to 'i', 'ł' to 'l', 'ø' to 'o', 'đ' to 'd', 'ð' to 'd'
+        )
+
         /** Optimal string alignment (Damerau-Levenshtein) distance with early
          *  cutoff: anything beyond [max] comes back as max + 1. Companion
          *  because it reads no dictionary state, and UserData uses it to rank
@@ -89,6 +115,8 @@ class Dictionary(
     private val words: Array<String>
     private val freqs: IntArray
     private val exact = HashSet<String>()
+    /** Bare-letter form -> index of the most frequent accented word matching it. */
+    private val foldedIndex = HashMap<String, Int>()
     private val byLen: Array<IntArray>
     // The transition model lives in flat primitive arrays. As a nested
     // HashMap<Char, HashMap<Char, Double>> it allocated on the order of a
@@ -182,6 +210,16 @@ class Dictionary(
             if (freqs[i] < floor) continue
             val len = words[i].length
             if (len in 1..24) buckets[len].add(i)
+            // Diacritic index: only words that actually carry an accent, keyed
+            // by their bare-letter form, keeping the most frequent on a clash
+            // ("şık" and a hypothetical "sık" both fold to "sik"). Words with no
+            // accent are reached by the ordinary exact lookup and would only
+            // bloat this.
+            val folded = foldDiacritics(words[i])
+            if (folded != words[i]) {
+                val prev = foldedIndex[folded]
+                if (prev == null || freqs[prev] < freqs[i]) foldedIndex[folded] = i
+            }
         }
         byLen = Array(25) { buckets[it].toIntArray() }
     }
@@ -205,6 +243,21 @@ class Dictionary(
     val size: Int get() = words.size
 
     fun contains(wordLower: String): Boolean = exact.contains(wordLower)
+
+    /**
+     * The accented dictionary word a bare-letter query spells, or null.
+     *
+     * Only fires when the query is not itself a word: "cam" is valid Turkish
+     * and stays "cam", but "gunaydin" is not a word and spells "günaydın". Null
+     * when the query already contains the accents (it would just fold to
+     * itself) so this never second-guesses a correctly-accented word.
+     */
+    fun accentedFormOf(bareLower: String): String? {
+        if (exact.contains(bareLower)) return null
+        if (foldDiacritics(bareLower) != bareLower) return null // already accented
+        val i = foldedIndex[bareLower] ?: return null
+        return words[i]
+    }
 
     /**
      * Smoothed log P(next | prev) from the character-transition model. [prev]

@@ -235,6 +235,32 @@ class SuggestionEngineTest {
         assertEquals("you're", out.items[out.autocorrectIndex])
     }
 
+    // ---- diacritic restoration ----
+
+    @Test
+    fun `typing bare letters offers the accented word`() {
+        val tr = Locale.forLanguageTag("tr")
+        val eng = engine(mapOf("dictionaries/tr.txt" to "günaydın 5000\naraba 4000"))
+        assertEquals("günaydın", eng.correctionFor("gunaydin", "tr", tr))
+    }
+
+    @Test
+    fun `diacritic restoration keeps the typed capitalization`() {
+        val fr = Locale.FRENCH
+        val eng = engine(mapOf("dictionaries/fr.txt" to "café 5000"))
+        assertEquals("café", eng.correctionFor("cafe", "fr", fr))
+        assertEquals("Café", eng.correctionFor("Cafe", "fr", fr))
+    }
+
+    @Test
+    fun `a bare word that is valid in its own right is not re-accented`() {
+        // "cam" (glass) is a real Turkish word; it must not be turned into
+        // "çam" (pine) just because that also exists.
+        val tr = Locale.forLanguageTag("tr")
+        val eng = engine(mapOf("dictionaries/tr.txt" to "cam 3000\nçam 2000"))
+        assertEquals(null, eng.correctionFor("cam", "tr", tr))
+    }
+
     // ---- agglutinative languages: not correcting valid inflected forms ----
 
     @Test

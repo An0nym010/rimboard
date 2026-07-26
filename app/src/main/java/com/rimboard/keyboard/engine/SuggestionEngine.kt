@@ -203,11 +203,22 @@ class SuggestionEngine private constructor(
         val dict = dictionary(lang, locale)
         val lower = typed.lowercase(locale)
         if (dict.contains(lower) || userData.isKnown(lower)) return emptyList()
+        // Bare-letter spelling of an accented word: "cafe" -> "café",
+        // "gunaydin" -> "günaydın". High confidence, because the query is not
+        // itself a word and folds exactly onto a dictionary entry — so it leads
+        // the list rather than competing as an edit-distance guess. It still
+        // passes through the filters and case-matching below.
+        val accented = dict.accentedFormOf(lower)?.takeIf {
+            !isOffensive(it, lang) && !userData.isBlocked(it)
+        }
         // Agglutinative languages build endless valid surface forms a frequency
         // dictionary cannot list. If the word peels down to a known stem
         // through recognised suffixes, it is a real word the corpus merely
-        // never saw — do not "correct" it. See [Morphology].
-        if (com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) { dict.contains(it) }) {
+        // never saw — do not "correct" it. See [Morphology]. Skipped when the
+        // bare form spells an accented word, which is a correction, not a stem.
+        if (accented == null &&
+            com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) { dict.contains(it) }
+        ) {
             return emptyList()
         }
         // Bilingual typing: never "correct" a word that is valid in the
@@ -233,7 +244,7 @@ class SuggestionEngine private constructor(
         // teh -> the, but it fills in when the dictionary has nothing to say.
         val personal = userData.correctionCandidates(
             lower, Dictionary.maxEditDistance(lower.length))
-        return (fromDict + personal)
+        return (listOfNotNull(accented) + fromDict + personal)
             .distinct()
             .asSequence()
             // Never correct one word *toward* a corpus bare form: "don" must

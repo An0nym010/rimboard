@@ -5,6 +5,11 @@ Release notes for every RimBoard version. The current release is summarised in t
 ## Unreleased
 
 **Typing**
+- Type accented languages on the bare keys and get the accents back: "cafe"
+  becomes "café", "gunaydin" becomes "günaydın". The dictionary is now indexed
+  by the accent-stripped form of every accented word, so the real spelling is
+  offered — and committed on space with a revert chip — whenever the bare form
+  is not itself a word. A word that is valid as typed ("cam") is left alone.
 - Turkish (and other agglutinative languages) no longer have valid words
   "corrected" away. Turkish builds words by stacking suffixes onto a root, so
   most valid forms — "kitaplarımızdan", "evlerimizden" — never appear in any
