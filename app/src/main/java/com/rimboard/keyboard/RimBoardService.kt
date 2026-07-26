@@ -1787,8 +1787,9 @@ class RimBoardService : InputMethodService(),
      */
     private fun revealPanel(panel: View) {
         val kv = keyboardView ?: return
-        // Panels live in `frame` and pickers live in `searchHost`, so hiding
-        // one family says nothing about the other. Without this, opening the
+        // Panels live in `frame` and the pickers and translate bar live outside
+        // it, so hiding one family says nothing about the other. Without this,
+        // opening the
         // clipboard over an open GIF picker left both on screen and left
         // keystrokes routing into the query underneath.
         closeSearchHost()
