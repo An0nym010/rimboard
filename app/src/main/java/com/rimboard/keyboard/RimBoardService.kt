@@ -2125,26 +2125,30 @@ class RimBoardService : InputMethodService(),
      */
     private fun launchTranslate(ic: InputConnection) {
         val block = com.rimboard.keyboard.net.Net.blockedBy(this, sendsTypedText = true)
-        val hasKey = com.rimboard.keyboard.net.ApiKeys.unlocked(this) &&
-            com.rimboard.keyboard.net.ApiKeys.anthropic(this) != null
+        val locked = !com.rimboard.keyboard.net.ApiKeys.unlocked(this)
+        val hasKey = !locked && com.rimboard.keyboard.net.ApiKeys.anthropic(this) != null
         if (block == null && hasKey) {
             showTranslatePanel(ic)
             return
         }
-        // No in-place translation. Hand off to another app if one can take it,
-        // and otherwise say why nothing happened.
-        //
-        // This whole branch used to be silent: it fell through to the external
-        // app for any of four reasons and that app then failed quietly too, so
-        // tapping 🌍 with no Anthropic key set — the overwhelmingly common
-        // case, since the GIF key is a different one — did nothing whatsoever
-        // and gave no clue that a second key existed.
-        if (launchExternalTranslate(ic)) return
-        toast(getString(
+
+        // The offline build can never translate in place, so handing the text
+        // to another app is what 🌍 *means* there and it happens silently.
+        if (block == com.rimboard.keyboard.net.Net.Block.NO_PERMISSION) {
+            if (!launchExternalTranslate(ic)) toast(getString(R.string.tr_no_app))
+            return
+        }
+
+        // Everything else is fixable, and this used to silently open an app
+        // chooser instead of saying so — which looked like the tool simply not
+        // working, since the chooser is a different feature wearing the same
+        // button. Network mode also defaults to off, so the common case was
+        // being routed around a setting nobody had been told about.
+        toastLong(getString(
             when {
                 block != null -> netBlockMessage(block)
-                com.rimboard.keyboard.net.ApiKeys.unlocked(this) -> R.string.ai_no_key
-                else -> R.string.net_locked
+                locked -> R.string.net_locked
+                else -> R.string.ai_no_key
             }
         ))
     }
@@ -2342,6 +2346,11 @@ class RimBoardService : InputMethodService(),
 
     private fun toast(msg: String) {
         android.widget.Toast.makeText(this, msg, android.widget.Toast.LENGTH_SHORT).show()
+    }
+
+    /** For messages that are instructions rather than status. */
+    private fun toastLong(msg: String) {
+        android.widget.Toast.makeText(this, msg, android.widget.Toast.LENGTH_LONG).show()
     }
 
     /**

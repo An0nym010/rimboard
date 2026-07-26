@@ -172,6 +172,11 @@
     <string name="cc_apply" tools:ignore="MissingTranslation">Save</string>
     <string name="tr_target_auto" tools:ignore="MissingTranslation">Keyboard language (%1$s)</string>
     <string name="tr_target_note" tools:ignore="MissingTranslation">Applies to the 🌍 tool. Any language the phone can name, not only the ones you type in.</string>
+    <string name="net_enable_title" tools:ignore="MissingTranslation">Turn on online features?</string>
+    <string name="net_enable_msg" tools:ignore="MissingTranslation">The key is saved, but online features are switched off, so nothing will use it yet.</string>
+    <string name="net_enable_yes" tools:ignore="MissingTranslation">Turn on</string>
+    <string name="net_enable_no" tools:ignore="MissingTranslation">Leave off</string>
+    <string name="tr_no_app" tools:ignore="MissingTranslation">No translator app installed</string>
     <string name="tr_detect" tools:ignore="MissingTranslation">Detect</string>
     <string name="tr_source_hint" tools:ignore="MissingTranslation">Type what you want translated…</string>
     <string name="tr_target_title" tools:ignore="MissingTranslation">Translate into</string>

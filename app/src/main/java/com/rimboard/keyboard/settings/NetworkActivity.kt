@@ -278,6 +278,7 @@ class NetworkActivity : AppCompatActivity() {
                 save(field.text.toString())
                 field.setText("")
                 toast(R.string.pref_key_saved)
+                offerToEnableOnline()
                 render()
             }
         })
@@ -314,6 +315,29 @@ class NetworkActivity : AppCompatActivity() {
                 render()
             }
             .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /**
+     * Saving a key while the network switch is off leaves the features still
+     * refusing, for a reason on a different part of the same screen.
+     *
+     * Someone who has just pasted an API key has plainly decided they want the
+     * feature; the switch is the consent step and is not skipped, but it is
+     * asked about here rather than left to be discovered. Before this, the
+     * common outcome was a key set, the switch off, and the tool silently
+     * doing something else entirely.
+     */
+    private fun offerToEnableOnline() {
+        if (Net.mode(this) == Net.MODE_ONLINE) return
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(R.string.net_enable_title)
+            .setMessage(R.string.net_enable_msg)
+            .setPositiveButton(R.string.net_enable_yes) { _, _ ->
+                Net.setMode(this, Net.MODE_ONLINE)
+                render()
+            }
+            .setNegativeButton(R.string.net_enable_no, null)
             .show()
     }
 
