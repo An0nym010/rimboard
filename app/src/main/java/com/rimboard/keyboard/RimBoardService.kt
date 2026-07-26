@@ -73,6 +73,28 @@ class RimBoardService : InputMethodService(),
      */
     private var translateInserted: String? = null
 
+    /**
+     * The source text of the last translation actually sent.
+     *
+     * Typing a word, deleting it and retyping the same thing produced two
+     * identical billed requests. The result has not changed, so the request
+     * does not need making.
+     */
+    private var translateLastSource: String? = null
+
+    /** When that request went out, for the floor between calls. */
+    private var translateLastAt = 0L
+
+    /** Requests this time the bar has been open, shown in the bar. */
+    private var translateCount = 0
+
+    /**
+     * Floor between translation requests. The bar's own debounce is the main
+     * control; this is the backstop against a typing rhythm that happens to
+     * land on it repeatedly.
+     */
+    private val minTranslateGapMs = 1500L
+
     /** Holds a picker shown *above* the keyboard rather than instead of it. */
     private var searchHost: FrameLayout? = null
 
@@ -2083,6 +2105,7 @@ class RimBoardService : InputMethodService(),
         val tp = toolbarPanel ?: return
         finishComposingSilently()
         tp.setTools(pinnedTools())
+        tp.setUnavailable(unavailableTools())
         revealPanel(toolbarPanelHost ?: return)
     }
 
@@ -2154,6 +2177,47 @@ class RimBoardService : InputMethodService(),
     }
 
     /**
+     * Which online tools cannot run right now, and the short reason for each.
+     *
+     * Computed at the moment the panel opens rather than cached: incognito and
+     * the network switch both change under it, and a stale "ready" is worse
+     * than no marking at all. Short phrasings, because these are drawn under a
+     * 62dp icon rather than shown as a message.
+     */
+    private fun unavailableTools(): Map<String, String> {
+        val out = HashMap<String, String>()
+        val block = com.rimboard.keyboard.net.Net.blockedBy(this, sendsTypedText = true)
+        val locked = !com.rimboard.keyboard.net.ApiKeys.unlocked(this)
+        val shared = when {
+            block == com.rimboard.keyboard.net.Net.Block.NO_PERMISSION ->
+                getString(R.string.tool_off_build)
+            block == com.rimboard.keyboard.net.Net.Block.INCOGNITO ->
+                getString(R.string.tool_off_incognito)
+            block != null -> getString(R.string.tool_off_network)
+            locked -> getString(R.string.tool_off_locked)
+            else -> null
+        }
+        // A missing key is per-feature: the two use different services, which
+        // is exactly the confusion that had someone set one and expect both.
+        val gifReason = shared
+            ?: getString(R.string.tool_off_key).takeIf {
+                com.rimboard.keyboard.net.ApiKeys.klipy(this) == null
+            }
+        val aiReason = shared
+            ?: getString(R.string.tool_off_key).takeIf {
+                com.rimboard.keyboard.net.ApiKeys.anthropic(this) == null
+            }
+        gifReason?.let { out["gif"] = it }
+        aiReason?.let {
+            out["proofread"] = it
+            // 🌍 still hands off to another app on the offline build, so it is
+            // only truly unavailable when that is not the situation.
+            if (block != com.rimboard.keyboard.net.Net.Block.NO_PERMISSION) out["translate"] = it
+        }
+        return out
+    }
+
+    /**
      * Why a network feature is unavailable, as one message.
      *
      * The GIF picker, proofread and translate all refuse for the same four
@@ -2188,6 +2252,10 @@ class RimBoardService : InputMethodService(),
             com.rimboard.keyboard.model.TranslateTargets.promptName(this, currentLangCode())
         )
         translateInserted = null
+        translateLastSource = null
+        translateLastAt = 0L
+        translateCount = 0
+        tv.setRequestCount(0)
         tv.setLanguages(
             com.rimboard.keyboard.model.TranslateTargets.list(this, effLocale())
                 .map { it.code to it.label }
@@ -2197,6 +2265,25 @@ class RimBoardService : InputMethodService(),
 
     override fun onTranslateRequest(text: String) {
         val tv = translateView ?: return
+
+        // Auto-insert means this fires on a timer rather than on a tap, so
+        // nothing but these guards stands between a long message and a long
+        // bill. The user is paying per call with their own key.
+        if (text == translateLastSource) {
+            // Same words as last time — the answer would be the same too.
+            return
+        }
+        val since = android.os.SystemClock.uptimeMillis() - translateLastAt
+        if (translateLastAt != 0L && since < minTranslateGapMs) {
+            // Too soon after the last one. Reschedule rather than drop, so a
+            // fast typist gets the translation late instead of never.
+            tv.retryAfter(minTranslateGapMs - since)
+            return
+        }
+        translateLastSource = text
+        translateLastAt = android.os.SystemClock.uptimeMillis()
+        translateCount++
+        tv.setRequestCount(translateCount)
         tv.setStatus(getString(R.string.ai_translating))
         val target = com.rimboard.keyboard.model.TranslateTargets
             .promptName(this, currentLangCode())
@@ -2246,8 +2333,9 @@ class RimBoardService : InputMethodService(),
         translateView?.setTargetLabel(
             com.rimboard.keyboard.model.TranslateTargets.currentLabel(this, effLocale())
         )
-        // The target changed, so whatever is in the field is a translation into
-        // the wrong language. Redo it rather than leaving it there.
+        // The target changed, so the same source now has a different correct
+        // answer — the dedupe must not suppress the re-request.
+        translateLastSource = null
         translateView?.flush()
     }
 
@@ -2686,6 +2774,9 @@ class RimBoardService : InputMethodService(),
         gifView?.cancelPending()
         translateView?.cancelPending()
         translateInserted = null
+        translateLastSource = null
+        translateLastAt = 0L
+        translateCount = 0
         searchHost?.let { host ->
             host.visibility = View.GONE
             host.layoutParams = host.layoutParams.apply { height = 0 }

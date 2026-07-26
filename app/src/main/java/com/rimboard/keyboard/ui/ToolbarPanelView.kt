@@ -80,6 +80,24 @@ class ToolbarPanelView(context: Context) : View(context) {
         invalidate()
     }
 
+    /**
+     * Tools that cannot run right now, mapped to why.
+     *
+     * The online tools have four preconditions between them — right build,
+     * network on, key set, not incognito — and every one of them used to be
+     * discovered by tapping and being refused. Showing the state on the tool
+     * itself turns four failure messages into something visible before the
+     * finger moves.
+     */
+    private var unavailable: Map<String, String> = emptyMap()
+
+    fun setUnavailable(reasons: Map<String, String>) {
+        unavailable = reasons
+        invalidate()
+        // Reasons are part of every cell's spoken description.
+        invalidateRoot()
+    }
+
     /** [pinnedIds] appear in the top section, everything else below. */
     fun setTools(pinnedIds: List<String>) {
         pinned.clear()
@@ -111,6 +129,9 @@ class ToolbarPanelView(context: Context) : View(context) {
     private fun pinnedTop() = dp(PAD_DP) + dp(HEADER_H_DP)
     private fun restHeaderTop() = pinnedTop() + pinnedRows() * dp(CELL_H_DP) + dp(PAD_DP)
     private fun restTop() = restHeaderTop() + dp(HEADER_H_DP)
+
+    private fun withAlpha(color: Int, alpha: Int): Int =
+        (color and 0x00FFFFFF) or (alpha shl 24)
 
     private fun cellRect(index: Int, top: Float, out: RectF) {
         val r = index / cols
@@ -218,11 +239,15 @@ class ToolbarPanelView(context: Context) : View(context) {
         val tool = ToolCatalog.byId(id) ?: return
         val cx = cell.centerX()
         val cy = cell.top + dp(ICON_R_DP) + dp(5f)
-        bgPaint.color = if (isPinned) t.accent else t.keyBg
+        // Dimmed rather than hidden: the tool still exists and is one setting
+        // away, so removing it would be a lie about what the keyboard can do.
+        val off = id in unavailable
+        val alpha = if (off) 0x66 else 0xFF
+        bgPaint.color = withAlpha(if (isPinned) t.accent else t.keyBg, alpha)
         canvas.drawCircle(cx, cy, dp(ICON_R_DP), bgPaint)
         Icons.draw(
             canvas, tool.icon, cx, cy, dp(ICON_R_DP) * 1.05f,
-            if (isPinned) t.onAccent else t.keyText
+            withAlpha(if (isPinned) t.onAccent else t.keyText, alpha)
         )
         // Explicit pin toggle. Hold-and-drag alone is not discoverable, and it
         // is the only way to get a tool onto the suggestion bar.
@@ -239,9 +264,11 @@ class ToolbarPanelView(context: Context) : View(context) {
         if (!isPinned) canvas.drawLine(bx, by - br * 0.42f, bx, by + br * 0.42f, bgPaint)
         bgPaint.style = Paint.Style.FILL
 
-        textPaint.color = t.keyHint
+        textPaint.color = withAlpha(t.keyHint, if (off) 0x99 else 0xFF)
         textPaint.textSize = dp(10f)
-        val name = context.getString(tool.labelRes)
+        // The reason replaces the name, because "GIF" on a greyed icon says
+        // nothing and "Network off" says exactly what to do about it.
+        val name = unavailable[id] ?: context.getString(tool.labelRes)
         val maxW = cell.width() - dp(4f)
         var shown = name
         if (textPaint.measureText(shown) > maxW) {
@@ -462,7 +489,9 @@ class ToolbarPanelView(context: Context) : View(context) {
             val state = context.getString(
                 if (section == 0) R.string.tb_section_pinned else R.string.tb_section_all
             )
-            node.contentDescription = "$name, $state"
+            // tool.id, not the `id` parameter — that one is the virtual view's.
+            node.contentDescription = unavailable[tool.id]?.let { "$name, $state, $it" }
+                ?: "$name, $state"
             node.className = "android.widget.Button"
             node.isEnabled = true
             node.isFocusable = true

@@ -65,6 +65,7 @@ class TranslateView(context: Context) : LinearLayout(context) {
 
     private val pairRow: LinearLayout
     private val targetChip: TextView
+    private val countView: TextView
     private val sourceView: TextView
     private val status: TextView
     private val langList: LinearLayout
@@ -98,6 +99,11 @@ class TranslateView(context: Context) : LinearLayout(context) {
         }
         pairRow.addView(targetChip)
         pairRow.addView(TextView(context), LayoutParams(0, 1, 1f))
+        countView = TextView(context).apply {
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
+            setPadding(dp(4), 0, dp(4), 0)
+        }
+        pairRow.addView(countView)
         pairRow.addView(TextView(context).apply {
             text = "✕"
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
@@ -196,6 +202,30 @@ class TranslateView(context: Context) : LinearLayout(context) {
 
     fun cancelPending() = removeCallbacks(debounce)
 
+    /**
+     * Try again once the minimum gap has passed.
+     *
+     * The service refuses requests that come too close together; without this
+     * that refusal would simply lose the translation, since the debounce has
+     * already fired and will not fire again until the next keystroke.
+     */
+    fun retryAfter(delayMs: Long) {
+        removeCallbacks(debounce)
+        postDelayed(debounce, delayMs)
+    }
+
+    /**
+     * How many requests this bar has sent since it opened.
+     *
+     * Shown because the translation now happens on a timer rather than on a
+     * tap, and each one is a metered call against the user's own key. A
+     * running total buried in Settings is the wrong place for something
+     * accruing while you watch.
+     */
+    fun setRequestCount(n: Int) {
+        countView.text = if (n == 0) "" else context.getString(R.string.tr_count, n)
+    }
+
     // ---- language list ----
 
     /**
@@ -263,6 +293,7 @@ class TranslateView(context: Context) : LinearLayout(context) {
             (pairRow.getChildAt(i) as? TextView)?.setTextColor(t.keyHint)
         }
         targetChip.setTextColor(t.accent)
+        countView.setTextColor(t.keyHint)
         targetChip.background = GradientDrawable().apply {
             cornerRadius = dp(14).toFloat()
             setColor(t.keyBg)
