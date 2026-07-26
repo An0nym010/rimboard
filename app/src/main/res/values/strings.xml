@@ -172,6 +172,10 @@
     <string name="cc_apply" tools:ignore="MissingTranslation">Save</string>
     <string name="tr_target_auto" tools:ignore="MissingTranslation">Keyboard language (%1$s)</string>
     <string name="tr_target_note" tools:ignore="MissingTranslation">Applies to the 🌍 tool. Any language the phone can name, not only the ones you type in.</string>
+    <string name="tr_not_ready" tools:ignore="MissingTranslation">Nothing translated yet</string>
+    <string name="tr_insert" tools:ignore="MissingTranslation">Insert</string>
+    <string name="tr_target_into" tools:ignore="MissingTranslation">Translating into %1$s</string>
+    <string name="tr_source_hint" tools:ignore="MissingTranslation">Type what you want translated…</string>
     <string name="tr_target_title" tools:ignore="MissingTranslation">Translate into</string>
     <string name="header_byok" formatted="false" tools:ignore="MissingTranslation">your own API keys</string>
     <string name="st_wpm_short">WPM</string>

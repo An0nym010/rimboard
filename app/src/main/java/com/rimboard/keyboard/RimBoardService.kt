@@ -52,7 +52,8 @@ class RimBoardService : InputMethodService(),
     KeyboardView.Listener, SuggestionStripView.Listener, EmojiView.Listener,
     ClipboardView.Listener, EditPanelView.Listener,
     com.rimboard.keyboard.ui.ToolbarPanelView.Listener,
-    com.rimboard.keyboard.ui.GifView.Listener {
+    com.rimboard.keyboard.ui.GifView.Listener,
+    com.rimboard.keyboard.ui.TranslateView.Listener {
 
     private lateinit var userData: UserData
     private lateinit var engine: SuggestionEngine
@@ -63,12 +64,19 @@ class RimBoardService : InputMethodService(),
     private var emojiView: EmojiView? = null
     private var clipboardView: ClipboardView? = null
     private var gifView: com.rimboard.keyboard.ui.GifView? = null
+    private var translateView: com.rimboard.keyboard.ui.TranslateView? = null
+
+    /**
+     * What the translate panel was seeded from, so inserting replaces it
+     * rather than appending beside it. Null when it opened empty.
+     */
+    private var translateSeed: String? = null
 
     /** Holds a picker shown *above* the keyboard rather than instead of it. */
     private var searchHost: FrameLayout? = null
 
     /** Which picker, if any, is currently eating keystrokes for its search box. */
-    private enum class SearchRoute { NONE, GIF, EMOJI }
+    private enum class SearchRoute { NONE, GIF, EMOJI, TRANSLATE }
 
     private var searchRoute = SearchRoute.NONE
 
@@ -267,6 +275,10 @@ class RimBoardService : InputMethodService(),
             listener = this@RimBoardService
             visibility = View.GONE
         }
+        val tv = com.rimboard.keyboard.ui.TranslateView(ctx).apply {
+            listener = this@RimBoardService
+            visibility = View.GONE
+        }
         // Sits between the strip and the keyboard, so a picker can occupy the
         // top while the real keyboard stays where it always is. The panels in
         // `frame` replace the keyboard; anything in here sits above it, which
@@ -276,6 +288,8 @@ class RimBoardService : InputMethodService(),
         sh.addView(ev, FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
         sh.addView(gv, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+        sh.addView(tv, FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
         root.addView(sh, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, 0))
@@ -297,6 +311,7 @@ class RimBoardService : InputMethodService(),
         toolbarPanelHost = tpWrap
         toolbarCloseBtn = tpClose
         gifView = gv
+        translateView = tv
         floatingBlock = null
         if (!Prefs.floating(this)) return root
 
@@ -541,6 +556,7 @@ class RimBoardService : InputMethodService(),
         toolbarPanelHost?.setBackgroundColor(panelTheme.background)
         toolbarCloseBtn?.setTextColor(panelTheme.accent)
         gifView?.applyTheme(panelTheme)
+        translateView?.applyTheme(panelTheme)
         rootView?.setBackgroundColor(t.background)
         rootView?.dimAlpha = bgDimAlpha
         window?.window?.let { w ->
@@ -2102,7 +2118,7 @@ class RimBoardService : InputMethodService(),
         val hasKey = com.rimboard.keyboard.net.ApiKeys.unlocked(this) &&
             com.rimboard.keyboard.net.ApiKeys.anthropic(this) != null
         if (block == null && hasKey) {
-            translateInPlace(ic)
+            showTranslatePanel(ic)
             return
         }
         // No in-place translation. Hand off to another app if one can take it,
@@ -2141,18 +2157,57 @@ class RimBoardService : InputMethodService(),
      * keyboard is currently set to — so the target is the language you are
      * typing in, which is nearly always the one you want and needs no picker.
      *
-     * Requires a selection rather than falling back to the whole field: this
-     * one overwrites text, and "translate everything I can see" is not a thing
-     * to do to someone's half-written message by accident.
+     * Opens the translate panel above the keyboard.
+     *
+     * A selection seeds it, but nothing requires one: the old flow could only
+     * translate text that already existed, so composing a message in your own
+     * language and sending it in another — the thing people actually want a
+     * keyboard translator for — was impossible. Seeding also means the result
+     * is previewed rather than overwriting the selection sight-unseen.
      */
-    private fun translateInPlace(ic: InputConnection) {
-        // The target is its own setting now rather than whichever layout
-        // happens to be active — wanting Turkish output never implied wanting
-        // a Turkish keyboard. "auto" still means the keyboard language.
+    private fun showTranslatePanel(ic: InputConnection) {
+        val tv = translateView ?: return
+        finishComposingSilently()
+        val selected = ic.getSelectedText(0)?.toString()?.takeIf { it.isNotBlank() }
+        translateSeed = selected
+        tv.start(
+            selected,
+            com.rimboard.keyboard.model.TranslateTargets.promptName(this, currentLangCode())
+        )
+        openSearchHost(tv, SearchRoute.TRANSLATE, withKeyboard = true)
+    }
+
+    override fun onTranslateRequest(text: String) {
+        val tv = translateView ?: return
+        tv.setStatus(getString(R.string.ai_translating))
         val target = com.rimboard.keyboard.model.TranslateTargets
             .promptName(this, currentLangCode())
-        aiTransform(ic, com.rimboard.keyboard.net.AiText.Task.TRANSLATE, target,
-            R.string.ai_translating)
+        Thread {
+            val result = com.rimboard.keyboard.net.AiText.run(
+                this, com.rimboard.keyboard.net.AiText.Task.TRANSLATE, text, target
+            )
+            main {
+                result.fold(
+                    onSuccess = { tv.setResult(it) },
+                    onFailure = { tv.setStatus(getString(R.string.ai_failed, netError(it))) }
+                )
+            }
+        }.start()
+    }
+
+    override fun onTranslateInsert(text: String) {
+        val ic = currentInputConnection ?: return
+        // commitText replaces the current selection when there is one and
+        // inserts at the cursor when there is not, which is exactly the two
+        // behaviours wanted here — seeded from a selection, or composed from
+        // nothing. No branch needed.
+        ic.commitText(text, 1)
+        closeSearchHost()
+        afterEdit()
+    }
+
+    override fun onTranslateClose() {
+        closeSearchHost()
     }
 
     /**
@@ -2480,6 +2535,7 @@ class RimBoardService : InputMethodService(),
         when (searchRoute) {
             SearchRoute.GIF -> gifView?.appendQuery(c)
             SearchRoute.EMOJI -> emojiView?.appendQuery(c)
+            SearchRoute.TRANSLATE -> translateView?.appendQuery(c)
             SearchRoute.NONE -> {}
         }
     }
@@ -2496,12 +2552,22 @@ class RimBoardService : InputMethodService(),
                 val ev = emojiView ?: return false
                 append = ev::appendQuery; back = ev::handleBackspace
             }
+            SearchRoute.TRANSLATE -> {
+                val tv = translateView ?: return false
+                append = tv::appendQuery; back = tv::backspaceQuery
+            }
             SearchRoute.NONE -> return false
         }
         return when (key.code) {
             Codes.BACKSPACE -> { back(); true }
             Codes.SPACE -> { append(' '); true }
-            Codes.ENTER -> { closeSearchHost(); true }
+            // Enter commits the translation rather than discarding it. On the
+            // other pickers there is nothing to commit, so it just closes.
+            Codes.ENTER -> {
+                if (searchRoute == SearchRoute.TRANSLATE) translateView?.insertResult()
+                else closeSearchHost()
+                true
+            }
             // Shift and the symbol pages still work on the keyboard itself, so
             // they fall through rather than being swallowed.
             else -> if (key.code > 0) {
@@ -2549,6 +2615,8 @@ class RimBoardService : InputMethodService(),
     private fun closeSearchHost() {
         searchRoute = SearchRoute.NONE
         gifView?.cancelPending()
+        translateView?.cancelPending()
+        translateSeed = null
         searchHost?.let { host ->
             host.visibility = View.GONE
             host.layoutParams = host.layoutParams.apply { height = 0 }
