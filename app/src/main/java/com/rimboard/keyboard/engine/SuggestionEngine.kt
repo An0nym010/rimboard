@@ -260,6 +260,47 @@ class SuggestionEngine private constructor(
     }
 
     /**
+     * Whether [typed] is a real word, by the same standard autocorrect uses.
+     *
+     * Split out for the system spell checker, which has to answer "is this
+     * misspelled" as its own question rather than inferring it from an empty
+     * suggestion list — [correctionCandidates] also returns nothing for words
+     * it declines to *judge* (too short, contains a digit), and underlining
+     * those would be wrong.
+     *
+     * The four ways a word can be real are deliberately the same four that stop
+     * autocorrect touching it, so the keyboard and the underlines cannot
+     * disagree about what counts as a word:
+     *
+     *  1. it is in the dictionary;
+     *  2. the user has typed it enough times to have learned it;
+     *  3. it peels down to a known stem through recognised suffixes, which is
+     *     the only way an agglutinative language can work at all;
+     *  4. it is valid in the user's other enabled language.
+     *
+     * The exception is a bare-key spelling of an accented word — "gunaydin",
+     * "cafe". Those are *not* accepted even when the folding is unambiguous,
+     * because they are exactly the case the accent restoration exists to fix.
+     */
+    fun acceptedWord(
+        typed: String,
+        lang: String,
+        locale: Locale,
+        altLang: String? = null,
+        altLocale: Locale? = null
+    ): Boolean {
+        val lower = typed.lowercase(locale)
+        val dict = dictionary(lang, locale)
+        if (dict.contains(lower) || userData.isKnown(lower)) return true
+        if (dict.accentedFormOf(lower) != null) return false
+        if (com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) { dict.contains(it) }) {
+            return true
+        }
+        return altLang != null && altLocale != null &&
+            dictionary(altLang, altLocale).contains(typed.lowercase(altLocale))
+    }
+
+    /**
      * Additive score bonus for a word the preceding context predicts, fading
      * with its rank. Capped well under the 3.5-per-key spatial penalty in
      * [Dictionary], so it settles ties rather than overriding the geometry of

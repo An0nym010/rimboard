@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">RimBoard</string>
+    <!-- Shown in Settings -> Languages and input -> Spell checker, next to the
+         platform's own. Not just "RimBoard": that list is a choice between
+         checkers, and the name has to say which one this is. -->
+    <string name="spell_service_label" tools:ignore="MissingTranslation">RimBoard spell checker</string>
     <string name="subtype_en" translatable="false">English (RimBoard)</string>
     <string name="subtype_tr" translatable="false">Türkçe (RimBoard)</string>
 

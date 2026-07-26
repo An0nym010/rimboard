@@ -59,6 +59,33 @@
                 android:resource="@xml/method" />
         </service>
 
+        <!--
+            The system spell checker: the same engine, offered to other apps so
+            RimBoard's dictionaries and learned words drive the red underlines
+            everywhere rather than only inside its own suggestion strip.
+
+            A separate component, not a separate app — one APK, one install, and
+            no permission beyond what is already declared above. It is inert
+            until the user selects RimBoard under Settings -> Languages and
+            input -> Spell checker, which is the whole of the consent step.
+
+            Deliberately NOT directBootAware, unlike the keyboard. The keyboard
+            has to run on the lock screen; a spell checker has no business
+            starting before the phone has been unlocked once.
+        -->
+        <service
+            android:name=".spell.RimSpellService"
+            android:exported="true"
+            android:label="@string/spell_service_label"
+            android:permission="android.permission.BIND_TEXT_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.textservice.SpellCheckerService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.view.textservice.scs"
+                android:resource="@xml/spellchecker" />
+        </service>
+
         <activity
             android:name=".setup.MainActivity"
             android:exported="true"

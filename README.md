@@ -374,6 +374,40 @@ switch to the online build asks again on first launch.
    Settings → Network will demonstrate it. On the `online` build, take the
    warning at face value.
 
+### Use it for spell check in other apps (optional)
+
+RimBoard also registers as a **system spell checker**, so the red underlines in
+Gmail, Chrome and everything else can come from its dictionaries instead of the
+platform's. This is worth doing mainly for Turkish and the other accented
+languages: RimBoard peels suffixes, so `kitaplarımızdan` is not flagged, and it
+knows the words you have taught the keyboard.
+
+**Settings → Additional settings → Languages & input → Spell checker →
+RimBoard spell checker.** No separate install and no new permission — it is a
+second component in the same APK, inert until you select it. Or from a
+computer:
+
+```bash
+adb shell settings put secure spell_checker_enabled 1
+```
+
+```bash
+adb shell settings put secure selected_spell_checker com.rimboard.keyboard/.spell.RimSpellService
+```
+
+Check it took:
+
+```bash
+adb shell settings get secure selected_spell_checker
+```
+
+Two things this service does *not* do, both deliberately. It **never learns** —
+the keyboard learns as you type, but a spell checker is handed text from every
+app on the phone, including text you pasted or never wrote, and folding that
+into your personal dictionary would be a much broader claim than "learns as you
+type". It reads your learned words so they stop being underlined, and adds
+nothing to them. And it **never touches the network**, on either build.
+
 ## Extending the dictionaries
 
 The bundled lists hold up to 200,000 words for the eight core languages and

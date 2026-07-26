@@ -1,0 +1,152 @@
+package com.rimboard.keyboard.spell
+
+import android.service.textservice.SpellCheckerService
+import android.view.textservice.SuggestionsInfo
+import android.view.textservice.TextInfo
+import com.rimboard.keyboard.engine.SuggestionEngine
+import com.rimboard.keyboard.engine.UserData
+import com.rimboard.keyboard.model.Languages
+import com.rimboard.keyboard.settings.Prefs
+import java.util.Locale
+
+/**
+ * The red underlines, in other apps.
+ *
+ * A keyboard only ever sees what is typed *into* it. The squiggles under a
+ * misspelling in Gmail or Chrome come from whichever spell checker the system
+ * has bound, which until now was never this one — so RimBoard's dictionaries,
+ * its Turkish suffix handling and the words it has learned from you all stopped
+ * at the edge of its own suggestion strip.
+ *
+ * This is the same APK and the same engine, exposed through the second
+ * component Android offers for it. Nothing is installed separately and no new
+ * permission is requested; the user picks RimBoard under Settings → Languages
+ * and input → Spell checker, and that binding is the whole of the consent.
+ *
+ * **Two rules this service holds itself to, both stricter than it has to be:**
+ *
+ * 1. **It never writes.** The keyboard learns as you type; this does not. A
+ *    spell checker is handed text from every app on the phone — including text
+ *    that was pasted, autofilled, or already sitting in the field before you
+ *    arrived — and quietly folding all of that into your personal dictionary
+ *    would turn "RimBoard learns as you type" into something much broader than
+ *    anyone agreed to. It reads your learned words so they stop being
+ *    underlined; it adds nothing to them.
+ *
+ * 2. **It never reaches the network.** Not a policy so much as a fact: the
+ *    engine is entirely local and this class calls nothing else. On the
+ *    `offline` build there is no permission to reach it with anyway.
+ */
+class RimSpellService : SpellCheckerService() {
+
+    // One engine for the process, shared across sessions. Dictionaries are
+    // several hundred KB each and the system creates a session per text field.
+    private val engine: SuggestionEngine by lazy {
+        SuggestionEngine(this, UserData(this))
+    }
+
+    override fun createSession(): Session = RimSession(engine, this)
+
+    /**
+     * One bound text field.
+     *
+     * Only [onGetSuggestions] is implemented. The framework's own sentence
+     * splitter calls it per word, and it handles the tokenisation edge cases —
+     * scripts without spaces, punctuation, sentence boundaries — that this
+     * would otherwise have to reimplement badly.
+     */
+    private class RimSession(
+        private val engine: SuggestionEngine,
+        private val service: RimSpellService
+    ) : Session() {
+
+        private var lang = "en"
+        private var loc: Locale = Locale.ENGLISH
+        private var altLang: String? = null
+        private var altLoc: Locale? = null
+
+        override fun onCreate() {
+            // The system hands over the locale it bound this session for, which
+            // is the language of the *field*, not of the keyboard. Honoured as
+            // given: someone writing German in one app and Turkish in another
+            // should get each judged on its own terms.
+            val requested = locale?.replace('_', '-')?.let { Locale.forLanguageTag(it) }
+                ?: Locale.getDefault()
+            val code = requested.language.lowercase(Locale.ROOT)
+            lang = if (code in Languages.codes) code else "en"
+            loc = Languages.byCode(lang).locale
+
+            // The user's other enabled keyboard language, so a bilingual writer
+            // does not get every English word in a Turkish message underlined.
+            // Read from the same setting the keyboard uses, for the same reason.
+            altLang = Prefs.languages(service).firstOrNull { it != lang }
+            altLoc = altLang?.let { Languages.byCode(it).locale }
+        }
+
+        override fun onGetSuggestions(textInfo: TextInfo?, suggestionsLimit: Int): SuggestionsInfo {
+            val word = textInfo?.text.orEmpty()
+            if (!worthChecking(word)) return NOT_JUDGED
+
+            if (engine.acceptedWord(word, lang, loc, altLang, altLoc)) {
+                return SuggestionsInfo(SuggestionsInfo.RESULT_ATTR_IN_THE_DICTIONARY, null)
+            }
+
+            // Same ranking the suggestion strip uses, so the fix offered by a
+            // long-press on the underline is the fix the keyboard would have
+            // made. Contractions first: "dont" is a missing apostrophe rather
+            // than a mistyped word, and edit distance does not know that.
+            val contraction = engine.contractionFor(word, lang, loc)?.first
+            val corrections = engine.correctionCandidates(
+                word, lang, loc, altLang, altLoc,
+                limit = suggestionsLimit.coerceIn(1, MAX_SUGGESTIONS)
+            )
+            val out = (listOfNotNull(contraction) + corrections).distinct()
+                .take(suggestionsLimit.coerceAtLeast(1))
+
+            var attrs = SuggestionsInfo.RESULT_ATTR_LOOKS_LIKE_TYPO
+            if (out.isNotEmpty()) {
+                attrs = attrs or SuggestionsInfo.RESULT_ATTR_HAS_RECOMMENDED_SUGGESTIONS
+            }
+            return SuggestionsInfo(attrs, out.toTypedArray())
+        }
+
+        /**
+         * Whether this token is the kind of thing a spell checker should have
+         * an opinion about at all.
+         *
+         * The distinction that matters is between "correctly spelled" and "not
+         * my business": returning the former for a URL would be a lie, and
+         * returning "typo" would underline half of every technical message. An
+         * empty attribute set is the API's way of saying nothing, and it is the
+         * right answer for all of these.
+         */
+        private fun worthChecking(word: String): Boolean {
+            if (word.length < MIN_LENGTH) return false
+            // Digits anywhere: version numbers, IDs, "covid19".
+            if (word.any { it.isDigit() }) return false
+            // Acronyms and constants — NASA, HTTP, MAX_VALUE — are not in any
+            // word list and are not misspelled either.
+            if (word.length > 1 && word == word.uppercase(loc)) return false
+            // A capital inside the word: camelCase, brand names, and the
+            // mid-word capitals autocorrect already refuses to touch.
+            if (word.drop(1).any { it.isUpperCase() }) return false
+            // Anything with the shape of an address rather than a word.
+            if (word.any { it in "@/\\:_" }) return false
+            return word.all { it.isLetter() || it == '\'' || it == '’' }
+        }
+
+        private companion object {
+            /**
+             * No attributes at all: neither "in the dictionary" nor "typo".
+             * The framework draws nothing, which is what should happen to a URL.
+             */
+            val NOT_JUDGED = SuggestionsInfo(0, null)
+
+            /** Two-letter words are too easily "corrected" into something else. */
+            const val MIN_LENGTH = 3
+
+            /** More than this and the popup is a menu rather than a fix. */
+            const val MAX_SUGGESTIONS = 5
+        }
+    }
+}

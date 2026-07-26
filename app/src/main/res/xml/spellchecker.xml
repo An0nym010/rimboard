@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Languages this spell checker can judge.
+
+    One entry per bundled dictionary, and no more: a subtype here is a claim
+    that RimBoard can spell-check that language, and offering one without a
+    word list behind it would underline every word in it.
+
+    Locales are bare language codes rather than language_REGION. The
+    dictionaries are language-level — there is no separate en_GB list — so
+    claiming en_US would leave a phone set to en_GB falling through to another
+    checker for no reason.
+-->
+<spell-checker xmlns:android="http://schemas.android.com/apk/res/android"
+    android:label="@string/spell_service_label"
+    android:settingsActivity="com.rimboard.keyboard.settings.SettingsActivity">
+
+    <subtype
+        android:label="@string/subtype_en"
+        android:subtypeLocale="en" />
+
+    <subtype
+        android:label="@string/subtype_tr"
+        android:subtypeLocale="tr" />
+
+    <subtype
+        android:label="@string/subtype_de"
+        android:subtypeLocale="de" />
+
+    <subtype
+        android:label="@string/subtype_es"
+        android:subtypeLocale="es" />
+
+    <subtype
+        android:label="@string/subtype_fr"
+        android:subtypeLocale="fr" />
+
+    <subtype
+        android:label="@string/subtype_it"
+        android:subtypeLocale="it" />
+
+    <subtype
+        android:label="@string/subtype_pt"
+        android:subtypeLocale="pt" />
+
+    <subtype
+        android:label="@string/subtype_ru"
+        android:subtypeLocale="ru" />
+
+    <subtype
+        android:label="@string/subtype_nl"
+        android:subtypeLocale="nl" />
+
+    <subtype
+        android:label="@string/subtype_pl"
+        android:subtypeLocale="pl" />
+
+    <subtype
+        android:label="@string/subtype_sv"
+        android:subtypeLocale="sv" />
+
+    <subtype
+        android:label="@string/subtype_id"
+        android:subtypeLocale="id" />
+
+    <subtype
+        android:label="@string/subtype_ro"
+        android:subtypeLocale="ro" />
+
+    <subtype
+        android:label="@string/subtype_cs"
+        android:subtypeLocale="cs" />
+
+    <subtype
+        android:label="@string/subtype_da"
+        android:subtypeLocale="da" />
+
+    <subtype
+        android:label="@string/subtype_no"
+        android:subtypeLocale="no" />
+
+    <subtype
+        android:label="@string/subtype_fi"
+        android:subtypeLocale="fi" />
+
+    <subtype
+        android:label="@string/subtype_hu"
+        android:subtypeLocale="hu" />
+
+    <subtype
+        android:label="@string/subtype_uk"
+        android:subtypeLocale="uk" />
+
+    <subtype
+        android:label="@string/subtype_el"
+        android:subtypeLocale="el" />
+
+    <subtype
+        android:label="@string/subtype_hr"
+        android:subtypeLocale="hr" />
+
+    <subtype
+        android:label="@string/subtype_sk"
+        android:subtypeLocale="sk" />
+
+</spell-checker>

@@ -4,6 +4,24 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Spell check in other apps**
+- RimBoard now registers as a **system spell checker**, so the red underlines
+  in Gmail, Chrome and everywhere else can come from its dictionaries instead
+  of the platform's. Same APK, same engine, no separate install and no new
+  permission — a second service component, inert until you pick it under
+  Settings → Languages and input → Spell checker.
+- The win is the accented and agglutinative languages, where the platform
+  checker is weakest: suffix peeling means `kitaplarımızdan` is not flagged,
+  bare-key spellings like `gunaydin` are offered their accented form, and words
+  the keyboard has learned from you stop being underlined.
+- It **never learns**. The keyboard learns as you type; this is handed text
+  from every app on the phone — including text pasted or autofilled rather than
+  written — and folding that into a personal dictionary would be a far broader
+  claim than the keyboard makes. Read-only, by design.
+- Tokens it declines to judge rather than guessing at: URLs and addresses,
+  anything containing a digit, acronyms, and camelCase. The API distinguishes
+  "spelled correctly" from "not my business", and these are the latter.
+
 **Translation**
 - Translation no longer needs an API key, and now supports three services
   chosen in Settings → Network: **Lingva** (keyless, the default),
