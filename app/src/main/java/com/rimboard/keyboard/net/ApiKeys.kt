@@ -31,6 +31,7 @@ object ApiKeys {
     private const val FILE = "rimboard_keys"
     private const val KEY_ANTHROPIC = "anthropic_api_key"
     private const val KEY_KLIPY = "klipy_api_key"
+    private const val KEY_MYMEMORY = "mymemory_key"
 
     private fun prefs(c: Context): SharedPreferences? {
         // The flip side of keeping these out of device-protected storage: this
@@ -73,6 +74,16 @@ object ApiKeys {
     fun klipy(c: Context): String? = get(c, KEY_KLIPY)
 
     fun setKlipy(c: Context, key: String?) = set(c, KEY_KLIPY, key)
+
+    /**
+     * Optional MyMemory credential. Anonymous translation needs none; this
+     * raises the free daily limit. An email address is accepted too (MyMemory
+     * lifts the limit for a valid one), so the value is not restricted to a
+     * key shape — [MyMemory] routes it by whether it looks like an email.
+     */
+    fun mymemory(c: Context): String? = get(c, KEY_MYMEMORY)
+
+    fun setMymemory(c: Context, key: String?) = set(c, KEY_MYMEMORY, key)
 
     private fun get(c: Context, name: String): String? =
         prefs(c)?.getString(name, null)?.trim()?.takeIf { it.isNotEmpty() }

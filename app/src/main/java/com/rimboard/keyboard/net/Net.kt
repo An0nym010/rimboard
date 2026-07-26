@@ -35,8 +35,9 @@ object Net {
      * here in a diff someone can read.
      */
     val ALLOWED_HOSTS = setOf(
-        "api.klipy.com",          // GIF search metadata
-        "api.anthropic.com"       // translation and proofreading
+        "api.klipy.com",                    // GIF search metadata
+        "api.anthropic.com",                // AI translation and proofreading
+        "api.mymemory.translated.net"       // keyless translation
     )
 
     /**

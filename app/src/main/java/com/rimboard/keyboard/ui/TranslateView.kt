@@ -64,6 +64,7 @@ class TranslateView(context: Context) : LinearLayout(context) {
     private val debounce = Runnable { fire() }
 
     private val pairRow: LinearLayout
+    private val sourceLabel: TextView
     private val targetChip: TextView
     private val countView: TextView
     private val sourceView: TextView
@@ -82,10 +83,11 @@ class TranslateView(context: Context) : LinearLayout(context) {
             gravity = Gravity.CENTER_VERTICAL
             setPadding(dp(10), dp(4), dp(6), dp(2))
         }
-        pairRow.addView(TextView(context).apply {
+        sourceLabel = TextView(context).apply {
             text = context.getString(R.string.tr_detect)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
-        })
+        }
+        pairRow.addView(sourceLabel)
         pairRow.addView(TextView(context).apply {
             text = "  →  "
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
@@ -155,6 +157,12 @@ class TranslateView(context: Context) : LinearLayout(context) {
 
     fun setTargetLabel(label: String) {
         targetChip.text = label
+    }
+
+    /** The language the text is being translated *from*: "Detect" for the model
+     *  path, the actual source for the keyless one that cannot detect it. */
+    fun setSourceLabel(label: String) {
+        sourceLabel.text = label
     }
 
     fun appendQuery(c: Char) {

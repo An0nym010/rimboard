@@ -2153,9 +2153,10 @@ class RimBoardService : InputMethodService(),
      */
     private fun launchTranslate(ic: InputConnection) {
         val block = com.rimboard.keyboard.net.Net.blockedBy(this, sendsTypedText = true)
-        val locked = !com.rimboard.keyboard.net.ApiKeys.unlocked(this)
-        val hasKey = !locked && com.rimboard.keyboard.net.ApiKeys.anthropic(this) != null
-        if (block == null && hasKey) {
+        // In-place translation needs a network, not a key: the keyless engine
+        // covers anyone without an Anthropic key. So the bar opens whenever the
+        // request would be allowed, and the engine is chosen at request time.
+        if (block == null) {
             showTranslatePanel(ic)
             return
         }
@@ -2167,18 +2168,9 @@ class RimBoardService : InputMethodService(),
             return
         }
 
-        // Everything else is fixable, and this used to silently open an app
-        // chooser instead of saying so — which looked like the tool simply not
-        // working, since the chooser is a different feature wearing the same
-        // button. Network mode also defaults to off, so the common case was
-        // being routed around a setting nobody had been told about.
-        toastLong(getString(
-            when {
-                block != null -> netBlockMessage(block)
-                locked -> R.string.net_locked
-                else -> R.string.ai_no_key
-            }
-        ))
+        // Network off or incognito — fixable, and named rather than silently
+        // routed into an app chooser wearing the same button.
+        toastLong(getString(netBlockMessage(block)))
     }
 
     /**
@@ -2213,11 +2205,13 @@ class RimBoardService : InputMethodService(),
                 com.rimboard.keyboard.net.ApiKeys.anthropic(this) == null
             }
         gifReason?.let { out["gif"] = it }
-        aiReason?.let {
-            out["proofread"] = it
-            // 🌍 still hands off to another app on the offline build, so it is
-            // only truly unavailable when that is not the situation.
-            if (block != com.rimboard.keyboard.net.Net.Block.NO_PERMISSION) out["translate"] = it
+        // Proofread is Anthropic-only, so a missing Anthropic key disables it.
+        aiReason?.let { out["proofread"] = it }
+        // Translate works keyless now, so it needs only a network — never a
+        // key. On the offline build it still hands off to another app, so it is
+        // only truly unavailable when the block is something other than that.
+        if (shared != null && block != com.rimboard.keyboard.net.Net.Block.NO_PERMISSION) {
+            out["translate"] = shared
         }
         return out
     }
@@ -2248,14 +2242,28 @@ class RimBoardService : InputMethodService(),
      * keyboard translator for — was impossible. Seeding also means the result
      * is previewed rather than overwriting the selection sight-unseen.
      */
+    /** True when an Anthropic key is available, which the translate path prefers. */
+    private fun translateWithAnthropic(): Boolean =
+        com.rimboard.keyboard.net.ApiKeys.unlocked(this) &&
+            com.rimboard.keyboard.net.ApiKeys.anthropic(this) != null
+
     private fun showTranslatePanel(ic: InputConnection) {
         val tv = translateView ?: return
         finishComposingSilently()
         val selected = ic.getSelectedText(0)?.toString()?.takeIf { it.isNotBlank() }
-        tv.start(
-            selected,
-            com.rimboard.keyboard.model.TranslateTargets.promptName(this, currentLangCode())
-        )
+        val TT = com.rimboard.keyboard.model.TranslateTargets
+        if (translateWithAnthropic()) {
+            // The model detects the source; the chip shows the chosen target.
+            tv.start(selected, TT.currentLabel(this, effLocale()))
+            tv.setSourceLabel(getString(R.string.tr_detect))
+        } else {
+            // Keyless: the source is what you are typing, and the target has to
+            // be a real language different from it — shown so the pair is honest.
+            val source = currentLangCode()
+            val target = TT.keylessTarget(this, source)
+            tv.start(selected, TT.labelFor(target, effLocale()))
+            tv.setSourceLabel(TT.labelFor(source, effLocale()))
+        }
         translateInserted = null
         translateLastSource = null
         translateLastAt = 0L
@@ -2290,12 +2298,20 @@ class RimBoardService : InputMethodService(),
         translateCount++
         tv.setRequestCount(translateCount)
         tv.setStatus(getString(R.string.ai_translating))
-        val target = com.rimboard.keyboard.model.TranslateTargets
-            .promptName(this, currentLangCode())
+        val TT = com.rimboard.keyboard.model.TranslateTargets
+        val anthropic = translateWithAnthropic()
+        val source = currentLangCode()
         Thread {
-            val result = com.rimboard.keyboard.net.AiText.run(
-                this, com.rimboard.keyboard.net.AiText.Task.TRANSLATE, text, target
-            )
+            val result = if (anthropic) {
+                com.rimboard.keyboard.net.AiText.run(
+                    this, com.rimboard.keyboard.net.AiText.Task.TRANSLATE, text,
+                    TT.promptName(this, source)
+                )
+            } else {
+                com.rimboard.keyboard.net.MyMemory.translate(
+                    this, text, source, TT.keylessTarget(this, source)
+                )
+            }
             main {
                 result.fold(
                     onSuccess = { tv.setResult(it) },
@@ -2334,10 +2350,14 @@ class RimBoardService : InputMethodService(),
     }
 
     override fun onTranslateTargetPicked(code: String) {
-        com.rimboard.keyboard.model.TranslateTargets.store(this, code)
-        translateView?.setTargetLabel(
-            com.rimboard.keyboard.model.TranslateTargets.currentLabel(this, effLocale())
-        )
+        val TT = com.rimboard.keyboard.model.TranslateTargets
+        TT.store(this, code)
+        // Show the language that will actually be used. On the keyless engine
+        // "auto" resolves to a concrete other-language, so the chip reflects
+        // that rather than the word "auto".
+        val label = if (translateWithAnthropic()) TT.currentLabel(this, effLocale())
+        else TT.labelFor(TT.keylessTarget(this, currentLangCode()), effLocale())
+        translateView?.setTargetLabel(label)
         // The target changed, so the same source now has a different correct
         // answer — the dedupe must not suppress the re-request.
         translateLastSource = null

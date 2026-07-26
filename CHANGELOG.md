@@ -4,6 +4,18 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Translation**
+- Translation no longer needs an API key. The 🌍 bar works out of the box
+  through MyMemory, a keyless service — anonymous requests just work. An
+  Anthropic key stays optional and is preferred when set, for better quality
+  and longer text; a MyMemory key or email is optional too and raises the
+  keyless daily limit. Because that engine cannot detect the source language
+  the way the model does, the bar shows the pair it is translating (your
+  keyboard language into the target) instead of "Detect".
+- The translate tool is marked ready in the tools panel whenever the network
+  is on, rather than only when an Anthropic key is set, since it no longer
+  needs one.
+
 **Typing**
 - Type accented languages on the bare keys and get the accents back: "cafe"
   becomes "café", "gunaydin" becomes "günaydın". The dictionary is now indexed

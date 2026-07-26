@@ -10,10 +10,11 @@ decision:
   `INTERNET`, so Android will not give the app a network connection even if
   its code asked for one. This is the default recommendation and the build the
   privacy claims below are about.
-- **`online`** — adds `INTERNET` for AI translation and GIF search. Its offline
-  switch is enforced by RimBoard's own code rather than by the system, and each
-  feature needs an API key you supply yourself — there is no RimBoard server
-  and no shared key.
+- **`online`** — adds `INTERNET` for translation and GIF search. Translation
+  works with no key (keyless by default, an optional Anthropic key upgrades it);
+  GIF search needs a key you supply. Its offline switch is enforced by
+  RimBoard's own code rather than by the system, and any key you do set is your
+  own — there is no RimBoard server and no shared key.
 
 The split exists because `INTERNET` is a normal, install-time Android
 permission: once an APK declares it, it is granted at install and neither you
@@ -150,13 +151,17 @@ The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
   written through the system file picker. Move it between devices yourself;
   nothing ever leaves the phone otherwise.
 
-## AI translation and proofreading (`online` build only)
+## Translation and proofreading (`online` build only)
 
-Select some text and tap 🌍 to replace it with its translation into whichever
-language the keyboard is currently set to — so the target is the language you
-are already typing in, and there is no picker. The **Proofread** tool does the
-same round trip but fixes spelling, grammar and punctuation while leaving your
-wording, tone and language alone.
+Tap 🌍 to open a translate bar and type — the translation goes into the field
+as you pause. **This needs no API key:** it uses MyMemory, a keyless service,
+by default. If you set an Anthropic key it uses that instead, for better
+quality and longer text, and adding a MyMemory key or email raises the keyless
+daily limit. The **Proofread** tool fixes spelling, grammar and punctuation in
+a selection and is Anthropic-only.
+
+Whichever engine translates sees the text, exactly as any online translator
+does; nothing is sent in the background, in incognito, or in a password field.
 
 Both go through the same code path, so every guard below applies to both: they
 require a selection, run off the main thread, and re-check the field before

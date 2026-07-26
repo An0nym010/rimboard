@@ -377,8 +377,10 @@ Your search words or selected text go to the service that answers them. Nothing 
 
     <string name="pref_keys_header" tools:ignore="MissingTranslation">API keys</string>
     <string name="pref_key_anthropic" tools:ignore="MissingTranslation">Anthropic API key</string>
-    <string name="pref_key_none" tools:ignore="MissingTranslation">Not set — the 🌍 tool hands text to another app instead</string>
-    <string name="pref_key_note" tools:ignore="MissingTranslation">Your own key — there is no RimBoard server and no shared key, because an open-source app cannot hide one. Stored in private app storage, which Android encrypts until you unlock the phone.</string>
+    <string name="pref_key_anthropic_none" tools:ignore="MissingTranslation">Not set — optional, better quality for the 🌍 tool</string>
+    <string name="pref_key_mymemory" tools:ignore="MissingTranslation">MyMemory (optional)</string>
+    <string name="pref_key_mymemory_none" tools:ignore="MissingTranslation">Not set — translation works without it; an email raises the free limit</string>
+    <string name="pref_key_note" tools:ignore="MissingTranslation">Translation works with no key at all, through MyMemory. An Anthropic key is optional and used instead when set, for better quality and longer text. GIF search needs a KLIPY key. All keys are your own — there is no RimBoard server and no shared key — and are kept in private app storage, which Android encrypts until you unlock the phone. Whatever you translate is sent to the service that does it, exactly as with any online translator.</string>
     <string name="pref_key_save" tools:ignore="MissingTranslation">Save</string>
     <string name="pref_key_clear" tools:ignore="MissingTranslation">Clear</string>
     <string name="pref_key_saved" tools:ignore="MissingTranslation">Key saved</string>

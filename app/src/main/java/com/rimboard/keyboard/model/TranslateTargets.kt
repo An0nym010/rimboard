@@ -86,6 +86,27 @@ object TranslateTargets {
         return c.getString(com.rimboard.keyboard.R.string.tr_target_auto, name)
     }
 
+    /**
+     * The ISO code to translate *into* for the keyless engine, which — unlike
+     * the model behind the Anthropic path — cannot detect the source and so
+     * must be given a real target different from it.
+     *
+     * The stored target if it is concrete and not the source; otherwise the
+     * first enabled keyboard language that is not the source; otherwise
+     * English. So a Turkish keyboard with English also enabled translates
+     * Turkish into English by default, which is the common bilingual case.
+     */
+    fun keylessTarget(c: Context, source: String): String {
+        val stored = stored(c)
+        if (stored != AUTO && stored != source) return stored
+        Prefs.languages(c).firstOrNull { it != source }?.let { return it }
+        return if (source != "en") "en" else "es"
+    }
+
+    /** The display name of a bare ISO code, in the UI locale. */
+    fun labelFor(code: String, uiLocale: Locale): String =
+        Locale.forLanguageTag(code).getDisplayLanguage(uiLocale).ifBlank { code }
+
     /** The label for whatever is currently selected, for a settings summary. */
     fun currentLabel(c: Context, uiLocale: Locale): String {
         val code = stored(c)
