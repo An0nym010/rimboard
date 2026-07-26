@@ -235,6 +235,28 @@ class SuggestionEngineTest {
         assertEquals("you're", out.items[out.autocorrectIndex])
     }
 
+    // ---- agglutinative languages: not correcting valid inflected forms ----
+
+    @Test
+    fun `a valid Turkish inflection absent from the dictionary is left alone`() {
+        // "evlerden" (from the houses) is not in this small list, but it peels
+        // to "ev". The engine must not offer a correction for a real word.
+        val tr = Locale.forLanguageTag("tr")
+        val eng = engine(mapOf("dictionaries/tr.txt" to "ev 9000\nel 8000\naraba 5000"))
+        assertEquals(null, eng.correctionFor("evlerden", "tr", tr))
+    }
+
+    @Test
+    fun `a Turkish typo with no valid stem is still corrected`() {
+        // "arabz" does not peel to any root, so it stays a correctable typo of
+        // "araba" (one adjacent-key edit away).
+        val tr = Locale.forLanguageTag("tr")
+        val eng = engine(mapOf("dictionaries/tr.txt" to "araba 9000\nev 5000"))
+        assertEquals("araba", eng.correctionFor("araba", "tr", tr) ?: "araba")
+        val corr = eng.correctionCandidates("arabz", "tr", tr, limit = 1)
+        assertEquals(listOf("araba"), corr)
+    }
+
     @Test
     fun `sanity - the two completion orderings genuinely differ`() {
         // Guards the first two tests against both silently returning the same

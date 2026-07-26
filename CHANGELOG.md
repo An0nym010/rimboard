@@ -5,6 +5,13 @@ Release notes for every RimBoard version. The current release is summarised in t
 ## Unreleased
 
 **Typing**
+- Turkish (and other agglutinative languages) no longer have valid words
+  "corrected" away. Turkish builds words by stacking suffixes onto a root, so
+  most valid forms — "kitaplarımızdan", "evlerimizden" — never appear in any
+  frequency dictionary and the keyboard read that absence as a misspelling.
+  A word that peels down to a known root through recognised suffixes is now
+  accepted as real, so it is left alone; a genuine typo, which does not peel to
+  a root, still corrects. Turkish for now — the framework is there for others.
 - Contractions are restored on space: "dont" becomes "don't", "youre" becomes
   "you're", "im" becomes "I'm". The bundled dictionaries come from a corpus
   that stripped apostrophes, so the bare forms sat in the word list with large

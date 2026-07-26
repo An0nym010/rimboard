@@ -203,6 +203,13 @@ class SuggestionEngine private constructor(
         val dict = dictionary(lang, locale)
         val lower = typed.lowercase(locale)
         if (dict.contains(lower) || userData.isKnown(lower)) return emptyList()
+        // Agglutinative languages build endless valid surface forms a frequency
+        // dictionary cannot list. If the word peels down to a known stem
+        // through recognised suffixes, it is a real word the corpus merely
+        // never saw — do not "correct" it. See [Morphology].
+        if (com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) { dict.contains(it) }) {
+            return emptyList()
+        }
         // Bilingual typing: never "correct" a word that is valid in the
         // user's other enabled language (e.g. English words in Turkish mode).
         if (altLang != null && altLocale != null &&
