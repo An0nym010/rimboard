@@ -14,9 +14,18 @@ import java.util.concurrent.TimeUnit
  * (filesDir), never backed up, never transmitted (the app has no internet
  * permission). Learning is skipped entirely in incognito contexts.
  */
-class UserData(context: Context) {
+class UserData private constructor(dir: File) {
+
+    /** App path: device-protected storage, migrated once. */
+    constructor(context: Context) : this(dataDir(context))
 
     companion object {
+        /**
+         * Test seam: back the store with a plain directory and no Context, so
+         * the learning and prediction logic can be exercised on a temp folder.
+         */
+        internal fun inDir(dir: File): UserData = UserData(dir)
+
         /**
          * User data lives in device-protected storage (encrypted at rest,
          * available before first unlock) so the keyboard is fully functional
@@ -35,12 +44,15 @@ class UserData(context: Context) {
         }
     }
 
-    private val learnedFile = File(dataDir(context), "learned.txt")
-    private val blockedFile = File(dataDir(context), "blocked.txt")
-    private val bigramFile = File(dataDir(context), "bigrams.txt")
-    private val trigramFile = File(dataDir(context), "trigrams.txt")
+    private val learnedFile = File(dir, "learned.txt")
+    private val blockedFile = File(dir, "blocked.txt")
+    private val bigramFile = File(dir, "bigrams.txt")
+    private val trigramFile = File(dir, "trigrams.txt")
     private val io = Executors.newSingleThreadExecutor()
-    private val main = Handler(Looper.getMainLooper())
+    // Lazy: only reload() posts to the main thread, and touching the Looper at
+    // construction is what a plain JVM (the unit tests) cannot do. Building the
+    // store must not depend on an Android main thread existing.
+    private val main by lazy { Handler(Looper.getMainLooper()) }
 
     private val learned = ConcurrentHashMap<String, Int>()
     private val blocked: MutableSet<String> = ConcurrentHashMap.newKeySet()

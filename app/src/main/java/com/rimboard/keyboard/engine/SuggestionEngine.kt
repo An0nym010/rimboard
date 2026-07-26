@@ -14,10 +14,40 @@ object DictVersion {
     var v = 0
 }
 
-class SuggestionEngine(private val context: Context, private val userData: UserData) {
+class SuggestionEngine private constructor(
+    private val assets: Assets,
+    private val userDir: java.io.File?,
+    private val userData: UserData
+) {
 
-    private companion object {
-        const val TAG = "RimBoard"
+    /**
+     * Where the engine reads its data from.
+     *
+     * The engine only ever touched a [Context] to open bundled assets and to
+     * find the user-dictionary directory. Naming that as a seam is what lets
+     * the ranking be tested with a handful of in-memory words instead of the
+     * 200k-word shipping assets and a real device — the context-aware
+     * completion and correction ranking was previously untestable for exactly
+     * this reason, and shipped without a test as a result.
+     */
+    fun interface Assets {
+        /** The stream for [path] under assets/, or null if there is none. */
+        fun open(path: String): java.io.InputStream?
+    }
+
+    /** App path: read bundled assets, and the learned words from the context. */
+    constructor(context: Context, userData: UserData) : this(
+        Assets { path -> try { context.assets.open(path) } catch (_: Exception) { null } },
+        UserData.dataDir(context),
+        userData
+    )
+
+    companion object {
+        /** Test seam: back the engine with in-memory data and no Context. */
+        internal fun forTesting(userData: UserData, assets: Assets) =
+            SuggestionEngine(assets, null, userData)
+
+        private const val TAG = "RimBoard"
 
         /** How many next-word predictions feed completion re-ranking. */
         const val CONTEXT_COMPLETION_DEPTH = 12
@@ -71,17 +101,15 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
         val started = android.os.SystemClock.elapsedRealtime()
         // A missing asset yields an empty dictionary — never an exception, and
         // never another language's words standing in for this one.
-        val dictStream = try {
-            context.assets.open("dictionaries/$lang.txt")
-        } catch (e: Exception) {
-            // Silent here means no suggestions at all for this language, which
+        val dictStream = assets.open("dictionaries/$lang.txt")
+        if (dictStream == null) {
+            // A null here means no suggestions at all for this language, which
             // is indistinguishable from the engine being broken.
-            android.util.Log.w(TAG, "no dictionary asset for $lang", e)
-            null
+            android.util.Log.w(TAG, "no dictionary asset for $lang")
         }
         val userStream = try {
-            val f = java.io.File(UserData.dataDir(context), "userdict_" + lang + ".txt")
-            if (f.exists()) f.inputStream() else null
+            val f = userDir?.let { java.io.File(it, "userdict_" + lang + ".txt") }
+            if (f != null && f.exists()) f.inputStream() else null
         } catch (_: Exception) {
             null
         }
@@ -114,7 +142,8 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
     private fun offensive(lang: String): Set<String> =
         offensiveSets.getOrPut(lang) {
             try {
-                context.assets.open("offensive/$lang.txt").bufferedReader().readLines()
+                (assets.open("offensive/$lang.txt") ?: return@getOrPut emptySet())
+                    .bufferedReader().readLines()
                     .map { it.trim().lowercase() }.filter { it.isNotEmpty() }.toSet()
             } catch (e: Exception) {
                 android.util.Log.w(TAG, "no offensive list for $lang", e)
@@ -138,7 +167,8 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
     private fun emojiMap(lang: String): Map<String, String> =
         emojiMaps.getOrPut(lang) {
             try {
-                context.assets.open("emoji/$lang.txt").bufferedReader().readLines()
+                (assets.open("emoji/$lang.txt") ?: return@getOrPut emptyMap())
+                    .bufferedReader().readLines()
                     .mapNotNull { line ->
                         val p = line.split('\t')
                         if (p.size == 2) p[0] to p[1] else null
@@ -385,7 +415,8 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
         predictionModels.getOrPut(lang) {
             try {
                 val m = HashMap<String, List<String>>()
-                context.assets.open("predictions/$lang.txt").bufferedReader().useLines { lines ->
+                val stream = assets.open("predictions/$lang.txt") ?: return@getOrPut emptyMap()
+                stream.bufferedReader().useLines { lines ->
                     lines.forEach { line ->
                         val tab = line.indexOf('\t')
                         if (tab > 0) {

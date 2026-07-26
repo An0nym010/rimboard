@@ -91,6 +91,15 @@ android {
         }
     }
 
+    testOptions {
+        // Unmocked android.* stubs return 0/null in unit tests instead of
+        // throwing "not mocked". The engine touches SystemClock.elapsedRealtime
+        // and android.util.Log purely to time and log its data loads — nothing
+        // the ranking tests care about — and without this that timing call
+        // aborts every test that loads a dictionary.
+        unitTests.isReturnDefaultValues = true
+    }
+
     lint {
         // An unused string is how a removed preference leaves a trace: the
         // title, summary and option list stay behind, still translated into
