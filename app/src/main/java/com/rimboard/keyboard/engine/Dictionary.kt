@@ -34,6 +34,24 @@ class Dictionary(
          *  scan in UserData cannot drift from the dictionary scan here. */
         fun maxEditDistance(n: Int): Int = if (n >= 6) 2 else 1
 
+        /**
+         * How many words, at most, are eligible to be corrected *toward*.
+         *
+         * "Very rare words make bad corrections" is true, but rarity is
+         * relative to the corpus. A flat frequency cutoff kept about 55k of
+         * English's 200k words and only a few thousand of a smaller language's,
+         * because the same raw count means something completely different when
+         * one corpus is twice the size of another — Slovak's 50,000th word has
+         * a frequency of 41 where English's still has 140. Capping by rank
+         * instead gives every language a correction vocabulary of the same
+         * size, so spell-check is not quietly worse for the languages with
+         * smaller corpora.
+         */
+        private const val CORRECTION_TARGET_CAP = 60000
+
+        /** Absolute noise floor beneath the rank cap: drops hapax and one-off junk. */
+        private const val CORRECTION_MIN_FREQ = 2
+
         /** Optimal string alignment (Damerau-Levenshtein) distance with early
          *  cutoff: anything beyond [max] comes back as max + 1. Companion
          *  because it reads no dictionary state, and UserData uses it to rank
@@ -158,13 +176,30 @@ class Dictionary(
                 pi = ci
             }
         }
+        val floor = correctionFloor()
         val buckets = Array(25) { ArrayList<Int>() }
         for (i in words.indices) {
-            if (freqs[i] < 200) continue // very rare words make bad corrections
+            if (freqs[i] < floor) continue
             val len = words[i].length
             if (len in 1..24) buckets[len].add(i)
         }
         byLen = Array(25) { buckets[it].toIntArray() }
+    }
+
+    /**
+     * The frequency a word must reach to be a correction target: the frequency
+     * of the [CORRECTION_TARGET_CAP]-th most common word, or the noise floor
+     * for a dictionary smaller than the cap (where every real word qualifies).
+     */
+    private fun correctionFloor(): Int {
+        if (freqs.size <= CORRECTION_TARGET_CAP) return CORRECTION_MIN_FREQ
+        // Partial information is all that is needed — the cap-th largest value —
+        // but a copy-and-sort is a few milliseconds once on the warm thread and
+        // not worth a selection algorithm.
+        val sorted = freqs.copyOf()
+        sorted.sort()
+        val cutoff = sorted[sorted.size - CORRECTION_TARGET_CAP]
+        return maxOf(CORRECTION_MIN_FREQ, cutoff)
     }
 
     val size: Int get() = words.size
@@ -224,7 +259,19 @@ class Dictionary(
      * the layout. So an adjacent-key slip (helko -> hello) beats a distant one,
      * and a much more frequent word can still outrank a slightly closer rare one.
      */
-    fun corrections(typedLower: String, prox: KeyProximity?, limit: Int): List<String> {
+    fun corrections(typedLower: String, prox: KeyProximity?, limit: Int): List<String> =
+        correctionsScored(typedLower, prox, limit).map { it.first }
+
+    /**
+     * As [corrections], but returns each candidate with its noisy-channel score
+     * so a caller can blend in evidence the dictionary does not have — the
+     * preceding word, most usefully. "the stroe" is edit-distance-1 from both
+     * "store" and "stone"; only context can say the sentence wanted the shop.
+     * Scores are comparable within one call, not across calls.
+     */
+    fun correctionsScored(
+        typedLower: String, prox: KeyProximity?, limit: Int
+    ): List<Pair<String, Double>> {
         val n = typedLower.length
         if (n < 2 || words.isEmpty()) return emptyList()
         val maxDist = maxEditDistance(n)
@@ -239,12 +286,7 @@ class Dictionary(
         }
         if (scored.isEmpty()) return emptyList()
         scored.sortByDescending { it.second }
-        val out = ArrayList<String>(minOf(limit, scored.size))
-        for (p in scored) {
-            out.add(p.first)
-            if (out.size >= limit) break
-        }
-        return out
+        return if (scored.size > limit) ArrayList(scored.subList(0, limit)) else scored
     }
 
     /**

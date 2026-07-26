@@ -18,6 +18,26 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
 
     private companion object {
         const val TAG = "RimBoard"
+
+        /** How many next-word predictions feed completion re-ranking. */
+        const val CONTEXT_COMPLETION_DEPTH = 12
+
+        /**
+         * Strength of the completion boost. The top-predicted completion has
+         * its frequency multiplied by 1 + this; the effect fades with rank. At
+         * 6, a strongly-predicted word overtakes one up to seven times commoner
+         * — enough to matter, not so much that context drowns frequency.
+         */
+        const val CONTEXT_COMPLETION_WEIGHT = 6.0
+
+        /** Additive tie-break for corrections; see [contextBonus]. */
+        const val CONTEXT_CORRECTION_WEIGHT = 2.0
+    }
+
+    /** Multiplier applied to a completion's frequency for its context rank. */
+    private fun completionFactor(word: String, contextRank: Map<String, Int>): Double {
+        val r = contextRank[word] ?: return 1.0
+        return 1.0 + CONTEXT_COMPLETION_WEIGHT / (r + 1.0)
     }
 
     private val cache = java.util.concurrent.ConcurrentHashMap<String, Dictionary>()
@@ -144,7 +164,8 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
         locale: Locale,
         altLang: String? = null,
         altLocale: Locale? = null,
-        limit: Int = 1
+        limit: Int = 1,
+        contextRank: Map<String, Int> = emptyMap()
     ): List<String> {
         if (typed.length < 3) return emptyList()
         if (typed.any { it.isDigit() }) return emptyList()
@@ -157,7 +178,17 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
         if (altLang != null && altLocale != null &&
             dictionary(altLang, altLocale).contains(typed.lowercase(altLocale))
         ) return emptyList()
-        val fromDict = dict.corrections(lower, KeyProximity.forLang(lang), limit + 4)
+        val scored = dict.correctionsScored(lower, KeyProximity.forLang(lang), limit + 4)
+        // Context re-ranks the dictionary's own candidates but never invents
+        // one: only words that were already valid edit-distance corrections can
+        // move. The bonus is bounded below the spatial term's reach, so context
+        // breaks a near-tie ("the stroe" -> store over stone) without ever
+        // pulling a distant word past an obvious adjacent-key fix.
+        val fromDict = if (contextRank.isEmpty()) scored.map { it.first }
+        else scored
+            .map { (w, s) -> w to s + contextBonus(w, contextRank) }
+            .sortedByDescending { it.second }
+            .map { it.first }
         // The user's own vocabulary corrects too: a typo of a name this
         // keyboard has learned now has a fix, where before only the static
         // dictionary was consulted. Appended after the dictionary's candidates
@@ -172,6 +203,17 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
             .map { matchCase(typed, it, locale) }
             .take(limit)
             .toList()
+    }
+
+    /**
+     * Additive score bonus for a word the preceding context predicts, fading
+     * with its rank. Capped well under the 3.5-per-key spatial penalty in
+     * [Dictionary], so it settles ties rather than overriding the geometry of
+     * what was actually typed.
+     */
+    private fun contextBonus(word: String, contextRank: Map<String, Int>): Double {
+        val r = contextRank[word] ?: return 0.0
+        return CONTEXT_CORRECTION_WEIGHT / (r + 1.0)
     }
 
     /** Correction the keyboard would apply on a separator, or null. */
@@ -190,11 +232,23 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
         allowAutocorrect: Boolean,
         personalized: Boolean,
         altLang: String? = null,
-        altLocale: Locale? = null
+        altLocale: Locale? = null,
+        prevWord2: String = "",
+        prevWord: String = ""
     ): SuggestionsResult {
         if (composing.isEmpty()) return SuggestionsResult(emptyList(), -1)
         val dict = dictionary(lang, locale)
         val lower = composing.lowercase(locale)
+
+        // What the preceding word predicts should come next, as a rank map. The
+        // completion ranking was previously blind to context: typing "am"
+        // after "I" scored no better than after any other word, so a rarer but
+        // contextually-right completion sat below a common irrelevant one. This
+        // is the same signal the strip already shows once a word is committed;
+        // here it reorders the completions of the word being typed.
+        val contextRank = if (prevWord.isEmpty()) emptyMap()
+        else predictions(prevWord2, prevWord, lang, locale, CONTEXT_COMPLETION_DEPTH)
+            .withIndex().associate { (i, w) -> w.lowercase(locale) to i }
 
         val merged = LinkedHashMap<String, Long>() // lowercase word -> score
         if (personalized) {
@@ -206,8 +260,14 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
         }
         for ((w, f) in dict.byPrefix(lower, 12)) {
             if (userData.isBlocked(w)) continue
+            // A completion the context predicts is multiplied up rather than
+            // given a flat bump, so it stays on the same scale as the frequency
+            // it is competing with — a strongly-predicted word overtakes a
+            // moderately more common one without a rare word leapfrogging
+            // everything.
+            val score = (f * completionFactor(w, contextRank)).toLong()
             val existing = merged[w]
-            if (existing == null || existing < f.toLong()) merged[w] = f.toLong()
+            if (existing == null || existing < score) merged[w] = score
         }
         val altWords = HashSet<String>()
         if (altLang != null && altLocale != null) {
@@ -225,7 +285,8 @@ class SuggestionEngine(private val context: Context, private val userData: UserD
             .toMutableList()
 
         // Up to two corrections, best first, promoted to the front of the strip.
-        var corrs = correctionCandidates(composing, lang, locale, altLang, altLocale, 2)
+        var corrs = correctionCandidates(
+            composing, lang, locale, altLang, altLocale, 2, contextRank)
         var crossLanguage = false
         if (corrs.isEmpty() && altLang != null && altLocale != null) {
             // The current language has nothing to offer for this word. Before

@@ -74,11 +74,37 @@ class DictionaryTest {
     }
 
     @Test
-    fun `rare words are never offered as corrections`() {
-        // Below the frequency floor, so it must not be suggested even though it
-        // is exactly one edit away.
-        val d = dict("helko 10")
+    fun `noise-floor hapax is never offered as a correction`() {
+        // A frequency-1 word is a one-off — a typo someone else made, or
+        // corpus noise — and must not become the target another typo corrects
+        // toward, even at one edit away.
+        val d = dict("helko 1")
         assertTrue(d.corrections("helno", en, 3).isEmpty())
+    }
+
+    @Test
+    fun `a word rare only in absolute terms still corrects in a small corpus`() {
+        // The correction floor scales to the corpus. Under the old flat
+        // frequency>=200 rule this word, common within its small dictionary,
+        // was silently ineligible — which is how spell-check came to be worse
+        // for languages with smaller corpora than English's. Every word here is
+        // far below that old cutoff.
+        val d = dict("hello 40", "world 35", "help 30")
+        assertEquals("hello", d.corrections("helko", en, 3).firstOrNull())
+    }
+
+    @Test
+    fun `correctionsScored agrees with corrections and ranks by descending score`() {
+        // The scored variant is what lets the engine fold in the preceding word
+        // without the dictionary knowing anything about context. It must be the
+        // same candidates in the same order, each with a score, so a bounded
+        // context bonus can reorder near-ties without inventing a candidate.
+        val d = dict("hello 9000", "hells 6000", "hellp 3000")
+        val scored = d.correctionsScored("hellu", en, 5)
+        assertEquals(d.corrections("hellu", en, 5), scored.map { it.first })
+        for (i in 1 until scored.size) {
+            assertTrue("scores must be descending", scored[i - 1].second >= scored[i].second)
+        }
     }
 
     @Test

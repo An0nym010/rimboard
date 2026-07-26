@@ -1267,7 +1267,12 @@ class RimBoardService : InputMethodService(),
             allowAutocorrect = autocorrectActive, personalized = true
         ,
             altLang = effAlt(),
-            altLocale = effAltLocale()
+            altLocale = effAltLocale(),
+            // The word before the one being typed, so completions and
+            // corrections can be ranked in context rather than by raw
+            // frequency alone.
+            prevWord2 = prevWord2,
+            prevWord = prevWordForBigram
         )
         val shortcutExp = Shortcuts.expansionFor(this, composing.toString())
         val emojiSug = if (composing.length >= 2)
