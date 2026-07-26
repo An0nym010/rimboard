@@ -1,0 +1,76 @@
+package com.rimboard.keyboard.model
+
+/**
+ * Restores the apostrophe in a contraction typed without one.
+ *
+ * The bundled dictionaries come from a corpus that stripped apostrophes, so
+ * "dont" sits in the English list with a frequency of 9523 as though it were a
+ * word, and "don't" is absent entirely. The result is a keyboard that treats
+ * "dont" as correctly spelled, never fixes it, and even suggests it over the
+ * real spelling — on some of the most common words in the language. Editing
+ * 40 MB of frequency data would not be the honest fix even if it were cheap;
+ * the apostrophe-less forms are genuinely in the corpus. This is a small,
+ * explicit override on top of it.
+ *
+ * Two confidence levels, because the risk is entirely about ambiguity:
+ *
+ *  - [auto] forms are ones whose apostrophe-less spelling is never itself an
+ *    English word — "dont", "youre", "im". Correcting these on space is safe.
+ *  - Suggest-only forms have a real word as their bare spelling — "cant" (the
+ *    noun), "wont" (accustomed), "ill" (sick). The contraction is offered on
+ *    the strip to tap, but never committed automatically, because the bare
+ *    word is a thing someone might actually mean.
+ *
+ * Words like "its", "were" and "well" appear in neither list: their bare form
+ * is not only a real word but an extremely common and usually-correct one, and
+ * a keyboard that turned "its" into "it's" would be wrong far more often than
+ * right.
+ *
+ * English only for now. Other languages' contractions are elisions ("c'est",
+ * "l'eau") that turn ambiguous quickly, and inventing a list per language is
+ * the same unreviewed-content trap as the translations — they want a native
+ * pass, not a guess. The maps are per-language so that pass has somewhere to go.
+ */
+object Contractions {
+
+    data class Expansion(val canonical: String, val auto: Boolean)
+
+    private val autoEn = mapOf(
+        "dont" to "don't", "doesnt" to "doesn't", "didnt" to "didn't",
+        "isnt" to "isn't", "wasnt" to "wasn't", "arent" to "aren't",
+        "werent" to "weren't", "havent" to "haven't", "hasnt" to "hasn't",
+        "hadnt" to "hadn't", "wouldnt" to "wouldn't", "couldnt" to "couldn't",
+        "shouldnt" to "shouldn't", "mustnt" to "mustn't", "neednt" to "needn't",
+        "im" to "I'm", "youre" to "you're", "theyre" to "they're",
+        "ive" to "I've", "youve" to "you've", "weve" to "we've",
+        "theyve" to "they've", "youd" to "you'd", "theyd" to "they'd",
+        "youll" to "you'll", "theyll" to "they'll", "itll" to "it'll",
+        "thatll" to "that'll", "wouldve" to "would've", "couldve" to "could've",
+        "shouldve" to "should've", "mustve" to "must've", "mightve" to "might've",
+        "whats" to "what's", "thats" to "that's", "wheres" to "where's",
+        "hows" to "how's", "heres" to "here's", "theres" to "there's",
+        "hes" to "he's", "shes" to "she's", "whos" to "who's",
+        "oclock" to "o'clock", "yall" to "y'all"
+    )
+
+    private val suggestEn = mapOf(
+        "cant" to "can't", "wont" to "won't", "ill" to "I'll",
+        "hell" to "he'll", "shell" to "she'll", "wed" to "we'd",
+        "whod" to "who'd", "youd" to "you'd"
+    )
+
+    private val auto = mapOf("en" to autoEn)
+    private val suggest = mapOf("en" to suggestEn)
+
+    /** The contraction for a lowercased bare word, or null if there is none. */
+    fun expand(lang: String, typedLower: String): Expansion? {
+        auto[lang]?.get(typedLower)?.let { return Expansion(it, auto = true) }
+        suggest[lang]?.get(typedLower)?.let { return Expansion(it, auto = false) }
+        return null
+    }
+
+    /** Whether a bare word is an auto-correctable contraction — used to keep
+     *  its unapostrophised form out of the completion suggestions. */
+    fun isAutoBareForm(lang: String, wordLower: String): Boolean =
+        auto[lang]?.containsKey(wordLower) == true
+}

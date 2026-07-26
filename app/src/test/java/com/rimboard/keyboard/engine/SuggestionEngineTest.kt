@@ -168,6 +168,73 @@ class SuggestionEngineTest {
         assertTrue(eng.predictions("", "nonesuch", "en", en, 3).isEmpty())
     }
 
+    // ---- contractions: overriding the apostrophe-stripped corpus ----
+
+    /** The corpus reality: the bare form is in the dictionary, the real one is not. */
+    private val enWithBareForms =
+        "dont 9523\ncant 3936\nwont 1200\nwere 8000\nits 15000\ndone 5000"
+
+    @Test
+    fun `an unambiguous contraction auto-commits over the corpus bare form`() {
+        // "dont" is in the dictionary with a huge frequency, so the ordinary
+        // path treats it as a correctly-spelled word and never touches it.
+        val eng = engine(mapOf("dictionaries/en.txt" to enWithBareForms))
+        assertEquals("don't", eng.correctionFor("dont", "en", en))
+    }
+
+    @Test
+    fun `contraction casing follows what was typed`() {
+        val eng = engine(mapOf("dictionaries/en.txt" to "im 500"))
+        assertEquals("I'm", eng.correctionFor("im", "en", en))
+        assertEquals("I'm", eng.correctionFor("Im", "en", en))
+    }
+
+    @Test
+    fun `an ambiguous contraction is offered but never auto-committed`() {
+        // "cant" and "wont" are real words too, so the apostrophe form is a
+        // tap-only suggestion — committing it on space would fight anyone who
+        // meant the noun or "accustomed".
+        val eng = engine(mapOf("dictionaries/en.txt" to enWithBareForms))
+        assertEquals("cant", eng.correctionFor("cant", "en", en) ?: "cant")
+        val strip = eng.suggestionsFor(
+            "cant", "en", en, allowAutocorrect = true, personalized = false
+        )
+        assertTrue("can't should be offered", strip.items.any { it == "can't" })
+        assertEquals("but never as the autocorrect", -1, strip.autocorrectIndex)
+    }
+
+    @Test
+    fun `a common word that is also a bare contraction is left alone`() {
+        // "its", "were" and "well" are usually correct as typed; the keyboard
+        // must not turn "its" into "it's". They are in neither contraction list.
+        val eng = engine(mapOf("dictionaries/en.txt" to enWithBareForms))
+        assertEquals(null, eng.correctionFor("its", "en", en))
+        assertEquals(null, eng.correctionFor("were", "en", en))
+    }
+
+    @Test
+    fun `the apostrophe-less form is not offered as a completion`() {
+        // Typing "don" must not suggest "dont" from the corpus; the contraction
+        // path owns that word now.
+        val eng = engine(mapOf("dictionaries/en.txt" to enWithBareForms))
+        val out = eng.suggestionsFor(
+            "don", "en", en, allowAutocorrect = false, personalized = false
+        ).items
+        assertTrue("'dont' must not be a completion", out.none { it == "dont" })
+        assertTrue("'done' still may be", out.any { it == "done" })
+    }
+
+    @Test
+    fun `the contraction rides the front chip when the word is fully typed`() {
+        val eng = engine(mapOf("dictionaries/en.txt" to enWithBareForms))
+        val out = eng.suggestionsFor(
+            "youre", "en", en, allowAutocorrect = true, personalized = false
+        )
+        assertEquals("youre", out.items.first())          // verbatim
+        assertTrue(out.items.any { it == "you're" })
+        assertEquals("you're", out.items[out.autocorrectIndex])
+    }
+
     @Test
     fun `sanity - the two completion orderings genuinely differ`() {
         // Guards the first two tests against both silently returning the same

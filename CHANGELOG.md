@@ -4,6 +4,23 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Typing**
+- Contractions are restored on space: "dont" becomes "don't", "youre" becomes
+  "you're", "im" becomes "I'm". The bundled dictionaries come from a corpus
+  that stripped apostrophes, so the bare forms sat in the word list with large
+  frequencies and the keyboard treated them as correctly spelled — never fixing
+  them and even suggesting them over the real spelling. Ambiguous forms whose
+  bare spelling is also a real word ("cant", "wont", "ill") are offered to tap
+  but never committed automatically, and genuinely-common words like "its" and
+  "were" are left alone entirely.
+- Suggestions and corrections are ranked by the word before them, not by raw
+  frequency alone — "am" is lifted over "and" after "I", and a correction tie
+  the dictionary cannot settle ("the stroe") is broken by context.
+- Spell-check reaches the same-sized vocabulary in every language. The
+  correction-target cutoff was a flat frequency that kept far fewer words in
+  smaller-corpus languages than in English; it scales to the corpus now.
+
+
 **Network — RimBoard now ships as two builds**
 - There are two APKs from now on. **`offline`** is what RimBoard has always
   been: `VIBRATE` and nothing else, no `INTERNET`, so Android refuses it a

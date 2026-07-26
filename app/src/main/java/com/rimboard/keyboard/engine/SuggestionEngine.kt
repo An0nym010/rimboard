@@ -229,7 +229,13 @@ class SuggestionEngine private constructor(
         return (fromDict + personal)
             .distinct()
             .asSequence()
-            .filter { !isOffensive(it, lang) && !userData.isBlocked(it) }
+            // Never correct one word *toward* a corpus bare form: "don" must
+            // not be fixed to "dont" (an insertion away), because "dont" is not
+            // a word — its apostrophe form is what the contraction path offers.
+            .filter {
+                !isOffensive(it, lang) && !userData.isBlocked(it) &&
+                    !com.rimboard.keyboard.model.Contractions.isAutoBareForm(lang, it)
+            }
             .map { matchCase(typed, it, locale) }
             .take(limit)
             .toList()
@@ -253,7 +259,24 @@ class SuggestionEngine private constructor(
         locale: Locale,
         altLang: String? = null,
         altLocale: Locale? = null
-    ): String? = correctionCandidates(typed, lang, locale, altLang, altLocale, 1).firstOrNull()
+    ): String? {
+        // An unambiguous contraction fires even though its bare form is
+        // (wrongly) in the dictionary, and takes priority over any edit-
+        // distance fix: "dont" is a missing apostrophe, not a mistyped word.
+        contractionFor(typed, lang, locale)?.let { if (it.second) return it.first }
+        return correctionCandidates(typed, lang, locale, altLang, altLocale, 1).firstOrNull()
+    }
+
+    /**
+     * The contraction for [typed] and whether it is safe to auto-commit, or
+     * null. Cased to match what was typed, so "Dont" -> "Don't".
+     */
+    fun contractionFor(typed: String, lang: String, locale: Locale): Pair<String, Boolean>? {
+        if (typed.isEmpty() || typed.any { it.isDigit() }) return null
+        val e = com.rimboard.keyboard.model.Contractions.expand(lang, typed.lowercase(locale))
+            ?: return null
+        return matchCase(typed, e.canonical, locale) to e.auto
+    }
 
     fun suggestionsFor(
         composing: String,
@@ -290,6 +313,11 @@ class SuggestionEngine private constructor(
         }
         for ((w, f) in dict.byPrefix(lower, 12)) {
             if (userData.isBlocked(w)) continue
+            // The corpus's apostrophe-less "dont"/"youre" sit in the dictionary
+            // with huge frequencies; without this they would be offered as
+            // completions over the real spelling. The contraction restores the
+            // apostrophe instead — see the display assembly below.
+            if (com.rimboard.keyboard.model.Contractions.isAutoBareForm(lang, w)) continue
             // A completion the context predicts is multiplied up rather than
             // given a flat bump, so it stays on the same scale as the frequency
             // it is competing with — a strongly-predicted word overtakes a
@@ -335,9 +363,20 @@ class SuggestionEngine private constructor(
             // Cased with its own language's rules below (Turkish dotted i).
             if (crossLanguage) altWords.add(cl)
         }
-        val correction = if (crossLanguage) null else corrs.firstOrNull()
+        // A contraction sits ahead of an ordinary correction: "dont" is a
+        // missing apostrophe, and if it is auto-eligible it is what commits on
+        // space. Suggest-only contractions still take the front chip but never
+        // become the autocorrect target.
+        val contraction = contractionFor(composing, lang, locale)
+        val contractionWord = contraction?.first?.takeIf { it != composing }
+        val correction = when {
+            contraction != null && contraction.second -> contractionWord
+            crossLanguage -> null
+            else -> corrs.firstOrNull()
+        }
 
         val display = mutableListOf(composing) // slot 0: verbatim
+        if (contractionWord != null) display.add(contractionWord)
         for (w in ranked) {
             // Case foreign words with their own locale (Turkish dotted I, etc.)
             val caseLocale = if (w in altWords && altLocale != null) altLocale else locale
