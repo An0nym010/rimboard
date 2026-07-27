@@ -50,7 +50,43 @@ class KeyProximity private constructor(rows: List<String>) {
         return minOf(1.0, 0.35 * d)
     }
 
+    /**
+     * The keys close enough to [ch] to be plausible slips for it, nearest first.
+     *
+     * The cost function above answers "how wrong is this substitution" for a
+     * pair already in hand. This answers the generative version — "what might
+     * they have meant" — which is what lets a half-typed word with a typo in it
+     * still be completed, instead of waiting for the whole word to be finished
+     * before anything can be offered.
+     *
+     * Cached: the alphabet is small and fixed per layout, and this is on the
+     * per-keystroke path.
+     */
+    fun neighbours(ch: Char): List<Char> = neighbourCache.getOrPut(ch) {
+        val cx = xs[ch] ?: return@getOrPut emptyList()
+        val cy = ys[ch] ?: return@getOrPut emptyList()
+        xs.keys
+            .filter { it != ch }
+            .mapNotNull { other ->
+                val ox = xs[other] ?: return@mapNotNull null
+                val oy = ys[other] ?: return@mapNotNull null
+                val d = hypot((cx - ox).toDouble(), (cy - oy).toDouble())
+                if (d <= NEIGHBOUR_RADIUS) other to d else null
+            }
+            .sortedBy { it.second }
+            .map { it.first }
+    }
+
+    private val neighbourCache = HashMap<Char, List<Char>>()
+
     companion object {
+        /**
+         * One key away, on the diagonal too. Widening this multiplies the work
+         * on every keystroke and starts proposing keys nobody's thumb could
+         * have confused.
+         */
+        private const val NEIGHBOUR_RADIUS = 1.5
+
         private val cache = HashMap<String, KeyProximity>()
         private val qwerty = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm")
 

@@ -4,6 +4,30 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Suggestion engine**
+- **Turkish is now generated, not looked up.** Inflection is regular enough to
+  run forwards: vowel harmony, consonant assimilation and the softening of
+  final p/ç/t/k are deterministic rules, so every ordinary form of a known stem
+  can be built. Typing "kitapl" now completes to "kitaplar" even though no
+  corpus contains it, and "kitaplarimizdan" typed on bare keys comes back as
+  "kitaplarımızdan" — a word that cannot be looked up anywhere because no
+  frequency list holds it. Previously both produced nothing at all.
+- **A typo in a half-typed word no longer blanks the strip.** Exact prefix
+  search returns nothing for "helk", so suggestions vanished for the rest of
+  the word and only returned once it was finished. Near-miss prefixes are now
+  searched too — adjacent key, transposition, doubled letter, dropped letter —
+  and rank below exact matches. Costs ~30µs, against ~1.4ms for the correction
+  scan that already ran.
+- **Missing spaces are spotted.** "alot" offers "a lot", "infact" offers "in
+  fact". Harder than it looks, because a web corpus records those spellings as
+  words: the rule is how much rarer the run-together form is than its own
+  halves, which separates "alot" (~495x) from "cannot" (~37x) and "himself"
+  (below 1x). Offered on the strip, never committed automatically.
+- **Fixed: "alot" auto-corrected to "lot"**, silently deleting a word on the
+  space bar. Where a run-together reading and a spelling correction both fit,
+  neither is now applied without a tap.
+- The spell checker offers all of the above under the underline.
+
 **Spell check in other apps**
 - RimBoard now registers as a **system spell checker**, so the red underlines
   in Gmail, Chrome and everywhere else can come from its dictionaries instead

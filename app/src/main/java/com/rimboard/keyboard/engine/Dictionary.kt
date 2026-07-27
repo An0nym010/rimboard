@@ -52,6 +52,34 @@ class Dictionary(
         /** Absolute noise floor beneath the rank cap: drops hapax and one-off junk. */
         private const val CORRECTION_MIN_FREQ = 2
 
+        /** Below this there is not enough typed yet for a near-miss to mean anything. */
+        private const val FUZZY_MIN_PREFIX = 3
+
+        /** How far back a fuzzy prefix search looks for the slip. */
+        private const val FUZZY_EDIT_WINDOW = 4
+
+        /** A near-miss completion always ranks under an exact one. */
+        private const val FUZZY_PENALTY = 0.30
+
+        /** Neither half of a split may be rarer than this. */
+        private const val SPLIT_MIN_FREQ = 500
+
+        /**
+         * And a one-letter half must be far commoner still. Only a handful of
+         * single letters are real words in any language ("a" and "I" in
+         * English, "y" and "o" in Spanish); every other letter appears in a
+         * corpus as an initial or a list marker, at counts that would let any
+         * word be split anywhere.
+         */
+        private const val SPLIT_SINGLE_MIN_FREQ = 20_000
+
+        /**
+         * How many times rarer than its own halves an attested word must be
+         * before it is treated as a missing space. See [splitInto] for the
+         * measured values this sits between.
+         */
+        private const val SPLIT_DOMINANCE = 150
+
         /**
          * Strips diacritics to their base letter: é→e, ü→u, ç→c, ł→l, ı→i.
          *
@@ -301,6 +329,152 @@ class Dictionary(
         }
         out.sortByDescending { it.second }
         return if (out.size > limit) ArrayList(out.subList(0, limit)) else out
+    }
+
+    /**
+     * Completions for a prefix that itself contains a typo.
+     *
+     * [byPrefix] is exact: one wrong letter and it returns nothing, so the
+     * suggestion strip goes blank at exactly the moment it would be most
+     * useful. The strip only recovers when the word is finished and the
+     * correction path takes over — meaning a typo in the second letter of a
+     * long word leaves eight keystrokes with no suggestions at all.
+     *
+     * This fills that gap by asking the same question of nearby prefixes. The
+     * variants are not all strings within edit distance one — that would be the
+     * whole alphabet at every position, thousands of binary searches per
+     * keystroke. They are the typos a thumb actually makes: a key adjacent to
+     * the one intended, two letters swapped, one letter doubled, one letter
+     * missed. Around thirty lookups for a six-letter prefix.
+     *
+     * Results are scored below their exact counterparts by [FUZZY_PENALTY], so
+     * a real prefix match always wins and these fill in underneath.
+     */
+    fun byPrefixFuzzy(
+        prefixRaw: String,
+        prox: KeyProximity?,
+        limit: Int
+    ): List<Pair<String, Int>> {
+        val prefix = prefixRaw.lowercase(locale)
+        if (prefix.length < FUZZY_MIN_PREFIX || words.isEmpty()) return emptyList()
+        val out = LinkedHashMap<String, Int>()
+        for (variant in prefixVariants(prefix, prox)) {
+            for ((w, f) in byPrefix(variant, limit)) {
+                val scored = (f * FUZZY_PENALTY).toInt()
+                val prev = out[w]
+                if (prev == null || prev < scored) out[w] = scored
+            }
+        }
+        // Anything the exact prefix already reaches is not a fuzzy match; the
+        // caller merges both lists and the exact score must be the one used.
+        return out.entries
+            .filter { !it.key.startsWith(prefix) }
+            .sortedByDescending { it.value }
+            .take(limit)
+            .map { it.key to it.value }
+    }
+
+    /**
+     * Near-misses of [prefix]: one adjacent-key slip, one transposition, one
+     * doubled letter, or one dropped letter.
+     *
+     * Substitutions are limited to the last [FUZZY_EDIT_WINDOW] characters. A
+     * typo in the first letter of a word is both rare and expensive to chase —
+     * it changes which part of the sorted array is searched entirely — while
+     * the recent characters are where a mistake has not yet been noticed.
+     */
+    private fun prefixVariants(prefix: String, prox: KeyProximity?): List<String> {
+        val out = ArrayList<String>(48)
+        val n = prefix.length
+        val from = maxOf(1, n - FUZZY_EDIT_WINDOW)
+        if (prox != null) {
+            for (i in from until n) {
+                for (nb in prox.neighbours(prefix[i])) {
+                    out.add(prefix.substring(0, i) + nb + prefix.substring(i + 1))
+                }
+            }
+        }
+        for (i in from until n - 1) {
+            // Transposition: "teh" for "the".
+            if (prefix[i] == prefix[i + 1]) continue
+            val sb = StringBuilder(prefix)
+            sb[i] = prefix[i + 1]
+            sb[i + 1] = prefix[i]
+            out.add(sb.toString())
+        }
+        for (i in from until n) {
+            // A letter typed twice, and a letter missed: both leave the prefix
+            // the wrong length, which an exact search can never recover from.
+            out.add(prefix.substring(0, i) + prefix.substring(i + 1))
+        }
+        return out
+    }
+
+    /**
+     * The word pair a run-together typing splits into, or null.
+     *
+     * "alot", "infact", "thankyou" and their equivalents in every language are
+     * missing spaces rather than misspellings, and no amount of edit distance
+     * finds them: "a lot" is four edits from "alot" once the space counts, and
+     * the space is not a key the proximity model knows about.
+     *
+     * Both halves must be real words in their own right. The word as typed may
+     * also be one, because "alot", "infact" and "thankyou" are all *in* the
+     * shipped English list — a web corpus records the mistake alongside the
+     * word — so refusing to split anything attested would refuse exactly the
+     * cases this exists for.
+     *
+     * What separates them is how much rarer the run-together form is than its
+     * own halves. Measured on the shipped list, the ratio to the rarer half is
+     * ~495 for "alot", ~496 for "thankyou" and ~363 for "infact", against ~37
+     * for "cannot", ~49 for "awhile", ~1.6 for "everyone" and below 1 for
+     * "alright" and "himself". [SPLIT_DOMINANCE] sits in that gap. A ratio
+     * rather than a frequency cut-off, so it means the same thing in a corpus
+     * of a different size — the same reason the correction floor is by rank.
+     *
+     * Single-letter halves are allowed, since "a lot" is the example everyone
+     * reaches for first, but held to a much higher frequency bar: corpora are
+     * full of stray single letters at low counts, and "u", "s" and "t" as
+     * "words" would turn every unrecognised typing into a split.
+     */
+    fun splitInto(typedLower: String): Pair<String, String>? {
+        if (typedLower.length < 3) return null
+        val typedFreq = freqOf(typedLower)
+        var best: Pair<String, String>? = null
+        var bestScore = 0.0
+        for (i in 1 until typedLower.length) {
+            val a = typedLower.substring(0, i)
+            val b = typedLower.substring(i)
+            if (!exact.contains(a) || !exact.contains(b)) continue
+            val fa = freqOf(a)
+            val fb = freqOf(b)
+            if (fa < floorFor(a) || fb < floorFor(b)) continue
+            // An attested word is only a missing space if it is overwhelmingly
+            // rarer than the two words it would become.
+            if (typedFreq > 0 && minOf(fa, fb) < typedFreq * SPLIT_DOMINANCE) continue
+            // Both halves count, so a split into two common words beats one
+            // into a common word and a rare one.
+            val score = ln((fa + 1).toDouble()) + ln((fb + 1).toDouble())
+            if (score > bestScore) {
+                bestScore = score
+                best = a to b
+            }
+        }
+        return best
+    }
+
+    /** A one-letter half has to be a genuinely common word, not corpus dust. */
+    private fun floorFor(half: String): Int =
+        if (half.length == 1) SPLIT_SINGLE_MIN_FREQ else SPLIT_MIN_FREQ
+
+    private fun freqOf(word: String): Int {
+        var lo = 0
+        var hi = words.size
+        while (lo < hi) {
+            val mid = (lo + hi) ushr 1
+            if (words[mid] < word) lo = mid + 1 else hi = mid
+        }
+        return if (lo < words.size && words[lo] == word) freqs[lo] else 0
     }
 
     /**

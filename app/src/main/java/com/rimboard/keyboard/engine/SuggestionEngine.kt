@@ -62,6 +62,24 @@ class SuggestionEngine private constructor(
 
         /** Additive tie-break for corrections; see [contextBonus]. */
         const val CONTEXT_CORRECTION_WEIGHT = 2.0
+
+        /**
+         * How thin the completion list has to get before near-miss prefixes are
+         * consulted. Above this there is plenty to show and the extra lookups
+         * would only add noise; at or below it the strip is nearly empty, which
+         * is the symptom of a typo already in the prefix.
+         */
+        private const val FUZZY_TRIGGER = 3
+
+        /**
+         * A generated inflection ranks below the corpus words it sits with. It
+         * is grammatically certain but not attested, and an attested form of
+         * the same stem is the better guess when both fit.
+         */
+        private const val MORPH_PENALTY = 0.55
+
+        /** Fallback weight when the prefix matched no corpus word at all. */
+        private const val MORPH_BASE_SCORE = 10_000L
     }
 
     /** Multiplier applied to a completion's frequency for its context rank. */
@@ -208,7 +226,7 @@ class SuggestionEngine private constructor(
         // itself a word and folds exactly onto a dictionary entry — so it leads
         // the list rather than competing as an edit-distance guess. It still
         // passes through the filters and case-matching below.
-        val accented = dict.accentedFormOf(lower)?.takeIf {
+        val accented = accentedFormFor(lower, lang, dict)?.takeIf {
             !isOffensive(it, lang) && !userData.isBlocked(it)
         }
         // Agglutinative languages build endless valid surface forms a frequency
@@ -260,6 +278,34 @@ class SuggestionEngine private constructor(
     }
 
     /**
+     * The properly accented word a bare-keys spelling stands for, or null.
+     *
+     * Two routes, tried in that order. The direct one is a lookup: the
+     * dictionary is indexed by the accent-stripped form of every accented word,
+     * so "gunaydin" finds "günaydın". That covers every language with accents
+     * and every word a corpus contains.
+     *
+     * The second exists because in an agglutinative language the corpus cannot
+     * contain the word. "kitaplarimizdan" is ordinary Turkish and appears in no
+     * frequency list, so there is nothing to look it up in — the accented form
+     * has to be *built*, from a stem that is known, by rules that are
+     * deterministic. See [com.rimboard.keyboard.model.TurkishMorph].
+     *
+     * Only asked when the query carries no accents of its own, so a correctly
+     * accented word is never second-guessed.
+     */
+    private fun accentedFormFor(lower: String, lang: String, dict: Dictionary): String? {
+        dict.accentedFormOf(lower)?.let { return it }
+        if (!com.rimboard.keyboard.model.Morphology.isAgglutinative(lang)) return null
+        if (Dictionary.foldDiacritics(lower) != lower) return null
+        return com.rimboard.keyboard.model.TurkishMorph.accentedInflection(
+            lower,
+            fold = { Dictionary.foldDiacritics(it) },
+            accentedStem = { bare -> dict.accentedFormOf(bare) ?: bare.takeIf(dict::contains) }
+        )
+    }
+
+    /**
      * Whether [typed] is a real word, by the same standard autocorrect uses.
      *
      * Split out for the system spell checker, which has to answer "is this
@@ -292,7 +338,7 @@ class SuggestionEngine private constructor(
         val lower = typed.lowercase(locale)
         val dict = dictionary(lang, locale)
         if (dict.contains(lower) || userData.isKnown(lower)) return true
-        if (dict.accentedFormOf(lower) != null) return false
+        if (accentedFormFor(lower, lang, dict) != null) return false
         if (com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) { dict.contains(it) }) {
             return true
         }
@@ -330,6 +376,28 @@ class SuggestionEngine private constructor(
      * The contraction for [typed] and whether it is safe to auto-commit, or
      * null. Cased to match what was typed, so "Dont" -> "Don't".
      */
+    /**
+     * The two words a run-together typing splits into, or null.
+     *
+     * Deliberately not part of [correctionCandidates], and so never the
+     * autocorrect target: inserting a space changes the shape of the sentence
+     * rather than the spelling of a word, and doing that on the user's behalf
+     * while they are still typing is a much bigger intervention than fixing
+     * "helko". It goes on the strip as something to tap, and the spell checker
+     * offers it under the underline. Both are choices; neither is a decision
+     * made for the user.
+     */
+    fun splitFor(typed: String, lang: String, locale: Locale): String? {
+        if (typed.length < 4 || typed.any { it.isDigit() }) return null
+        if (typed.drop(1).any { it.isUpperCase() }) return null
+        val lower = typed.lowercase(locale)
+        if (userData.isKnown(lower)) return null
+        val (a, b) = dictionary(lang, locale).splitInto(lower) ?: return null
+        if (isOffensive(a, lang) || isOffensive(b, lang)) return null
+        if (userData.isBlocked(a) || userData.isBlocked(b)) return null
+        return matchCase(typed, "$a $b", locale)
+    }
+
     fun contractionFor(typed: String, lang: String, locale: Locale): Pair<String, Boolean>? {
         if (typed.isEmpty() || typed.any { it.isDigit() }) return null
         val e = com.rimboard.keyboard.model.Contractions.expand(lang, typed.lowercase(locale))
@@ -386,6 +454,35 @@ class SuggestionEngine private constructor(
             val existing = merged[w]
             if (existing == null || existing < score) merged[w] = score
         }
+
+        // An agglutinative language cannot be completed from a word list: the
+        // form being typed is usually not in it. Generated from a stem that is,
+        // and only ever forms that continue what has been typed so far — so
+        // this adds candidates and can never change the word in front of the
+        // user. Scored just under the corpus hits, which are attested.
+        if (com.rimboard.keyboard.model.Morphology.isAgglutinative(lang)) {
+            val stemFreq = merged.values.maxOrNull() ?: MORPH_BASE_SCORE
+            com.rimboard.keyboard.model.TurkishMorph
+                .completionsFor(lower, 4) { dict.contains(it) }
+                .forEachIndexed { i, form ->
+                    if (userData.isBlocked(form) || isOffensive(form, lang)) return@forEachIndexed
+                    val score = (stemFreq * MORPH_PENALTY / (i + 1)).toLong()
+                    if (merged[form] == null) merged[form] = maxOf(1L, score)
+                }
+        }
+
+        // Nothing yet, and the word is long enough that the silence is telling:
+        // the prefix itself probably has a typo in it. Exact prefix search can
+        // never recover from that, so the strip stays blank for the rest of the
+        // word — which is exactly when suggestions are wanted most.
+        if (merged.size < FUZZY_TRIGGER && lower.length >= 3) {
+            for ((w, f) in dict.byPrefixFuzzy(lower, KeyProximity.forLang(lang), 6)) {
+                if (userData.isBlocked(w)) continue
+                if (com.rimboard.keyboard.model.Contractions.isAutoBareForm(lang, w)) continue
+                val score = (f * completionFactor(w, contextRank)).toLong()
+                if (merged[w] == null) merged[w] = score
+            }
+        }
         val altWords = HashSet<String>()
         if (altLang != null && altLocale != null) {
             // Secondary-language candidates rank slightly below primary ones.
@@ -436,6 +533,12 @@ class SuggestionEngine private constructor(
 
         val display = mutableListOf(composing) // slot 0: verbatim
         if (contractionWord != null) display.add(contractionWord)
+        // A missing space, offered but never taken automatically. Placed after
+        // any contraction and ahead of the ordinary completions: "alot" almost
+        // certainly wanted "a lot", but adding a word boundary on the user's
+        // behalf is not something to do without a tap.
+        val split = if (contractionWord == null) splitFor(composing, lang, locale) else null
+        if (split != null) display.add(split)
         for (w in ranked) {
             // Case foreign words with their own locale (Turkish dotted I, etc.)
             val caseLocale = if (w in altWords && altLocale != null) altLocale else locale
@@ -444,8 +547,15 @@ class SuggestionEngine private constructor(
             if (display.size >= 3) break
         }
 
+        // A run-together typing suppresses autocorrect entirely.
+        //
+        // "alot" is edit-distance 1 from "lot", so without this the keyboard
+        // silently deleted a word on the space bar — the correction was not
+        // merely worse than "a lot", it destroyed information. Whenever two
+        // explanations this different both fit, neither is confident enough to
+        // apply without a tap, and both are on the strip to choose from.
         var acIndex = -1
-        if (allowAutocorrect && correction != null) {
+        if (allowAutocorrect && split == null && correction != null) {
             val idx = display.indexOf(correction)
             if (idx >= 0) acIndex = idx
         }

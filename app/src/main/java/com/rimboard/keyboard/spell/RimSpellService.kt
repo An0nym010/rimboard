@@ -100,7 +100,11 @@ class RimSpellService : SpellCheckerService() {
                 word, lang, loc, altLang, altLoc,
                 limit = suggestionsLimit.coerceIn(1, MAX_SUGGESTIONS)
             )
-            val out = (listOfNotNull(contraction) + corrections).distinct()
+            // A run-together pair. Last, because it is the largest change: the
+            // others fix a word, this one adds a boundary between two.
+            val split = engine.splitFor(word, lang, loc)
+            val out = (listOfNotNull(contraction) + corrections + listOfNotNull(split))
+                .distinct()
                 .take(suggestionsLimit.coerceAtLeast(1))
 
             var attrs = SuggestionsInfo.RESULT_ATTR_LOOKS_LIKE_TYPO
