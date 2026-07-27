@@ -27,6 +27,30 @@ class UserData private constructor(dir: File) {
         internal fun inDir(dir: File): UserData = UserData(dir)
 
         /**
+         * Stands in for "start of a sentence" as a bigram context.
+         *
+         * A control character, so it can never collide with a word. Before
+         * this the first word of every message had no context at all and the
+         * strip simply sat empty — at the one moment there is most to predict
+         * and least typed to go on.
+         */
+        const val START = "\u0001"
+
+        /**
+         * Contexts held before the counts are halved. Roughly a megabyte of
+         * text worth of habits; past that the model is remembering more than
+         * anyone's typing has changed.
+         */
+        private const val NGRAM_CONTEXT_CAP = 20_000
+
+        /**
+         * A word seen after this exact two-word context is much stronger
+         * evidence than one seen after the previous word alone — "see you"
+         * predicts "soon" even where "you" alone mostly precedes "are".
+         */
+        private const val TRIGRAM_WEIGHT = 4.0
+
+        /**
          * User data lives in device-protected storage (encrypted at rest,
          * available before first unlock) so the keyboard is fully functional
          * on the lock screen after a reboot. Old files are migrated once.
@@ -189,11 +213,54 @@ class UserData private constructor(dir: File) {
         if (prev.isEmpty() || next.isEmpty()) return
         bigrams.getOrPut(prev) { ConcurrentHashMap() }.merge(next, 1) { a, b -> a + b }
         dirty = true
+        maybeDecay()
+    }
+
+    /**
+     * Halves every count once the model has grown past [NGRAM_CONTEXT_CAP]
+     * contexts, dropping whatever falls to zero.
+     *
+     * Without this the tables only ever grow, and — worse — they only ever
+     * remember. A phrase used constantly during one project stays top of the
+     * predictions a year later, because nothing that was once counted is ever
+     * counted down, and a new habit has to out-count a total accumulated over
+     * the whole life of the install.
+     *
+     * Halving is the cheap form of exponential decay: recent evidence keeps its
+     * full weight while everything older loses half of its own, so the model
+     * tracks what someone is typing now rather than what they have ever typed.
+     * Anything seen exactly once and not repeated since the last decay is
+     * forgotten entirely, which is also what keeps a one-off typo from living
+     * in the predictions forever.
+     */
+    private fun maybeDecay() {
+        if (bigrams.size + trigrams.size <= NGRAM_CONTEXT_CAP) return
+        synchronized(this) {
+            if (bigrams.size + trigrams.size <= NGRAM_CONTEXT_CAP) return
+            for (table in listOf(bigrams, trigrams)) {
+                val emptied = ArrayList<String>()
+                for ((ctx, counts) in table) {
+                    val gone = ArrayList<String>()
+                    for ((w, c) in counts) {
+                        val half = c / 2
+                        if (half <= 0) gone.add(w) else counts[w] = half
+                    }
+                    gone.forEach { counts.remove(it) }
+                    if (counts.isEmpty()) emptied.add(ctx)
+                }
+                emptied.forEach { table.remove(it) }
+            }
+            dirty = true
+        }
     }
 
     /** Records both the bigram prev1->next and (when prev2 is known) the trigram. */
     fun recordNgram(prev2: String, prev1: String, next: String) {
-        recordBigram(prev1, next)
+        // No preceding word is itself a context — the opening of a message —
+        // so it is recorded under [START] rather than dropped. This is how the
+        // keyboard comes to know how *you* start a message rather than only how
+        // the shipped model says people do.
+        recordBigram(if (prev1.isEmpty()) START else prev1, next)
         if (prev2.isEmpty() || prev1.isEmpty() || next.isEmpty()) return
         trigrams.getOrPut("$prev2 $prev1") { ConcurrentHashMap() }
             .merge(next, 1) { a, b -> a + b }
@@ -206,18 +273,32 @@ class UserData private constructor(dir: File) {
      * two-word context is a much stronger signal than one seen after prev1
      * alone.
      */
-    fun predictNext(prev2: String, prev1: String, limit: Int): List<String> {
-        val scores = HashMap<String, Int>()
+    fun predictNext(prev2: String, prev1: String, limit: Int): List<String> =
+        predictScores(prev2, prev1).entries
+            .sortedByDescending { it.value }
+            .take(limit)
+            .map { it.key }
+
+    /**
+     * The same evidence as [predictNext], but as scores rather than an order.
+     *
+     * The engine needs the strength, not just the ranking: it merges this with
+     * a curated list, and merging two orderings can only ever be "one wins
+     * outright". That is what used to happen, and it meant a single accidental
+     * word pair — typed once, never again — displaced the whole hand-written
+     * model for that context until it decayed away.
+     */
+    fun predictScores(prev2: String, prev1: String): Map<String, Double> {
+        val scores = HashMap<String, Double>()
         bigrams[prev1]?.forEach { (w, c) ->
-            if (!blocked.contains(w)) scores.merge(w, c) { a, b -> a + b }
+            if (!blocked.contains(w)) scores.merge(w, c.toDouble()) { a, b -> a + b }
         }
         if (prev2.isNotEmpty()) {
             trigrams["$prev2 $prev1"]?.forEach { (w, c) ->
-                if (!blocked.contains(w)) scores.merge(w, c * 4) { a, b -> a + b }
+                if (!blocked.contains(w)) scores.merge(w, c * TRIGRAM_WEIGHT) { a, b -> a + b }
             }
         }
-        if (scores.isEmpty()) return emptyList()
-        return scores.entries.sortedByDescending { it.value }.take(limit).map { it.key }
+        return scores
     }
 
     fun glideCandidates(first: Char, last: Char, nearLast: Char, limit: Int): List<Pair<String, Int>> =

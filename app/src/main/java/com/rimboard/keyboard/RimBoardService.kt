@@ -856,7 +856,7 @@ class RimBoardService : InputMethodService(),
         ic.commitText("$lead$best ", 1)
         ic.endBatchEdit()
         val canLearn = Prefs.learnWords(this) && !isIncognito() && !isPassword && !isEmailOrUri
-        if (canLearn && Prefs.predictions(this) && prevWordForBigram.isNotEmpty()) {
+        if (canLearn && Prefs.predictions(this)) {
             userData.recordNgram(prevWord2, prevWordForBigram, best.lowercase(loc))
         }
         prevWordForBigram = best.lowercase(loc)
@@ -1053,7 +1053,7 @@ class RimBoardService : InputMethodService(),
             userData.learnWord(typed.lowercase(loc))
         }
         val fw = finalWord.lowercase(loc)
-        if (canLearn && Prefs.predictions(this) && wordish && prevWordForBigram.isNotEmpty()) {
+        if (canLearn && Prefs.predictions(this) && wordish) {
             userData.recordNgram(prevWord2, prevWordForBigram, fw)
         }
         prevWordForBigram = if (wordish) fw else ""
@@ -1255,7 +1255,7 @@ class RimBoardService : InputMethodService(),
                 s.showSuggestions(listOf(it, "", ""), -1)
                 return
             }
-            var preds = if (Prefs.predictions(this) && prevWordForBigram.isNotEmpty()) {
+            var preds = if (Prefs.predictions(this)) {
                 engine.predictions(prevWord2, prevWordForBigram, currentLangCode(), locale(), 3)
             } else emptyList()
             if (preds.isNotEmpty() &&
@@ -1396,7 +1396,7 @@ class RimBoardService : InputMethodService(),
         if (canLearn && wordish && word.length >= 2) {
             userData.learnWord(word.lowercase(loc))
         }
-        if (canLearn && Prefs.predictions(this) && wordish && prevWordForBigram.isNotEmpty()) {
+        if (canLearn && Prefs.predictions(this) && wordish) {
             userData.recordNgram(prevWord2, prevWordForBigram, word.lowercase(loc))
         }
         prevWordForBigram = if (wordish) word.lowercase(loc) else ""

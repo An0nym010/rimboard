@@ -80,6 +80,18 @@ class SuggestionEngine private constructor(
 
         /** Fallback weight when the prefix matched no corpus word at all. */
         private const val MORPH_BASE_SCORE = 10_000L
+
+        /**
+         * What the top entry of the curated prediction list is worth, on the
+         * same scale as a count of how many times the user has typed something.
+         *
+         * At 3, the hand-written first guess holds its place against a pair the
+         * user has typed once or twice and gives way at three — which is about
+         * where a repetition stops looking like an accident. A single trigram
+         * hit outranks it outright, because an exact two-word context is much
+         * more specific than a curated single-word one.
+         */
+        private const val STATIC_WEIGHT = 3.0
     }
 
     /** Multiplier applied to a completion's frequency for its context rank. */
@@ -651,17 +663,35 @@ class SuggestionEngine private constructor(
     fun predictions(
         prevWord2: String, prevWord: String, lang: String, locale: Locale, limit: Int
     ): List<String> {
-        val key = prevWord.lowercase(locale)
+        // No preceding word means the start of a message or of a new sentence,
+        // which is a context in its own right rather than the absence of one:
+        // "hi", "thanks", "I" and "the" are all far likelier openings than they
+        // are continuations. It used to return nothing here, so the strip was
+        // blank until the first word had been typed in full.
+        val key = if (prevWord.isEmpty()) UserData.START else prevWord.lowercase(locale)
         val key2 = prevWord2.lowercase(locale)
-        val out = LinkedHashSet<String>()
-        for (w in userData.predictNext(key2, key, limit)) out.add(w)
-        if (out.size < limit) {
-            for (w in predictionModel(lang)[key].orEmpty()) {
-                if (out.size >= limit) break
-                if (!userData.isBlocked(w) && !isOffensive(w, lang)) out.add(w)
-            }
+
+        // Both sources scored on one scale and then merged, rather than one
+        // source winning outright. A hard cascade meant a word pair typed once
+        // by accident sat in front of the curated model for that context until
+        // it decayed; and where the user had strong evidence for a second and
+        // third word, the curated list could not fill the remaining slots
+        // alongside it.
+        val scores = HashMap<String, Double>()
+        for ((w, s) in userData.predictScores(key2, key)) scores[w] = s
+        predictionModel(lang)[key].orEmpty().forEachIndexed { i, w ->
+            // Fades with rank, so the curated model's own ordering survives the
+            // merge. At the top it is worth a few repeated user sightings; by
+            // the end of the list it only breaks ties.
+            scores.merge(w, STATIC_WEIGHT / (i + 1.0)) { a, b -> a + b }
         }
-        return out.toList()
+        return scores.entries
+            .asSequence()
+            .filter { !userData.isBlocked(it.key) && !isOffensive(it.key, lang) }
+            .sortedByDescending { it.value }
+            .take(limit)
+            .map { it.key }
+            .toList()
     }
 
     private fun matchCase(typed: String, candidate: String, locale: Locale): String {

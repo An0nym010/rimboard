@@ -4,6 +4,31 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Next-word prediction**
+- **The strip is no longer empty at the start of a message.** The first word had
+  no preceding word, which the engine treated as no context rather than as the
+  opening of a sentence — so nothing was suggested at the one moment there is
+  the most to guess and the least typed to go on. Openings are now predicted,
+  and learned: the keyboard picks up how *you* start a message.
+- **The shipped model and your own habits are now weighed, not stacked.** Any
+  word pair you had ever typed used to come first and the curated model only
+  filled what was left, so a single accidental pairing held the top slot for
+  that context until it aged out. Both are scored on one scale: a pair typed
+  once sits below the curated first guess, three sightings beat it, and an
+  exact two-word context beats it immediately.
+- **Learned n-grams now decay.** Counts are halved once the model passes 20,000
+  contexts, and anything seen exactly once is dropped. Without this the tables
+  only ever grew and only ever remembered — a phrase used heavily during one
+  month stayed top of the predictions a year later, because a new habit had to
+  out-count a lifetime total.
+- **Turkish prediction data went from 15 contexts to 69**, and English from 95
+  to 115 — including sentence openers for both. Same provenance as before:
+  common non-creative associations written by hand for RimBoard, no external
+  corpus. Turkish at 15 contexts was barely a model at all.
+- Fixed in passing: the English expansion initially *replaced* existing entries
+  rather than extending them, shortening 25 contexts that had been curated
+  earlier. The generator now merges.
+
 **Suggestion engine**
 - **Turkish is now generated, not looked up.** Inflection is regular enough to
   run forwards: vowel harmony, consonant assimilation and the softening of

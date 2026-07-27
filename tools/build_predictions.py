@@ -17,12 +17,20 @@ Run:  python3 tools/build_predictions.py
 """
 import os
 
+# The engine keys sentence-start predictions under this control character;
+# it must match UserData.START exactly.
+START = "\u0001"
+
 OUT_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     "app", "src", "main", "assets", "predictions",
 )
 
 EN = {
+    # Sentence openers; see START above.
+    START: ["i", "the", "it", "we", "you", "thanks", "hi", "hey", "just",
+            "ok", "yes", "no", "sorry", "what", "how", "can", "do", "let",
+            "good", "please"],
     "i": ["am", "have", "will", "think", "was", "know", "need", "want",
           "really", "just", "love", "hope", "feel", "had", "would", "can't", "don't"],
     "i'm": ["not", "going", "so", "just", "sure", "still", "here", "sorry",
@@ -152,22 +160,178 @@ EN = {
 }
 
 TR = {
-    "ben": ["de", "bir", "seni", "çok", "sana", "bunu"],
-    "sen": ["de", "bir", "ne", "çok", "misin", "bana"],
-    "bu": ["bir", "çok", "ne", "kadar", "gün", "sabah"],
-    "çok": ["güzel", "iyi", "teşekkür", "fazla", "iyiyim", "güzeldi"],
+    # Sentence openers. START is the empty-context key the engine uses when
+    # nothing has been typed yet; see UserData.START.
+    START: ["ben", "bu", "bir", "ne", "çok", "evet", "hayır", "merhaba",
+            "selam", "tamam", "şimdi", "bugün", "sen", "biraz", "hadi",
+            "günaydın", "nasılsın", "teşekkürler", "peki", "yarın"],
+
+    # pronouns and their common continuations
+    "ben": ["de", "bir", "seni", "çok", "sana", "bunu", "şimdi", "onu", "böyle"],
+    "sen": ["de", "bir", "ne", "çok", "misin", "bana", "nasılsın", "onu"],
+    "biz": ["de", "bir", "onu", "şimdi", "bunu"],
+    "o": ["da", "bir", "zaman", "kadar", "gün", "yüzden"],
+    "bana": ["bir", "ne", "bunu", "söyle", "yaz", "haber", "yardım"],
+    "sana": ["bir", "bunu", "söyledim", "geliyorum", "yazarım"],
+    "onu": ["bir", "çok", "da", "ben", "sen"],
+
+    # determiners and quantifiers
+    "bu": ["bir", "çok", "ne", "kadar", "gün", "sabah", "akşam", "konuda",
+           "yüzden", "arada"],
+    "şu": ["an", "anda", "bir", "sıralar"],
+    "bir": ["şey", "gün", "daha", "de", "tane", "sorun", "an", "dakika",
+            "saat", "süre", "kez", "araya"],
+    "her": ["şey", "zaman", "gün", "ikisi", "şeyi"],
+    "hiç": ["bir", "sorun", "olmaz", "yoktu"],
+    "biraz": ["daha", "sonra", "önce", "zaman", "bekle"],
+    "çok": ["güzel", "iyi", "teşekkür", "fazla", "iyiyim", "güzeldi",
+            "sevindim", "uzun", "az", "önemli"],
+    "daha": ["sonra", "iyi", "çok", "önce", "fazla", "yeni", "az"],
+    "en": ["iyi", "güzel", "çok", "az", "son"],
+
+    # question words
+    "ne": ["zaman", "kadar", "oldu", "yapıyorsun", "güzel", "haber", "olacak",
+           "yapıyorsun", "demek", "olur"],
+    "nasıl": ["bir", "oldu", "yani", "gidiyor", "olur"],
+    "neden": ["böyle", "olmasın", "bilmiyorum", "acaba"],
+    "kim": ["var", "geldi", "bilir", "o"],
+    "nerede": ["olduğunu", "kaldın", "buluşalım"],
+    "hangi": ["gün", "saat", "biri", "konuda"],
+    "kaç": ["tane", "saat", "gün", "para", "kişi"],
+
+    # greetings and politeness
+    "merhaba": ["nasılsın", "ben", "iyi"],
+    "selam": ["nasılsın", "ben", "naber"],
+    "günaydın": ["nasılsın", "iyi", "sana"],
+    "iyi": ["geceler", "günler", "akşamlar", "misin", "bir", "ki", "olur",
+            "şanslar", "tatiller"],
     "teşekkür": ["ederim", "ederiz"],
-    "nasıl": ["bir", "oldu", "yani"],
-    "ne": ["zaman", "kadar", "oldu", "yapıyorsun", "güzel", "haber", "olacak"],
-    "bir": ["şey", "gün", "daha", "de", "tane", "sorun"],
-    "için": ["bir", "çok", "seni", "bunu"],
-    "iyi": ["geceler", "günler", "akşamlar", "misin", "bir", "ki"],
-    "seni": ["seviyorum", "çok", "bir"],
-    "bana": ["bir", "ne", "bunu", "söyle"],
-    "daha": ["sonra", "iyi", "çok", "önce", "fazla"],
-    "evet": ["ama", "tabii", "bir", "biliyorum"],
-    "hayır": ["ama", "teşekkürler", "sorun"],
+    "teşekkürler": ["çok", "ben", "sana"],
+    "rica": ["ederim", "etsem"],
+    "kolay": ["gelsin"],
+    "geçmiş": ["olsun"],
+    "hoş": ["geldin", "geldiniz", "bulduk"],
+    "görüşmek": ["üzere", "isterim"],
+
+    # affirmation, negation, hedging
+    "evet": ["ama", "tabii", "bir", "biliyorum", "haklısın", "olur"],
+    "hayır": ["ama", "teşekkürler", "sorun", "gerek"],
+    "tamam": ["o", "ben", "peki", "anladım", "olur"],
+    "tabii": ["ki", "canım", "olur"],
+    "belki": ["de", "bir", "sonra", "yarın"],
+    "sanırım": ["bir", "öyle", "evet", "yarın"],
+    "galiba": ["bir", "öyle", "yarın"],
+    "aslında": ["bir", "çok", "ben", "öyle"],
+    "yani": ["bir", "ne", "öyle", "sonuçta"],
+    "ama": ["bir", "ben", "çok", "sen", "yine"],
+    "çünkü": ["ben", "bir", "çok", "o"],
+    "eğer": ["bir", "sen", "ben", "olursa"],
+
+    # very common verbs and their frames
+    "seni": ["seviyorum", "çok", "bir", "arayacağım", "özledim"],
+    "seninle": ["konuşmak", "birlikte", "gurur"],
+    "olur": ["mu", "musun", "muyuz", "diye"],
+    "var": ["mı", "bir", "mıydı", "ya"],
+    "yok": ["mu", "bir", "canım", "sorun"],
+    "gerek": ["yok", "var", "mi"],
+    "lazım": ["mı", "değil", "olan"],
+    "istiyorum": ["ama", "seni", "bir", "çok"],
+    "biliyorum": ["ama", "ben", "seni", "canım"],
+    "bilmiyorum": ["ama", "ne", "belki", "henüz"],
+    "yapabilir": ["misin", "miyiz", "miyim"],
+    "gelebilir": ["misin", "miyiz", "misiniz"],
+
+    # time and place
+    "bugün": ["ne", "bir", "çok", "akşam", "biraz"],
+    "yarın": ["görüşürüz", "bir", "sabah", "akşam", "ne"],
+    "dün": ["akşam", "gece", "bir", "seni"],
+    "şimdi": ["ne", "bir", "geliyorum", "değil", "olmaz"],
+    "sonra": ["görüşürüz", "bir", "ne", "konuşuruz"],
+    "önce": ["bir", "ben", "sen", "bunu"],
+    "için": ["bir", "çok", "seni", "bunu", "gerekli"],
+    "kadar": ["çok", "iyi", "güzel", "olur"],
+    "gibi": ["bir", "görünüyor", "oldu", "duruyor"],
+    "ile": ["birlikte", "ilgili", "beraber"],
 }
+
+
+def merge(model, extra):
+    """Add continuations without discarding the ones already listed.
+
+    `dict.update` would replace each entry outright, which silently shortened
+    contexts that had been curated earlier — an addition that took things away.
+    Existing continuations keep their position, because that position is the
+    ranking the runtime uses; new ones are appended after them.
+    """
+    for prev, nexts in extra.items():
+        current = model.get(prev, [])
+        model[prev] = current + [w for w in nexts if w not in current]
+
+
+# Second batch: question openings, scheduling, and the short replies that make
+# up most of the messages anyone actually sends. Same provenance as above —
+# common non-creative associations written by hand, no external corpus.
+merge(EN, {
+    "what": ["do", "are", "is", "time", "about", "happened", "you", "if",
+             "the", "did", "we"],
+    "when": ["you", "are", "is", "do", "did", "we", "can", "will"],
+    "where": ["are", "is", "do", "did", "you", "we", "should"],
+    "why": ["not", "is", "do", "did", "are", "would"],
+    "how": ["are", "do", "is", "much", "many", "long", "about", "was", "did"],
+    "who": ["is", "are", "was", "do", "else", "said"],
+    "which": ["one", "is", "are", "of"],
+    "how's": ["it", "the", "everything", "your"],
+    "let": ["me", "us", "them", "him", "her"],
+    "let's": ["go", "do", "talk", "meet", "get", "say", "try"],
+    "thanks": ["for", "a", "so", "again", "very"],
+    "thank": ["you", "them", "him", "her"],
+    "sorry": ["for", "about", "i", "to", "if"],
+    "please": ["let", "send", "call", "check", "do", "can"],
+    "sure": ["thing", "i", "no", "let", "that"],
+    "maybe": ["we", "i", "you", "next", "later", "tomorrow"],
+    "just": ["a", "wanted", "got", "saw", "let", "checking", "the", "now"],
+    "not": ["sure", "really", "yet", "a", "the", "going", "much"],
+    "no": ["problem", "worries", "one", "idea", "it's", "need"],
+    "yes": ["please", "i", "of", "that", "it"],
+    "ok": ["thanks", "sounds", "i", "let", "great"],
+    "okay": ["thanks", "sounds", "i", "let"],
+    "see": ["you", "the", "if", "what", "how", "it"],
+    "talk": ["to", "later", "soon", "about", "with"],
+    "call": ["you", "me", "him", "her", "back", "them"],
+    "send": ["me", "it", "you", "them", "over", "the"],
+    "meet": ["you", "up", "at", "me", "tomorrow"],
+    "going": ["to", "be", "on", "out", "back", "well"],
+    "want": ["to", "me", "you", "a", "it"],
+    "need": ["to", "a", "you", "it", "some", "help"],
+    "have": ["a", "to", "you", "been", "the", "it", "any"],
+    "had": ["a", "to", "been", "the", "no"],
+    "get": ["a", "it", "the", "back", "to", "there", "some"],
+    "got": ["it", "a", "the", "to", "back", "home"],
+    "take": ["a", "care", "it", "the", "your", "some"],
+    "make": ["sure", "it", "a", "the", "sense"],
+    "look": ["at", "like", "for", "good", "into"],
+    "sounds": ["good", "great", "like", "fine"],
+    "at": ["the", "a", "least", "home", "work", "all", "night"],
+    "on": ["the", "my", "it", "a", "your", "monday", "time"],
+    "in": ["the", "a", "my", "about", "case", "fact", "time"],
+    "for": ["the", "a", "you", "me", "now", "sure", "us"],
+    "to": ["the", "be", "you", "me", "do", "get", "go", "have"],
+    "of": ["the", "a", "them", "us", "course", "it"],
+    "this": ["is", "week", "one", "morning", "afternoon", "time", "weekend"],
+    "that": ["is", "was", "would", "sounds", "one", "the", "you"],
+    "next": ["week", "time", "one", "month", "monday", "year"],
+    "last": ["night", "week", "one", "time", "year"],
+    "tomorrow": ["morning", "at", "if", "we", "afternoon"],
+    "tonight": ["at", "if", "we", "or"],
+    "today": ["at", "is", "i", "we", "or"],
+    "morning": ["at", "or", "i", "we"],
+    "really": ["good", "nice", "sorry", "want", "need", "like", "appreciate"],
+    "pretty": ["good", "much", "sure", "nice", "busy"],
+    "very": ["good", "much", "nice", "well", "happy"],
+    "still": ["not", "here", "waiting", "working", "the"],
+    "already": ["done", "sent", "did", "there", "have"],
+    "almost": ["done", "there", "ready", "always"],
+})
 
 MODELS = {"en": EN, "tr": TR}
 
