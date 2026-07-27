@@ -158,6 +158,19 @@ class RimBoardService : InputMethodService(),
             field = value
         }
 
+    /**
+     * Whether the cursor is genuinely at the start of a sentence.
+     *
+     * [prevWordForBigram] being empty means two different things — "a sentence
+     * just ended" and "the last thing committed was not a word I can predict
+     * from" — and they need opposite handling now that an empty context is a
+     * real prediction key rather than a dead end. Without this, committing an
+     * emoji or a two-word suggestion mid-sentence made the strip offer message
+     * openers ("I", "the", "thanks") in the middle of a line, and taught the
+     * opener model words that never started anything.
+     */
+    private var atSentenceStart = true
+
     private var kind = LayoutKind.MAIN
     private var langs: List<String> = listOf("en", "tr")
     private var langIndex = 0
@@ -423,6 +436,7 @@ class RimBoardService : InputMethodService(),
         strip?.setDrawerOpen(false)
         composing.setLength(0)
         prevWordForBigram = ""
+        atSentenceStart = true
         revert = null
         autoSpace = false
         glideWords = emptyList()
@@ -856,10 +870,11 @@ class RimBoardService : InputMethodService(),
         ic.commitText("$lead$best ", 1)
         ic.endBatchEdit()
         val canLearn = Prefs.learnWords(this) && !isIncognito() && !isPassword && !isEmailOrUri
-        if (canLearn && Prefs.predictions(this)) {
+        if (canLearn && Prefs.predictions(this) && (prevWordForBigram.isNotEmpty() || atSentenceStart)) {
             userData.recordNgram(prevWord2, prevWordForBigram, best.lowercase(loc))
         }
         prevWordForBigram = best.lowercase(loc)
+        atSentenceStart = false
         revert = null
         noteCommittedWord(best)
         autoSpace = true
@@ -995,6 +1010,7 @@ class RimBoardService : InputMethodService(),
         ic.commitText(text, 1)
         ic.endBatchEdit()
         prevWordForBigram = ""
+        atSentenceStart = false
         revert = null
         autoSpace = false
         glideWords = emptyList()
@@ -1021,7 +1037,12 @@ class RimBoardService : InputMethodService(),
         ic.endBatchEdit()
         autoSpace = false
         glideWords = emptyList()
-        if (sep != " ") prevWordForBigram = ""
+        if (sep != " ") {
+            prevWordForBigram = ""
+            // A comma or a colon ends a word, not a sentence, so it must not
+            // start offering message openers.
+            if (sep.any { it in ".!?\n" }) atSentenceStart = true
+        }
         afterEdit()
     }
 
@@ -1053,10 +1074,11 @@ class RimBoardService : InputMethodService(),
             userData.learnWord(typed.lowercase(loc))
         }
         val fw = finalWord.lowercase(loc)
-        if (canLearn && Prefs.predictions(this) && wordish) {
+        if (canLearn && Prefs.predictions(this) && wordish && (prevWordForBigram.isNotEmpty() || atSentenceStart)) {
             userData.recordNgram(prevWord2, prevWordForBigram, fw)
         }
         prevWordForBigram = if (wordish) fw else ""
+        atSentenceStart = false
         composing.setLength(0)
     }
 
@@ -1075,6 +1097,7 @@ class RimBoardService : InputMethodService(),
                 ic.endBatchEdit()
                 lastSpaceTime = 0
                 prevWordForBigram = ""
+                atSentenceStart = true
                 revert = null
                 autoSpace = false
                 glideWords = emptyList()
@@ -1182,6 +1205,7 @@ class RimBoardService : InputMethodService(),
             sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
         }
         prevWordForBigram = ""
+        atSentenceStart = true
         afterEdit()
     }
 
@@ -1255,7 +1279,12 @@ class RimBoardService : InputMethodService(),
                 s.showSuggestions(listOf(it, "", ""), -1)
                 return
             }
-            var preds = if (Prefs.predictions(this)) {
+            // An empty context is only a prediction key at a real sentence
+            // start; mid-sentence it means "nothing to go on", and offering
+            // openers there would be worse than offering nothing.
+            var preds = if (Prefs.predictions(this) &&
+                (prevWordForBigram.isNotEmpty() || atSentenceStart)
+            ) {
                 engine.predictions(prevWord2, prevWordForBigram, currentLangCode(), locale(), 3)
             } else emptyList()
             if (preds.isNotEmpty() &&
@@ -1396,10 +1425,11 @@ class RimBoardService : InputMethodService(),
         if (canLearn && wordish && word.length >= 2) {
             userData.learnWord(word.lowercase(loc))
         }
-        if (canLearn && Prefs.predictions(this) && wordish) {
+        if (canLearn && Prefs.predictions(this) && wordish && (prevWordForBigram.isNotEmpty() || atSentenceStart)) {
             userData.recordNgram(prevWord2, prevWordForBigram, word.lowercase(loc))
         }
         prevWordForBigram = if (wordish) word.lowercase(loc) else ""
+        atSentenceStart = false
         revert = null
         afterEdit()
     }

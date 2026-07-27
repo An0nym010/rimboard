@@ -41,11 +41,33 @@ class RimSpellService : SpellCheckerService() {
 
     // One engine for the process, shared across sessions. Dictionaries are
     // several hundred KB each and the system creates a session per text field.
-    private val engine: SuggestionEngine by lazy {
-        SuggestionEngine(this, UserData(this))
+    private val userDataLazy = lazy {
+        // loadAsync is not optional. UserData reads nothing at construction, so
+        // without this the learned words, the blocked words and the n-grams are
+        // all empty — which would have meant the spell checker underlining
+        // every word the keyboard had ever learned from this person, and
+        // offering corrections they had explicitly blocked. Exactly the
+        // opposite of what this service is documented to do.
+        UserData(this).also { it.loadAsync() }
     }
 
+    private val userData: UserData by userDataLazy
+
+    private val engine: SuggestionEngine by lazy { SuggestionEngine(this, userData) }
+
     override fun createSession(): Session = RimSession(engine, this)
+
+    /**
+     * The store owns a background thread. Nothing here ever writes — this
+     * service is read-only by design — so there is nothing to flush, but the
+     * executor still has to be released when the system unbinds us.
+     */
+    override fun onDestroy() {
+        // Guarded, so unbinding a service that never checked a word does not
+        // build the store purely in order to tear it down.
+        if (userDataLazy.isInitialized()) userData.shutdown()
+        super.onDestroy()
+    }
 
     /**
      * One bound text field.

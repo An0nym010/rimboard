@@ -117,7 +117,7 @@ class PredictionTest {
         repeat(20) { userData.recordBigram("keep", "this") }
         userData.recordBigram("drop", "that")
         // Push past the context cap so a decay pass runs.
-        repeat(20_001) { i -> userData.recordBigram("ctx$i", "w") }
+        repeat(6_001) { i -> userData.recordBigram("ctx$i", "w") }
 
         assertTrue(
             "a repeated pair must survive decay",
@@ -127,5 +127,37 @@ class PredictionTest {
             "a pair seen once must be forgotten",
             userData.predictNext("", "drop", 3).isEmpty()
         )
+    }
+
+    @Test
+    fun `the decay threshold is reachable given the hard caps`() {
+        // The bug this pins: decay triggered at 20,000 contexts while the prune
+        // on every save cut the tables back to 10,000, so the halving could
+        // never run outside a test that never saves. A threshold above the cap
+        // is dead code that looks alive.
+        assertTrue(
+            "decay must trigger below the caps that prune enforces",
+            UserData.decayThreshold() < UserData.hardCapTotal()
+        )
+    }
+
+    @Test
+    fun `pruning drops the least-used contexts, not arbitrary ones`() {
+        // Eviction used to be `keys.take(excess)` — whatever the hash map
+        // iterated first, which is unrelated to how useful a context is.
+        //
+        // Deliberately sized so the old behaviour fails reliably rather than
+        // occasionally: 100 heavily-used contexts and 4100 one-off ones, with
+        // 200 to evict. Every eviction should be a one-off, so all 100 must
+        // survive. Picking 200 arbitrarily would take about five of them, and
+        // would leave all 100 standing under 1% of the time.
+        repeat(100) { i -> repeat(50) { userData.recordBigram("strong$i", "kept") } }
+        repeat(4100) { i -> userData.recordBigram("junk$i", "x") }
+        userData.flushBlocking()
+
+        val lost = (0 until 100).filter { i ->
+            "kept" !in userData.predictNext("", "strong$i", 3)
+        }
+        assertTrue("heavily-used contexts were evicted: $lost", lost.isEmpty())
     }
 }

@@ -36,12 +36,26 @@ class UserData private constructor(dir: File) {
          */
         const val START = "\u0001"
 
+        /** Hard caps enforced when the data is written out. */
+        private const val BIGRAM_CAP = 4000
+        private const val TRIGRAM_CAP = 6000
+
         /**
-         * Contexts held before the counts are halved. Roughly a megabyte of
-         * text worth of habits; past that the model is remembering more than
-         * anyone's typing has changed.
+         * Contexts held before the counts are halved.
+         *
+         * Must stay *below* [BIGRAM_CAP] + [TRIGRAM_CAP], or decay never
+         * happens: the prune on save would cut the tables back under this
+         * threshold first and the halving would be unreachable code. It was
+         * set to 20,000 against a hard cap of 10,000 when first written, which
+         * is exactly that mistake — the decay was dead, and only the unit test
+         * (which never saves) could see it run.
          */
-        private const val NGRAM_CONTEXT_CAP = 20_000
+        private const val NGRAM_CONTEXT_CAP = 6000
+
+        /** Exposed so a test can assert the two limits stay compatible. */
+        internal fun decayThreshold(): Int = NGRAM_CONTEXT_CAP
+
+        internal fun hardCapTotal(): Int = BIGRAM_CAP + TRIGRAM_CAP
 
         /**
          * A word seen after this exact two-word context is much stronger
@@ -423,14 +437,29 @@ class UserData private constructor(dir: File) {
         if (learned.size > 8000) {
             learned.entries.filter { it.value <= 1 }.forEach { learned.remove(it.key) }
         }
-        if (bigrams.size > 4000) {
-            val excess = bigrams.size - 4000
-            bigrams.keys.take(excess).forEach { bigrams.remove(it) }
-        }
-        if (trigrams.size > 6000) {
-            val excess = trigrams.size - 6000
-            trigrams.keys.take(excess).forEach { trigrams.remove(it) }
-        }
+        evictWeakest(bigrams, BIGRAM_CAP)
+        evictWeakest(trigrams, TRIGRAM_CAP)
+    }
+
+    /**
+     * Drops the least-used contexts until [cap] is met.
+     *
+     * This used to be `keys.take(excess)` — whichever contexts a hash map
+     * happened to iterate first, which is arbitrary and has nothing to do with
+     * usefulness. It could evict the phrase someone types every day and keep
+     * one they typed once by accident, and being over the cap is exactly when
+     * that matters most. Ordering by total evidence makes the loss the least
+     * valuable data rather than an unlucky one.
+     */
+    private fun evictWeakest(
+        table: ConcurrentHashMap<String, ConcurrentHashMap<String, Int>>,
+        cap: Int
+    ) {
+        if (table.size <= cap) return
+        table.entries
+            .sortedBy { e -> e.value.values.sum() }
+            .take(table.size - cap)
+            .forEach { table.remove(it.key) }
     }
 
     fun clearAll() {
