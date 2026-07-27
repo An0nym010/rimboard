@@ -1317,8 +1317,13 @@ class RimBoardService : InputMethodService(),
             prevWord = prevWordForBigram
         )
         val shortcutExp = Shortcuts.expansionFor(this, composing.toString())
+        // Blocked emoji stay blocked. Long-pressing any chip offers to remove
+        // it, and without this check the emoji chip was the one suggestion that
+        // came straight back — a control that appeared to work and did not.
         val emojiSug = if (composing.length >= 2)
-            engine.emojiFor(composing.toString().lowercase(effLocale()), effLang()) else null
+            engine.emojiFor(composing.toString().lowercase(effLocale()), effLang())
+                ?.takeIf { !userData.isBlocked(it) }
+        else null
         var shownWords = res.items
         var shownHi = res.autocorrectIndex
         if (emojiSug != null && shownWords.isNotEmpty() && !shownWords.contains(emojiSug)) {

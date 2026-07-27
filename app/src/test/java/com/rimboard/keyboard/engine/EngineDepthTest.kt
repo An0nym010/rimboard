@@ -175,6 +175,24 @@ class EngineDepthTest {
         )
     }
 
+    @Test
+    fun `blocking a split actually stops it being offered`() {
+        // Long-pressing a chip blocks whatever was displayed. For a split that
+        // is the pair, so checking only the two halves left the chip coming
+        // straight back and the control doing nothing visible.
+        val e = engine(mapOf("dictionaries/en.txt" to "a 90000\nlot 8000"))
+        assertEquals("a lot", e.splitFor("alot", "en", en))
+        userData.blockWord("a lot")
+        assertNull(e.splitFor("alot", "en", en))
+    }
+
+    @Test
+    fun `blocking one half does not need the whole pair to be blocked`() {
+        val e = engine(mapOf("dictionaries/en.txt" to "a 90000\nlot 8000"))
+        userData.blockWord("lot")
+        assertNull(e.splitFor("alot", "en", en))
+    }
+
     // ---- generated Turkish forms, end to end ----
 
     @Test

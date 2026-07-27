@@ -55,6 +55,24 @@ class RimSpellService : SpellCheckerService() {
 
     private val engine: SuggestionEngine by lazy { SuggestionEngine(this, userData) }
 
+    /**
+     * Starts loading the dictionary before anything asks for a word.
+     *
+     * A cold load is ~350ms of parsing on a desktop JVM and several times that
+     * on a phone, and without this it happens inside the first
+     * [Session.onGetSuggestions] — on a binder thread, with the framework
+     * waiting. That is the difference between underlines appearing as you type
+     * and the first paragraph you write going unchecked.
+     *
+     * The keyboard warms on the same principle when it opens; this is the same
+     * call, for the other entry point into the same engine.
+     */
+    override fun onCreate() {
+        super.onCreate()
+        val lang = Prefs.languages(this).firstOrNull() ?: "en"
+        engine.warm(lang, Languages.byCode(lang).locale, null, null)
+    }
+
     override fun createSession(): Session = RimSession(engine, this)
 
     /**

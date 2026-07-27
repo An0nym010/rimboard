@@ -407,6 +407,12 @@ class SuggestionEngine private constructor(
         val (a, b) = dictionary(lang, locale).splitInto(lower) ?: return null
         if (isOffensive(a, lang) || isOffensive(b, lang)) return null
         if (userData.isBlocked(a) || userData.isBlocked(b)) return null
+        // The pair as it is shown, so long-pressing the chip to remove it
+        // actually removes it. Blocking stores what was on screen; checking only
+        // the halves here made that control silently do nothing, which is worse
+        // than not offering it — and blocking "a" to be rid of "a lot" would be
+        // a much larger thing to ask for than the user meant.
+        if (userData.isBlocked("$a $b")) return null
         return matchCase(typed, "$a $b", locale)
     }
 
