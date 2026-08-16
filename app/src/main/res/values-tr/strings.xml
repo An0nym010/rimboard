@@ -260,4 +260,16 @@
     <string name="a11y_drawer_open">Araçları göster</string>
     <string name="a11y_drawer_close">Araçları gizle</string>
     <string name="cc_reset">Varsayılana döndür</string>
+    <string name="tr_detect">Algıla</string>
+    <string name="net_error_server">Çeviri servisi sorun yaşıyor (HTTP %1$d). Metninizde bir sorun yok — tekrar deneyin ya da Ayarlar&#8217;dan başka bir servis seçin.</string>
+    <string name="net_error_request">Servis bu isteği reddetti (HTTP %1$d).</string>
+    <string name="net_error_rate_limited">Şu anda çok fazla istek var. Biraz bekleyip tekrar deneyin.</string>
+    <plurals name="tr_count">
+        <!-- Turkish does not add a plural suffix after a numeral, so both
+             forms read the same. Both are still declared: the resource system
+             requires it, and the identical text is the correct answer here
+             rather than an oversight. -->
+        <item quantity="one">%1$d istek</item>
+        <item quantity="other">%1$d istek</item>
+    </plurals>
 </resources>

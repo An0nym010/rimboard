@@ -83,7 +83,10 @@ internal object NetBackend {
             val bytes = stream?.use { readCapped(it) } ?: ByteArray(0)
             if (code !in 200..299) {
                 // Error bodies are text even when the request wanted an image.
-                throw IOException("HTTP $code: ${String(bytes, Charsets.UTF_8).take(200)}")
+                // Typed rather than a formatted string, so the caller can tell
+                // "their server is broken" from "we asked wrongly" instead of
+                // showing the body to the user and letting them guess.
+                throw HttpStatusException(code, String(bytes, Charsets.UTF_8).take(200))
             }
             return bytes
         } finally {

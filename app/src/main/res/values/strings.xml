@@ -186,9 +186,15 @@
     <string name="net_enable_msg" tools:ignore="MissingTranslation">The key is saved, but online features are switched off, so nothing will use it yet.</string>
     <string name="net_enable_yes" tools:ignore="MissingTranslation">Turn on</string>
     <string name="net_enable_no" tools:ignore="MissingTranslation">Leave off</string>
-    <string name="tr_count" tools:ignore="MissingTranslation">%1$d requests</string>
+    <plurals name="tr_count">
+        <item quantity="one">%1$d request</item>
+        <item quantity="other">%1$d requests</item>
+    </plurals>
     <string name="tr_no_app" tools:ignore="MissingTranslation">No translator app installed</string>
-    <string name="tr_detect" tools:ignore="MissingTranslation">Detect</string>
+    <string name="tr_detect">Detect</string>
+    <string name="net_error_server">The translation service is having trouble (HTTP %1$d). Nothing is wrong with your text — try again, or pick another service in Settings.</string>
+    <string name="net_error_request">The service refused this request (HTTP %1$d).</string>
+    <string name="net_error_rate_limited">Too many requests just now. Wait a moment and try again.</string>
     <string name="tr_source_hint" tools:ignore="MissingTranslation">Type what you want translated…</string>
     <string name="tr_target_title" tools:ignore="MissingTranslation">Translate into</string>
     <string name="tr_src_title" tools:ignore="MissingTranslation">Translation service</string>

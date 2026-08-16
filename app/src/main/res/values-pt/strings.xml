@@ -254,4 +254,12 @@
     <string name="a11y_drawer_open">Mostrar ferramentas</string>
     <string name="a11y_drawer_close">Ocultar ferramentas</string>
     <string name="cc_reset">Redefinir</string>
+    <string name="tr_detect">Detectar</string>
+    <string name="net_error_server">O servico de traducao esta com problemas (HTTP %1$d). Nao ha nada errado com seu texto: tente de novo ou escolha outro servico nas configuracoes.</string>
+    <string name="net_error_request">O servico recusou esta solicitacao (HTTP %1$d).</string>
+    <string name="net_error_rate_limited">Muitas solicitacoes agora. Aguarde um momento e tente de novo.</string>
+    <plurals name="tr_count">
+        <item quantity="one">%1$d solicitacao</item>
+        <item quantity="other">%1$d solicitacoes</item>
+    </plurals>
 </resources>

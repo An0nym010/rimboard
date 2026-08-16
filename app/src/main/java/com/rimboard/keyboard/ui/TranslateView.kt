@@ -310,7 +310,12 @@ class TranslateView(context: Context) : LinearLayout(context) {
      * accruing while you watch.
      */
     fun setRequestCount(n: Int) {
-        countView.text = if (n == 0) "" else context.getString(R.string.tr_count, n)
+        // A plurals resource, not a format string: "1 requests" was on screen.
+        // It also matters past English — the languages this keyboard ships in
+        // do not all agree on when a count is plural, and Russian needs three
+        // forms where English needs two.
+        countView.text =
+            if (n == 0) "" else context.resources.getQuantityString(R.plurals.tr_count, n, n)
     }
 
     // ---- language list ----

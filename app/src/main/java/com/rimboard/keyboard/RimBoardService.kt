@@ -2680,12 +2680,33 @@ class RimBoardService : InputMethodService(),
      * and the single most common cause is simply having no signal — which is
      * not a fault in the keyboard, the API key, or the service.
      */
-    private fun netError(e: Throwable?): String =
+    /**
+     * What to show the user when a request fails.
+     *
+     * A status line is not a stack trace. The provider's own error body used to
+     * arrive here as the message and go straight onto a two-line strip, so a
+     * failing service produced a clipped fragment of someone else's JSON and
+     * the user was left to work out whether they had done something wrong. What
+     * they need to know is only ever one of three things: their phone is
+     * offline, the service is broken and it is worth trying again, or the
+     * request itself will not be accepted however many times it is repeated.
+     * The detail stays on the exception for the log.
+     */
+    private fun netError(e: Throwable?): String {
         if (com.rimboard.keyboard.net.Net.deviceOnline(this) == false) {
-            getString(R.string.net_device_offline)
-        } else {
-            e?.message ?: getString(R.string.net_unknown_error)
+            return getString(R.string.net_device_offline)
         }
+        val http = e as? com.rimboard.keyboard.net.HttpStatusException
+        if (http != null) {
+            android.util.Log.w("RimBoard", "request failed: ${http.message}")
+            return when {
+                http.isRateLimited -> getString(R.string.net_error_rate_limited)
+                http.isServerFault -> getString(R.string.net_error_server, http.code)
+                else -> getString(R.string.net_error_request, http.code)
+            }
+        }
+        return e?.message ?: getString(R.string.net_unknown_error)
+    }
 
     // ---- GIF search -------------------------------------------------------
 

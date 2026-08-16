@@ -254,4 +254,12 @@
     <string name="a11y_drawer_open">Werkzeuge einblenden</string>
     <string name="a11y_drawer_close">Werkzeuge ausblenden</string>
     <string name="cc_reset">Auf Standard zurücksetzen</string>
+    <string name="tr_detect">Erkennen</string>
+    <string name="net_error_server">Der Ubersetzungsdienst hat Probleme (HTTP %1$d). Mit deinem Text stimmt nichts nicht - versuche es erneut oder wahle in den Einstellungen einen anderen Dienst.</string>
+    <string name="net_error_request">Der Dienst hat diese Anfrage abgelehnt (HTTP %1$d).</string>
+    <string name="net_error_rate_limited">Gerade zu viele Anfragen. Warte einen Moment und versuche es erneut.</string>
+    <plurals name="tr_count">
+        <item quantity="one">%1$d Anfrage</item>
+        <item quantity="other">%1$d Anfragen</item>
+    </plurals>
 </resources>

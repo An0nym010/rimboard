@@ -254,4 +254,12 @@
     <string name="a11y_drawer_open">Afficher les outils</string>
     <string name="a11y_drawer_close">Masquer les outils</string>
     <string name="cc_reset">Réinitialiser</string>
+    <string name="tr_detect">Detecter</string>
+    <string name="net_error_server">Le service de traduction rencontre un probleme (HTTP %1$d). Votre texte n&#8217;est pas en cause : reessayez ou choisissez un autre service dans les reglages.</string>
+    <string name="net_error_request">Le service a refuse cette requete (HTTP %1$d).</string>
+    <string name="net_error_rate_limited">Trop de requetes pour le moment. Patientez un instant et reessayez.</string>
+    <plurals name="tr_count">
+        <item quantity="one">%1$d requete</item>
+        <item quantity="other">%1$d requetes</item>
+    </plurals>
 </resources>

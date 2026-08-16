@@ -254,4 +254,12 @@
     <string name="a11y_drawer_open">Mostra strumenti</string>
     <string name="a11y_drawer_close">Nascondi strumenti</string>
     <string name="cc_reset">Ripristina predefinito</string>
+    <string name="tr_detect">Rileva</string>
+    <string name="net_error_server">Il servizio di traduzione ha problemi (HTTP %1$d). Il tuo testo non c&#8217;entra: riprova o scegli un altro servizio nelle impostazioni.</string>
+    <string name="net_error_request">Il servizio ha rifiutato questa richiesta (HTTP %1$d).</string>
+    <string name="net_error_rate_limited">Troppe richieste in questo momento. Attendi un attimo e riprova.</string>
+    <plurals name="tr_count">
+        <item quantity="one">%1$d richiesta</item>
+        <item quantity="other">%1$d richieste</item>
+    </plurals>
 </resources>

@@ -4,6 +4,23 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**A failed request says something you can act on**
+- The provider's own error body was the message, and it went straight onto the
+  translate bar's two-line strip — so a failing service produced a clipped
+  fragment of someone else's JSON (`HTTP 500: {"error":"An error occurred
+  while retrieving the`) and left you to work out whether you had done
+  something wrong. There are only three things worth knowing: the phone is
+  offline, the service is broken and it is worth retrying, or the request will
+  never be accepted. It says which; the detail goes to the log.
+- **"1 requests" is now "1 request".** The counter was a format string with no
+  plural form. It is a plurals resource now, which also matters past English —
+  Russian needs three forms and Turkish adds no suffix after a numeral at all.
+- **"Detect" is translated.** It sat in English beside Turkish labels. The
+  network strings are deliberately left in English because they are consent
+  text about what leaves the device, and a softened machine translation is
+  worse than visible English — but a language-detection label and a request
+  counter are not consent text, and that reasoning never covered them.
+
 **The per-app tint uses the app's actual colour**
 - It never did. The hue came from a hash of the package name, so WhatsApp got
   a stable colour but not WhatsApp green — a documented trade-off, and still

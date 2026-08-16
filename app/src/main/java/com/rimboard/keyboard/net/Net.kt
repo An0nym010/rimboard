@@ -233,6 +233,28 @@ class NetBlockedException(val block: Net.Block) :
     java.io.IOException("network refused: ${block.name}")
 
 /**
+ * A non-2xx answer, carrying the status separately from the body.
+ *
+ * The message was previously built as `"HTTP $code: ${body.take(200)}"` and
+ * shown to the user as-is, which put a raw JSON fragment from someone else's
+ * server into the translate bar — clipped mid-word, because the bar is two
+ * lines tall. That tells the user nothing they can act on and reads as the
+ * keyboard having broken.
+ *
+ * The status is what decides what to say, and [detail] stays available for the
+ * log without being the thing on screen.
+ */
+class HttpStatusException(val code: Int, val detail: String) :
+    java.io.IOException("HTTP $code: $detail") {
+
+    /** 5xx is the provider's fault and worth retrying; 4xx is not. */
+    val isServerFault: Boolean get() = code in 500..599
+
+    /** Asked to slow down, which is a wait rather than a failure. */
+    val isRateLimited: Boolean get() = code == 429
+}
+
+/**
  * A record of every request the app has attempted, for the network screen.
  *
  * RAM-only and capped, on the same reasoning as the clipboard history: a
