@@ -73,12 +73,6 @@
             android:summary="@string/pref_autocaps_summary"
             android:defaultValue="true" />
 
-    <SwitchPreferenceCompat
-        android:key="emoji_row"
-        android:title="@string/pref_emoji_row_title"
-        android:summary="@string/pref_emoji_row_summary"
-        android:defaultValue="false" />
-
     <Preference
         android:key="toolbar_picker"
         android:title="@string/pref_toolbar_title"

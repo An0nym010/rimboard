@@ -1,59 +1,193 @@
-ich	bin habe nicht will kann muss werde denke
-du	bist hast kannst willst musst wirst sollst
-er	ist hat kann wird war will
-sie	ist hat sind haben kann wird
-wir	sind haben können werden müssen wollen
-das	ist war ich nicht auch
-die	ich wir sind haben ganze
-der	ist war mit letzte
-ein	paar bisschen wenig gutes neues
-eine	gute neue kleine andere
-nicht	mehr so mal gut wirklich nur
-ist	das es nicht ein ja
-war	das es nicht sehr schon
-kann	ich nicht man das du
-muss	ich noch das man los
-will	ich nicht das man
-habe	ich nicht das es keine
-hat	er sie es nicht das
-und	ich das die dann auch
-mit	dem der mir dir uns
-auf	das die dem jeden keinen
-in	der das die dem ordnung
-zu	dem der viel hause spät
-es	ist war gibt geht mir tut
-wie	geht viel lange du das
-was	ist machst du soll denkst
-wo	ist bist warst du
-wann	kommst ist du
-warum	nicht ist du
-sehr	gut schön viel gerne
-gut	das so aber gemacht
-danke	dir schön für sehr
-bitte	schön sehr nicht
-guten	morgen tag abend appetit
-alles	gute klar in
-noch	nicht mal einmal ein
-schon	mal wieder gut lange
-mal	sehen wieder gucken
-wieder	da mal zu hier
-immer	noch wieder so
-heute	abend morgen nicht
-morgen	früh abend nicht
-viel	spaß glück besser
-so	ein viel gut weit
-aber	ich das es nicht
-oder	nicht was so
-wenn	ich du das man
-weil	ich es das du
-dass	ich es du das
-mir	geht ist egal auch
-dir	geht ist auch
-werde	ich es nicht
-lass	uns mich es
-kein	problem ding wunder
-keine	ahnung zeit angst sorge
-mach	das mal es
-machen	wir das
-gehen	wir zu
-ganz	gut genau sicher
+	ich hallo wie danke guten ja nein entschuldigung okay klar kannst muss willst kann vielen schönen warte gerade das wir
+abend	war ist noch essen gemacht zusammen
+aber	ich du das es nicht wir
+ach	so ja komm nein menno was
+ahnung	habe keine was wie wo
+alles	gut klar Gute in wieder bestens
+also	ich dann gut wenn los
+an	der die das dich mich
+arbeit	ist heute morgen war fertig und
+auch	nicht so gut schon wieder egal dabei
+auf	jeden dem die der dich
+aus	dem der Spaß Versehen und gewesen
+auto	ist und steht fahren geholt kaputt
+bald	wieder da los fertig soweit vorbei
+bei	mir dir uns der euch ihm ihr
+bin	gerade schon noch gleich müde
+bist	du gerade noch schon wieder
+bitte	schön sehr warte komm nicht melde sag
+bruder	hat ist und kommt wohnt arbeitet
+damit	ich du wir es klarkommen rechnen anfangen
+danke	für dir schön sehr nochmal euch vielmals
+das	ist war wäre Gleiche Beste
+dass	es ich du das wir alles
+denk	dran daran nach mal bitte
+denke	dass nicht schon mal ich
+denn	ich du das es nun eigentlich schon
+der	beste erste gleiche einzige nächste
+dich	liebe vermisse sehe brauche gefragt gesehen erreichen
+die	beste erste gleiche einzige nächste ganze
+dir	geht ist gefällt gehört gesagt geschrieben helfen
+dort	ist war treffen gewesen hin
+du	bist hast musst willst kannst weißt gehst kommst
+echt	gut schön toll cool jetzt nicht super
+eigentlich	nicht schon ganz egal wollte
+ein	bisschen Moment Problem wenig paar
+eine	Frage Idee Sekunde Woche Sache
+einfach	nur so mal nicht vergessen machen melden
+endlich	da fertig mal geschafft zuhause wieder
+entschuldigung	für ich aber dass wegen nochmal
+er	ist hat muss will kann geht kommt sagte
+es	ist geht war gibt tut
+essen	ist war gehen bestellen machen
+etwas	Zeit anderes mehr später essen trinken
+euch	geht allen beiden melden sehen danken
+familie	ist meine geht und kommt
+freund	mein ist von hat kommt
+freundin	meine ist von hat kommt
+froh	dass bin darüber wenn sein
+früh	heute morgen aufstehen los dran
+für	dich mich uns die das
+gegangen	bin ist bist nach worden und
+gehe	jetzt gleich nach schnell los heim kurz
+gehst	du mit auch schon hin los
+geht	es gut nicht los klar
+gekommen	bin ist bist nach und wäre
+geld	für ist habe dabei gebraucht überwiesen
+gemacht	hast habe gut worden und werden
+genau	das richtig so deshalb jetzt
+gerade	nicht am erst dabei unterwegs
+gerne	doch immer geschehen mache wieder
+gesagt	dass hat habe worden und bekommen
+gesehen	habe hast dich worden und haben
+gewesen	ist war wäre und sein bin
+glaube	dass nicht ich schon kaum eher
+gleich	da los komme fertig wieder hier
+gut	danke und gemacht dass aussehen geschlafen
+guten	Morgen Tag Abend
+habe	keine eine Zeit gerade schon
+haben	wir Zeit keine schon noch alle
+hallo	wie zusammen mein ihr alle nochmal
+handy	ist war hat vergessen leer kaputt
+hast	du Zeit Recht schon recht gemacht
+hat	er sie keine eine nicht schon gesagt
+hatte	ich keine einen viel schon gestern gedacht
+haus	ist und von gekauft gebaut gefunden
+heute	nicht ist Abend Morgen schon noch leider
+hier	bin ist gerade drüben unten oben
+hätte	ich gern nicht gedacht gesagt gemacht
+ich	bin habe muss will kann denke weiß gehe komme brauche
+ihm	gesagt geht gehört helfen schreiben bescheid
+ihn	liebe kenne sehe mag gefragt gesehen erreichen
+ihr	geht seid habt gesagt euch kommt wollt
+immer	noch wieder so gern schon mal wenn
+in	der die das einer Ordnung Ruhe
+ist	das gut es schön wichtig okay klar
+ja	klar genau natürlich gerne stimmt schon bitte
+jahr	neues letztes war wird ist
+jetzt	gerade nicht gleich schon erst sofort
+kaffee	trinken oder ist gemacht geholt gehen
+kann	ich nicht sein gut schon man leider
+kannst	du mir bitte das gerne ruhig schon
+kein	Problem Ding Stress Thema Wunder
+keine	Zeit Ahnung Lust Sorge Angst
+kind	ist war und schläft kommt geht
+klar	doch ja gerne dass geht machen
+komme	gleich später sofort gerade nach vorbei zurück
+kommst	du mit auch vorbei heute wann morgen
+konnte	ich nicht leider gestern einfach
+leben	ist und so geht gut schön
+leider	nicht kann nein ja doch erst
+lust	auf zu mitzukommen hätte keine
+man	kann muss sollte sagt mal eben schon
+manchmal	ist denke auch schon eben wirklich
+mehr	Zeit als nicht dazu davon geht
+mich	freue interessiert geht gefreut erreichen gemeldet
+mir	geht ist gefällt fehlt egal gesagt geholfen
+mit	dir mir dem der uns
+morgen	früh Abend ist wieder schon dann
+muss	ich noch los gehen mal leider erst
+musst	du nicht noch mal unbedingt wissen
+musste	ich noch leider gestern erst
+mutter	hat ist und kommt sagt geht
+müde	bin und heute geworden aber
+na	dann klar gut ja also endlich schön
+nach	Hause dem der oben dir mir vorne
+nacht	war ist noch gehabt durch gute
+natürlich	gerne kann ja nicht doch
+nein	danke nicht leider das wirklich ist
+nichts	mehr Neues passiert gehört gesagt zu
+nie	wieder gesehen mehr passiert vergessen gedacht
+noch	nicht einmal was mehr kurz immer da
+obwohl	ich es du wir das eigentlich
+oder	nicht so was wir auch
+oft	nicht genug so gemacht gehört
+ohne	dich mich Probleme Grund Ende euch
+okay	dann gut also ich wir verstanden
+ruf	mich an kurz gleich später
+sag	mir bescheid nichts kurz einfach
+sagt	dass er sie man nichts mir
+schade	dass aber wirklich eigentlich drum nur
+schlecht	nicht geht geschlafen gelaufen aus
+schnell	mal noch gehen machen vorbei
+schon	gut wieder immer mal dabei unterwegs fertig
+schreib	mir zurück bald kurz einfach später
+schwester	hat ist und kommt sagt geht
+schön	dass wäre danke war hier gemacht
+sehe	dich das ich nichts später
+sehen	uns wir später mal morgen gleich
+sehr	gut schön wichtig müde froh
+seit	wann gestern einer Tagen Wochen kurzem
+sie	ist hat muss will kann geht kommt sagte
+sind	wir sie gut schon noch alle
+sofort	da los machen bescheid melden kommen
+sollte	ich das man mal wohl eigentlich
+spät	ist schon dran geworden heute
+später	mehr noch vielleicht nochmal dann wieder
+stimmt	das genau schon nicht so
+stunde	noch später her gedauert gewartet gebraucht
+super	danke dann gemacht läuft aussehen
+tag	war ist guten gehabt wird
+total	gut verrückt vergessen müde egal
+treffen	uns wir morgen später können
+tut	mir leid
+uhr	ist war bei rum herum früh
+um	die das acht zehn wie sechs neun
+und	ich du dann wir das es
+uns	sehen treffen sprechen morgen später melden
+vater	hat ist und kommt sagt geht
+viel	Glück Spaß Zeit Arbeit besser los zu
+viele	Grüße Leute Sachen Fragen Dinge davon
+vielen	Dank
+vielleicht	kannst später morgen auch sogar nicht
+von	mir dir der dem hier
+vor	dem der allem kurzem Ort einer Jahren
+wahrscheinlich	nicht schon morgen eher doch erst
+wann	kommst gehst kannst treffen denn genau wieder
+war	gut es das schön toll nicht klasse
+waren	wir gut schon alle gestern
+warte	auf kurz noch mal hier gleich
+warum	nicht denn bist eigentlich auch nur
+was	machst los ist sagst denkst brauchst willst meinst
+wasser	trinken oder ist geholt mitgebracht bitte
+weil	ich du es das wir
+weiß	nicht ich es schon genau leider
+welche	Farbe Zeit Uhrzeit davon genau
+wenig	Zeit Geld Ahnung später davon
+wenn	du ich es das wir möglich
+wer	ist war kommt weiß hat will
+wie	geht war viel lange spät immer
+wieder	da mal zurück gut sehen melden hier
+will	ich nicht das auch nur eigentlich
+willst	du mit nicht auch wirklich denn
+wir	sind haben müssen wollen können gehen kommen sehen
+wird	gut es besser schwierig schon wohl Zeit
+wirklich	nicht gut toll schade sehr so
+wo	bist warst wohnst treffen denn genau seid
+woche	nächste diese letzte war wird sehen
+wollte	ich nur dir dich gerade eigentlich fragen
+zeit	für haben hast dafür gehabt wird
+ziemlich	gut viel spät sicher müde genau
+zu	Hause spät viel dir mir
+zuhause	bin bleibe angekommen geblieben und
+über	das die dich mich alles uns morgen

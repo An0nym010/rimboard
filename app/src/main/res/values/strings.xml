@@ -211,8 +211,6 @@
     <string name="pref_nr_pass_summary">Always show the number row in password fields</string>
     <string name="pref_autospace_title">Auto-space after punctuation</string>
     <string name="pref_autospace_summary">Insert a space when a letter follows . , ! ?</string>
-    <string name="pref_emoji_row_title">Emoji fast-access row</string>
-    <string name="pref_emoji_row_summary">Show recent emoji on the idle suggestion bar</string>
     <string name="pref_haptic_strength_title">Vibration strength</string>
     <string name="hs_light">Light</string>
     <string name="hs_medium">Medium</string>

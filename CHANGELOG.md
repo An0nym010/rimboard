@@ -4,6 +4,62 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Vibration works on phones that had none**
+- Key haptics asked the vibrator for a buzz without saying what kind it was.
+  An unattributed vibration is filed under "unknown usage", and an
+  unknown-usage vibration coming from a background service is exactly what the
+  platform discards when the system's own touch-feedback switch is off — MIUI
+  and HyperOS more readily than most. Nothing errored: the motor was fine, the
+  permission was held, the call returned, and the phone stayed still. It now
+  says the vibration is touch feedback for a key that was just pressed, which
+  is the thing that decides whether it survives.
+
+**Translate bar**
+- **You can put the cursor where the mistake is.** Typing into the bar only
+  ever appended, so a typo four words back could not be reached — the only way
+  in was to delete everything after it. Tapping the text now places a caret and
+  typing and backspace happen there.
+- **A translation is no longer written out twice.** Inserting an emoji while
+  the bar was open left it sitting after the translation, and the replacement
+  looked for the previous translation only in the characters immediately before
+  the cursor. It was no longer there, so nothing was removed and the whole
+  translation was inserted a second time. It is now found wherever it sits, and
+  anything typed after it is carried across rather than stranded between two
+  copies.
+
+**The suggestion strip carries words**
+- Recent emoji no longer appear there, and the setting that offered them is
+  gone with them.
+- A word that matched an emoji used to spend the third suggestion slot on it,
+  which quietly cost a real suggestion on exactly the words most likely to have
+  one. All three slots are words now. The emoji key is unchanged — picker,
+  search and recents all work as they did.
+
+**Prediction models**
+- **Turkish, Spanish, German and Russian roughly tripled**, and English grew by
+  half. Turkish went from 115 contexts to 210, Russian 115 to 194, German 115
+  to 193, Spanish 115 to 159, English 115 to 174 — and the lists behind each
+  context roughly doubled in length. What was missing was mostly structural
+  rather than vocabulary: Russian had no `не`, no prepositions and no
+  conjunctions; German had no subordinating conjunctions and no participles for
+  the perfect; Spanish had no preterite and none of the `tener` idioms. Same
+  provenance as before: written by hand, no external corpus.
+- Turkish gained the most contexts because it needs them most. The context is
+  whatever word came before, and an agglutinative language spells every
+  grammatical difference as a different word — "geldim", "geldin", "geldi" and
+  "geliyorum" are four contexts where English has one "came".
+- German nouns keep their capitals. A prediction is committed exactly as it is
+  written, with no typed prefix to copy a capital from the way a completion
+  has, so "vielen Dank" was being offered as "vielen dank". Predictions are now
+  scored under a case-folded key and shown in the curated spelling, which also
+  stops a learned lower-case copy and the curated one competing for the same
+  slot as though they were two different words.
+- Fixed in passing: `добрый утро` (neuter noun under the masculine article),
+  `viele dank`, a duplicated Turkish continuation, `akşam yemek` for `akşam
+  yemeği`, and three entries that could never fire at all — `что-то`,
+  `наконец-то` and `вообще-то` are single words to the tokeniser, so no
+  word-pair table can reach them.
+
 **Completions were ranked, then thrown away**
 - **The commonest words were never offered.** Prefix lookup collected the first
   80 matches and ranked *those* — but the word list is held alphabetically,

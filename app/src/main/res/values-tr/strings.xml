@@ -152,8 +152,6 @@
     <string name="pref_nr_pass_summary">Şifre alanlarında sayı satırını her zaman göster</string>
     <string name="pref_autospace_title">Noktalamadan sonra boşluk</string>
     <string name="pref_autospace_summary">. , ! ? sonrasında harf gelince boşluk ekle</string>
-    <string name="pref_emoji_row_title">Hızlı emoji satırı</string>
-    <string name="pref_emoji_row_summary">Boş öneri çubuğunda son emojileri göster</string>
     <string name="pref_haptic_strength_title">Titreşim gücü</string>
     <string name="hs_light">Hafif</string>
     <string name="hs_medium">Orta</string>

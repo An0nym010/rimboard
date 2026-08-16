@@ -135,8 +135,6 @@
     <string name="pref_nr_pass_summary">Toujours afficher la rangée de chiffres dans les champs de mot de passe</string>
     <string name="pref_autospace_title">Espace après ponctuation</string>
     <string name="pref_autospace_summary">Insérer une espace quand une lettre suit . , ! ?</string>
-    <string name="pref_emoji_row_title">Rangée emoji rapide</string>
-    <string name="pref_emoji_row_summary">Afficher les emojis récents sur la barre vide</string>
     <string name="pref_haptic_strength_title">Intensité des vibrations</string>
     <string name="hs_light">Légère</string>
     <string name="hs_medium">Moyenne</string>

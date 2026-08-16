@@ -160,4 +160,31 @@ class PredictionTest {
         }
         assertTrue("heavily-used contexts were evicted: $lost", lost.isEmpty())
     }
+
+    @Test
+    fun `the curated spelling of a prediction survives the user's own history`() {
+        // German capitalises its nouns, and a prediction is committed exactly
+        // as the model spells it — there is no typed prefix to copy a capital
+        // from, the way a completion has. Learned n-grams are always stored
+        // lower case, so if the two were scored as different words the strip
+        // would offer "Dank" and "dank" side by side, competing for one slot.
+        val de = Locale.GERMAN
+        val e = engine(mapOf("predictions/de.txt" to "vielen\tDank"))
+        repeat(5) { userData.recordBigram("vielen", "dank") }
+
+        val out = e.predictions("", "vielen", "de", de, 3)
+        assertEquals("the two spellings must collapse to one entry", 1, out.size)
+        assertEquals("Dank", out.first())
+    }
+
+    @Test
+    fun `a capital cannot smuggle a word past the blocked list`() {
+        // Blocked words are stored folded, so the check has to be made on the
+        // folded key rather than on whatever case the model happens to use.
+        val de = Locale.GERMAN
+        val e = engine(mapOf("predictions/de.txt" to "keine\tZeit Ahnung"))
+        userData.blockWord("zeit")
+
+        assertEquals(listOf("Ahnung"), e.predictions("", "keine", "de", de, 3))
+    }
 }

@@ -95,6 +95,14 @@ class RimBoardService : InputMethodService(),
      */
     private val minTranslateGapMs = 1500L
 
+    /**
+     * How far past the end of the last translation to look for it when
+     * replacing. Enough for a handful of emoji or a short pasted run typed
+     * after it; beyond that the run is treated as lost and the new translation
+     * simply goes in at the cursor.
+     */
+    private val FOREIGN_TAIL_MAX = 32
+
     /** Holds a picker shown *above* the keyboard rather than instead of it. */
     private var searchHost: FrameLayout? = null
 
@@ -1329,29 +1337,12 @@ class RimBoardService : InputMethodService(),
             prevWord = prevWordForBigram
         )
         val shortcutExp = Shortcuts.expansionFor(this, composing.toString(), effLocale())
-        // Blocked emoji stay blocked. Long-pressing any chip offers to remove
-        // it, and without this check the emoji chip was the one suggestion that
-        // came straight back — a control that appeared to work and did not.
-        val emojiSug = if (composing.length >= 2)
-            engine.emojiFor(composing.toString().lowercase(effLocale()), effLang())
-                ?.takeIf { !userData.isBlocked(it) }
-        else null
+        // The strip carries words and nothing else. A word-to-emoji chip used
+        // to take the third slot whenever one matched, which spent a
+        // suggestion the user might have wanted on one they could reach from
+        // the emoji key anyway.
         var shownWords = res.items
         var shownHi = res.autocorrectIndex
-        if (emojiSug != null && shownWords.isNotEmpty() && !shownWords.contains(emojiSug)) {
-            // The emoji takes the last chip, which can be the chip the
-            // correction was sitting on. Re-find the highlighted word rather
-            // than trusting the old index to still mean the same thing: an
-            // index that outlives the list it points into is how the space bar
-            // would come to commit an emoji instead of the correction. Not
-            // reachable today — it needs a suggest-only contraction and an emoji
-            // for the same word — but the shortcut branch below already keeps
-            // its index honest, and this is the same obligation.
-            val hiWord = shownWords.getOrNull(shownHi)
-            shownWords = if (shownWords.size < 3) shownWords + emojiSug
-            else shownWords.take(2) + emojiSug
-            shownHi = if (hiWord == null) -1 else shownWords.indexOf(hiWord)
-        }
         if (shortcutExp != null) {
             shownWords = listOf(shortcutExp) + shownWords.take(2)
             shownHi = 0
@@ -1648,9 +1639,6 @@ class RimBoardService : InputMethodService(),
 
     private fun feedIdle(s: com.rimboard.keyboard.ui.SuggestionStripView) {
         feedTools(s)
-        s.setRecentEmoji(
-            if (Prefs.emojiRow(this)) Prefs.emojiRecents(this).take(6) else emptyList()
-        )
     }
 
     private fun restoreMainView() {
@@ -2096,10 +2084,6 @@ class RimBoardService : InputMethodService(),
         blockWordPopup = null
     }
 
-    override fun onQuickEmoji(emoji: String) {
-        currentInputConnection?.commitText(emoji, 1)
-    }
-
     override fun onLanguageSwipe(direction: Int) {
         if (direction < 0 && langs.size > 1) {
             // Composing survives, same as cycleLanguage — see the note there.
@@ -2434,13 +2418,29 @@ class RimBoardService : InputMethodService(),
         val ic = currentInputConnection ?: return
         ic.beginBatchEdit()
         val prev = translateInserted
+        var tail = ""
         if (prev != null) {
-            val before = ic.getTextBeforeCursor(prev.length, 0)?.toString()
-            if (before == prev) ic.deleteSurroundingText(prev.length, 0)
+            // The previous translation is not always the last thing in the
+            // field. Anything committed while the bar was open — an emoji off
+            // the strip, a pasted clip — lands after it, and checking only the
+            // characters immediately before the cursor then failed to match, so
+            // nothing was removed and the whole translation was written a
+            // second time. That is the duplicate: translation, emoji,
+            // translation again.
+            //
+            // So the run is looked for in a window rather than only at the end,
+            // and whatever was typed after it is carried across to sit after
+            // the new translation, which is where the user put it.
+            val window = ic.getTextBeforeCursor(prev.length + FOREIGN_TAIL_MAX, 0)?.toString()
+            val at = window?.lastIndexOf(prev) ?: -1
+            if (window != null && at >= 0) {
+                tail = window.substring(at + prev.length)
+                ic.deleteSurroundingText(window.length - at, 0)
+            }
         }
         // commitText replaces a selection when there is one, which is what
         // seeds the first insert when the bar was opened on selected text.
-        ic.commitText(text, 1)
+        ic.commitText(text + tail, 1)
         ic.endBatchEdit()
         translateInserted = text
         afterEdit()

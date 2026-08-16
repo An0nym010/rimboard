@@ -2,6 +2,7 @@ package com.rimboard.keyboard
 
 import android.content.Context
 import android.os.Build
+import android.os.VibrationAttributes
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -46,17 +47,62 @@ object Haptics {
         return VibrationEffect.createOneShot(ms, amplitude)
     }
 
+    /**
+     * Plays [e] as a *touch* vibration.
+     *
+     * This is the part that decides whether a keyboard vibrates at all on a lot
+     * of phones. `vibrate(effect)` with no attributes is filed under
+     * `USAGE_UNKNOWN`, and an unknown-usage vibration from a background service
+     * is exactly what the platform — and MIUI/HyperOS more aggressively than
+     * most — drops when the system's own touch-feedback switch is off. The
+     * motor is fine, the permission is held, the call returns without error,
+     * and nothing happens.
+     *
+     * Declaring `USAGE_TOUCH` says what this actually is: feedback for a key
+     * the user just pressed. Below API 30 the same thing is said with the
+     * audio-attributes overload, where sonification is the nearest equivalent.
+     */
+    private fun play(v: Vibrator, e: VibrationEffect) {
+        // `VibrationAttributes` exists from API 30 but `createForUsage` only
+        // from 33, so the audio-attributes route covers 26..32 as well.
+        if (Build.VERSION.SDK_INT >= 33) {
+            v.vibrate(e, VibrationAttributes.createForUsage(VibrationAttributes.USAGE_TOUCH))
+        } else {
+            @Suppress("DEPRECATION")
+            v.vibrate(
+                e,
+                android.media.AudioAttributes.Builder()
+                    .setUsage(android.media.AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                    .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build()
+            )
+        }
+    }
+
     private fun fire(view: View, predefined: Int, ms: Long, amp: Int, fallback: Int) {
         val v = vibrator(view.context)
         if (v == null || !v.hasVibrator()) {
-            view.performHapticFeedback(fallback)
+            viewFallback(view, fallback)
             return
         }
         try {
-            v.vibrate(effect(v, predefined, ms, amp))
+            play(v, effect(v, predefined, ms, amp))
         } catch (_: Exception) {
-            view.performHapticFeedback(fallback)
+            viewFallback(view, fallback)
         }
+    }
+
+    /**
+     * The last resort, asked to ignore the global setting where that is still
+     * possible. Without the flag this is silent on exactly the devices the
+     * fallback exists for — the ones that turned touch feedback off.
+     */
+    @Suppress("DEPRECATION")
+    private fun viewFallback(view: View, fallback: Int) {
+        view.performHapticFeedback(
+            fallback,
+            HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+        )
     }
 
     fun tap(view: View) {

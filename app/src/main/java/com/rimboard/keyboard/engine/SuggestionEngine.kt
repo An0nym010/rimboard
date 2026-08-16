@@ -221,27 +221,6 @@ class SuggestionEngine private constructor(
     private fun listed(lower: String, lang: String): Boolean =
         lower in offensive(lang) || (lang != "en" && lower in offensive("en"))
 
-    private val emojiMaps = HashMap<String, Map<String, String>>()
-
-    /** Word-to-emoji suggestion, current language first with English fallback. */
-    fun emojiFor(wordLower: String, lang: String): String? =
-        emojiMap(lang)[wordLower] ?: if (lang != "en") emojiMap("en")[wordLower] else null
-
-    @Synchronized
-    private fun emojiMap(lang: String): Map<String, String> =
-        emojiMaps.getOrPut(lang) {
-            try {
-                (assets.open("emoji/$lang.txt") ?: return@getOrPut emptyMap())
-                    .bufferedReader().readLines()
-                    .mapNotNull { line ->
-                        val p = line.split('\t')
-                        if (p.size == 2) p[0] to p[1] else null
-                    }.toMap()
-            } catch (_: Exception) {
-                emptyMap()
-            }
-        }
-
     fun knownIn(wordLower: String, lang: String, locale: Locale): Boolean =
         dictionary(lang, locale).contains(wordLower)
 
@@ -719,20 +698,43 @@ class SuggestionEngine private constructor(
         // it decayed; and where the user had strong evidence for a second and
         // third word, the curated list could not fill the remaining slots
         // alongside it.
+        // Scored under a case-folded key, but shown in the form the curated
+        // model spells it.
+        //
+        // The two sources disagree about capitals and only one of them can be
+        // right. Learned n-grams are always lower case — [UserData] is fed
+        // `lowercase(locale)` — so they carry no case information at all, while
+        // the bundled model spells a word the way the language does. In German,
+        // where every noun is capitalised, that is the difference between the
+        // strip offering "vielen Dank" and offering "vielen dank"; and scoring
+        // them as two separate words would have put both on the strip at once,
+        // competing for the same slot.
         val scores = HashMap<String, Double>()
-        for ((w, s) in userData.predictScores(key2, key)) scores[w] = s
+        val surface = HashMap<String, String>()
+        for ((w, s) in userData.predictScores(key2, key)) {
+            val k = w.lowercase(locale)
+            scores.merge(k, s) { a, b -> a + b }
+            surface.putIfAbsent(k, w)
+        }
         predictionModel(lang)[key].orEmpty().forEachIndexed { i, w ->
             // Fades with rank, so the curated model's own ordering survives the
             // merge. At the top it is worth a few repeated user sightings; by
             // the end of the list it only breaks ties.
-            scores.merge(w, STATIC_WEIGHT / (i + 1.0)) { a, b -> a + b }
+            val k = w.lowercase(locale)
+            scores.merge(k, STATIC_WEIGHT / (i + 1.0)) { a, b -> a + b }
+            // The curated spelling wins outright: it is the only one that knows
+            // whether this language capitalises the word.
+            surface[k] = w
         }
+        // Blocked and offensive are both checked against the folded key, which
+        // is how those lists are stored — a capitalised surface form must not
+        // be a way past either of them.
         return scores.entries
             .asSequence()
             .filter { !userData.isBlocked(it.key) && !isOffensive(it.key, lang, locale) }
             .sortedByDescending { it.value }
             .take(limit)
-            .map { it.key }
+            .map { surface[it.key] ?: it.key }
             .toList()
     }
 

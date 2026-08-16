@@ -25,7 +25,6 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         fun onClipboardPasteRequested()
         fun onClipboardPanelRequested()
         fun onQuickAction(code: Int)
-        fun onQuickEmoji(emoji: String)
         fun onSuggestionLongPressed(word: String, anchor: View)
         /** Chevron tapped: open the pinned-tool drawer, or close it. */
         fun onToolbarToggle(expand: Boolean)
@@ -42,7 +41,6 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     private val clipChip: TextView
     private val centerBox: LinearLayout
     private val toolRow: LinearLayout
-    private val emojiRow: LinearLayout
     private val emojiScroll: HorizontalScrollView
     private val incogIcon: IconView
     private var boldIndex = -1
@@ -119,20 +117,14 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             orientation = HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
-        emojiRow = LinearLayout(context).apply {
-            orientation = HORIZONTAL
-            gravity = Gravity.CENTER
-        }
         val rowHolder = LinearLayout(context).apply {
             orientation = HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             addView(toolRow, LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
-            addView(emojiRow, LayoutParams(
-                LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
         }
-        // Scrollable so a long list of pinned shortcuts (plus recent emoji)
-        // never gets clipped off the end of the strip.
+        // Scrollable so a long list of pinned shortcuts never gets clipped off
+        // the end of the strip.
         emojiScroll = HorizontalScrollView(context).apply {
             isHorizontalScrollBarEnabled = false
             visibility = GONE
@@ -217,8 +209,6 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         centerBox.visibility = VISIBLE
         emojiScroll.visibility = VISIBLE
         toolRow.visibility = VISIBLE
-        // Recent emoji belong to the idle strip, not the tool drawer.
-        emojiRow.visibility = GONE
         setCenterWidth(0)
         emojiScroll.scrollTo(0, 0)
     }
@@ -288,8 +278,6 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         showEmpty()
         clipChip.text = label
         clipChip.visibility = VISIBLE
-        // The paste chip takes the room the recent emoji would have used.
-        emojiRow.visibility = GONE
         emojiScroll.visibility = GONE
     }
 
@@ -335,33 +323,18 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         if (w != oldw && pinnedItems.isNotEmpty()) rebuildToolRow()
     }
 
-    /** Rebuilds the recent-emoji row, which only shows on an idle strip. */
-    fun setRecentEmoji(emojis: List<String>) {
-        emojiRow.removeAllViews()
-        for (e in emojis) {
-            emojiRow.addView(TextView(context).apply {
-                text = e
-                gravity = Gravity.CENTER
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 19f)
-                setPadding(dp(7), 0, dp(7), 0)
-                setOnClickListener { listener?.onQuickEmoji(e) }
-            }, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
-        }
-        emojiScroll.scrollTo(0, 0)
-    }
-
     fun showEmpty() {
         if (drawerOpen) return showDrawer()
         hideAll()
         expandBtn.visibility = VISIBLE
         centerBox.visibility = VISIBLE
         clipChip.visibility = GONE
-        // Idle shows recent emoji only: the pinned tools are what the drawer
-        // is for, and duplicating them here would make the chevron pointless.
+        // Nothing occupies the idle strip: the pinned tools are what the
+        // drawer is for, and duplicating them here would make the chevron
+        // pointless.
         toolRow.visibility = GONE
-        emojiRow.visibility = VISIBLE
         setCenterWidth(0)
-        emojiScroll.visibility = if (emojiRow.childCount > 0) VISIBLE else GONE
+        emojiScroll.visibility = GONE
     }
 
     /** [w] of 0 means "share the free space by weight"; otherwise a fixed cap. */

@@ -135,8 +135,6 @@
     <string name="pref_nr_pass_summary">Zahlenreihe in Passwortfeldern immer anzeigen</string>
     <string name="pref_autospace_title">Leerzeichen nach Satzzeichen</string>
     <string name="pref_autospace_summary">Leerzeichen einfügen, wenn ein Buchstabe auf . , ! ? folgt</string>
-    <string name="pref_emoji_row_title">Emoji-Schnellzugriff</string>
-    <string name="pref_emoji_row_summary">Letzte Emojis in der leeren Vorschlagsleiste zeigen</string>
     <string name="pref_haptic_strength_title">Vibrationsstärke</string>
     <string name="hs_light">Leicht</string>
     <string name="hs_medium">Mittel</string>

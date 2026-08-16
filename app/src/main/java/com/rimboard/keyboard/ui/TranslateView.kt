@@ -124,6 +124,19 @@ class TranslateView(context: Context) : LinearLayout(context) {
             setPadding(dp(12), dp(2), dp(12), dp(4))
             maxLines = 2
             ellipsize = android.text.TextUtils.TruncateAt.START
+            isClickable = true
+            isFocusable = false
+            contentDescription = context.getString(R.string.tr_source_hint)
+            // Tap to put the caret where the mistake is, instead of deleting
+            // back to it. ACTION_UP rather than a click listener because the
+            // coordinates are the whole point.
+            setOnTouchListener { _, e ->
+                if (e.actionMasked == android.view.MotionEvent.ACTION_UP) {
+                    moveCaretTo(e.x, e.y)
+                    performClick()
+                }
+                true
+            }
         }
         addView(sourceView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
 
@@ -149,6 +162,7 @@ class TranslateView(context: Context) : LinearLayout(context) {
         removeCallbacks(debounce)
         source.setLength(0)
         seed?.let { source.append(it.take(MAX_CHARS)) }
+        caret = -1
         targetChip.text = targetLabel
         hideLanguageList()
         setStatus(null)
@@ -163,15 +177,72 @@ class TranslateView(context: Context) : LinearLayout(context) {
     fun appendQuery(c: Char) {
         if (langScroll.visibility == VISIBLE) return
         if (source.length >= MAX_CHARS) return
-        source.append(c)
+        // Read once: the buffer changes underneath, so asking again afterwards
+        // would measure the caret against a length that has already moved.
+        val at = caretIndex()
+        source.insert(at, c)
+        caret = if (at + 1 >= source.length) -1 else at + 1
         onEdited()
     }
 
     fun backspaceQuery() {
         if (langScroll.visibility == VISIBLE) return
-        if (source.isEmpty()) return
-        source.deleteCharAt(source.length - 1)
+        val at = caretIndex()
+        if (at == 0) return
+        source.deleteCharAt(at - 1)
+        caret = if (at - 1 >= source.length) -1 else at - 1
         onEdited()
+    }
+
+    // ---- caret ------------------------------------------------------------
+
+    /**
+     * Where the next character goes, or -1 for "the end".
+     *
+     * The bar is a [TextView] rather than an [android.widget.EditText] on
+     * purpose — an editable view inside an IME fights the IME it belongs to for
+     * focus — so there is no caret from the platform and no way to tap into the
+     * middle of what you typed. That meant a typo four words back could only be
+     * reached by deleting everything after it.
+     *
+     * Kept as an index into [source] with -1 meaning the end, so that appending
+     * stays the common path and nothing has to be re-synced when the text is
+     * replaced wholesale by [start].
+     */
+    private var caret = -1
+
+    private fun caretIndex(): Int = if (caret in 0..source.length) caret else source.length
+
+    /**
+     * The caret drawn into the displayed string.
+     *
+     * A left one-eighth block rather than a real cursor: a TextView will not
+     * draw one, and a character in the text is honest about what this is — a
+     * position marker in a preview, not an editing caret with a blink and a
+     * handle. It exists only in what is shown; [source] never contains it.
+     */
+    private fun displayed(): String {
+        val s = source.toString()
+        if (caret !in 0 until s.length) return s
+        return s.substring(0, caret) + CARET + s.substring(caret)
+    }
+
+    /** Places the caret from a tap, mapping back past the marker. */
+    private fun moveCaretTo(x: Float, y: Float) {
+        if (source.isEmpty()) return
+        val shown = sourceView.getOffsetForPosition(x, y)
+        if (shown < 0) return
+        val marker = caretIndex()
+        // The displayed string carries the marker, so an offset past it is one
+        // character ahead of the real position.
+        val at = when {
+            caret !in 0 until source.length -> shown
+            shown <= marker -> shown
+            else -> shown - 1
+        }
+        caret = at.coerceIn(0, source.length)
+        if (caret == source.length) caret = -1
+        refresh()
     }
 
     private fun onEdited() {
@@ -278,7 +349,7 @@ class TranslateView(context: Context) : LinearLayout(context) {
     fun closeLanguageList() = hideLanguageList()
 
     private fun refresh() {
-        sourceView.text = source.toString().ifEmpty {
+        sourceView.text = displayed().ifEmpty {
             context.getString(R.string.tr_source_hint)
         }
         applyColors()
@@ -311,5 +382,8 @@ class TranslateView(context: Context) : LinearLayout(context) {
     private companion object {
         /** Matches AiText's own cap, so the bar cannot build a request it will refuse. */
         const val MAX_CHARS = 2000
+
+        /** Left one-eighth block: narrow enough to read as a caret. */
+        const val CARET = "▏"
     }
 }

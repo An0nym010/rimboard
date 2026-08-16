@@ -39,7 +39,6 @@ object Prefs {
     const val KEY_AUTOSPACE = "auto_space_punct"
     const val KEY_SOUND_VOL = "sound_volume"
     const val KEY_HAPTIC_STR = "haptic_strength"
-    const val KEY_EMOJI_ROW = "emoji_row"
     const val KEY_GLIDE_TRAIL = "glide_trail"
     /** Legacy light/medium/strong choice; read only to seed the slider. */
     const val KEY_BG_DIM = "bg_dim"
@@ -160,7 +159,6 @@ object Prefs {
     // Off by default: the idle strip stays clean unless the row is asked for.
     // Must match the defaultValue in prefs_general.xml or the switch shows one
     // state while the keyboard obeys the other.
-    fun emojiRow(c: Context) = get(c).getBoolean(KEY_EMOJI_ROW, false)
     fun glideTrail(c: Context) = get(c).getBoolean(KEY_GLIDE_TRAIL, true)
     /**
      * Dim overlay for the background image, as a draw alpha (0..230).
