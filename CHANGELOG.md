@@ -4,6 +4,25 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Vibration, and an honest answer about it**
+- The previous attempt at this was aimed the wrong way. It declared key
+  vibrations as `USAGE_TOUCH` on the reasoning that an undeclared vibration
+  gets dropped — but `USAGE_TOUCH` is precisely the category the system's own
+  touch-feedback switch governs. With that switch off, the keyboard was asking
+  the platform to play a touch vibration on a device told not to play them.
+  The usage is now chosen from the switch, and when it is off the request goes
+  out under a usage that switch does not govern.
+- **The settings screen no longer claims something untrue.** "Drives the
+  vibrator directly, so it keeps working when system touch feedback is off"
+  was wrong in all eight languages, and wrong specifically for the people it
+  was written to reassure. When the system switch is off, the screen now says
+  so and says that Android suppresses keyboard vibration while it is.
+- **Changing vibration strength plays a sample.** Whether a vibration survives
+  the platform's filtering cannot be observed from inside the app — a
+  suppressed one throws nothing and returns normally, which is how this fault
+  was diagnosed from theory twice and fixed wrongly once. The only reliable
+  instrument is the user's hand.
+
 **Three faults found reading the service file**
 - **A clock change no longer types a full stop.** Double-space-to-period and
   double-tap-shift measured the gap between taps with wall-clock time, which is

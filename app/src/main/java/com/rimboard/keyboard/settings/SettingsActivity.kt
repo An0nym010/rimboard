@@ -243,6 +243,21 @@ class SettingsActivity : AppCompatActivity() {
                 showCustomColors()
                 true
             }
+            // Haptics are the one setting whose result the app cannot observe:
+            // a vibration the platform suppresses throws nothing and returns
+            // normally. So the screen says what the system switch is set to
+            // rather than describing what the keyboard intends to do, and the
+            // strength row plays a sample so the answer comes from the user's
+            // hand instead of from a claim in a summary.
+            findPreference<Preference>("haptic")?.let { pref ->
+                if (!com.rimboard.keyboard.Haptics.systemTouchFeedbackOn(requireContext())) {
+                    pref.summary = getString(R.string.pref_haptic_summary_system_off)
+                }
+            }
+            findPreference<Preference>("haptic_strength")?.setOnPreferenceChangeListener { _, _ ->
+                view?.post { view?.let { com.rimboard.keyboard.Haptics.test(it) } }
+                true
+            }
             findPreference<Preference>("version")?.summary = try {
                 requireContext().packageManager
                     .getPackageInfo(requireContext().packageName, 0).versionName

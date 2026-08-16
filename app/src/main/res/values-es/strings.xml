@@ -53,7 +53,8 @@
     <string name="pref_double_space_title">Punto con doble espacio</string>
     <string name="pref_double_space_summary">Toca espacio dos veces para insertar un punto</string>
     <string name="pref_haptic_title">Vibración al pulsar</string>
-    <string name="pref_haptic_summary">Controla el vibrador directamente, así que funciona aunque la respuesta táctil del sistema esté desactivada</string>
+    <string name="pref_haptic_summary">Vibrar al pulsar una tecla</string>
+    <string name="pref_haptic_summary_system_off">La respuesta táctil del sistema está desactivada y Android suprime la vibración del teclado mientras lo esté. Actívala en los ajustes del sistema si las teclas no vibran.</string>
     <string name="pref_sound_title">Sonido al pulsar</string>
     <string name="cat_privacy">Privacidad</string>
     <string name="pref_learn_title">Aprender palabras nuevas</string>

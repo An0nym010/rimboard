@@ -53,7 +53,8 @@
     <string name="pref_double_space_title">Punkt bei Doppel-Leertaste</string>
     <string name="pref_double_space_summary">Zweimal Leertaste tippen, um einen Punkt einzufügen</string>
     <string name="pref_haptic_title">Vibration beim Tippen</string>
-    <string name="pref_haptic_summary">Steuert den Vibrationsmotor direkt und funktioniert auch bei ausgeschaltetem System-Feedback</string>
+    <string name="pref_haptic_summary">Beim Tastendruck vibrieren</string>
+    <string name="pref_haptic_summary_system_off">Das System-Feedback ist aus, und Android unterdrückt so lange die Tastaturvibration. Schalte es in den Systemeinstellungen ein, wenn die Tasten nicht vibrieren.</string>
     <string name="pref_sound_title">Ton beim Tippen</string>
     <string name="cat_privacy">Privatsphäre</string>
     <string name="pref_learn_title">Neue Wörter lernen</string>

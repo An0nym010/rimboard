@@ -57,7 +57,8 @@
     <string name="pref_double_space_title">Çift boşlukla nokta</string>
     <string name="pref_double_space_summary">Boşluğa iki kez basınca “. ” ekle</string>
     <string name="pref_haptic_title">Basınca titret</string>
-    <string name="pref_haptic_summary">Titreşimi doğrudan çalıştırır; sistem dokunsal geri bildirimi kapalıyken de çalışır</string>
+    <string name="pref_haptic_summary">Tuşa basınca titret</string>
+    <string name="pref_haptic_summary_system_off">Sistem dokunsal geri bildirimi kapalı ve Android bu sürece klavye titreşimini engelliyor. Tuşlar titremiyorsa sistem ayarlarından açın.</string>
     <string name="pref_sound_title">Basınca ses çal</string>
     <string name="cat_privacy">Gizlilik</string>
     <string name="pref_learn_title">Yeni kelimeleri öğren</string>

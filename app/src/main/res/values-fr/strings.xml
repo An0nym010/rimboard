@@ -53,7 +53,8 @@
     <string name="pref_double_space_title">Point par double espace</string>
     <string name="pref_double_space_summary">Touchez deux fois espace pour insérer un point</string>
     <string name="pref_haptic_title">Vibration à l\'appui</string>
-    <string name="pref_haptic_summary">Pilote le vibreur directement, donc fonctionne même si le retour haptique du système est désactivé</string>
+    <string name="pref_haptic_summary">Vibrer à l\'appui d\'une touche</string>
+    <string name="pref_haptic_summary_system_off">Le retour haptique du système est désactivé, et Android supprime la vibration du clavier tant qu\'il l\'est. Activez-le dans les réglages système si les touches ne vibrent pas.</string>
     <string name="pref_sound_title">Son à l\'appui</string>
     <string name="cat_privacy">Confidentialité</string>
     <string name="pref_learn_title">Apprendre de nouveaux mots</string>
