@@ -18,6 +18,10 @@ Thumbs.db
 # Keystores (never commit signing keys)
 *.jks
 *.keystore
+# The base64 form is the keystore, just encoded — getting the key itself
+# ignored and then committing the copy made for a CI secret would be the
+# obvious way to leak it.
+*.b64
 
 # Committed on purpose: fixed debug signing key so every CI build
 # shares one signature and updates install over previous versions.
