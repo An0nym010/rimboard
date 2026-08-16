@@ -595,7 +595,9 @@ class RimBoardService : InputMethodService(),
                     // The app's real colour when its icon can be read, and the
                     // package-name hue when it cannot. Which of those happens
                     // is decided by package visibility, not by anything here.
-                    com.rimboard.keyboard.theme.AppPalette.hueOf(this, info.packageName)
+                    com.rimboard.keyboard.theme.AppPalette.hueOf(
+                        this, info.packageName, Prefs.curatedColorsOnly(this)
+                    )
                 )
             else base
         }

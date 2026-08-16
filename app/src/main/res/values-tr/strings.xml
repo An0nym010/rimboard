@@ -200,6 +200,9 @@
     <string name="pref_lang_per_app_summary">Her uygulamada son kullanılan dili geri yükle</string>
     <string name="pref_theme_per_app_title">Uygulamaya göre renklendir</string>
     <string name="pref_theme_per_app_summary">Seçtiğin temanın üzerine her uygulamaya kendi vurgu rengini ver</string>
+    <string name="pref_app_color_source_title">Uygulama renkleri</string>
+    <string name="app_color_source_curated">Bilinen uygulamalar (yaklaşık 40)</string>
+    <string name="app_color_source_all">Herhangi bir uygulama</string>
     <string name="pref_sym_return_title">Boşluktan sonra harflere dön</string>
     <string name="pref_sym_return_summary">Sembol görünümünde boşluk yazınca harflere dön</string>
     <string name="pref_emoji_return_title">Emojiden sonra klavyeye dön</string>

@@ -332,6 +332,33 @@ such component at all. You can check that the same way as the permission:
 aapt dump xmltree app-offline-release.apk AndroidManifest.xml | grep authorities
 ```
 
+## What the keyboard can see on your phone (both builds)
+
+One thing worth stating plainly, because it is not a permission and so will
+not show up in any of the checks below.
+
+The per-app tint takes its colour from the current app's launcher icon, and
+reading another app's icon requires that app to be *visible* to this process.
+Android grants that through a `<queries>` block in the manifest, and RimBoard
+declares a launcher-intent query — so **every app on your phone that has an
+icon is visible to the keyboard**, and it could in principle enumerate them.
+
+- It is **not** `QUERY_ALL_PACKAGES` and **not** a permission. The offline APK
+  still declares only `VIBRATE`, and `aapt dump permissions` will show you that
+  unchanged.
+- On the **offline build this cannot go anywhere**, because that build holds no
+  `INTERNET` permission by any route. Whatever it can see, it cannot tell.
+- **Settings → Theme → App colours** decides which apps are actually read, and
+  defaults to a fixed list of about forty well-known apps. Everything else
+  keeps a colour derived from a hash of its package name.
+
+Be clear about what that setting is and is not: it restrains RimBoard's own
+code, not RimBoard's capability. A setting cannot revoke a manifest
+declaration. Making it provable would take a second build dimension, the way
+`INTERNET` did — the `<queries>` block would be absent from the APK entirely,
+and then the check would be the manifest rather than a promise. That is not
+built; if you want the strong version, that is the shape it takes.
+
 ## Proving it
 
 Three checks, in increasing order of how little they ask you to trust.

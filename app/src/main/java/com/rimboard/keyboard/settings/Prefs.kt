@@ -58,6 +58,7 @@ object Prefs {
     const val KEY_TLD = "tld_popups"
     const val KEY_LANG_PER_APP = "lang_per_app"
     const val KEY_THEME_PER_APP = "theme_per_app"
+    const val KEY_APP_COLOR_SOURCE = "app_color_source"
     const val KEY_SYM_RETURN = "symbols_return"
     const val KEY_EMOJI_RETURN = "emoji_return"
     const val KEY_CLIP_RETURN = "clip_return"
@@ -218,6 +219,18 @@ object Prefs {
      * what typing produces.
      */
     fun themePerApp(c: Context) = get(c).getBoolean(KEY_THEME_PER_APP, true)
+
+    /**
+     * Which apps the per-app tint may read a real colour from: `curated` (a
+     * fixed list of about forty, the default) or `all`.
+     *
+     * Defaults to the narrower one because the wider one is a choice about
+     * what the keyboard looks at, and a default is not a choice the user made.
+     */
+    fun appColorSource(c: Context): String =
+        get(c).getString(KEY_APP_COLOR_SOURCE, "curated") ?: "curated"
+
+    fun curatedColorsOnly(c: Context) = appColorSource(c) != "all"
     fun symbolsReturn(c: Context) = get(c).getBoolean(KEY_SYM_RETURN, true)
     fun emojiReturn(c: Context) = get(c).getBoolean(KEY_EMOJI_RETURN, false)
     fun clipReturn(c: Context) = get(c).getBoolean(KEY_CLIP_RETURN, false)

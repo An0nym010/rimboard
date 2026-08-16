@@ -127,6 +127,19 @@ class AppPaletteTest {
     }
 
     @Test
+    fun `the curated list is a list of package names and holds no duplicates`() {
+        // It is the whole of the restraint on the default setting, so it is
+        // worth knowing it says what it means to. A typo here is invisible:
+        // the app simply never matches and quietly keeps the hash colour,
+        // which looks exactly like the feature working as designed.
+        assertTrue("curated list looks too short", AppPalette.CURATED.size >= 30)
+        for (p in AppPalette.CURATED) {
+            assertTrue("'$p' is not a package name", p.contains('.') && !p.contains(' '))
+            assertTrue("'$p' has stray case or punctuation", p.trim() == p)
+        }
+    }
+
+    @Test
     fun `a hue is always a legal one`() {
         for (r in 0..255 step 51) for (g in 0..255 step 51) for (b in 0..255 step 51) {
             val h = AppPalette.dominantHue(field(64, argb(255, r, g, b))) ?: continue

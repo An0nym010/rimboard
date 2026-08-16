@@ -20,9 +20,24 @@
         installed even on a phone with one, so the 🌍 fallback had no way to
         know it was about to do nothing.
 
-        This grants visibility of apps handling these two actions and nothing
-        else — it is not the broad QUERY_ALL_PACKAGES permission, and it reads
-        no package list.
+        The first two entries grant visibility of apps handling those actions
+        and nothing else. None of this is the QUERY_ALL_PACKAGES permission:
+        the built APK still declares only VIBRATE, which `aapt dump permissions`
+        will show.
+
+        The launcher entry is broader and is here for the per-app tint, which
+        reads the current app's icon to take its colour. Be clear about what it
+        costs: it makes every app with a launcher icon visible to this process,
+        so the keyboard *could* enumerate what you have installed. Two things
+        bound that, and only the first is enforced by the machine:
+
+        - The offline build holds no INTERNET permission, so nothing it learns
+          can leave the device by any route at all.
+        - The "App colours" setting decides which packages are actually read,
+          and defaults to a fixed list of about forty (see AppPalette.CURATED).
+          That is a restraint on this app's own code, not on its capability —
+          a setting cannot revoke a manifest declaration. Making it provable
+          would take a second build dimension, the way INTERNET did.
     -->
     <queries>
         <intent>
@@ -32,6 +47,10 @@
         <intent>
             <action android:name="android.intent.action.SEND" />
             <data android:mimeType="text/plain" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
         </intent>
     </queries>
 

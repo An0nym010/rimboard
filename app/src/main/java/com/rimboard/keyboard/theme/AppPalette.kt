@@ -45,6 +45,41 @@ object AppPalette {
     private val cache = HashMap<String, Int?>()
 
     /**
+     * The apps whose icons are read under the default "curated" setting.
+     *
+     * The point of a list rather than a switch is that it is finite and can be
+     * read: on this setting the keyboard looks at these and at nothing else,
+     * whatever else the manifest makes visible to it. Everything absent keeps
+     * the package-name hue, which is what the whole feature did before.
+     *
+     * Chosen as the apps people spend their typing in — messaging first, then
+     * the social and work apps a keyboard is opened in every day. It is not
+     * meant to be complete; "All apps" is the setting for that.
+     */
+    val CURATED = setOf(
+        // messaging
+        "com.whatsapp", "com.whatsapp.w4b",
+        "org.telegram.messenger", "org.thunderdog.challegram",
+        "org.thoughtcrime.securesms", "com.viber.voip", "jp.naver.line.android",
+        "com.tencent.mm", "com.facebook.orca", "com.google.android.apps.messaging",
+        "com.discord", "com.skype.raider", "im.vector.app", "org.telegram.plus",
+        // social
+        "com.instagram.android", "com.facebook.katana", "com.facebook.lite",
+        "com.twitter.android", "com.snapchat.android", "com.reddit.frontpage",
+        "com.zhiliaoapp.musically", "com.ss.android.ugc.trill",
+        "com.pinterest", "com.linkedin.android", "com.tumblr",
+        // work and mail
+        "com.google.android.gm", "com.microsoft.office.outlook",
+        "com.microsoft.teams", "com.Slack", "com.notion.id",
+        "com.google.android.apps.docs", "com.google.android.keep",
+        "com.todoist", "com.trello",
+        // browsers and the rest
+        "com.android.chrome", "org.mozilla.firefox",
+        "com.google.android.youtube", "com.spotify.music",
+        "com.duolingo", "com.medium.reader"
+    )
+
+    /**
      * The dominant hue of [pixels] in ARGB, or null if there is no colour in
      * them worth calling dominant.
      *
@@ -140,10 +175,15 @@ object AppPalette {
      * what it is from here. Cached because it cannot change while the app is
      * installed, and because this is called on a focus change.
      */
-    fun hueOf(context: Context, pkg: String?): Int? {
+    fun hueOf(context: Context, pkg: String?, curatedOnly: Boolean): Int? {
         if (pkg.isNullOrEmpty()) return null
-        cache[pkg]?.let { return it }
-        if (cache.containsKey(pkg)) return null
+        if (curatedOnly && pkg !in CURATED) return null
+        // Keyed by mode as well: the same package has an answer under one
+        // setting and none under the other, and a cache that forgot which
+        // would serve the wrong one after the setting changed.
+        val key = if (curatedOnly) "c:$pkg" else "a:$pkg"
+        cache[key]?.let { return it }
+        if (cache.containsKey(key)) return null
         val hue = try {
             val icon = context.packageManager.getApplicationIcon(pkg)
             val bmp = Bitmap.createBitmap(SIZE, SIZE, Bitmap.Config.ARGB_8888)
@@ -157,7 +197,7 @@ object AppPalette {
         } catch (_: Exception) {
             null
         }
-        cache[pkg] = hue
+        cache[key] = hue
         return hue
     }
 

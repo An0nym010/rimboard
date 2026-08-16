@@ -215,6 +215,9 @@
     <string name="pref_lang_per_app_summary">Restaura el último idioma usado en cada aplicación</string>
     <string name="pref_theme_per_app_title">Teñir según la aplicación</string>
     <string name="pref_theme_per_app_summary">Cada aplicación recibe su propio color de acento, sobre el tema elegido</string>
+    <string name="pref_app_color_source_title">Colores de las apps</string>
+    <string name="app_color_source_curated">Apps conocidas (unas 40)</string>
+    <string name="app_color_source_all">Cualquier app</string>
     <string name="pref_sym_return_title">Salir de símbolos tras el espacio</string>
     <string name="pref_sym_return_summary">Vuelve a las letras tras escribir un espacio en la vista de símbolos</string>
     <string name="pref_emoji_return_title">Volver al teclado tras un emoji</string>

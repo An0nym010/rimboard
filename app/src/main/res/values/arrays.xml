@@ -56,6 +56,16 @@
         <item>tr</item>
     </string-array>
 
+    <string-array name="app_color_source_entries">
+        <item>@string/app_color_source_curated</item>
+        <item>@string/app_color_source_all</item>
+    </string-array>
+
+    <string-array name="app_color_source_values">
+        <item>curated</item>
+        <item>all</item>
+    </string-array>
+
     <string-array name="theme_entries">
         <item>@string/theme_system</item>
         <item>@string/theme_light</item>

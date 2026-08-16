@@ -215,6 +215,9 @@
     <string name="pref_lang_per_app_summary">Ripristina l\'ultima lingua usata in ogni app</string>
     <string name="pref_theme_per_app_title">Tinta in base all\'app</string>
     <string name="pref_theme_per_app_summary">Ogni app riceve il proprio colore d\'accento, oltre al tema scelto</string>
+    <string name="pref_app_color_source_title">Colori delle app</string>
+    <string name="app_color_source_curated">App note (circa 40)</string>
+    <string name="app_color_source_all">Qualsiasi app</string>
     <string name="pref_sym_return_title">Esci dai simboli dopo lo spazio</string>
     <string name="pref_sym_return_summary">Torna alle lettere dopo aver digitato uno spazio nei simboli</string>
     <string name="pref_emoji_return_title">Torna alla tastiera dopo un emoji</string>

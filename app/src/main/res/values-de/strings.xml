@@ -215,6 +215,9 @@
     <string name="pref_lang_per_app_summary">Die zuletzt in jeder App verwendete Sprache wiederherstellen</string>
     <string name="pref_theme_per_app_title">Passend zur App einfärben</string>
     <string name="pref_theme_per_app_summary">Jede App erhält ihre eigene Akzentfarbe, zusätzlich zum gewählten Design</string>
+    <string name="pref_app_color_source_title">App-Farben</string>
+    <string name="app_color_source_curated">Bekannte Apps (etwa 40)</string>
+    <string name="app_color_source_all">Beliebige App</string>
     <string name="pref_sym_return_title">Symbole nach Leerzeichen verlassen</string>
     <string name="pref_sym_return_summary">Nach einem Leerzeichen in der Symbolansicht zurück zu den Buchstaben</string>
     <string name="pref_emoji_return_title">Nach Emoji zur Tastatur zurück</string>

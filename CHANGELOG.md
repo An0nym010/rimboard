@@ -4,6 +4,24 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**The per-app tint uses the app's actual colour**
+- It never did. The hue came from a hash of the package name, so WhatsApp got
+  a stable colour but not WhatsApp green — a documented trade-off, and still
+  the wrong answer for a setting called "tint to match the app". The current
+  app's launcher icon is now read and its dominant colour used, with the hash
+  kept as the fallback for anything that cannot be read or has a monochrome
+  icon.
+- This needed package visibility, which the keyboard did not have. The manifest
+  now declares a launcher-intent query, so **every app with an icon is visible
+  to the keyboard**. That is not a permission — the offline APK still declares
+  only `VIBRATE` — and on the offline build there is no `INTERNET` by any
+  route, so nothing it sees can leave. The README says so in its own section
+  rather than leaving it to be discovered.
+- **Settings → Theme → App colours** chooses between a fixed list of about
+  forty well-known apps (the default) and any app at all. It restrains what
+  RimBoard reads, not what it could read; a setting cannot revoke a manifest
+  declaration, and only a second build dimension would make it provable.
+
 **GIF thumbnails stop costing what they were costing**
 - **Decoded to the tile, not to whatever the provider sent.** Every preview was
   decoded at full source resolution into ARGB_8888 and then drawn into a
