@@ -50,9 +50,17 @@ class SuggestionEngine private constructor(
     )
 
     companion object {
-        /** Test seam: back the engine with in-memory data and no Context. */
-        internal fun forTesting(userData: UserData, assets: Assets) =
-            SuggestionEngine(assets, null, userData, shared = false)
+        /**
+         * Test seam: back the engine with in-memory data and no Context.
+         *
+         * [shared] defaults to false so fixtures cannot leak between cases. It
+         * is opt-in for the one thing that cannot be tested without it — the
+         * eviction of the process-wide cache, which by definition is not
+         * per-instance. A case that passes true owes the next case a
+         * [trimDictionaries] with an empty set.
+         */
+        internal fun forTesting(userData: UserData, shared: Boolean = false, assets: Assets) =
+            SuggestionEngine(assets, null, userData, shared = shared)
 
         /**
          * Dictionaries, shared by every engine reading the bundled assets.
@@ -67,6 +75,31 @@ class SuggestionEngine private constructor(
          * copies.
          */
         private val sharedDictionaries = java.util.concurrent.ConcurrentHashMap<String, Dictionary>()
+
+        /**
+         * Drop cached dictionaries, keeping the ones for [keep].
+         *
+         * Sharing the cache made it `static`, and that quietly removed the only
+         * thing that ever reclaimed this memory. Before, the maps belonged to
+         * the engines and died with them; now they belong to the class, so they
+         * outlive the keyboard being dismissed, the spell checker being turned
+         * off, and the service itself being destroyed — the process keeps every
+         * language it has ever loaded, at roughly fifteen megabytes each, until
+         * the process is killed. A multilingual user who has cycled through four
+         * languages is holding sixty megabytes that nothing will ever release.
+         *
+         * Called from the platform's own memory-pressure callback, which is the
+         * signal that the process is a candidate for being killed. Rebuilding a
+         * dictionary costs one asset parse on the warm thread; being killed
+         * costs the user their keyboard mid-sentence.
+         */
+        fun trimDictionaries(keep: Set<String>) {
+            val live = keep.map { it + "#" + DictVersion.v }.toSet()
+            sharedDictionaries.keys.removeAll { it !in live }
+        }
+
+        /** How many dictionaries the process is holding. Test-only. */
+        internal fun cachedCount() = sharedDictionaries.size
 
         private const val TAG = "RimBoard"
 
@@ -130,9 +163,26 @@ class SuggestionEngine private constructor(
     private val cache =
         if (shared) sharedDictionaries else java.util.concurrent.ConcurrentHashMap()
 
+    /**
+     * One reusable thread for warming, rather than a fresh one per call.
+     *
+     * [warm] runs on every focus change — every app switch, every rotation, and
+     * every settings change that reconfigures the keyboard — and each call used
+     * to construct and start a `Thread`. Switching between two apps repeatedly
+     * is an ordinary thing to do while typing, and it made a thread each time.
+     * Worse, before the first load finished they did not return quickly: each
+     * new one blocked on the same dictionary lock, so a cold start plus a burst
+     * of focus changes left a pile of threads waiting to discover there was
+     * nothing left to do. Serialised on one daemon thread, a warm that is
+     * already done costs a queue entry.
+     */
+    private val warmer = java.util.concurrent.Executors.newSingleThreadExecutor { r ->
+        Thread(r, "RimBoard-warm").apply { isDaemon = true }
+    }
+
     /** Preload dictionaries on a background thread so the first keystroke never stalls. */
     fun warm(lang: String, locale: Locale, altLang: String?, altLocale: Locale?) {
-        Thread {
+        warmer.execute {
             try {
                 val started = android.os.SystemClock.elapsedRealtime()
                 dictionary(lang, locale)
@@ -149,7 +199,7 @@ class SuggestionEngine private constructor(
                 // and the whole engine just appears to have no data.
                 android.util.Log.w(TAG, "warm($lang) failed", e)
             }
-        }.start()
+        }
     }
 
     /**
@@ -213,10 +263,8 @@ class SuggestionEngine private constructor(
     var blockOffensive = true
     private val offensiveSets = HashMap<String, Set<String>>()
 
-    /** Synchronized to match [predictionModel]: same pattern, same hazard if a
-     *  future caller loads it off the UI thread. */
-    @Synchronized
-    private fun offensive(lang: String): Set<String> =
+    /** See [predictionModelLock] for why this is not `@Synchronized`. */
+    private fun offensive(lang: String): Set<String> = synchronized(offensiveLock) {
         offensiveSets.getOrPut(lang) {
             try {
                 val out = HashSet<String>()
@@ -240,6 +288,7 @@ class SuggestionEngine private constructor(
                 emptySet()
             }
         }
+    }
 
     /**
      * Whether [word] is on the blocked list, judged in [locale].
@@ -281,10 +330,8 @@ class SuggestionEngine private constructor(
     fun emojiFor(wordLower: String, lang: String): String? =
         emojiMap(lang)[wordLower] ?: if (lang != "en") emojiMap("en")[wordLower] else null
 
-    /** Synchronized for the same reason as [predictionModel]: warm() may load
-     *  this off the main thread while the typing path reads it. */
-    @Synchronized
-    private fun emojiMap(lang: String): Map<String, String> =
+    /** See [predictionModelLock] for why this is not `@Synchronized`. */
+    private fun emojiMap(lang: String): Map<String, String> = synchronized(emojiLock) {
         emojiMaps.getOrPut(lang) {
             try {
                 (assets.open("emoji/$lang.txt") ?: return@getOrPut emptyMap())
@@ -297,6 +344,7 @@ class SuggestionEngine private constructor(
                 emptyMap()
             }
         }
+    }
 
     fun knownIn(wordLower: String, lang: String, locale: Locale): Boolean =
         dictionary(lang, locale).contains(wordLower)
@@ -731,15 +779,28 @@ class SuggestionEngine private constructor(
     private val predictionModels = HashMap<String, Map<String, List<String>>>()
 
     /**
-     * Bundled starter next-word model for [lang] (assets/predictions/<lang>.txt).
+     * One lock per lazily-loaded map, rather than `@Synchronized` on the engine.
      *
-     * Synchronized because warm() loads this on a background thread while
-     * predictions() reads it on the UI thread. getOrPut can resize the map, and
-     * concurrent HashMap mutation corrupts it rather than failing cleanly — an
-     * intermittent fault that would look like predictions randomly misbehaving.
+     * Locking is still required: [warm] loads these on a background thread while
+     * the typing path reads them on the UI thread, and `getOrPut` can resize the
+     * map — concurrent `HashMap` mutation corrupts it rather than failing
+     * cleanly, which would look like predictions intermittently misbehaving.
+     *
+     * But `@Synchronized` put all three loaders behind *one* monitor, and that
+     * monitor is held for the whole of a parse. So [warm] — whose entire purpose
+     * is to keep the first keystroke off the slow path — would take the engine's
+     * monitor to parse the prediction model, and the first keystroke needing an
+     * emoji or the offensive list would then block on it until that parse
+     * finished. Three separate locks means a load only ever waits for the *same*
+     * map being loaded, which is the only case where waiting is the point.
      */
-    @Synchronized
+    private val predictionModelLock = Any()
+    private val emojiLock = Any()
+    private val offensiveLock = Any()
+
+    /** Bundled starter next-word model for [lang] (assets/predictions/<lang>.txt). */
     private fun predictionModel(lang: String): Map<String, List<String>> =
+        synchronized(predictionModelLock) {
         predictionModels.getOrPut(lang) {
             try {
                 val m = HashMap<String, List<String>>()
@@ -761,6 +822,7 @@ class SuggestionEngine private constructor(
                 emptyMap()
             }
         }
+    }
 
     /**
      * Next-word predictions after the two-word context (prevWord2, prevWord).

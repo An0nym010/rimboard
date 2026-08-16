@@ -4,6 +4,28 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Stability: three faults introduced by sharing the dictionary**
+- **The keyboard can give memory back when the system asks.** Sharing the
+  dictionary between the keyboard and the spell checker made the cache static,
+  and that removed the only thing that ever released it — the maps used to die
+  with their engine, and instead began outliving the service, holding every
+  language ever typed at roughly fifteen megabytes each until the process was
+  killed. A keyboard is a background process and near the front of the kill
+  list, so this was the memory deciding whether it survived to the next
+  sentence. It now drops everything but the languages in use when the platform
+  signals pressure; a language returned to reloads.
+- **A keystroke no longer waits for a background parse.** The three lazily
+  loaded asset maps were each `@Synchronized`, which put them behind one
+  monitor, held for the whole of a parse. Warming — whose only purpose is to
+  keep the first keystroke off the slow path — took that monitor to parse the
+  prediction model, so the first keystroke needing an emoji or the offensive
+  list blocked behind exactly the work that was supposed to be getting out of
+  its way. Each map now has its own lock.
+- **Warming no longer makes a thread per focus change.** It runs on every app
+  switch, rotation and settings change, and each call started a new `Thread`;
+  before the first load finished they did not return quickly either, but piled
+  up on the dictionary lock. One reusable daemon thread now.
+
 **The keyboard takes on a colour from the app you are typing in**
 - On by default, and switchable off under Theme → "Tint to match the app".
   Whichever theme you have chosen keeps its character; only the accent — enter,

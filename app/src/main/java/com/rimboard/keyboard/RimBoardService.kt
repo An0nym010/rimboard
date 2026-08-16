@@ -255,6 +255,29 @@ class RimBoardService : InputMethodService(),
         super.onDestroy()
     }
 
+    /**
+     * The platform asking for memory back before it starts killing processes.
+     *
+     * A keyboard is unusually exposed here: it is a background process most of
+     * the time, so it is near the front of the kill list, and being killed
+     * mid-sentence is the most visible failure this app has. Loaded
+     * dictionaries are by far the largest thing it holds and the cheapest to
+     * rebuild — one asset parse, on the warm thread, the next time that
+     * language is typed.
+     *
+     * Only the languages currently selected are kept, and only from
+     * [TRIM_MEMORY_RUNNING_LOW] up: below that the platform is asking for
+     * spare change, and dropping a dictionary the user is about to type in
+     * would trade a stall for nothing.
+     */
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (level < TRIM_MEMORY_RUNNING_LOW) return
+        val keep = if (level >= TRIM_MEMORY_COMPLETE) emptySet()
+        else setOfNotNull(effLang(), effAlt())
+        SuggestionEngine.trimDictionaries(keep)
+    }
+
     override fun onEvaluateFullscreenMode(): Boolean = false
 
     override fun onCreateInputView(): View {
