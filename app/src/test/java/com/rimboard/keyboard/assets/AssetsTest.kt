@@ -176,7 +176,16 @@ class AssetsTest {
         // only lines that split into exactly two fields, and the later of two
         // duplicate words wins — both are silent, so guard both.
         val problems = ArrayList<String>()
-        for (name in listOf("en.txt", "tr.txt")) {
+        // Every word-to-emoji file, discovered rather than listed: the list was
+        // "en.txt, tr.txt" and adding a language silently left it unchecked.
+        // The picker's own keyword files are the search_* ones and are covered
+        // by the test above.
+        val names = File(assets(), "emoji").listFiles().orEmpty()
+            .filter { it.isFile && it.extension == "txt" && !it.name.startsWith("search_") }
+            .map { it.name }
+            .sorted()
+        assertTrue("no word-to-emoji files found at all", names.isNotEmpty())
+        for (name in names) {
             val f = File(assets(), "emoji/$name")
             if (!f.isFile) {
                 problems.add("$name: missing")

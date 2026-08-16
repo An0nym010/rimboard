@@ -60,6 +60,28 @@ class SuggestionEngineTest {
     }
 
     @Test
+    fun `a correction survives the filters eating the top of the list`() {
+        // The dictionary is asked for candidates and the answer is then
+        // filtered — blocked words, offensive words, the corpus's
+        // apostrophe-less contractions. Asking for exactly as many as are
+        // wanted meant a dropped candidate left a hole with nothing behind it,
+        // and the strip offered no correction at all even though the
+        // dictionary had a perfectly good one further down.
+        //
+        // Five high-frequency neighbours of "hallo", all blocked, and one real
+        // answer ranked beneath them.
+        val blocked = listOf("hallx", "hally", "hallz", "hallw", "hallv")
+        val assets = mapOf(
+            "dictionaries/en.txt" to
+                (blocked.joinToString("\n") { "$it 900000" } + "\nhello 5000")
+        )
+        val e = engine(assets)
+        blocked.forEach { userData.blockWord(it) }
+
+        assertEquals("hello", e.correctionCandidates("hallo", "en", en).firstOrNull())
+    }
+
+    @Test
     fun `the preceding word lifts a contextual completion over a commoner one`() {
         // Same words, but now "I" precedes them and the bundled model says "I"
         // is followed by "am". "am" should overtake the commoner "and".

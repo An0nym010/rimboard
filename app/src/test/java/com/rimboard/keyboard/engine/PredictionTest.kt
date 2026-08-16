@@ -178,6 +178,24 @@ class PredictionTest {
     }
 
     @Test
+    fun `an unpersonalized prediction never reveals what was typed before`() {
+        // What incognito promises is that nothing is learned and nothing is
+        // suggested *from history* — not that the keyboard stops helping. So
+        // the bundled model still answers there and the learned n-grams do not,
+        // which is the whole of the privacy boundary in one flag. If this ever
+        // starts returning the learned word, incognito is leaking.
+        val e = engine(mapOf("predictions/en.txt" to "see\tyou"))
+        repeat(20) { userData.recordBigram("see", "kevin") }
+
+        val personal = e.predictions("", "see", "en", en, 3, personalized = true)
+        assertTrue("the learned word should lead when history is allowed",
+            personal.contains("kevin"))
+
+        val private = e.predictions("", "see", "en", en, 3, personalized = false)
+        assertEquals(listOf("you"), private)
+    }
+
+    @Test
     fun `a capital cannot smuggle a word past the blocked list`() {
         // Blocked words are stored folded, so the check has to be made on the
         // folded key rather than on whatever case the model happens to use.

@@ -7,6 +7,7 @@ akşam	yemeği oldu geç saat görüşürüz
 ama	bir ben çok sen yine olmaz sonra
 anladım	tamam peki şimdi teşekkürler canım sağol merak
 anne	babam arıyor geldi babama oldum gibi
+araba	kullanıyorum bozuldu aldım
 arkadaş	olalım canım geldi olduk değil arıyorum
 artık	yeter bitti olmaz gitmem gitmeliyim yok böyle
 arıyorum	seni sizi bir onu ama hala sürekli
@@ -39,6 +40,7 @@ bitti	artık sonunda her mi galiba sayılır
 biz	de bir onu şimdi bunu birlikte hep seninle
 bizi	bekle ara gördü davet bekliyor unutma aradı
 bizim	için ev de gibi oraya eve
+boş	musun değilim zamanım
 bu	bir çok ne kadar gün sabah akşam konuda yüzden arada
 bugün	ne bir çok akşam biraz nasılsın geliyorum olmaz
 buluşalım	yarın ne nerede akşam mı saat birlikte
@@ -47,6 +49,7 @@ burada	mısın bekliyorum olacağım değilim kal ne duruyor
 büyük	bir ihtimalle sorun değil olmuş
 canım	benim nasılsın seni iyi çok sağol günaydın
 canın	sağolsun ne sıkkın nasıl isterse yansın
+cevap	ver bekliyorum yok
 daha	sonra iyi çok önce fazla yeni az
 dakika	sonra önce bekle içinde kaldı geç var
 dedin	ki sen ne mi bir ama
@@ -55,16 +58,21 @@ diye	bir düşündüm sordum biliyorum geldim duydum
 diyorum	sana ben ki işte ya sadece hep
 dostum	nasılsın ne benim ya bak valla
 doğru	mu bir söylüyorsun değil söyle geliyorum olan
+doğum	günün günüm günü
 dün	akşam gece bir seni geldim aradım
 ediyorum	seni teşekkür merak zaten ama sana
 efendim	buyurun nasıl evet ben tabii anlamadım
 elbette	canım olur gelirim var ki tabii yardım
 en	iyi güzel çok az son azından sevdiğim başta
+eski	bir günler gibi
+ev	ödevi işleri sahibi yolunda
 eve	geldim gidiyorum gel döndüm vardım geç dönüyorum
 evet	ama tabii bir biliyorum haklısın olur
 eyvallah	kardeşim abi canım ya sana tamam
 eğer	bir sen ben olursa istersen gelirsen
 fazla	değil bir olmaz kalmadı oldu yok
+film	izledik izleyelim başladı güzeldi
+fotoğraf	attım gönder çektim
 galiba	bir öyle yarın unuttum haklısın geç olmaz
 gece	yarısı geç boyunca vakti oldu iyi uyudum
 gel	buraya hadi bir yanıma bakalım gidelim şimdi
@@ -92,12 +100,15 @@ görüşmek	üzere isterim istiyorum
 görüşürüz	inşallah yakında sonra yarın canım tamam akşam
 günaydın	nasılsın iyi sana canım herkese güzel sevgilim
 güzel	bir olmuş çok haber olur değil günler
+haber	var yok ver verdim
 hadi	gidelim bakalım görüşürüz ama canım çabuk
 hafta	sonu içinde başında sonra oldu boyunca kaldı
 haklısın	evet aslında çok ama tamamen belki sanırım
 hangi	gün saat biri konuda saatte renk
+hava	güzel soğuk sıcak kapalı
 hayat	güzel böyle devam kısa zor bu
 hayır	ama teşekkürler sorun gerek olmaz istemiyorum
+hazır	mısın değilim olunca
 hemen	gel geliyorum şimdi ara dön olmaz hallederim
 henüz	değil gelmedi bilmiyorum yok erken olmadı
 hep	birlikte böyle seni aynı beraber öyle yaparım
@@ -118,6 +129,7 @@ işe	gidiyorum geç başladım geldim yarayacak başlıyorum gitmem
 işte	bu böyle o şimdi tam budur geldi
 kadar	çok iyi güzel olur bekle zaman
 kahve	içelim ister içtim içer kokusu molası
+kapı	açık kapalı çaldı
 kardeşim	nasılsın ne benim tamam ya bak valla
 katılıyorum	sana tamamen kesinlikle buna seninle ben tabii
 kaç	tane saat gün para kişi yaşındasın oldu
@@ -125,14 +137,20 @@ kesinlikle	katılıyorum haklısın evet öyle hayır olmaz doğru
 keşke	gelseydin olsaydı bilseydim burada daha yapmasaydım
 kim	var geldi bilir o arıyor geliyor
 kimse	yok gelmedi bilmiyor yokmuş duymasın bilmiyordu
+kitap	okuyorum aldım okudum
 kolay	gelsin olmadı değil
 konuşalım	bunu sonra biraz yarın mı birlikte hemen
 kötü	bir değil hissediyorum haber oldu geçti
+kısa	bir sürede kes
 lazım	mı değil olan bana mıydı olacak
 lütfen	bana bir yardım gel bekle cevap söyle acele
 maalesef	olmadı olmuyor ben bugün hayır gelemem yok
 maşallah	çok ne ona sana
 merhaba	nasılsın ben iyi canım günaydın arkadaşlar efendim
+mesaj	attım at geldi gördüm
+meşgul	müsün değilim bugün
+mutlu	oldum musun günler
+müzik	dinliyorum açalım güzel
 naber	iyilik ne senden kanka abi nasılsın
 nasıl	bir oldu yani gidiyor olur geçti yaptın
 nasılsın	iyiyim ben canım umarım iyi sen bakalım
@@ -143,6 +161,7 @@ nereden	geliyorsun buldun biliyorsun geldin çıktı bileyim
 nereye	gidiyorsun gidiyoruz kadar gittin böyle
 niye	böyle gelmedin ki acaba olmasın sordun
 o	da bir zaman kadar gün yüzden benim geldi
+okul	bitti başladı yolunda
 okula	gidiyorum geç gitti vardım gidiyor başladı yakın
 olabilir	mi belki tabii ama elbette
 olacak	mı bir güzel her gibi olan iş
@@ -153,8 +172,10 @@ oluyor	mu musun işte böyle ya artık galiba
 onu	bir çok da ben sen biliyorum gördüm
 onun	için adı de gibi yüzünden adına
 orada	mısın olacağım bekle görüşürüz kal ne değilim
+oyun	oynayalım bitti başladı
 para	var yok lazım gönderdim kazandım biriktirdim harcadım
 peki	tamam öyleyse ne nasıl sen neden olur
+resim	attım gönder gördüm
 rica	ederim etsem ederiz
 saat	kaçta kaç geldi oldu on başladı geç
 sabah	erken oldu kalktım saat görüşürüz ilk akşam
@@ -171,16 +192,23 @@ seninle	konuşmak birlikte gurur geleyim ilgili konuşayım
 sevgilim	seni günaydın iyi özledim canım benim nasılsın
 sonra	görüşürüz bir ne konuşuruz gelirim bakarız
 sonunda	geldi oldu bitti başardık geldin
+sorun	değil var yok çıktı
+soğuk	bir oldu çok
 söyledim	sana ona zaten ben ama işte size
+sıcak	bir oldu çok
+sıra	bende sende geldi
 tabii	ki canım olur var elbette
 tamam	o ben peki anladım olur canım görüşürüz
 tamamdır	görüşürüz canım o
 tamamen	katılıyorum haklısın farklı senin bitti unuttum
+tatil	planı başladı bitti
 tekrar	görüşürüz bir deneyelim ederim denedim hoş
+telefon	ettim açmıyor geldi numaram
 teşekkür	ederim ederiz
 teşekkürler	çok ben sana iyi tekrar
 umarım	iyisindir görüşürüz olur öyledir iyidir beğenirsin yakında
 unutma	beni sakın lütfen bunu gel sonra
+uzun	zaman sürdü bir
 valla	bilmiyorum öyle ben ya haklısın unuttum
 var	mı bir mıydı ya mısın sanırım
 ya	tamam ne sen böyle da işte hadi
@@ -196,7 +224,11 @@ yemek	yedin yiyelim hazır yaptım ısmarlayayım siparişi vakti
 yeni	bir yılınız başladım aldım yıl başlangıç haberler
 yine	de aynı geldi oldu başladı mi
 yok	mu bir canım sorun öyle artık
+yol	açık uzun göründü
+yorgun	görünüyorsun değilim bugün
+yıl	önce sonra oldu başı
 zaten	ben bir öyle biliyordum bu söyledim biliyorsun
+zor	değil oldu geldi
 çay	içelim ister koydum demledim içer molası
 çocuk	gibi var uyudu gibisin değilim sesi
 çok	güzel iyi teşekkür fazla iyiyim güzeldi sevindim uzun az önemli
@@ -204,6 +236,7 @@ zaten	ben bir öyle biliyordum bu söyledim biliyorsun
 önce	bir ben sen bunu sana biraz
 önemli	değil bir olan mi
 özür	dilerim diliyorum
+üzgün	değilim görünüyorsun oldum
 şey	değil var yok söyleyeyim olmadı istiyorum sormak
 şimdi	ne bir geliyorum değil olmaz gidiyorum
 şu	an anda bir sıralar konuda işi

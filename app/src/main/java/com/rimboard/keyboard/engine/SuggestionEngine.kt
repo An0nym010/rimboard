@@ -17,7 +17,13 @@ object DictVersion {
 class SuggestionEngine private constructor(
     private val assets: Assets,
     private val userDir: java.io.File?,
-    private val userData: UserData
+    private val userData: UserData,
+    /**
+     * Whether this engine reads the app's own bundled assets, and so may share
+     * loaded dictionaries with every other engine that does. False for the test
+     * seam, whose assets are per-instance and must not leak between cases.
+     */
+    shared: Boolean
 ) {
 
     /**
@@ -39,13 +45,28 @@ class SuggestionEngine private constructor(
     constructor(context: Context, userData: UserData) : this(
         Assets { path -> try { context.assets.open(path) } catch (_: Exception) { null } },
         UserData.dataDir(context),
-        userData
+        userData,
+        shared = true
     )
 
     companion object {
         /** Test seam: back the engine with in-memory data and no Context. */
         internal fun forTesting(userData: UserData, assets: Assets) =
-            SuggestionEngine(assets, null, userData)
+            SuggestionEngine(assets, null, userData, shared = false)
+
+        /**
+         * Dictionaries, shared by every engine reading the bundled assets.
+         *
+         * There are two such engines in this process — the keyboard and the
+         * system spell checker — and they were loading their own copy of the
+         * same word list. A shipped language is on the order of fifteen
+         * megabytes once parsed into its strings, frequency array and length
+         * buckets, so turning the spell checker on quietly doubled the memory
+         * the keyboard needs to stay alive. They are immutable once built and
+         * keyed by content version, so there is nothing to gain from separate
+         * copies.
+         */
+        private val sharedDictionaries = java.util.concurrent.ConcurrentHashMap<String, Dictionary>()
 
         private const val TAG = "RimBoard"
 
@@ -92,6 +113,12 @@ class SuggestionEngine private constructor(
          * more specific than a curated single-word one.
          */
         private const val STATIC_WEIGHT = 3.0
+
+        /**
+         * How many extra correction candidates to pull before filtering, so
+         * that dropping one leaves something behind it. See the call site.
+         */
+        private const val CORRECTION_POOL = 20
     }
 
     /** Multiplier applied to a completion's frequency for its context rank. */
@@ -100,7 +127,8 @@ class SuggestionEngine private constructor(
         return 1.0 + CONTEXT_COMPLETION_WEIGHT / (r + 1.0)
     }
 
-    private val cache = java.util.concurrent.ConcurrentHashMap<String, Dictionary>()
+    private val cache =
+        if (shared) sharedDictionaries else java.util.concurrent.ConcurrentHashMap()
 
     /** Preload dictionaries on a background thread so the first keystroke never stalls. */
     fun warm(lang: String, locale: Locale, altLang: String?, altLocale: Locale?) {
@@ -124,34 +152,52 @@ class SuggestionEngine private constructor(
         }.start()
     }
 
-    @Synchronized
+    /**
+     * The dictionary for [lang], loading it if this is the first ask.
+     *
+     * Locked on the cache rather than on `this`, because the cache may be
+     * shared with the other engine in the process: two instances synchronizing
+     * on themselves would each hold their own monitor and could both decide the
+     * dictionary was missing and load it at the same time. The first read is
+     * outside the lock so the common case — already loaded — never waits behind
+     * somebody else's parse.
+     */
     fun dictionary(lang: String, locale: Locale): Dictionary {
         val key = lang + "#" + DictVersion.v
         cache[key]?.let { return it }
-        val started = android.os.SystemClock.elapsedRealtime()
-        // A missing asset yields an empty dictionary — never an exception, and
-        // never another language's words standing in for this one.
-        val dictStream = assets.open("dictionaries/$lang.txt")
-        if (dictStream == null) {
-            // A null here means no suggestions at all for this language, which
-            // is indistinguishable from the engine being broken.
-            android.util.Log.w(TAG, "no dictionary asset for $lang")
-        }
-        val userStream = try {
-            val f = userDir?.let { java.io.File(it, "userdict_" + lang + ".txt") }
-            if (f != null && f.exists()) f.inputStream() else null
-        } catch (_: Exception) {
-            null
-        }
-        // Covers parsing, the character-transition model and the length buckets
-        // — everything on the warm path. `adb logcat -s RimBoard` to read it.
-        return Dictionary(dictStream, userStream, locale).also {
-            cache[key] = it
+        synchronized(cache) {
+            cache[key]?.let { return it }
+            val started = android.os.SystemClock.elapsedRealtime()
+            // A missing asset yields an empty dictionary — never an exception,
+            // and never another language's words standing in for this one.
+            val dictStream = assets.open("dictionaries/$lang.txt")
+            if (dictStream == null) {
+                // A null here means no suggestions at all for this language,
+                // which is indistinguishable from the engine being broken.
+                android.util.Log.w(TAG, "no dictionary asset for $lang")
+            }
+            val userStream = try {
+                val f = userDir?.let { java.io.File(it, "userdict_" + lang + ".txt") }
+                if (f != null && f.exists()) f.inputStream() else null
+            } catch (_: Exception) {
+                null
+            }
+            // Anything for this language under an older version is now
+            // unreachable — the key carries the version — and holding it only
+            // costs the memory of a whole word list. Editing the personal
+            // dictionary a few times used to leave every previous copy behind.
+            val stale = "$lang#"
+            cache.keys.removeAll { it.startsWith(stale) && it != key }
+            // Covers parsing, the character-transition model and the length
+            // buckets — everything on the warm path. `adb logcat -s RimBoard`.
+            val d = Dictionary(dictStream, userStream, locale)
+            cache[key] = d
             android.util.Log.i(
                 TAG,
-                "dictionary $lang: ${it.size} words in " +
+                "dictionary $lang: ${d.size} words in " +
                     "${android.os.SystemClock.elapsedRealtime() - started}ms"
             )
+            return d
         }
     }
 
@@ -163,6 +209,7 @@ class SuggestionEngine private constructor(
      */
     fun cachedDictionary(lang: String): Dictionary? = cache[lang + "#" + DictVersion.v]
 
+    @Volatile
     var blockOffensive = true
     private val offensiveSets = HashMap<String, Set<String>>()
 
@@ -221,6 +268,36 @@ class SuggestionEngine private constructor(
     private fun listed(lower: String, lang: String): Boolean =
         lower in offensive(lang) || (lang != "en" && lower in offensive("en"))
 
+    private val emojiMaps = HashMap<String, Map<String, String>>()
+
+    /**
+     * The emoji a word suggests, or null.
+     *
+     * The current language first and English behind it, so a language with no
+     * list of its own still answers for the English words people mix in — and
+     * so adding a list for a new language is additive rather than a
+     * prerequisite.
+     */
+    fun emojiFor(wordLower: String, lang: String): String? =
+        emojiMap(lang)[wordLower] ?: if (lang != "en") emojiMap("en")[wordLower] else null
+
+    /** Synchronized for the same reason as [predictionModel]: warm() may load
+     *  this off the main thread while the typing path reads it. */
+    @Synchronized
+    private fun emojiMap(lang: String): Map<String, String> =
+        emojiMaps.getOrPut(lang) {
+            try {
+                (assets.open("emoji/$lang.txt") ?: return@getOrPut emptyMap())
+                    .bufferedReader().readLines()
+                    .mapNotNull { line ->
+                        val p = line.split('\t')
+                        if (p.size == 2) p[0] to p[1] else null
+                    }.toMap()
+            } catch (_: Exception) {
+                emptyMap()
+            }
+        }
+
     fun knownIn(wordLower: String, lang: String, locale: Locale): Boolean =
         dictionary(lang, locale).contains(wordLower)
 
@@ -269,7 +346,17 @@ class SuggestionEngine private constructor(
         if (altLang != null && altLocale != null &&
             dictionary(altLang, altLocale).contains(typed.lowercase(altLocale))
         ) return emptyList()
-        val scored = dict.correctionsScored(lower, KeyProximity.forLang(lang), limit + 4)
+        // A pool, not the answer. Everything below still has to survive the
+        // offensive list, the blocked list and the apostrophe-less contraction
+        // forms — and those are filtered *after* this, so asking for exactly
+        // what is wanted meant a word could be dropped with nothing to take its
+        // place and the strip would offer no correction at all. The words most
+        // likely to be filtered are common ones, which is precisely what ranks
+        // high here. Costs nothing: the scan and the sort behind this run over
+        // every candidate regardless, and the count only decides where the list
+        // is cut.
+        val scored = dict.correctionsScored(
+            lower, KeyProximity.forLang(lang), limit + CORRECTION_POOL)
         // Context re-ranks the dictionary's own candidates but never invents
         // one: only words that were already valid edit-distance corrections can
         // move. The bonus is bounded below the spatial term's reach, so context
@@ -681,8 +768,18 @@ class SuggestionEngine private constructor(
      * bigram — see [UserData.predictNext]), then the bundled starter model
      * fills any remaining slots so predictions work from the very first word.
      */
+    /**
+     * [personalized] false leaves the learned n-grams out entirely and answers
+     * from the bundled model alone. That is what lets the strip keep working in
+     * incognito without breaking the promise attached to it: incognito says
+     * nothing is learned or suggested *from history*, and a curated model that
+     * shipped with the app is not history. Nothing about the user reaches the
+     * strip on this path.
+     */
+    @JvmOverloads
     fun predictions(
-        prevWord2: String, prevWord: String, lang: String, locale: Locale, limit: Int
+        prevWord2: String, prevWord: String, lang: String, locale: Locale, limit: Int,
+        personalized: Boolean = true
     ): List<String> {
         // No preceding word means the start of a message or of a new sentence,
         // which is a context in its own right rather than the absence of one:
@@ -711,10 +808,12 @@ class SuggestionEngine private constructor(
         // competing for the same slot.
         val scores = HashMap<String, Double>()
         val surface = HashMap<String, String>()
-        for ((w, s) in userData.predictScores(key2, key)) {
-            val k = w.lowercase(locale)
-            scores.merge(k, s) { a, b -> a + b }
-            surface.putIfAbsent(k, w)
+        if (personalized) {
+            for ((w, s) in userData.predictScores(key2, key)) {
+                val k = w.lowercase(locale)
+                scores.merge(k, s) { a, b -> a + b }
+                surface.putIfAbsent(k, w)
+            }
         }
         predictionModel(lang)[key].orEmpty().forEachIndexed { i, w ->
             // Fades with rank, so the curated model's own ordering survives the

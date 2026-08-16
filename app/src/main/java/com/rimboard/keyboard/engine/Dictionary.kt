@@ -61,6 +61,15 @@ class Dictionary(
         /** A near-miss completion always ranks under an exact one. */
         private const val FUZZY_PENALTY = 0.30
 
+        /**
+         * What a substituted first letter costs, on the `ln(frequency)` scale
+         * the correction score is built on. At 1.2 a word that replaces the
+         * first letter has to be about three times commoner to win against one
+         * that keeps it — enough to settle the ordinary case without ever
+         * making the fix unreachable.
+         */
+        private const val FIRST_LETTER_PENALTY = 1.2
+
         /** Neither half of a split may be rarer than this. */
         private const val SPLIT_MIN_FREQ = 500
 
@@ -538,11 +547,26 @@ class Dictionary(
         if (n < 2 || words.isEmpty()) return emptyList()
         val maxDist = maxEditDistance(n)
         val scored = ArrayList<Pair<String, Double>>()
+        val first = typedLower[0]
         for (bl in maxOf(1, n - maxDist)..minOf(24, n + maxDist)) for (i in byLen[bl]) {
             val cand = words[i]
             val d = editDistance(typedLower, cand, maxDist)
             if (d in 1..maxDist) {
-                val score = ln((freqs[i] + 1).toDouble()) - 3.5 * spatialCost(typedLower, cand, prox)
+                var score = ln((freqs[i] + 1).toDouble()) -
+                    3.5 * spatialCost(typedLower, cand, prox)
+                // A word whose first letter was swapped for another is a
+                // different kind of guess. The first key of a word is the one
+                // aimed at from rest rather than in the middle of a run, and
+                // the letter that gets looked at when reading back — so it is
+                // both the least likely to be wrong and the most jarring to
+                // have rewritten. "cello" for "hello" is a worse answer than
+                // its edit distance suggests.
+                //
+                // Only for a same-length word, which is what makes it a
+                // substitution: a dropped or doubled first letter ("ello",
+                // "hhello") also differs in the first character and is an
+                // ordinary slip that should still be fixed.
+                if (cand.length == n && cand[0] != first) score -= FIRST_LETTER_PENALTY
                 scored.add(cand to score)
             }
         }

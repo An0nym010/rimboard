@@ -544,8 +544,12 @@ class RimBoardService : InputMethodService(),
         fieldNoLearning =
             (info.imeOptions and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING) != 0
 
+        // Not gated on incognito any more: what incognito withholds is the
+        // learned data behind a suggestion, not the suggestion itself. The
+        // callers pass `personalized = !isIncognito()` so nothing from history
+        // reaches the strip.
         suggestionsActive = Prefs.suggestions(this) && isTextClass && !isPassword &&
-            !fieldNoSuggestions && !isEmailOrUri && !isIncognito()
+            !fieldNoSuggestions && !isEmailOrUri
         autocorrectActive = Prefs.autocorrect(this) && isTextClass && !isPassword &&
             !fieldNoSuggestions && !isEmailOrUri
 
@@ -1273,14 +1277,15 @@ class RimBoardService : InputMethodService(),
     private fun updateStrip() {
         val s = strip ?: return
         feedTools(s)
-        if (isIncognito()) {
-            if (composing.isEmpty()) s.showIncognito(getString(R.string.incognito_label))
-            else {
-                feedIdle(s)
-                s.showEmpty()
-            }
-            return
-        }
+        // Incognito used to end here, replacing the strip with a label — so
+        // the keyboard stopped helping at all the moment it was switched on,
+        // which is a much bigger price than the setting asks for. What
+        // incognito promises is that nothing is learned and nothing is
+        // suggested *from history*; the dictionary and the bundled model are
+        // neither. They still answer, the learned data stays out (see
+        // `personalized` below), and the mark rides along so the state is never
+        // in doubt.
+        s.incognitoMark = isIncognito()
         if (!suggestionsActive) {
             maybeClipboardOrEmpty(s)
             return
@@ -1305,7 +1310,10 @@ class RimBoardService : InputMethodService(),
             var preds = if (Prefs.predictions(this) &&
                 (prevWordForBigram.isNotEmpty() || atSentenceStart)
             ) {
-                engine.predictions(prevWord2, prevWordForBigram, currentLangCode(), locale(), 3)
+                engine.predictions(
+                    prevWord2, prevWordForBigram, currentLangCode(), locale(), 3,
+                    personalized = !isIncognito()
+                )
             } else emptyList()
             if (preds.isNotEmpty() &&
                 keyboardView?.shiftState == KeyboardView.ShiftState.AUTO
@@ -1326,8 +1334,10 @@ class RimBoardService : InputMethodService(),
         }
         val res = engine.suggestionsFor(
             composing.toString(), effLang(), effLocale(),
-            allowAutocorrect = autocorrectActive, personalized = true
-        ,
+            allowAutocorrect = autocorrectActive,
+            // The learned vocabulary is history; in incognito the dictionary
+            // answers on its own.
+            personalized = !isIncognito(),
             altLang = effAlt(),
             altLocale = effAltLocale(),
             // The word before the one being typed, so completions and
@@ -1337,17 +1347,21 @@ class RimBoardService : InputMethodService(),
             prevWord = prevWordForBigram
         )
         val shortcutExp = Shortcuts.expansionFor(this, composing.toString(), effLocale())
-        // The strip carries words and nothing else. A word-to-emoji chip used
-        // to take the third slot whenever one matched, which spent a
-        // suggestion the user might have wanted on one they could reach from
-        // the emoji key anyway.
         var shownWords = res.items
         var shownHi = res.autocorrectIndex
         if (shortcutExp != null) {
             shownWords = listOf(shortcutExp) + shownWords.take(2)
             shownHi = 0
         }
-        s.showSuggestions(shownWords, shownHi)
+        // The emoji has a chip of its own beside the words, so offering one
+        // never costs a suggestion. Blocked emoji stay blocked: long-pressing
+        // a chip offers to remove it, and without this the emoji was the one
+        // suggestion that came straight back.
+        val emojiSug = if (composing.length >= 2)
+            engine.emojiFor(composing.toString().lowercase(effLocale()), effLang())
+                ?.takeIf { !userData.isBlocked(it) }
+        else null
+        s.showSuggestions(shownWords, shownHi, emojiSug)
     }
 
     /** Domains offered after "@" in an email field, so a pick is recognised. */
@@ -1384,7 +1398,11 @@ class RimBoardService : InputMethodService(),
             s.showClipboard(L10n.wrap(this).getString(android.R.string.paste))
         } else {
             feedIdle(s)
-            s.showEmpty()
+            // With nothing to suggest there is room to say what incognito is
+            // doing, rather than only marking it. When there *are* suggestions
+            // the icon rides alongside them instead — see [showSuggestions].
+            if (isIncognito()) s.showIncognito(getString(R.string.incognito_label))
+            else s.showEmpty()
         }
     }
 
@@ -2021,6 +2039,27 @@ class RimBoardService : InputMethodService(),
                 if (editSelectMode) sendShifted(ic, code) else sendDownUpKeyEvents(code)
             }
         }
+    }
+
+    override fun onEmojiSuggestionPicked(emoji: String) {
+        val ic = currentInputConnection ?: return
+        // Replaces the word being typed, the way picking a suggestion does —
+        // the emoji is an alternative to that word, not an addition to it.
+        ic.beginBatchEdit()
+        composing.setLength(0)
+        ic.commitText(emoji, 1)
+        ic.endBatchEdit()
+        prevWordForBigram = ""
+        atSentenceStart = false
+        revert = null
+        autoSpace = false
+        glideWords = emptyList()
+        if (!isIncognito()) {
+            val recents = (listOf(emoji) + Prefs.emojiRecents(this).filter { it != emoji }).take(24)
+            Prefs.setEmojiRecents(this, recents)
+        }
+        if (Prefs.haptic(this)) keyboardView?.let { Haptics.tap(it) }
+        afterEdit()
     }
 
     override fun onSuggestionLongPressed(word: String, anchor: View) {

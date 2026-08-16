@@ -126,6 +126,40 @@ class DictionaryTest {
     }
 
     @Test
+    fun `a swapped first letter loses to a fix that keeps it`() {
+        // Both are one substitution from "hallo" at equal frequency, and the
+        // first-letter one is the spatially *closer* of the two — g sits next
+        // to h, where e is a row away from a. On geometry alone "gallo" wins.
+        //
+        // It should not. The first key of a word is aimed at from rest rather
+        // than in the middle of a run, so it is the least likely to be wrong,
+        // and it is the letter read back first — rewriting it is the most
+        // jarring thing a correction can do.
+        val d = dict("hello 9000", "gallo 9000")
+        assertEquals("hello", d.corrections("hallo", en, 3).firstOrNull())
+    }
+
+    @Test
+    fun `the first-letter rule does not block a dropped or doubled letter`() {
+        // A guard rather than a demonstration: these pass either way, and are
+        // here so the rule cannot be widened into them later. Both differ in
+        // the first character, but as a deletion and an insertion rather than a
+        // substitution — ordinary slips that must still be fixed.
+        val d = dict("hello 9000")
+        assertEquals("hello", d.corrections("ello", en, 3).firstOrNull())
+        assertEquals("hello", d.corrections("hhello", en, 3).firstOrNull())
+    }
+
+    @Test
+    fun `a much commoner word still wins across the first letter`() {
+        // The penalty settles a near-tie; it does not put a correction out of
+        // reach. "ball" changes the first letter and is far away on the
+        // keyboard, but it is orders of magnitude commoner than "walk".
+        val d = dict("ball 900000", "walk 1000")
+        assertEquals("ball", d.corrections("wall", en, 3).firstOrNull())
+    }
+
+    @Test
     fun `correctionsScored agrees with corrections and ranks by descending score`() {
         // The scored variant is what lets the engine fold in the preceding word
         // without the dictionary knowing anything about context. It must be the

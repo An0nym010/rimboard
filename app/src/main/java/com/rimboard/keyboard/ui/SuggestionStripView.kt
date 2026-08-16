@@ -26,6 +26,10 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         fun onClipboardPanelRequested()
         fun onQuickAction(code: Int)
         fun onSuggestionLongPressed(word: String, anchor: View)
+
+        /** The word-to-emoji chip, which sits beside the words rather than in
+         *  one of their slots. */
+        fun onEmojiSuggestionPicked(emoji: String)
         /** Chevron tapped: open the pinned-tool drawer, or close it. */
         fun onToolbarToggle(expand: Boolean)
         /** Drawer closed: the strip needs its ordinary contents back. */
@@ -43,6 +47,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     private val toolRow: LinearLayout
     private val emojiScroll: HorizontalScrollView
     private val incogIcon: IconView
+    private val emojiChip: TextView
     private var boldIndex = -1
 
     private val expandBtn: IconView
@@ -168,6 +173,22 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             addView(tv, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
         }
 
+        // Its own chip at the end of the row, not one of the three slots. It
+        // used to take the third slot whenever a typed word matched, which
+        // spent a word suggestion on exactly the words most likely to have had
+        // a useful one. Narrow, because it holds a single glyph.
+        emojiChip = TextView(context).apply {
+            gravity = Gravity.CENTER
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 19f)
+            visibility = GONE
+            isClickable = true
+            setOnClickListener {
+                val e = text?.toString()
+                if (!e.isNullOrEmpty()) listener?.onEmojiSuggestionPicked(e)
+            }
+        }
+        addView(emojiChip, LayoutParams(dp(38), LayoutParams.MATCH_PARENT))
+
         incogIcon = IconView(context, Icons.INCOGNITO).apply { visibility = GONE }
         addView(incogIcon, LayoutParams(dp(30), LayoutParams.MATCH_PARENT))
         centerLabel = TextView(context).apply {
@@ -245,14 +266,20 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         }
     }
 
-    fun showSuggestions(words: List<String>, highlightIndex: Int) {
+    @JvmOverloads
+    fun showSuggestions(words: List<String>, highlightIndex: Int, emoji: String? = null) {
         if (drawerOpen) return showDrawer()
         expandBtn.visibility = VISIBLE
         centerBox.visibility = GONE
         boldIndex = highlightIndex
         clipChip.visibility = GONE
         centerLabel.visibility = GONE
-        incogIcon.visibility = GONE
+        // The mark stays up alongside the suggestions rather than replacing
+        // them: incognito changes where a suggestion may come from, not
+        // whether you get one.
+        incogIcon.visibility = if (incognitoMark) VISIBLE else GONE
+        emojiChip.text = emoji.orEmpty()
+        emojiChip.visibility = if (emoji.isNullOrEmpty()) GONE else VISIBLE
         for (i in 0 until 3) {
             val tv = slots[i]
             val w = words.getOrNull(i) ?: ""
@@ -358,5 +385,20 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         emojiScroll.visibility = GONE
         centerLabel.visibility = GONE
         incogIcon.visibility = GONE
+        emojiChip.visibility = GONE
     }
+
+    /**
+     * Whether the incognito mark rides along with whatever else is shown.
+     *
+     * Previously incognito replaced the strip with a label, because there was
+     * nothing to put there — nothing was suggested at all. Now that the
+     * dictionary and the bundled model still answer, the mark has to coexist
+     * with them.
+     */
+    var incognitoMark = false
+        set(value) {
+            field = value
+            if (!value) incogIcon.visibility = GONE
+        }
 }
