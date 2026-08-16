@@ -33,6 +33,58 @@ is a fact about the APK that you can check without trusting anyone — see
   calculator — all fully offline
 - MIT licensed code, CC BY-SA 4.0 dictionaries
 
+## Installing
+
+Every release carries both builds, on the
+[Releases page](https://github.com/An0nym010/rimboard/releases). Download one
+APK and open it — that is the whole process. It works from the phone itself; no
+computer, no `adb`, no account.
+
+| | |
+|---|---|
+| `RimBoard-<version>-offline.apk` | **Start here.** No `INTERNET` permission at all. |
+| `RimBoard-<version>-online.apk` | Only if you want translation or GIF search. |
+
+Android will ask you to allow installing from your browser or files app the
+first time; that prompt is Android's, not RimBoard's. Then:
+
+**Settings → System → Languages & input → On-screen keyboard → Manage
+keyboards**, turn RimBoard on, and pick it with the keyboard-switch key. The
+exact path differs a little by manufacturer. Android warns you that a keyboard
+"may be able to collect all the text you type" — it says that about every
+keyboard, because it is true of every keyboard. What RimBoard does with it is
+[the rest of this README](#privacy), and the `offline` build is the one where
+you do not have to take that on trust.
+
+Not on the Play Store. Sideloading is the only distribution.
+
+### Checking what you downloaded
+
+Release APKs are signed with the project's key. To confirm one is genuinely
+that build rather than something re-signed:
+
+```
+apksigner verify --print-certs RimBoard-<version>-offline.apk
+```
+
+The SHA-256 of the certificate is printed in the build log of the run that
+produced the release, so the two can be compared. A build signed with the
+Android debug key — the one every SDK ships, which anyone can forge — is
+refused by CI on a tagged build for exactly this reason.
+
+An `offline` APK can be checked for the thing it claims outright:
+
+```
+aapt dump permissions RimBoard-<version>-offline.apk
+```
+
+It should list `VIBRATE` and nothing else. See [Proving it](#proving-it).
+
+**Upgrading:** Android refuses to replace an app in place if the signing key
+changed, so if you installed a build signed with the debug key you will have to
+uninstall before installing a properly signed one. Export your learned words
+first — **Settings → Backup** — because uninstalling deletes them.
+
 ## Device compatibility
 
 Runs on any Android 8.0+ phone or tablet (API 26, ~97% of devices) — Samsung, Xiaomi, Pixel, OnePlus, Oppo, Huawei and everything else. No Google services required, pure Kotlin with no native code, works on every CPU architecture.

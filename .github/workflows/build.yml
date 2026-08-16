@@ -18,18 +18,37 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    # Lifted out of `secrets` because a step's `if:` cannot read that context.
+    # Every one of these is empty on a fork or a pull request from one, which
+    # is what keeps those builds working: the release build falls back to the
+    # debug key when no keystore is configured (see app/build.gradle.kts).
+    env:
+      KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      RIMBOARD_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      RIMBOARD_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      RIMBOARD_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
+
+      # Written to the runner's temp dir, never the workspace, so it cannot be
+      # picked up by a later step that packages or uploads the checkout.
+      - name: Decode the signing key
+        if: env.KEYSTORE_BASE64 != ''
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/rimboard.jks"
+          echo "RIMBOARD_KEYSTORE=$RUNNER_TEMP/rimboard.jks" >> "$GITHUB_ENV"
 
       # Both flavors, everywhere. The offline build is the one whose whole
       # value is a permission it does not have, so a green run that only
@@ -72,6 +91,48 @@ jobs:
           fi
           echo "offline APK declares no INTERNET permission; online APK does"
 
+      # Who signed it, printed for every build and checked on tags.
+      #
+      # Anyone installing this has to be able to tell a build signed with the
+      # project's key from one signed with the debug key every Android SDK
+      # ships — they are equally installable and only one of them means
+      # anything. The fingerprint below is what a release note can be checked
+      # against, and `apksigner verify --print-certs` on a downloaded APK
+      # prints the same line.
+      - name: Report the signing certificate
+        run: |
+          BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
+          certs="$("$BT/apksigner" verify --print-certs \
+            app/build/outputs/apk/offline/release/app-offline-release.apk)"
+          echo "$certs"
+          if echo "$certs" | grep -q 'CN=Android Debug'; then
+            echo "::warning::signed with the Android debug key — anyone can forge an update"
+            # A test build may go out this way; a real release may not. The
+            # distinction is the hyphen that also marks it a pre-release, so
+            # v2.8.0-rc1 is allowed through and v2.8.0 is not. Someone
+            # installing a finished release should not be trusting a key that
+            # ships with every copy of the Android SDK.
+            if [ "${{ startsWith(github.ref, 'refs/tags/') && !contains(github.ref_name, '-') }}" = "true" ]; then
+              echo "::error::a release tag must not be signed with the debug key. Set the KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS and KEY_PASSWORD secrets, or tag it as a pre-release (v2.8.0-rc1)."
+              exit 1
+            fi
+          fi
+
+      # Named for a human rather than for Gradle's output layout: these end up
+      # on a release page where the file name is the only thing distinguishing
+      # them, and "app-online-release.apk" says neither which app nor which
+      # build it is.
+      - name: Name the release APKs
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          mkdir -p release
+          cp app/build/outputs/apk/offline/release/app-offline-release.apk \
+             "release/RimBoard-$v-offline.apk"
+          cp app/build/outputs/apk/online/release/app-online-release.apk \
+             "release/RimBoard-$v-online.apk"
+          ls -l release
+
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -83,10 +144,40 @@ jobs:
       # Releases must carry the release build. The debug one is debuggable,
       # which on a keyboard means anything on the device can attach to the
       # process that sees every keystroke.
+      #
+      # A release page is also the only route onto a phone that works from a
+      # phone: Actions artifacts are desktop-only in the GitHub web UI and are
+      # served as zips, which Android cannot install.
       - name: Attach APKs to release (tags only)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            app/build/outputs/apk/offline/release/app-offline-release.apk
-            app/build/outputs/apk/online/release/app-online-release.apk
+          # A hyphen in the tag marks a test build — v2.8.0-rc1 — and those are
+          # published as pre-releases so nobody arriving at the repository is
+          # handed one as though it were finished.
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          generate_release_notes: true
+          files: release/*.apk
+          body: |
+            Download one APK and open it on the phone. Nothing else is needed —
+            no computer, no `adb`, no account.
+
+            - **`offline`** — start here. No `INTERNET` permission at all, so
+              Android will not give it a network connection whatever its code
+              asks for.
+            - **`online`** — only if you want translation or GIF search.
+
+            Then turn it on under **Settings → System → Languages & input →
+            On-screen keyboard**. Full instructions, and how to check what you
+            downloaded, are in the
+            [README](https://github.com/An0nym010/rimboard#installing).
+            ${{ contains(github.ref_name, '-') && '
+            ---
+
+            > **Test build.** It is signed with the Android debug key, which
+            > ships with every copy of the Android SDK — so anyone could forge
+            > an update for it, and it should not be treated as trusted
+            > software. Installing a properly signed release later will require
+            > uninstalling this one first (export your words under Settings →
+            > Backup before you do). It has also not been tested on real
+            > hardware.' || '' }}
