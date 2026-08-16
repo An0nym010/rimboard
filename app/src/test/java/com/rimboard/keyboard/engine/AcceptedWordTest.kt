@@ -100,6 +100,36 @@ class AcceptedWordTest {
     }
 
     @Test
+    fun `a word added by hand is recognised in the language it was added in`() {
+        // The personal dictionary is written from a text field and read from the
+        // typing path, and the two used to fold case differently: the store used
+        // no locale at all, so "Işık" was filed under "işık" while the keyboard
+        // looked for "ışık", and "İstanbul" was filed under i + U+0307. Words
+        // added expressly to stop autocorrect touching them went on being
+        // corrected, which is the opposite of what adding one means.
+        val e = engine(mapOf("dictionaries/tr.txt" to "kitap 900"))
+        for (typed in listOf("Işık", "İstanbul", "Irmak")) {
+            userData.addUserWord(typed, tr)
+            assertTrue(
+                "\"$typed\" was added by hand but is not accepted when typed",
+                e.acceptedWord(typed, "tr", tr)
+            )
+            // And in the form the keyboard actually holds while composing.
+            assertTrue(e.acceptedWord(typed.lowercase(tr), "tr", tr))
+        }
+    }
+
+    @Test
+    fun `a hand-added word keeps the letters of its own language`() {
+        // Turkish 'ı' and 'i' are different letters, so the fold must not quietly
+        // merge them: adding "ışık" must not make the unrelated "isik" a word.
+        val e = engine(mapOf("dictionaries/tr.txt" to "kitap 900"))
+        userData.addUserWord("ışık", tr)
+        assertTrue(e.acceptedWord("ışık", "tr", tr))
+        assertFalse(e.acceptedWord("isik", "tr", tr))
+    }
+
+    @Test
     fun `a word valid in the other enabled language is not underlined`() {
         // Bilingual typing: English words inside a Turkish message are not
         // misspelled Turkish.

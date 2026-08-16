@@ -61,7 +61,15 @@ class KeyProximity private constructor(rows: List<String>) {
      *
      * Cached: the alphabet is small and fixed per layout, and this is on the
      * per-keystroke path.
+     *
+     * Synchronized because [forLang] hands the same instance to every caller,
+     * and the two entry points into this engine — the keyboard on the UI thread
+     * and the system spell checker on a binder thread — live in one process.
+     * Only the keyboard reaches this today, but a plain HashMap resized from two
+     * threads corrupts rather than failing cleanly, and the cost of the lock on
+     * a hit is nothing next to that.
      */
+    @Synchronized
     fun neighbours(ch: Char): List<Char> = neighbourCache.getOrPut(ch) {
         val cx = xs[ch] ?: return@getOrPut emptyList()
         val cy = ys[ch] ?: return@getOrPut emptyList()

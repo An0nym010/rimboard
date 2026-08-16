@@ -105,9 +105,25 @@ object Translate {
             !s.contains("..") &&
             s.all { it.isDigit() || it in 'a'..'z' || it == '.' || it == '-' }
 
-    /** The host [src] should be asked, honouring a self-hosted instance. */
+    /**
+     * The host [src] should be asked, honouring a self-hosted instance.
+     *
+     * The instance is only used for a source the user actually *chose*. One
+     * address field cannot say which software is behind it, and the two keyless
+     * services speak incompatible protocols — Lingva takes the text as a path
+     * segment, LibreTranslate as a JSON POST — so an address meant for one is
+     * not a fallback for the other, it is a guaranteed failure. This mattered
+     * because [Src.AUTO] is the shipped default: someone self-hosting
+     * LibreTranslate and leaving the source alone had every translation sent to
+     * their box in Lingva's shape, and every one of them failed.
+     *
+     * So where RimBoard is picking the service itself, it asks the public
+     * default; picking the matching source in Settings is what turns the
+     * instance on. That reading also matches the field sitting directly under
+     * the source picker: it is your own instance *of that*.
+     */
     fun hostFor(c: Context, src: Src): String {
-        val custom = customHost(c)
+        val custom = customHost(c)?.takeIf { stored(c) == src }
         return when (src) {
             Src.LINGVA -> custom ?: Lingva.DEFAULT_HOST
             Src.LIBRE -> custom ?: LibreTranslate.DEFAULT_HOST

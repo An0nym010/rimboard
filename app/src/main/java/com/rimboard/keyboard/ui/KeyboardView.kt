@@ -1126,8 +1126,25 @@ class KeyboardView(context: Context) : View(context) {
         key.type == KeyType.CHARACTER && key.label.length == 1 && key.label[0].isLetter()
 
     private fun finishGlide(ps: PointerState) {
-        if (ps.glide && ps.glideSeq.length >= 2) {
-            listener?.onGlideComplete(ps.glideSeq.toString())
+        if (ps.glide) {
+            if (ps.glideSeq.length >= 2) {
+                listener?.onGlideComplete(ps.glideSeq.toString())
+            } else {
+                // A drag that never left the key it began on is a tap, not a
+                // glide, and it has to type its letter.
+                //
+                // Gliding arms at 14dp of travel, but a letter key is wider
+                // than that in both axes — roughly 36dp by 48dp on an ordinary
+                // phone — so a thumb that slides while pressing can pass the
+                // threshold and still be over the same key. Nothing further is
+                // appended, because the sequence only grows when the key under
+                // the finger changes; the sequence stays one character long,
+                // which is not a word, so it went nowhere. The character was
+                // simply lost, and glide is on by default. [onGlideComplete]
+                // already has the matching fallback for a flick that matched no
+                // word, but it is never reached from here.
+                listener?.onKeyPressed(ps.kb.key)
+            }
         }
         ps.glide = false
         ps.handledOnDown = true

@@ -48,6 +48,38 @@ class DictionaryTest {
     }
 
     @Test
+    fun `the commonest match wins however late it sorts alphabetically`() {
+        // The shape of a real dictionary, which the handful-of-words fixtures
+        // above cannot show: hundreds of rare words share the prefix and every
+        // one of them sorts before the common one. Ranking used to be applied
+        // to the first 80 matches *in alphabetical order*, so "the" — sitting
+        // behind "tha", "thai", "thailand" and the whole "thank..." tail — was
+        // never a candidate at all, and typing "th" offered junk.
+        val entries = ArrayList<String>()
+        for (i in 0 until 200) entries.add("tha%03d %d".format(i, i + 1))
+        entries.add("the 9000000")
+        val d = dict(*entries.toTypedArray())
+
+        assertEquals("the", d.byPrefix("th", 3).first().first)
+        assertEquals("the", d.byPrefix("t", 3).first().first)
+        // And it is still found when it is the only thing asked for.
+        assertEquals(listOf("the"), d.byPrefix("th", 1).map { it.first })
+    }
+
+    @Test
+    fun `prefix results stay ordered and unique past the candidate window`() {
+        val entries = ArrayList<String>()
+        for (i in 0 until 150) entries.add("saa%03d 5".format(i))
+        entries.addAll(listOf("say 900", "see 500", "so 9000"))
+        val d = dict(*entries.toTypedArray())
+
+        val got = d.byPrefix("s", 3)
+        assertEquals(listOf("so", "say", "see"), got.map { it.first })
+        assertEquals(listOf(9000, 900, 500), got.map { it.second })
+        assertEquals(got.map { it.first }.distinct(), got.map { it.first })
+    }
+
+    @Test
     fun `prefix lookup is case insensitive`() {
         val d = dict("apple 9000")
         assertEquals(listOf("apple"), d.byPrefix("APP", 5).map { it.first })

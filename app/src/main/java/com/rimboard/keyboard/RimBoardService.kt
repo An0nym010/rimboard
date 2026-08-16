@@ -826,6 +826,18 @@ class RimBoardService : InputMethodService(),
         val words = Regex("""[\p{L}\p{N}']+""").findAll(before).map { it.value }.toList()
         prevWordForBigram = words.lastOrNull()?.lowercase(loc).orEmpty()
         prevWord2 = words.getOrNull(words.size - 2)?.lowercase(loc).orEmpty()
+        // Derived from the same text as the two words above, rather than left
+        // behind from wherever the cursor used to be. An empty context means
+        // opposite things either side of this call — "nothing to go on" or "the
+        // start of a sentence" — so leaving it stale made the same cursor
+        // position offer different suggestions depending on history: tapping to
+        // the front of a field that already held a sentence produced no openers,
+        // where the identical position in a fresh field produces them.
+        // Only spaces and tabs are trimmed: a trailing newline is itself a
+        // sentence break (handleEnter says so), and trimEnd() would eat the very
+        // character being tested for.
+        val tail = before.trimEnd(' ', '\t')
+        atSentenceStart = tail.isEmpty() || tail.last() in ".!?\n"
     }
 
     override fun onGlideComplete(sequence: String) {
@@ -1050,7 +1062,7 @@ class RimBoardService : InputMethodService(),
         val typed = composing.toString()
         var finalWord = typed
         if (allowAutocorrect) {
-            val shortcutExp = Shortcuts.expansionFor(this, typed)
+            val shortcutExp = Shortcuts.expansionFor(this, typed, effLocale())
         if (shortcutExp != null) {
             finalWord = shortcutExp
         } else {
@@ -1316,7 +1328,7 @@ class RimBoardService : InputMethodService(),
             prevWord2 = prevWord2,
             prevWord = prevWordForBigram
         )
-        val shortcutExp = Shortcuts.expansionFor(this, composing.toString())
+        val shortcutExp = Shortcuts.expansionFor(this, composing.toString(), effLocale())
         // Blocked emoji stay blocked. Long-pressing any chip offers to remove
         // it, and without this check the emoji chip was the one suggestion that
         // came straight back — a control that appeared to work and did not.
@@ -1327,8 +1339,18 @@ class RimBoardService : InputMethodService(),
         var shownWords = res.items
         var shownHi = res.autocorrectIndex
         if (emojiSug != null && shownWords.isNotEmpty() && !shownWords.contains(emojiSug)) {
+            // The emoji takes the last chip, which can be the chip the
+            // correction was sitting on. Re-find the highlighted word rather
+            // than trusting the old index to still mean the same thing: an
+            // index that outlives the list it points into is how the space bar
+            // would come to commit an emoji instead of the correction. Not
+            // reachable today — it needs a suggest-only contraction and an emoji
+            // for the same word — but the shortcut branch below already keeps
+            // its index honest, and this is the same obligation.
+            val hiWord = shownWords.getOrNull(shownHi)
             shownWords = if (shownWords.size < 3) shownWords + emojiSug
             else shownWords.take(2) + emojiSug
+            shownHi = if (hiWord == null) -1 else shownWords.indexOf(hiWord)
         }
         if (shortcutExp != null) {
             shownWords = listOf(shortcutExp) + shownWords.take(2)
@@ -2304,6 +2326,21 @@ class RimBoardService : InputMethodService(),
         finishComposingSilently()
         val selected = ic.getSelectedText(0)?.toString()?.takeIf { it.isNotBlank() }
         val TT = com.rimboard.keyboard.model.TranslateTargets
+        // Every reset happens *before* the bar is started, because starting it
+        // with a selection sends a request there and then. Clearing afterwards
+        // wiped the bookkeeping for a request already on the wire: the counter
+        // went back to zero with one call outstanding, the deduplication forgot
+        // what had just been asked so an unchanged source could be billed
+        // twice, and a generation moved on here would strand the very reply the
+        // seed was waiting for.
+        translateInserted = null
+        translateLastSource = null
+        translateLastAt = 0L
+        translateCount = 0
+        // A reply still in flight from a previous session of the bar belongs to
+        // the text that was being typed then, not to what is about to be.
+        translateGeneration++
+        tv.setRequestCount(0)
         if (translateWithAnthropic()) {
             tv.start(selected, TT.currentLabel(this, effLocale()))
         } else {
@@ -2312,11 +2349,6 @@ class RimBoardService : InputMethodService(),
             // language here — shown on the chip, so the pair is honest.
             tv.start(selected, TT.labelFor(TT.keylessTarget(this, currentLangCode()), effLocale()))
         }
-        translateInserted = null
-        translateLastSource = null
-        translateLastAt = 0L
-        translateCount = 0
-        tv.setRequestCount(0)
         tv.setLanguages(
             com.rimboard.keyboard.model.TranslateTargets.list(this, effLocale())
                 .map { it.code to it.label }
@@ -2349,6 +2381,7 @@ class RimBoardService : InputMethodService(),
         val TT = com.rimboard.keyboard.model.TranslateTargets
         val src = translateSrc()
         val source = currentLangCode()
+        val generation = ++translateGeneration
         Thread {
             val result = if (src == com.rimboard.keyboard.net.Translate.Src.ANTHROPIC) {
                 com.rimboard.keyboard.net.AiText.run(
@@ -2361,6 +2394,15 @@ class RimBoardService : InputMethodService(),
                 )
             }
             main {
+                // A reply to a question no longer being asked. Two ways that
+                // happens, and this insert is the one place it would be felt:
+                // closing the bar does not abort a request already on the wire,
+                // so the answer used to arrive afterwards and type itself into
+                // the message; and a slow reply outliving the next one would
+                // overwrite the newer translation with the older, because
+                // whichever landed last won. The GIF thumbnails already work
+                // this way — same hazard, same counter.
+                if (generation != translateGeneration) return@main
                 result.fold(
                     onSuccess = { tv.setResult(it) },
                     onFailure = { tv.setStatus(getString(R.string.ai_failed, netError(it))) }
@@ -2368,6 +2410,13 @@ class RimBoardService : InputMethodService(),
             }
         }.start()
     }
+
+    /**
+     * Rises with every translation request, and again whenever the bar is
+     * opened or closed. Anything that comes back carrying an older number is
+     * answering a question that has since been replaced or withdrawn.
+     */
+    private var translateGeneration = 0
 
     /**
      * Puts a translation in the field, replacing the one already there.
@@ -2603,6 +2652,13 @@ class RimBoardService : InputMethodService(),
         Thread {
             val result = com.rimboard.keyboard.net.Klipy.search(this, query)
             main {
+                // The generation guarded the thumbnails but not the result set
+                // they belong to, so a slow search returning after a later one
+                // replaced the newer grid with its own — and then every one of
+                // its thumbnails was dropped by the check in loadThumb, because
+                // by then the generation really had moved on. The visible
+                // outcome was the wrong results, permanently blank.
+                if (generation != thumbGeneration) return@main
                 result.fold(
                     onSuccess = { gifs ->
                         gv.setStatus(if (gifs.isEmpty()) getString(R.string.gif_none) else null)
@@ -2863,6 +2919,12 @@ class RimBoardService : InputMethodService(),
         searchRoute = SearchRoute.NONE
         gifView?.cancelPending()
         translateView?.cancelPending()
+        // cancelPending only drops the pending debounce; a request already on
+        // the wire keeps going and cannot be recalled. Moving the generation on
+        // is what stops its answer being typed into the field after the user
+        // has closed the bar.
+        translateGeneration++
+        thumbGeneration++
         translateInserted = null
         translateLastSource = null
         translateLastAt = 0L

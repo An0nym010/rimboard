@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import java.io.File
+import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
@@ -177,11 +178,17 @@ class UserData private constructor(dir: File) {
 
     fun isBlocked(word: String): Boolean = blocked.contains(word)
 
-    /** Hide a word from all suggestions; also forgets it if learned. */
+    /**
+     * Hide a word from all suggestions; also forgets it if learned.
+     *
+     * [word] is expected already lower case in its own language's rules, the
+     * same contract as [learnWord], [markKnown] and [isKnown] — every key in
+     * this store is written and read that way. Folding again here without a
+     * locale could only ever disagree with the fold the caller already applied.
+     */
     fun blockWord(word: String) {
-        val w = word.lowercase()
-        blocked.add(w)
-        learned.remove(w)
+        blocked.add(word)
+        learned.remove(word)
         io.execute {
             flushLearned()
             flushBlocked()
@@ -191,13 +198,24 @@ class UserData private constructor(dir: File) {
     fun learnedEntries(): List<Pair<String, Int>> =
         learned.entries.sortedByDescending { it.value }.map { it.key to it.value }
 
+    /** [word] is a key as held here — what [learnedEntries] handed out. */
     fun removeLearned(word: String) {
-        if (learned.remove(word.lowercase()) != null) io.execute { flushLearned() }
+        if (learned.remove(word) != null) io.execute { flushLearned() }
     }
 
-    /** Explicitly added words start at the suggestion threshold. */
-    fun addUserWord(word: String) {
-        val w = word.trim().lowercase()
+    /**
+     * Explicitly added words start at the suggestion threshold.
+     *
+     * [locale] is a parameter rather than an assumption because this is the one
+     * entry point fed straight from a text field, and a locale-less fold here is
+     * not merely a different answer but an unusable one: `"İstanbul".lowercase()`
+     * yields `i` + U+0307 + `stanbul`, a key the typing path cannot produce at
+     * all, and Turkish `I` folds to `ı` rather than `i`. Words added by hand were
+     * therefore stored under a key nothing would ever look up — so a name added
+     * precisely to stop autocorrect touching it went on being corrected.
+     */
+    fun addUserWord(word: String, locale: Locale) {
+        val w = word.trim().lowercase(locale)
         if (w.isEmpty()) return
         blocked.remove(w)
         learned[w] = maxOf(learned[w] ?: 0, 3)

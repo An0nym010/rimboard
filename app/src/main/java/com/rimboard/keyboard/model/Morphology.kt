@@ -84,7 +84,11 @@ object Morphology {
         "iyor", "ıyor", "uyor", "üyor", "yor",
         "ecek", "acak", "eceğ", "acağ",
         "miş", "mış", "muş", "müş",
-        "melı", "malı", "mekte", "makta",
+        // "meli", not "melı": the necessitative is -mAlI, so a front-vowel stem
+        // takes "meli" ("gelmeli") and a back-vowel one "malı" ("yapmalı").
+        // "melı" mixes the two and is not a form Turkish can produce — it
+        // matched nothing in the 200k-word list, where "meli" ends 173 entries.
+        "meli", "malı", "mekte", "makta",
         "dik", "dık", "duk", "dük", "tik", "tık", "tuk", "tük",
         // case
         "den", "dan", "ten", "tan",

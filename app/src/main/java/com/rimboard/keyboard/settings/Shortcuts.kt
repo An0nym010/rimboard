@@ -40,15 +40,21 @@ object Shortcuts {
      * and invalidate could null it between the load and the read.
      */
     @Synchronized
-    fun expansionFor(c: Context, typed: String): String? {
+    fun expansionFor(c: Context, typed: String, locale: java.util.Locale): String? {
         if (typed.isEmpty()) return null
-        return loaded(c)[typed.lowercase()]
+        return loaded(c)[typed.lowercase(locale)]
     }
 
+    /**
+     * [locale] is threaded through both here and in [expansionFor] so a
+     * shortcut is filed and found by the same rules. Folding without one splits
+     * the two apart in Turkish — a trigger typed with an `I` is stored as `i`
+     * and looked up as `ı` — so the shortcut simply never fires.
+     */
     @Synchronized
-    fun put(c: Context, key: String, phrase: String) {
+    fun put(c: Context, key: String, phrase: String, locale: java.util.Locale) {
         val m = loaded(c)
-        val k = key.trim().lowercase()
+        val k = key.trim().lowercase(locale)
         if (k.isEmpty() || phrase.isEmpty()) return
         m[k] = phrase
         save(c, m)

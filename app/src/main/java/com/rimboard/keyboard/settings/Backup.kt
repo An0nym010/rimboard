@@ -37,7 +37,10 @@ object Backup {
         return try {
             val root = JSONObject()
             root.put("app", "RimBoard")
-            root.put("format", 1)
+            // The constant, not a literal that happens to equal it today: the
+            // reader below rejects anything above FORMAT, so a bump would
+            // otherwise ship exports still labelled with the old number.
+            root.put("format", FORMAT)
             root.put("exportedAt", System.currentTimeMillis())
 
             val settings = JSONObject()

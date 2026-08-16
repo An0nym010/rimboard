@@ -172,20 +172,54 @@ class SuggestionEngine private constructor(
     private fun offensive(lang: String): Set<String> =
         offensiveSets.getOrPut(lang) {
             try {
+                val out = HashSet<String>()
                 (assets.open("offensive/$lang.txt") ?: return@getOrPut emptySet())
                     .bufferedReader().readLines()
-                    .map { it.trim().lowercase() }.filter { it.isNotEmpty() }.toSet()
+                    .map { it.trim().lowercase(Locale.ROOT) }
+                    .filter { it.isNotEmpty() }
+                    .forEach {
+                        out.add(it)
+                        // German capitalises ß as SS and lowercasing never puts
+                        // it back, so "scheiße" completed under caps lock
+                        // arrives at the filter as "scheisse". Both readings are
+                        // stored, because the round trip through upper case is
+                        // lossy in a way no amount of care at the call site can
+                        // undo.
+                        if (it.indexOf('ß') >= 0) out.add(it.replace("ß", "ss"))
+                    }
+                out
             } catch (e: Exception) {
                 android.util.Log.w(TAG, "no offensive list for $lang", e)
                 emptySet()
             }
         }
 
-    private fun isOffensive(word: String, lang: String): Boolean {
+    /**
+     * Whether [word] is on the blocked list, judged in [locale].
+     *
+     * The word arriving here is already *cased for display* — this filter is the
+     * last thing between the strip and the user, so [matchCase] has applied the
+     * language's own rules to it. Folding that back with a locale-less
+     * `lowercase()` undoes it wrongly wherever case is not a straight one-to-one
+     * map: Turkish "İbne" folds to `i` + U+0307 rather than "ibne", so an
+     * auto-capitalised slur went straight past a filter the user had switched
+     * on. English, Spanish and Russian never showed it because their case
+     * mapping happens to be locale-independent.
+     */
+    private fun isOffensive(word: String, lang: String, locale: Locale): Boolean {
         if (!blockOffensive) return false
-        val w = word.lowercase()
-        return w in offensive(lang) || (lang != "en" && w in offensive("en"))
+        val here = word.lowercase(locale)
+        if (listed(here, lang)) return true
+        // A candidate from the user's *other* enabled language was cased with
+        // that language's locale, so the primary one's rules are the wrong ones
+        // to read it back with — English "PIC" folds to "pıc" under Turkish.
+        // Both readings are tried: this filter may only ever err strict.
+        val root = word.lowercase(Locale.ROOT)
+        return root != here && listed(root, lang)
     }
+
+    private fun listed(lower: String, lang: String): Boolean =
+        lower in offensive(lang) || (lang != "en" && lower in offensive("en"))
 
     private val emojiMaps = HashMap<String, Map<String, String>>()
 
@@ -239,7 +273,7 @@ class SuggestionEngine private constructor(
         // the list rather than competing as an edit-distance guess. It still
         // passes through the filters and case-matching below.
         val accented = accentedFormFor(lower, lang, dict)?.takeIf {
-            !isOffensive(it, lang) && !userData.isBlocked(it)
+            !isOffensive(it, lang, locale) && !userData.isBlocked(it)
         }
         // Agglutinative languages build endless valid surface forms a frequency
         // dictionary cannot list. If the word peels down to a known stem
@@ -281,7 +315,7 @@ class SuggestionEngine private constructor(
             // not be fixed to "dont" (an insertion away), because "dont" is not
             // a word — its apostrophe form is what the contraction path offers.
             .filter {
-                !isOffensive(it, lang) && !userData.isBlocked(it) &&
+                !isOffensive(it, lang, locale) && !userData.isBlocked(it) &&
                     !com.rimboard.keyboard.model.Contractions.isAutoBareForm(lang, it)
             }
             .map { matchCase(typed, it, locale) }
@@ -405,7 +439,7 @@ class SuggestionEngine private constructor(
         val lower = typed.lowercase(locale)
         if (userData.isKnown(lower)) return null
         val (a, b) = dictionary(lang, locale).splitInto(lower) ?: return null
-        if (isOffensive(a, lang) || isOffensive(b, lang)) return null
+        if (isOffensive(a, lang, locale) || isOffensive(b, lang, locale)) return null
         if (userData.isBlocked(a) || userData.isBlocked(b)) return null
         // The pair as it is shown, so long-pressing the chip to remove it
         // actually removes it. Blocking stores what was on screen; checking only
@@ -483,7 +517,9 @@ class SuggestionEngine private constructor(
             com.rimboard.keyboard.model.TurkishMorph
                 .completionsFor(lower, 4) { dict.contains(it) }
                 .forEachIndexed { i, form ->
-                    if (userData.isBlocked(form) || isOffensive(form, lang)) return@forEachIndexed
+                    if (userData.isBlocked(form) || isOffensive(form, lang, locale)) {
+                        return@forEachIndexed
+                    }
                     val score = (stemFreq * MORPH_PENALTY / (i + 1)).toLong()
                     if (merged[form] == null) merged[form] = maxOf(1L, score)
                 }
@@ -585,8 +621,8 @@ class SuggestionEngine private constructor(
             // stop the keyboard *offering* offensive words, not to censor one
             // the user deliberately typed and can already see in the field.
             outWords = listOf(display.first()) +
-                display.drop(1).filter { !isOffensive(it, lang) }
-            outAc = if (acWord != null && !isOffensive(acWord, lang))
+                display.drop(1).filter { !isOffensive(it, lang, locale) }
+            outAc = if (acWord != null && !isOffensive(acWord, lang, locale))
                 outWords.indexOf(acWord) else -1
         }
         return SuggestionsResult(outWords, outAc)
@@ -693,7 +729,7 @@ class SuggestionEngine private constructor(
         }
         return scores.entries
             .asSequence()
-            .filter { !userData.isBlocked(it.key) && !isOffensive(it.key, lang) }
+            .filter { !userData.isBlocked(it.key) && !isOffensive(it.key, lang, locale) }
             .sortedByDescending { it.value }
             .take(limit)
             .map { it.key }

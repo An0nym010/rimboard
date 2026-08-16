@@ -25,6 +25,19 @@ class ShortcutsActivity : AppCompatActivity() {
         super.attachBaseContext(L10n.wrap(newBase))
     }
 
+    /**
+     * The rules a trigger is folded to lower case with — the language being
+     * typed, which is what the keyboard will fold the typed word with when it
+     * looks the shortcut up. Any locale beats none: folding without one turns
+     * Turkish `İ` into a two-character sequence the typing path never produces.
+     */
+    private fun keyLocale(): java.util.Locale {
+        val code = Prefs.currentLang(this)
+            ?: Prefs.languages(this).firstOrNull()
+            ?: "en"
+        return com.rimboard.keyboard.model.Languages.byCode(code).locale
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.setTitle(R.string.pref_shortcuts_title)
@@ -53,7 +66,7 @@ class ShortcutsActivity : AppCompatActivity() {
                 val k = keyIn.text.toString().trim()
                 val v = phraseIn.text.toString().trim()
                 if (k.isNotEmpty() && v.isNotEmpty()) {
-                    Shortcuts.put(this@ShortcutsActivity, k, v)
+                    Shortcuts.put(this@ShortcutsActivity, k, v, keyLocale())
                     keyIn.setText("")
                     phraseIn.setText("")
                     refresh()

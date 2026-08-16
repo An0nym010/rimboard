@@ -21,6 +21,7 @@ import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.rimboard.keyboard.R
+import com.rimboard.keyboard.model.Languages
 import com.rimboard.keyboard.theme.KeyboardTheme
 
 @SuppressLint("ViewConstructor")
@@ -454,7 +455,11 @@ class EmojiView(context: Context) : LinearLayout(context) {
 
     /** Emoji whose keyword starts with [raw], nearest (shortest) keyword first. */
     private fun searchResults(raw: String): List<String> {
-        val q = fold(raw.trim().lowercase())
+        // Folded with the search language's own rules. Without a locale Turkish
+        // "İ" becomes i + U+0307, and the combining mark is not one of the
+        // letters [fold] knows to strip — so the query silently matched nothing
+        // the moment it began with a capital dotted i.
+        val q = fold(raw.trim().lowercase(Languages.byCode(searchLang).locale))
         if (q.isEmpty()) return emptyList()
         val matched = searchIndex()
             .filter { fold(it.first).startsWith(q) }

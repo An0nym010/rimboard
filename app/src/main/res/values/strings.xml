@@ -199,6 +199,7 @@
     <string name="tr_src_anthropic" tools:ignore="MissingTranslation">Anthropic — your API key, best quality</string>
     <string name="tr_host_title" tools:ignore="MissingTranslation">Your own instance (optional)</string>
     <string name="tr_host_none" tools:ignore="MissingTranslation">Not set — using the public service</string>
+    <string name="tr_host_unused" tools:ignore="MissingTranslation">Saved, but not in use: choose the service it runs above, so requests are sent in the shape it understands.</string>
     <string name="tr_host_hint" tools:ignore="MissingTranslation">translate.example.com</string>
     <string name="tr_host_bad" tools:ignore="MissingTranslation">That is not a hostname</string>
     <string name="tr_host_note" tools:ignore="MissingTranslation">If you run Lingva or LibreTranslate yourself, put its hostname here and your text goes only to your own server. This is the one address the built-in allowlist cannot know in advance, so setting it widens what this app may contact — by exactly this one host, and only over HTTPS.</string>

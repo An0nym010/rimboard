@@ -369,6 +369,17 @@ class NetworkActivity : AppCompatActivity() {
             typeface = Typeface.MONOSPACE
             setPadding(0, (2 * d).toInt(), 0, (6 * d).toInt())
         })
+        // An address is only used for a service the user picked, because one
+        // field cannot say which software answers at it and the two speak
+        // incompatible protocols. Saying so beats letting the row imply the
+        // instance is live when nothing is being sent to it.
+        if (current != null && Translate.stored(this) == Translate.Src.AUTO) {
+            container.addView(TextView(this).apply {
+                text = getString(R.string.tr_host_unused)
+                textSize = 12f
+                setPadding(0, 0, 0, (6 * d).toInt())
+            })
+        }
         val field = EditText(this).apply {
             hint = getString(R.string.tr_host_hint)
             inputType = android.text.InputType.TYPE_CLASS_TEXT or

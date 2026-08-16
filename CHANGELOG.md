@@ -4,6 +4,64 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Completions were ranked, then thrown away**
+- **The commonest words were never offered.** Prefix lookup collected the first
+  80 matches and ranked *those* — but the word list is held alphabetically,
+  because that is what the binary search needs, so the first 80 matches of a
+  short prefix are the alphabetically earliest and those are overwhelmingly the
+  rarest. "th" filled its slots with "tha", "thai", "thailand" and the long tail
+  of "thank..." forms and never reached "the"; "s" never reached "so". Measured
+  against the shipped lists that was the wrong top completion for 91% of
+  one-letter and 64% of two-letter prefixes, in every language — the commonest
+  prefixes there are, and the moment the strip is leaned on hardest. Every match
+  is now considered, by a bounded selection that costs one comparison per word
+  and allocates nothing.
+
+**Case, where a language disagrees about what lower case means**
+- **The offensive-word filter could be walked straight past.** It ran on
+  suggestions already cased for display and folded them back without a locale.
+  Turkish "İbne" became `i` + a combining dot rather than "ibne", and German
+  "scheiße" capitalises to "SCHEISSE", which nothing turns back — so with the
+  filter switched on, a capitalised slur was offered anyway. English, Spanish
+  and Russian never showed it, because their case mapping happens not to depend
+  on the language.
+- **Words added to the personal dictionary were never recognised.** They were
+  filed by one set of rules and looked up by another: "Işık" was stored as
+  "işık" and searched for as "ışık", and "İstanbul" was stored under a key the
+  typing path cannot produce at all. A name added expressly to stop autocorrect
+  touching it went on being corrected. Text shortcuts and emoji search had the
+  same split.
+
+**Typing**
+- **A tap that slid a little typed nothing.** Gliding arms after 14dp of travel,
+  but a letter key is wider than that in both directions, so a thumb that moves
+  while pressing could cross the threshold without ever leaving the key. One key
+  is not a word, so nothing was sent anywhere and the keystroke simply vanished.
+  A drag that never leaves its key is now a tap, which is what it was.
+- Suggestions after moving the cursor no longer depend on where it had been:
+  whether the cursor sits at the start of a sentence is now read from the text,
+  like the two words beside it, instead of being left over from before the move.
+
+**Answers arriving after the question changed**
+- **Closing the translate bar no longer types into your message.** A request
+  already on the wire cannot be recalled, and its answer was inserted whenever
+  it arrived — after the bar had been closed. A slow reply could also overwrite
+  a newer translation with an older one, because whichever landed last won.
+- **GIF search could show the wrong results, permanently blank.** A slow search
+  returning after a later one replaced the newer grid, and every thumbnail it
+  then asked for was correctly discarded as stale — leaving the results it had
+  just installed with no images at all, for good.
+- Opening the translate bar on a selection no longer clears the bookkeeping for
+  the request that opening it just sent, which had the counter showing none
+  outstanding and could bill the same unchanged text twice.
+
+**A self-hosted translator is used only for the service you picked**
+- One address field cannot say which software answers at it, and the two keyless
+  translators speak incompatible protocols. With the source left on Automatic —
+  the default — a self-hosted LibreTranslate address was being sent requests in
+  Lingva's shape, so every translation failed. The instance is now used for a
+  service you chose, and the Network screen says so when it is set but idle.
+
 **Next-word prediction**
 - **The strip is no longer empty at the start of a message.** The first word had
   no preceding word, which the engine treated as no context rather than as the

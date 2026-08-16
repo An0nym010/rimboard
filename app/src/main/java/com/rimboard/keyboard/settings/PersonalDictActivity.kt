@@ -30,6 +30,24 @@ class PersonalDictActivity : AppCompatActivity() {
         super.attachBaseContext(L10n.wrap(newBase))
     }
 
+    /**
+     * The rules a hand-added word is folded to lower case with.
+     *
+     * One personal dictionary serves every enabled language, so there is no
+     * answer that is right for all of them at once. The language currently being
+     * typed is the one the engine will look the word up under, which makes it
+     * the best available guess — and an exactly right one whenever a single
+     * language is in use. What matters far more is that it is *a* locale:
+     * folding without one mangles Turkish `İ` into a two-character sequence no
+     * lookup can produce.
+     */
+    private fun wordLocale(): java.util.Locale {
+        val code = Prefs.currentLang(this)
+            ?: Prefs.languages(this).firstOrNull()
+            ?: "en"
+        return com.rimboard.keyboard.model.Languages.byCode(code).locale
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.setTitle(R.string.pref_personal_dict_title)
@@ -54,7 +72,7 @@ class PersonalDictActivity : AppCompatActivity() {
             setOnClickListener {
                 val w = input.text.toString().trim()
                 if (w.isNotEmpty()) {
-                    userData.addUserWord(w)
+                    userData.addUserWord(w, wordLocale())
                     input.setText("")
                     Prefs.setPendingReload(this@PersonalDictActivity, true)
                     refresh()
