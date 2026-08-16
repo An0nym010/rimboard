@@ -282,6 +282,7 @@ class RimBoardService : InputMethodService(),
         // up: a thumbnail is one download away, and if the panel is open the
         // placeholders return rather than the grid emptying.
         gifView?.releaseThumbnails()
+        com.rimboard.keyboard.theme.AppPalette.clearCache()
     }
 
     override fun onEvaluateFullscreenMode(): Boolean = false
@@ -589,7 +590,13 @@ class RimBoardService : InputMethodService(),
         // feature did nothing.
         kbTheme = Themes.resolve(this, themePref).let { base ->
             if (Prefs.themePerApp(this) && Themes.tintable(themePref))
-                Themes.forApp(base, info.packageName)
+                Themes.forApp(
+                    base, info.packageName,
+                    // The app's real colour when its icon can be read, and the
+                    // package-name hue when it cannot. Which of those happens
+                    // is decided by package visibility, not by anything here.
+                    com.rimboard.keyboard.theme.AppPalette.hueOf(this, info.packageName)
+                )
             else base
         }
         val t = kbTheme ?: return

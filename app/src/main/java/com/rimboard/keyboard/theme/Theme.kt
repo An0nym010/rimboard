@@ -365,9 +365,14 @@ object Themes {
      * hints and `isDark` are untouched, so contrast against the caps is exactly
      * what the base theme was designed for, whatever hue comes out.
      */
-    fun forApp(base: KeyboardTheme, pkg: String?): KeyboardTheme {
+    /**
+     * [hueOverride] is the app's own colour where it could be read from its
+     * icon; without it the hue falls back to [hueFor], which is stable and
+     * distinct but is not the app's colour and does not claim to be.
+     */
+    fun forApp(base: KeyboardTheme, pkg: String?, hueOverride: Int? = null): KeyboardTheme {
         if (pkg.isNullOrEmpty()) return base
-        val hue = hueFor(pkg)
+        val hue = hueOverride ?: hueFor(pkg)
         // Dark themes need a lighter, less saturated accent to stay legible
         // against a near-black surface; light ones need it darker so white
         // `onAccent` lettering survives on top of it.
