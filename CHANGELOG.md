@@ -4,6 +4,24 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Three faults found reading the service file**
+- **A clock change no longer types a full stop.** Double-space-to-period and
+  double-tap-shift measured the gap between taps with wall-clock time, which is
+  not monotonic — an automatic time correction stepping backwards makes the gap
+  negative, and a negative gap is "well inside the window". A single space
+  after a letter then became ". " on its own, and a single shift became caps
+  lock. Both now use the monotonic clock the rest of the file already used, and
+  the rule is a tested function rather than a comparison written twice.
+- **A GIF can no longer land in the wrong app.** Downloading one is the longest
+  wait in the keyboard, and it was the only async path without a staleness
+  check — the thumbnails have one and the AI reply re-checks what it was asked
+  about. Switching apps while a GIF downloaded inserted it into whatever was
+  focused when it arrived.
+- **A failed translation can be retried.** The guard against paying twice for
+  the same words recorded the request before sending it, so a translation lost
+  to a dropped connection counted as already asked and the timer turned every
+  retry away. The only escape was editing the message.
+
 **Stability: three faults introduced by sharing the dictionary**
 - **The keyboard can give memory back when the system asks.** Sharing the
   dictionary between the keyboard and the spell checker made the cache static,

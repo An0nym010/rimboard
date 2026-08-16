@@ -29,6 +29,7 @@ import com.rimboard.keyboard.model.KeyboardLayout
 import com.rimboard.keyboard.model.Languages
 import com.rimboard.keyboard.model.LayoutKind
 import com.rimboard.keyboard.model.Layouts
+import com.rimboard.keyboard.model.TapTiming
 import com.rimboard.keyboard.settings.L10n
 import com.rimboard.keyboard.settings.Prefs
 import com.rimboard.keyboard.settings.Shortcuts
@@ -1140,8 +1141,15 @@ class RimBoardService : InputMethodService(),
 
     private fun handleSpace() {
         val ic = currentInputConnection ?: return
-        val now = System.currentTimeMillis()
-        if (composing.isEmpty() && Prefs.doubleSpace(this) && now - lastSpaceTime < 500) {
+        // uptimeMillis, not currentTimeMillis: this measures the gap between two
+        // taps, and wall-clock time is not monotonic — an NTP correction or the
+        // user changing the clock can move it backwards, which makes the
+        // subtraction negative, which reads as "well under 500ms". A lone space
+        // after a letter would then be silently rewritten to ". ". The rest of
+        // this file already times intervals on uptimeMillis.
+        val now = SystemClock.uptimeMillis()
+        val hadRecentSpace = TapTiming.isDoubleTap(now, lastSpaceTime, 500)
+        if (composing.isEmpty() && Prefs.doubleSpace(this) && hadRecentSpace) {
             val before = ic.getTextBeforeCursor(3, 0)
             if (before != null && before.length >= 2 &&
                 before[before.length - 1] == ' ' &&
@@ -1225,8 +1233,12 @@ class RimBoardService : InputMethodService(),
 
     private fun handleShift() {
         val kv = keyboardView ?: return
-        val now = System.currentTimeMillis()
-        if (now - lastShiftTapTime < 300) {
+        // Same reason as [handleSpace]: a backwards clock step turns any two
+        // shift taps into a double-tap and silently engages caps lock.
+        val now = SystemClock.uptimeMillis()
+        // The 0 here is also set by typing a character, which is what stops a
+        // shift from before a word pairing with one after it.
+        if (TapTiming.isDoubleTap(now, lastShiftTapTime, 300)) {
             kv.shiftState = KeyboardView.ShiftState.CAPSLOCK
         } else {
             kv.shiftState = when (kv.shiftState) {
@@ -2460,7 +2472,20 @@ class RimBoardService : InputMethodService(),
                 if (generation != translateGeneration) return@main
                 result.fold(
                     onSuccess = { tv.setResult(it) },
-                    onFailure = { tv.setStatus(getString(R.string.ai_failed, netError(it))) }
+                    onFailure = {
+                        // The dedupe above is keyed on the text of the last
+                        // request, and it was set before the request rather
+                        // than after a reply — so a request that failed still
+                        // counted as "already asked". A translation lost to a
+                        // dropped connection could then never be retried: the
+                        // timer fired again with the same words and was turned
+                        // away by its own record of the attempt, and the only
+                        // way out was to edit the message. Forgetting it here
+                        // makes the next attempt go through; the 1.5s floor and
+                        // the bar's debounce still bound how often that is.
+                        translateLastSource = null
+                        tv.setStatus(getString(R.string.ai_failed, netError(it)))
+                    }
                 )
             }
         }.start()
@@ -2794,9 +2819,25 @@ class RimBoardService : InputMethodService(),
     override fun onGifPicked(gif: com.rimboard.keyboard.net.Klipy.Gif) {
         val gv = gifView ?: return
         gv.setStatus(getString(R.string.gif_inserting))
+        // Downloading a GIF is the longest wait in this keyboard — megabytes,
+        // not a JSON reply — and it is also the only one of the three async
+        // paths here that had no staleness guard. The thumbnails check
+        // [thumbGeneration] and the AI reply re-checks the selection it was
+        // asked about; this one re-fetched the input connection and stopped
+        // there, which is not the same test. A live connection only says
+        // *something* is focused, not that it is the field the user picked the
+        // GIF for. Switching apps while it downloaded therefore dropped the GIF
+        // into whatever was focused when it landed.
+        //
+        // [closeSearchHost] already moves this generation on for exactly this
+        // reason, and it runs both when the panel is closed and, via
+        // closeAnyPanel, when the editor changes — so it is the signal that was
+        // there all along and only this path failed to read.
+        val generation = thumbGeneration
         Thread {
             val bytes = com.rimboard.keyboard.net.Klipy.download(this, gif)
             main {
+                if (generation != thumbGeneration) return@main
                 val data = bytes.getOrNull()
                 val ic = currentInputConnection
                 val editor = currentInputEditorInfo
