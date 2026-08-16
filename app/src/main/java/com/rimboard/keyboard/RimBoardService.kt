@@ -44,6 +44,7 @@ import com.rimboard.keyboard.ui.IconView
 import com.rimboard.keyboard.ui.Icons
 import com.rimboard.keyboard.ui.KeyboardView
 import com.rimboard.keyboard.ui.SuggestionStripView
+import com.rimboard.keyboard.ui.Thumbs
 import java.io.File
 import java.util.Locale
 import kotlin.math.abs
@@ -277,6 +278,10 @@ class RimBoardService : InputMethodService(),
         val keep = if (level >= TRIM_MEMORY_COMPLETE) emptySet()
         else setOfNotNull(effLang(), effAlt())
         SuggestionEngine.trimDictionaries(keep)
+        // Second only to the dictionaries in size, and cheaper still to give
+        // up: a thumbnail is one download away, and if the panel is open the
+        // placeholders return rather than the grid emptying.
+        gifView?.releaseThumbnails()
     }
 
     override fun onEvaluateFullscreenMode(): Boolean = false
@@ -2798,6 +2803,16 @@ class RimBoardService : InputMethodService(),
      */
     private var thumbGeneration = 0
 
+    /**
+     * The size a grid tile is actually drawn at, in pixels: two columns across
+     * the display, and the fixed 92dp the tile is tall. An upper bound rather
+     * than a measurement — the view may not be laid out when a download lands,
+     * and erring large only costs one halving of the sampling.
+     */
+    private fun thumbTargetW(): Int = resources.displayMetrics.widthPixels / 2
+
+    private fun thumbTargetH(): Int = (92 * resources.displayMetrics.density).toInt()
+
     private fun loadThumb(gif: com.rimboard.keyboard.net.Klipy.Gif, generation: Int) {
         thumbPool.execute {
             if (generation != thumbGeneration) return@execute
@@ -2810,7 +2825,23 @@ class RimBoardService : InputMethodService(),
             if (generation != thumbGeneration) return@execute
             // Decodes the first frame — a still is all a grid tile needs, and
             // animated decoding is API 28+ while this app supports 26.
-            val bmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            //
+            // Sized to the tile rather than to whatever the provider sent. The
+            // grid is two columns of 92dp tiles; the previews behind them are
+            // routinely several times that in each direction, and every one was
+            // being decoded at full resolution into ARGB_8888 and then held for
+            // as long as the results were on screen. Nothing bounded that but
+            // the provider's own choice of preview size.
+            val bounds = android.graphics.BitmapFactory.Options().apply {
+                inJustDecodeBounds = true
+            }
+            android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+            val opts = android.graphics.BitmapFactory.Options().apply {
+                inSampleSize = Thumbs.sampleSizeFor(
+                    bounds.outWidth, bounds.outHeight, thumbTargetW(), thumbTargetH()
+                )
+            }
+            val bmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
                 ?: return@execute
             main { if (generation == thumbGeneration) gifView?.setThumbnail(gif.id, bmp) }
         }
@@ -3037,6 +3068,10 @@ class RimBoardService : InputMethodService(),
         // has closed the bar.
         translateGeneration++
         thumbGeneration++
+        // The panel is closed, so its bitmaps are not being shown to anyone.
+        // Holding them until it is next opened meant holding them for the life
+        // of the process, since that is when the list was previously cleared.
+        gifView?.releaseThumbnails()
         translateInserted = null
         translateLastSource = null
         translateLastAt = 0L

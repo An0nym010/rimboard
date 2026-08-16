@@ -4,6 +4,20 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**GIF thumbnails stop costing what they were costing**
+- **Decoded to the tile, not to whatever the provider sent.** Every preview was
+  decoded at full source resolution into ARGB_8888 and then drawn into a
+  two-column tile 92dp tall. What the grid can show is bounded by the screen;
+  what was held in memory was bounded by nothing — two dozen results at
+  480x270 is about twelve megabytes, in a process that also holds the
+  dictionaries and gets killed before anything the user can see.
+- **Released when the panel closes.** They were only dropped when it was next
+  *opened*, so one GIF search in the morning was still resident at midnight.
+  They are released on close and under memory pressure now; the tiles stay, so
+  the grid keeps its shape and scroll position and the placeholders come back.
+- The emoji grid was checked for the same fault and does not have it — its
+  adapter has always recycled through `convertView`, as does the GIF grid's.
+
 **Panels no longer act after they are gone**
 - The GIF panel and the translate bar each schedule work on a delay — a search,
   a translation — and neither cancelled it when the view was taken away. The

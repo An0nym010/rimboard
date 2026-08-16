@@ -222,6 +222,34 @@ class GifView(context: Context) : LinearLayout(context) {
     }
 
     /**
+     * Drops the decoded thumbnails, keeping the results themselves.
+     *
+     * They were only ever released when the panel was *reopened*, because
+     * [startWith] clears the list on the way in. Closing it released nothing,
+     * so a grid of thumbnails from one GIF search stayed resident for the life
+     * of the input view — which for a keyboard is the life of the process.
+     * Someone who opened the panel once in the morning was still holding those
+     * bitmaps at midnight.
+     *
+     * The tiles stay, so the grid keeps its shape and its scroll position and
+     * the placeholders come back rather than the layout collapsing. Bitmaps are
+     * not recycled explicitly: they may still be bound to a visible ImageView
+     * this instant, and recycling one that is still being drawn is a crash
+     * rather than a saving. Dropping the last reference is enough — the
+     * collector is what this is for.
+     */
+    fun releaseThumbnails() {
+        var released = false
+        for (t in adapterImpl.items) {
+            if (t.bitmap != null) {
+                t.bitmap = null
+                released = true
+            }
+        }
+        if (released) adapterImpl.notifyDataSetChanged()
+    }
+
+    /**
      * The service calls [cancelPending] when it closes the panel, which covers
      * every way the *user* leaves it — but not the ways the view is taken away
      * underneath them. A rotation rebuilds the whole input view
