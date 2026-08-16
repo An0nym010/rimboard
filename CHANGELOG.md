@@ -4,6 +4,21 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Panels no longer act after they are gone**
+- The GIF panel and the translate bar each schedule work on a delay — a search,
+  a translation — and neither cancelled it when the view was taken away. The
+  service cancels on every route the *user* takes out of a panel, but not on
+  the ones where the view is removed underneath them: a rotation rebuilds the
+  whole input view, and Android does not take a posted callback off the queue
+  when its view detaches. It fires on time, into a panel that no longer exists.
+  For the translate bar that meant sending a translation request — billed,
+  against the Anthropic source — for a bar that had already gone, with the
+  answer landing in the newly built one.
+- The other four views that schedule delayed work already cancelled it on
+  detach, one with a comment describing this exact hazard. A test now requires
+  the handler to exist, so the next panel with a debounce cannot quietly skip
+  it.
+
 **Vibration, and an honest answer about it**
 - The previous attempt at this was aimed the wrong way. It declared key
   vibrations as `USAGE_TOUCH` on the reasoning that an undeclared vibration

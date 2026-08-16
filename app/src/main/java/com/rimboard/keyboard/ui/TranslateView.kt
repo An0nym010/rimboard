@@ -277,6 +277,19 @@ class TranslateView(context: Context) : LinearLayout(context) {
     fun cancelPending() = removeCallbacks(debounce)
 
     /**
+     * See [GifView.onDetachedFromWindow] for the case this covers — a rotation
+     * rebuilding the input view, where nothing tells the bar it is going away.
+     * It matters more here than there: this debounce fires a *translation*, so
+     * a bar that no longer exists could still send off a request, and against
+     * the Anthropic source that request is billed. The result then landed in
+     * the newly built bar, which is showing something else entirely.
+     */
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        cancelPending()
+    }
+
+    /**
      * Try again once the minimum gap has passed.
      *
      * The service refuses requests that come too close together; without this

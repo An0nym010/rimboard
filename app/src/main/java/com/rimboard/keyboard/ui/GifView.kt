@@ -221,6 +221,20 @@ class GifView(context: Context) : LinearLayout(context) {
         removeCallbacks(debounce)
     }
 
+    /**
+     * The service calls [cancelPending] when it closes the panel, which covers
+     * every way the *user* leaves it — but not the ways the view is taken away
+     * underneath them. A rotation rebuilds the whole input view
+     * (`onConfigurationChanged` → `setInputView`), and a detached view's posted
+     * callbacks are not cancelled for it: the runnable is already on the
+     * looper's queue and fires regardless, into a view nothing can see, firing
+     * a search for a panel that no longer exists.
+     */
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        cancelPending()
+    }
+
     private fun buildChips() {
         chipRow.removeAllViews()
         for (c in chips) {
