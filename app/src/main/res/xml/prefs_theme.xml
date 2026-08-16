@@ -11,6 +11,12 @@
             android:defaultValue="system"
             app:useSimpleSummaryProvider="true" />
 
+    <SwitchPreferenceCompat
+        android:key="theme_per_app"
+        android:title="@string/pref_theme_per_app_title"
+        android:summary="@string/pref_theme_per_app_summary"
+        android:defaultValue="true" />
+
     <Preference
         android:key="custom_colors"
         android:icon="@drawable/ic_pref_droplet"

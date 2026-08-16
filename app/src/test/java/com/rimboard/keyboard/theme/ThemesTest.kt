@@ -2,6 +2,7 @@ package com.rimboard.keyboard.theme
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -78,4 +79,117 @@ class ThemesTest {
         assertEquals(base.previewBg, t.previewBg)
         assertEquals(base.background, t.background)
     }
+
+    // ---- per-app tinting
+
+    @Test
+    fun `the same app always gets the same hue and different apps differ`() {
+        assertEquals(Themes.hueFor("com.whatsapp"), Themes.hueFor("com.whatsapp"))
+        assertNotEquals(Themes.hueFor("com.whatsapp"), Themes.hueFor("org.telegram.messenger"))
+    }
+
+    @Test
+    fun `names differing only at the end are not herded together`() {
+        // Package families differ near the end of the name, and the hue is the
+        // hash's low bits, so this is where a weak hash shows. It has to be a
+        // *statistical* claim: no hash can promise two given hues are far
+        // apart — with four values drawn from 360 a near-miss is ordinary
+        // chance, and asserting on one family would only pin that chance.
+        // What separates a good hash from a bad one is the average.
+        //
+        // Measured: 1° for String.hashCode (consecutive hues, every time),
+        // 2.4° for bare FNV-1a, 21.8° once the murmur3 finalizer folds the
+        // high bits down — the same as 21.7° for genuinely random hues. The
+        // threshold sits well above both failing designs and well below the
+        // random ceiling, so it catches a regression to either.
+        var total = 0
+        val families = 2000
+        for (i in 0 until families) {
+            val hues = listOf('1', '2', '3', '4').map { Themes.hueFor("com.vendor$i.app$it") }
+            var closest = 360
+            for (a in hues.indices) {
+                for (b in a + 1 until hues.size) {
+                    val d = kotlin.math.abs(hues[a] - hues[b])
+                    closest = minOf(closest, d, 360 - d)
+                }
+            }
+            total += closest
+        }
+        val mean = total.toDouble() / families
+        assertTrue("sibling packages average only $mean apart in hue", mean > 10.0)
+    }
+
+    @Test
+    fun `a hue is always a legal one`() {
+        // A negative or out-of-range hue would fall through hsl()'s `when` to
+        // the else branch and silently produce the wrong colour, so this pins
+        // the range over inputs that overflow the multiply.
+        for (p in listOf("", "a", "com.a", "x".repeat(400), "🙂", "com.ünïcodé.app")) {
+            val h = Themes.hueFor(p)
+            assertTrue("hue out of range for '$p': $h", h in 0..359)
+        }
+    }
+
+    @Test
+    fun `tinting moves the accent far and the surfaces barely`() {
+        val t = Themes.forApp(base, "com.whatsapp")
+        assertNotEquals("the accent is the point", base.accent, t.accent)
+        // The background is most of the screen; saturating it reads as a
+        // fault, not a theme. Allow a few steps per channel, no more.
+        for (sh in listOf(16, 8, 0)) {
+            val d = kotlin.math.abs((base.background shr sh and 0xFF) - (t.background shr sh and 0xFF))
+            assertTrue("background moved $d on channel $sh", d <= 24)
+        }
+        // Contrast against the caps is the base theme's design and must not be
+        // renegotiated by whatever hue came out.
+        assertEquals(base.keyText, t.keyText)
+        assertEquals(base.keyHint, t.keyHint)
+        assertEquals(base.stripText, t.stripText)
+        assertEquals(base.isDark, t.isDark)
+    }
+
+    @Test
+    fun `accent lettering stays readable on every hue`() {
+        // onAccent is picked from the accent's luminance, so the guarantee has
+        // to hold for all 360 of them, in both polarities.
+        for (light in listOf(base, base.copy(isDark = false))) {
+            for (p in 0 until 360) {
+                val t = Themes.forApp(light, "pkg$p")
+                val la = lum(t.accent)
+                val lo = lum(t.onAccent)
+                assertTrue(
+                    "accent ${Integer.toHexString(t.accent)} vs text " +
+                        "${Integer.toHexString(t.onAccent)}",
+                    kotlin.math.abs(la - lo) > 0.35
+                )
+                assertEquals("accent must be opaque", 0xFF, t.accent ushr 24)
+            }
+        }
+    }
+
+    @Test
+    fun `no package means no change at all`() {
+        // onStartInputView can hand over a null package name; the keyboard
+        // must then look exactly as the user configured it.
+        assertEquals(base, Themes.forApp(base, null))
+        assertEquals(base, Themes.forApp(base, ""))
+    }
+
+    @Test
+    fun `themes whose colours were chosen on purpose are never tinted`() {
+        // High contrast is an accessibility setting, the custom slots are
+        // hand-picked, and dynamic already tracks the wallpaper. Overriding
+        // any of them would defeat the reason it was selected.
+        for (p in listOf("contrast", "custom", "custom2", "custom3", "dynamic")) {
+            assertFalse("$p must not be tinted", Themes.tintable(p))
+        }
+        for (p in listOf("system", "light", "dark", "amoled", "ocean", "rose")) {
+            assertTrue("$p should be tinted", Themes.tintable(p))
+        }
+    }
+
+    private fun lum(c: Int): Double =
+        0.299 * (c shr 16 and 0xFF) / 255.0 +
+            0.587 * (c shr 8 and 0xFF) / 255.0 +
+            0.114 * (c and 0xFF) / 255.0
 }

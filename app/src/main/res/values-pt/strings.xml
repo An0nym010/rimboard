@@ -212,6 +212,8 @@
     <string name="pref_tld_summary">Mantenha o ponto pressionado para .com e afins em campos de URL e e-mail</string>
     <string name="pref_lang_per_app_title">Lembrar idioma por aplicativo</string>
     <string name="pref_lang_per_app_summary">Restaura o último idioma usado em cada aplicativo</string>
+    <string name="pref_theme_per_app_title">Tingir conforme o aplicativo</string>
+    <string name="pref_theme_per_app_summary">Cada aplicativo recebe sua própria cor de destaque, sobre o tema escolhido</string>
     <string name="pref_sym_return_title">Sair dos símbolos após o espaço</string>
     <string name="pref_sym_return_summary">Volta às letras após digitar um espaço na visualização de símbolos</string>
     <string name="pref_emoji_return_title">Voltar ao teclado após um emoji</string>

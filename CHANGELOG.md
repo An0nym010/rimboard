@@ -4,6 +4,22 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**The keyboard takes on a colour from the app you are typing in**
+- On by default, and switchable off under Theme → "Tint to match the app".
+  Whichever theme you have chosen keeps its character; only the accent — enter,
+  caps lock, the active suggestion — moves to a hue belonging to that app, with
+  the surfaces following a few percent behind. Key text, hints and the light or
+  dark polarity are untouched, so contrast stays exactly as the theme was
+  designed for whatever hue comes out.
+- The hue comes from the package name, not from the app's icon. Sampling the
+  icon would mean reading another package's resources, which needs
+  `QUERY_ALL_PACKAGES` — a permission that would cost this keyboard its
+  headline claim for a nicety. So the colour is not the app's brand colour and
+  does not claim to be; it is distinct, and it is the same every time.
+- Themes chosen for their colours specifically are left alone: high contrast,
+  the three custom slots, and Material You, each of which already answers to
+  something the user picked.
+
 **Vibration works on phones that had none**
 - Key haptics asked the vibrator for a buzz without saying what kind it was.
   An unattributed vibration is filed under "unknown usage", and an

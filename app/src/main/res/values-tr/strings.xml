@@ -197,6 +197,8 @@
     <string name="pref_tld_summary">URL ve e-posta alanlarında nokta tuşuna basılı tutunca .com ve benzerleri</string>
     <string name="pref_lang_per_app_title">Uygulama başına dili hatırla</string>
     <string name="pref_lang_per_app_summary">Her uygulamada son kullanılan dili geri yükle</string>
+    <string name="pref_theme_per_app_title">Uygulamaya göre renklendir</string>
+    <string name="pref_theme_per_app_summary">Seçtiğin temanın üzerine her uygulamaya kendi vurgu rengini ver</string>
     <string name="pref_sym_return_title">Boşluktan sonra harflere dön</string>
     <string name="pref_sym_return_summary">Sembol görünümünde boşluk yazınca harflere dön</string>
     <string name="pref_emoji_return_title">Emojiden sonra klavyeye dön</string>

@@ -553,7 +553,16 @@ class RimBoardService : InputMethodService(),
         autocorrectActive = Prefs.autocorrect(this) && isTextClass && !isPassword &&
             !fieldNoSuggestions && !isEmailOrUri
 
-        kbTheme = Themes.resolve(this, Prefs.theme(this))
+        val themePref = Prefs.theme(this)
+        // Tinted before the photo variant is derived from it, not after: over a
+        // photo the caps become scrims and only the accent survives from the
+        // base theme, so tinting afterwards would be the one case where this
+        // feature did nothing.
+        kbTheme = Themes.resolve(this, themePref).let { base ->
+            if (Prefs.themePerApp(this) && Themes.tintable(themePref))
+                Themes.forApp(base, info.packageName)
+            else base
+        }
         val t = kbTheme ?: return
         val bgDimAlpha = Prefs.bgDimAlpha(this)
         // With a photo, the keys switch to translucent scrims whose polarity

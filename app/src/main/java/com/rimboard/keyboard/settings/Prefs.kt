@@ -57,6 +57,7 @@ object Prefs {
     const val KEY_NUMPAD_LONG = "numpad_long_press"
     const val KEY_TLD = "tld_popups"
     const val KEY_LANG_PER_APP = "lang_per_app"
+    const val KEY_THEME_PER_APP = "theme_per_app"
     const val KEY_SYM_RETURN = "symbols_return"
     const val KEY_EMOJI_RETURN = "emoji_return"
     const val KEY_CLIP_RETURN = "clip_return"
@@ -209,6 +210,14 @@ object Prefs {
     fun numpadLongPress(c: Context) = get(c).getBoolean(KEY_NUMPAD_LONG, false)
     fun tldPopupsOn(c: Context) = get(c).getBoolean(KEY_TLD, true)
     fun langPerApp(c: Context) = get(c).getBoolean(KEY_LANG_PER_APP, false)
+
+    /**
+     * On by default, unlike [langPerApp]: this one only shifts the accent of
+     * whichever theme is already chosen, so the worst case is a colour the
+     * user did not ask for, whereas a remembered *language* silently changes
+     * what typing produces.
+     */
+    fun themePerApp(c: Context) = get(c).getBoolean(KEY_THEME_PER_APP, true)
     fun symbolsReturn(c: Context) = get(c).getBoolean(KEY_SYM_RETURN, true)
     fun emojiReturn(c: Context) = get(c).getBoolean(KEY_EMOJI_RETURN, false)
     fun clipReturn(c: Context) = get(c).getBoolean(KEY_CLIP_RETURN, false)
