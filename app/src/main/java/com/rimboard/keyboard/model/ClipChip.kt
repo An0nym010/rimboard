@@ -17,13 +17,15 @@ package com.rimboard.keyboard.model
 object ClipChip {
 
     /**
-     * How much of the clip to put on the chip.
+     * How much of the clip to put on the chip before cutting it.
      *
-     * The view is one line and ellipsises, so this is not what stops it
-     * overflowing — it is a bound on how much of a copied document is built
-     * into a string on every strip update.
+     * Short on purpose. The chip is a *notice* that something was copied and
+     * can be pasted, not a preview of the document — twelve characters is
+     * enough to recognise your own clipboard and not enough to crowd out the
+     * suggestions beside it. The cut is explicit rather than left to the view's
+     * ellipsising, so the width is the same whatever the theme's text size.
      */
-    const val MAX = 60
+    const val MAX = 12
 
     /**
      * The chip's label: [clip] made fit for one line, or [fallback] where the
@@ -48,6 +50,9 @@ object ClipChip {
         // "endBegin" is a worse preview than no preview.
         val flat = clip.replace(Regex("\\s+"), " ").trim()
         if (flat.isEmpty()) return fallback
+        // "…" rather than three dots: it is one character where three would eat
+        // a quarter of the budget, and it is what every other truncation on the
+        // strip already uses.
         return if (flat.length <= MAX) flat else flat.take(MAX).trimEnd() + "…"
     }
 }

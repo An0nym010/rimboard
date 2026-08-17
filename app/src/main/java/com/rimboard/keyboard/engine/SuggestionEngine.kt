@@ -370,7 +370,15 @@ class SuggestionEngine private constructor(
         if (typed.drop(1).any { it.isUpperCase() }) return emptyList()
         val dict = dictionary(lang, locale)
         val lower = typed.lowercase(locale)
-        if (dict.contains(lower) || userData.isKnown(lower)) return emptyList()
+        // A word the user added by hand is never corrected, whatever it looks
+        // like. The dictionary containing it is a weaker statement: it contains
+        // "hellooo" too, so an elongation still gets corrections — led by the
+        // spelling it is an elongation of.
+        if (userData.isKnown(lower)) return emptyList()
+        val elongated = elongationBase(lower, dict)?.takeIf {
+            !isOffensive(it, lang, locale) && !userData.isBlocked(it)
+        }
+        if (dict.contains(lower) && elongated == null) return emptyList()
         // Bare-letter spelling of an accented word: "cafe" -> "café",
         // "gunaydin" -> "günaydın". High confidence, because the query is not
         // itself a word and folds exactly onto a dictionary entry — so it leads
@@ -422,7 +430,7 @@ class SuggestionEngine private constructor(
         // teh -> the, but it fills in when the dictionary has nothing to say.
         val personal = userData.correctionCandidates(
             lower, Dictionary.maxEditDistance(lower.length))
-        return (listOfNotNull(accented) + fromDict + personal)
+        return (listOfNotNull(elongated, accented) + fromDict + personal)
             .distinct()
             .asSequence()
             // Never correct one word *toward* a corpus bare form: "don" must
@@ -497,6 +505,11 @@ class SuggestionEngine private constructor(
     ): Boolean {
         val lower = typed.lowercase(locale)
         val dict = dictionary(lang, locale)
+        // Asked before the dictionary, because the dictionary says yes: the
+        // frequency lists are built from web text and "hellooo", "helloooo" and
+        // "hellooooo" all clear the cutoff. A word the user has added by hand
+        // still wins — that is an explicit statement about their own spelling.
+        if (!userData.isKnown(lower) && isElongation(lower, dict)) return false
         if (dict.contains(lower) || userData.isKnown(lower)) return true
         if (accentedFormFor(lower, lang, dict) != null) return false
         if (com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) { dict.contains(it) }) {
@@ -505,6 +518,31 @@ class SuggestionEngine private constructor(
         return altLang != null && altLocale != null &&
             dictionary(altLang, altLocale).contains(typed.lowercase(altLocale))
     }
+
+    /**
+     * Whether [lower] is a known word with a letter held down.
+     *
+     * Only counts when collapsing the run lands on a word the dictionary
+     * already has: "hellooo" gives "hello" and is one, while "brrr" gives "br"
+     * and "brr" and, if neither is known, is left to be an ordinary unknown
+     * word rather than being called a misspelling of something.
+     */
+    internal fun isElongation(lower: String, dict: Dictionary): Boolean =
+        elongationBase(lower, dict) != null
+
+    /**
+     * The word [lower] is an elongation of, or null.
+     *
+     * Collapsing gives two candidates — the run cut to one letter and to two —
+     * and both can be real words: "hellooo" could be "hello" or "helloo", and
+     * "coool" could be "col" or "cool". Frequency decides, because the common
+     * spelling is overwhelmingly the intended one and the rare one is usually
+     * the same corpus noise that put the elongation in the list to begin with.
+     */
+    internal fun elongationBase(lower: String, dict: Dictionary): String? =
+        com.rimboard.keyboard.model.Elongation.collapsed(lower)
+            .filter { dict.contains(it) }
+            .maxByOrNull { dict.frequency(it) }
 
     /**
      * Additive score bonus for a word the preceding context predicts, fading
@@ -606,6 +644,12 @@ class SuggestionEngine private constructor(
         }
         for ((w, f) in dict.byPrefix(lower, 12)) {
             if (userData.isBlocked(w)) continue
+            // "hello" must not offer "hellooo" and "helloooo" as completions;
+            // they are in the corpus but they are not spellings anyone wants
+            // offered. Skipped unless that is what is being typed, since
+            // suppressing a completion of the very word in the field would
+            // leave the strip arguing with what is already on screen.
+            if (w != lower && isElongation(w, dict)) continue
             // The corpus's apostrophe-less "dont"/"youre" sit in the dictionary
             // with huge frequencies; without this they would be offered as
             // completions over the real spelling. The contraction restores the

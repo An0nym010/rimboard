@@ -61,6 +61,15 @@ class ClipChipTest {
     }
 
     @Test
+    fun `a long clip is cut at twelve characters`() {
+        // The chip is a notice that something was copied, not a preview of it:
+        // long enough to recognise your own clipboard, short enough to leave
+        // the suggestions beside it room.
+        assertEquals("QWERTYUIOPAS…", label("QWERTYUIOPASDFGHJKL"))
+        assertEquals("ZXCVBNMASDFG…", label("ZXCVBNMASDFGHJKL"))
+    }
+
+    @Test
     fun `a clip exactly at the limit is not marked as cut`() {
         val exact = "y".repeat(ClipChip.MAX)
         assertEquals(exact, label(exact))

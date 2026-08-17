@@ -4,6 +4,27 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**"hellooo" is not a word, whatever the dictionary says**
+- It is in the shipped English list, along with "helloooo" and "hellooooo" —
+  the frequency lists are built from web text, where people write that way
+  often enough to clear the cutoff. So the keyboard called them correctly
+  spelled, which is why marking an unrecognised word worked on some words and
+  not others: whether a held-down letter was noticed depended on whether that
+  particular elongation had reached the corpus. Nothing was random, but from
+  the outside it looked it.
+- A word now counts as an elongation only when collapsing the run lands on a
+  word the dictionary already has, and that word leads the suggestions:
+  `hellooo` → `hello`, `coool` → `cool`. "brrr" collapses to "brr", so it is
+  offered that rather than being called a misspelling of "berry". A word you
+  added by hand is never touched.
+- Elongations are also no longer offered as completions, so typing "hello"
+  stops suggesting "hellooo".
+
+**The copied-text chip is a notice, not a word**
+- Cut to twelve characters — `QWERTYUIOPAS…` — and drawn as an outlined pill
+  in the accent colour, so it reads as something you copied elsewhere rather
+  than as the keyboard's guess at what you are typing.
+
 **Spell-check answers could be attributed to the wrong word**
 - The spell checker returned one shared object for every word it declines to
   judge — a URL, a version number, an acronym. `SuggestionsInfo` reads like an

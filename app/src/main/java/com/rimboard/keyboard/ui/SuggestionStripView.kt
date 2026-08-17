@@ -104,6 +104,12 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
+            // Drawn as a bordered pill rather than as plain text, because it is
+            // not a suggestion: tapping it inserts something the user copied
+            // somewhere else, and nothing about a bare word on the strip says
+            // that. The outline is what makes it read as an offer rather than
+            // as the keyboard's guess at what they are typing.
+            setPadding(dp(12), dp(4), dp(12), dp(4))
             visibility = GONE
             setOnClickListener { listener?.onClipboardPasteRequested() }
             setOnLongClickListener {
@@ -244,7 +250,14 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         for (i in 0 until toolRow.childCount) {
             (toolRow.getChildAt(i) as? IconView)?.color = t.stripText
         }
-        clipChip.setTextColor(t.stripText)
+        clipChip.setTextColor(t.accent)
+        // Accent outline over the theme's own key colour: visible on light and
+        // dark alike, and it moves with the per-app tint like everything else.
+        clipChip.background = GradientDrawable().apply {
+            cornerRadius = dp(14).toFloat()
+            setColor(t.keyBg)
+            setStroke(dp(1).coerceAtLeast(1), t.accent)
+        }
         expandBtn.color = t.accent
         refreshSlotColors()
     }

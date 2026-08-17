@@ -511,6 +511,10 @@ class Dictionary(
     private fun floorFor(half: String): Int =
         if (half.length == 1) SPLIT_SINGLE_MIN_FREQ else SPLIT_MIN_FREQ
 
+    /** Corpus frequency of [wordLower], or 0. Used to choose between two
+     *  spellings that are both in the list — see [SuggestionEngine.elongationBase]. */
+    internal fun frequency(wordLower: String): Int = freqOf(wordLower)
+
     private fun freqOf(word: String): Int {
         var lo = 0
         var hi = words.size
