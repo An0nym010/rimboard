@@ -276,4 +276,9 @@
     <string name="theme_crimson">Carmesim</string>
     <string name="pref_glide_delete_title">Deslizar para apagar</string>
     <string name="pref_glide_delete_summary">Apague palavras deslizando para a esquerda a partir da tecla de apagar</string>
+    <string name="pref_live_bg_title">Fundo animado</string>
+    <string name="pref_live_bg_summary">Desenhado atrás das teclas. Desativado por padrão porque anima mesmo parado.</string>
+    <string name="live_bg_none">Nenhum</string>
+    <string name="live_bg_stars">Céu noturno</string>
+    <string name="live_bg_particles">Partículas</string>
 </resources>

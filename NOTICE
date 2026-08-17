@@ -3,6 +3,48 @@ RimBoard
 
 RimBoard source code is licensed under the MIT License (see LICENSE).
 
+Third-party code
+----------------
+
+The "Particles" live background
+(app/src/main/java/com/rimboard/keyboard/ui/ParticleGrid.kt) implements the
+algorithm of:
+
+  30,000 Particles by Justin Windle (soulwire)
+  https://codepen.io/soulwire/pen/DdGRYG
+
+  Public Pens on CodePen are MIT licensed
+  (https://blog.codepen.io/documentation/licensing/).
+
+  Copyright (c) Justin Windle
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+Modifications made for RimBoard: rewritten in Kotlin against Android's Canvas;
+particle count derived from the view size at dp spacing rather than a fixed
+30,000; positions held in one reused FloatArray instead of allocating an
+ImageData per frame; the per-frame constants scaled to elapsed time so the
+motion is the same at 60Hz and 120Hz; and the pointer replaced by the position
+of the last key press, with no idle animation.
+
+The "Night sky" live background (ui/Starfield.kt) is original to RimBoard.
+
 Third-party data
 ----------------
 

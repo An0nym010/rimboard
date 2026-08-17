@@ -278,4 +278,9 @@
     <string name="theme_crimson">Багровая</string>
     <string name="pref_glide_delete_title">Свайп для удаления</string>
     <string name="pref_glide_delete_summary">Удаляйте слова, проводя влево от клавиши удаления</string>
+    <string name="pref_live_bg_title">Живой фон</string>
+    <string name="pref_live_bg_summary">Рисуется за клавишами. По умолчанию выключен, так как анимация идёт даже без ввода.</string>
+    <string name="live_bg_none">Нет</string>
+    <string name="live_bg_stars">Ночное небо</string>
+    <string name="live_bg_particles">Частицы</string>
 </resources>

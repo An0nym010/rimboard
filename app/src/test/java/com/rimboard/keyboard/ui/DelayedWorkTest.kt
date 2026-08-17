@@ -55,7 +55,12 @@ class DelayedWorkTest {
         val offenders = mutableListOf<String>()
         for (f in kotlinFiles()) {
             val text = f.readText()
-            if (!text.contains("postDelayed")) continue
+            // postOnAnimation counts too, and is worse when it goes wrong: a
+            // frame callback reschedules itself, so a detached view holding one
+            // does not leak a single pending runnable, it keeps drawing
+            // forever. This scan originally knew only about postDelayed, and
+            // missed the live background entirely.
+            if (!text.contains("postDelayed") && !text.contains("postOnAnimation")) continue
             // Only views can be detached; a plain class holding a Handler is
             // someone else's responsibility to shut down (see UserData).
             if (!text.contains("fun onDetachedFromWindow")) {

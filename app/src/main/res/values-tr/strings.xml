@@ -286,4 +286,9 @@
     <string name="theme_crimson">Kızıl</string>
     <string name="pref_glide_delete_title">Kaydırarak sil</string>
     <string name="pref_glide_delete_summary">Silme tuşundan sola kaydırarak kelimeleri sil</string>
+    <string name="pref_live_bg_title">Canlı arka plan</string>
+    <string name="pref_live_bg_summary">Tuşların arkasına çizilir. Hiçbir şey yapılmasa da çizim sürdüğü için varsayılan olarak kapalı.</string>
+    <string name="live_bg_none">Yok</string>
+    <string name="live_bg_stars">Gece göğü</string>
+    <string name="live_bg_particles">Parçacıklar</string>
 </resources>

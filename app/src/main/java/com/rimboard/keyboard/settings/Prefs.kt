@@ -61,6 +61,7 @@ object Prefs {
     const val KEY_THEME_PER_APP = "theme_per_app"
     const val KEY_APP_COLOR_SOURCE = "app_color_source"
     const val KEY_TINT_STRENGTH = "tint_strength"
+    const val KEY_LIVE_BG = "live_background"
     const val KEY_SYM_RETURN = "symbols_return"
     const val KEY_EMOJI_RETURN = "emoji_return"
     const val KEY_CLIP_RETURN = "clip_return"
@@ -250,6 +251,17 @@ object Prefs {
      * started, at a strength low enough that the feature was indistinguishable
      * from being switched off — which is how it was reported.
      */
+    /**
+     * The animated background: `none` or `stars`.
+     *
+     * `none` by default. It is the only thing in this app that draws while
+     * nobody is touching anything, and a keyboard is on screen for hours a
+     * day — an always-on animation is a battery cost to opt into, not one to
+     * discover.
+     */
+    fun liveBackground(c: Context): String =
+        get(c).getString(KEY_LIVE_BG, "none") ?: "none"
+
     fun tintStrength(c: Context): Float =
         when (get(c).getString(KEY_TINT_STRENGTH, "medium")) {
             "subtle" -> 0.04f

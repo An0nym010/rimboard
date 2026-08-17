@@ -56,6 +56,18 @@
         <item>tr</item>
     </string-array>
 
+    <string-array name="live_bg_entries">
+        <item>@string/live_bg_none</item>
+        <item>@string/live_bg_stars</item>
+        <item>@string/live_bg_particles</item>
+    </string-array>
+
+    <string-array name="live_bg_values">
+        <item>none</item>
+        <item>stars</item>
+        <item>particles</item>
+    </string-array>
+
     <string-array name="tint_strength_entries">
         <item>@string/tint_subtle</item>
         <item>@string/tint_medium</item>

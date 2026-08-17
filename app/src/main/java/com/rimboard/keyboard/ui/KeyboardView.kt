@@ -41,7 +41,9 @@ class KeyboardView(context: Context) : View(context) {
         fun onKeyRepeated(key: Key)
         fun onPopupKeySelected(key: Key)
         fun onCursorMove(steps: Int)
-        fun onKeyDownFeedback(key: Key)
+        /** [x], [y] are in this view's coordinates: where the finger landed,
+         *  for anything drawn behind the keys that reacts to it. */
+        fun onKeyDownFeedback(key: Key, x: Float, y: Float)
         fun onLanguageSwipe(direction: Int)
         fun onHideKeyboard()
         fun onSpaceLongPress()
@@ -933,7 +935,7 @@ class KeyboardView(context: Context) : View(context) {
         val kb = arbitrate(keyAt(x, y) ?: return, x, y)
         val ps = PointerState(kb, x, y)
         pointers.put(pid, ps)
-        listener?.onKeyDownFeedback(kb.key)
+        listener?.onKeyDownFeedback(kb.key, x, y)
         if (previewEnabled && kb.key.type == KeyType.CHARACTER) previewKb = kb
 
         if (kb.key.repeatable) {

@@ -276,4 +276,9 @@
     <string name="theme_crimson">Cramoisi</string>
     <string name="pref_glide_delete_title">Glisser pour supprimer</string>
     <string name="pref_glide_delete_summary">Supprimez des mots en glissant vers la gauche depuis la touche retour</string>
+    <string name="pref_live_bg_title">Fond animé</string>
+    <string name="pref_live_bg_summary">Dessiné derrière les touches. Désactivé par défaut, car il s&#8217;anime même sans rien faire.</string>
+    <string name="live_bg_none">Aucun</string>
+    <string name="live_bg_stars">Ciel nocturne</string>
+    <string name="live_bg_particles">Particules</string>
 </resources>

@@ -41,6 +41,14 @@
         android:title="@string/pref_custom_colors_title"
         android:summary="@string/pref_custom_colors_summary" />
 
+    <ListPreference
+        android:key="live_background"
+        android:title="@string/pref_live_bg_title"
+        android:summary="@string/pref_live_bg_summary"
+        android:entries="@array/live_bg_entries"
+        android:entryValues="@array/live_bg_values"
+        android:defaultValue="none" />
+
     <Preference
         android:key="bg_pick"
         android:icon="@drawable/ic_pref_image"

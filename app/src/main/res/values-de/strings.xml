@@ -276,4 +276,9 @@
     <string name="theme_crimson">Karminrot</string>
     <string name="pref_glide_delete_title">Wischen zum Löschen</string>
     <string name="pref_glide_delete_summary">Vom Löschen-Tasten nach links wischen, um Wörter zu löschen</string>
+    <string name="pref_live_bg_title">Lebendiger Hintergrund</string>
+    <string name="pref_live_bg_summary">Animiert, hinter den Tasten. Standardmäßig aus, weil er auch ohne Eingabe zeichnet.</string>
+    <string name="live_bg_none">Keiner</string>
+    <string name="live_bg_stars">Nachthimmel</string>
+    <string name="live_bg_particles">Partikel</string>
 </resources>

@@ -449,4 +449,9 @@ Your search words or selected text go to the service that answers them. Nothing 
     <string name="panel_close" tools:ignore="MissingTranslation">Back to keyboard</string>
     <string name="gif_close" tools:ignore="MissingTranslation">Back to keyboard</string>
     <string name="gif_attribution" translatable="false">Powered by KLIPY</string>
+    <string name="pref_live_bg_title">Live background</string>
+    <string name="pref_live_bg_summary">Animated, drawn behind the keys. Off by default because it draws while nothing is happening.</string>
+    <string name="live_bg_none">None</string>
+    <string name="live_bg_stars">Night sky</string>
+    <string name="live_bg_particles">Particles</string>
 </resources>

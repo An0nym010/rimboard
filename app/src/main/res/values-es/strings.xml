@@ -276,4 +276,9 @@
     <string name="theme_crimson">Carmesí</string>
     <string name="pref_glide_delete_title">Deslizar para borrar</string>
     <string name="pref_glide_delete_summary">Borra palabras deslizando a la izquierda desde la tecla de borrado</string>
+    <string name="pref_live_bg_title">Fondo animado</string>
+    <string name="pref_live_bg_summary">Se dibuja detrás de las teclas. Desactivado por defecto porque se anima sin que hagas nada.</string>
+    <string name="live_bg_none">Ninguno</string>
+    <string name="live_bg_stars">Cielo nocturno</string>
+    <string name="live_bg_particles">Partículas</string>
 </resources>

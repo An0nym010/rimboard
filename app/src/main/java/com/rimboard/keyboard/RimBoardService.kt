@@ -670,6 +670,8 @@ class RimBoardService : InputMethodService(),
         translateView?.applyTheme(panelTheme)
         rootView?.setBackgroundColor(t.background)
         rootView?.dimAlpha = bgDimAlpha
+        rootView?.starColor = t.keyText
+        rootView?.liveMode = Prefs.liveBackground(this)
         window?.window?.let { w ->
             w.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
             w.navigationBarColor = t.background
@@ -983,11 +985,29 @@ class RimBoardService : InputMethodService(),
         return best
     }
 
-    override fun onKeyDownFeedback(key: Key) {
+    /** Scratch for [onKeyDownFeedback]; reused so a keystroke allocates nothing. */
+    private val locKeyboard = IntArray(2)
+    private val locRoot = IntArray(2)
+
+    override fun onKeyDownFeedback(key: Key, x: Float, y: Float) {
         if (Prefs.haptic(this)) {
             keyboardView?.let { Haptics.tap(it) }
         }
         if (Prefs.sound(this)) playSound(key.code)
+        // The live background sits behind both the strip and the keys, so a
+        // touch point from the keyboard has to be moved into its coordinates.
+        // Measured rather than assumed: the keyboard is not always the same
+        // distance down — the strip changes height, and a picker can open
+        // above it.
+        val root = rootView ?: return
+        if (!root.starsEnabled) return
+        val kv = keyboardView ?: return
+        kv.getLocationInWindow(locKeyboard)
+        root.getLocationInWindow(locRoot)
+        root.nudgeStars(
+            x + (locKeyboard[0] - locRoot[0]),
+            y + (locKeyboard[1] - locRoot[1])
+        )
     }
 
     private fun playSound(code: Int) {

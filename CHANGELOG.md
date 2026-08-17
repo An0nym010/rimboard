@@ -4,6 +4,21 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Live backgrounds**
+- **Theme → Live background**: a drifting night sky, or a grid of particles
+  that scatters from each key press and springs back. Both react to where you
+  actually pressed, so nothing intercepts a touch and typing is untouched.
+- Off by default. It is the only thing in the app that draws while nobody is
+  doing anything, and a keyboard is on screen for hours a day.
+- The particle grid is Justin Windle's "30,000 Particles" algorithm, MIT via
+  CodePen and attributed in NOTICE. Adapted rather than copied: the count is
+  derived from the view size instead of a fixed 30,000, the positions live in
+  one reused array rather than allocating an image buffer every frame, the
+  motion runs on a fixed timestep so a 120Hz phone matches a 60Hz one, and it
+  stops drawing once it has come to rest.
+- Not drawn when a background photo is set; two moving backgrounds behind the
+  same keys is one too many.
+
 **"Strong" vibration was the weakest**
 - Support for the platform's predefined effects is per-effect, so a phone that
   implements `EFFECT_HEAVY_CLICK` but not `EFFECT_TICK` or `EFFECT_CLICK` got a

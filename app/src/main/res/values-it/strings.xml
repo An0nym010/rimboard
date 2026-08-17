@@ -276,4 +276,9 @@
     <string name="theme_crimson">Cremisi</string>
     <string name="pref_glide_delete_title">Scorri per eliminare</string>
     <string name="pref_glide_delete_summary">Elimina parole scorrendo a sinistra dal tasto di cancellazione</string>
+    <string name="pref_live_bg_title">Sfondo animato</string>
+    <string name="pref_live_bg_summary">Disegnato dietro i tasti. Disattivato per impostazione predefinita perché si anima anche da fermo.</string>
+    <string name="live_bg_none">Nessuno</string>
+    <string name="live_bg_stars">Cielo notturno</string>
+    <string name="live_bg_particles">Particelle</string>
 </resources>
