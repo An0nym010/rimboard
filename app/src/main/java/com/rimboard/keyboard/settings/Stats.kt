@@ -42,8 +42,15 @@ object Stats {
     fun key(c: Context) {
         load(c)
         keys++
-        val now = System.currentTimeMillis()
-        if (lastKeyAt != 0L && now - lastKeyAt < 3000) activeMs += now - lastKeyAt
+        // A monotonic clock, because this is a *gap between two keystrokes* and
+        // wall-clock time can move backwards — an automatic correction, or the
+        // user changing the clock. A negative gap is under the 3s threshold, so
+        // it was added: the total time spent typing could go down, and did so
+        // silently, since nothing about the number says it is impossible.
+        // `since` below stays wall-clock, because a date is what it is.
+        val now = android.os.SystemClock.elapsedRealtime()
+        val gap = now - lastKeyAt
+        if (lastKeyAt != 0L && gap in 0 until 3000) activeMs += gap
         lastKeyAt = now
         dirty = true
     }

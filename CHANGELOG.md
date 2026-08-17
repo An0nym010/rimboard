@@ -4,6 +4,22 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Spell-check answers could be attributed to the wrong word**
+- The spell checker returned one shared object for every word it declines to
+  judge — a URL, a version number, an acronym. `SuggestionsInfo` reads like an
+  immutable value and is not one: the framework calls `setCookieAndSequence` on
+  whatever a session returns, tagging the answer with the word it belongs to,
+  and matches answers back to words by that tag. A batch of words therefore
+  came back as the same object carrying whichever tag was written last, and
+  sessions run on binder threads, so it was being mutated from more than one at
+  a time.
+
+**Typing time could go backwards**
+- The active-typing total measured the gap between keystrokes with wall-clock
+  time, which is not monotonic. A clock correction moving backwards produced a
+  negative gap, which is under the three-second threshold and so was added —
+  quietly reducing the recorded total, and taking words-per-minute with it.
+
 **The paste chip shows what you copied**
 - It said "Paste", which tells you an action is available but not whether it is
   the thing you meant. It now shows the text itself, flattened to one line and

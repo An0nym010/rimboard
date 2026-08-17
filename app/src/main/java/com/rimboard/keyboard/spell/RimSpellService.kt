@@ -75,6 +75,26 @@ class RimSpellService : SpellCheckerService() {
 
     override fun createSession(): Session = RimSession(engine, this)
 
+    companion object {
+        /**
+         * "No opinion": neither in the dictionary nor a typo, so the framework
+         * draws nothing — the right answer for a URL or a version number.
+         *
+         * A new instance every time, and that is the whole point. This was a
+         * shared `val`, which looked like an obvious saving on an immutable
+         * constant. [SuggestionsInfo] is not immutable: the framework calls
+         * `setCookieAndSequence` on whatever a session returns, to tag the
+         * answer with the word it belongs to. `onGetSuggestionsMultiple` walks
+         * a batch of words calling this method and tagging each result in turn,
+         * so returning one object for every unjudged word in a batch left them
+         * all as the same object, carrying whichever cookie was written last —
+         * and the framework matches answers to words by that cookie. Sessions
+         * also run on binder threads, so the shared instance was being mutated
+         * from several at once.
+         */
+        internal fun notJudged() = SuggestionsInfo(0, null)
+    }
+
     /**
      * The store owns a background thread. Nothing here ever writes — this
      * service is read-only by design — so there is nothing to flush, but the
@@ -125,7 +145,7 @@ class RimSpellService : SpellCheckerService() {
 
         override fun onGetSuggestions(textInfo: TextInfo?, suggestionsLimit: Int): SuggestionsInfo {
             val word = textInfo?.text.orEmpty()
-            if (!worthChecking(word)) return NOT_JUDGED
+            if (!worthChecking(word)) return notJudged()
 
             if (engine.acceptedWord(word, lang, loc, altLang, altLoc)) {
                 return SuggestionsInfo(SuggestionsInfo.RESULT_ATTR_IN_THE_DICTIONARY, null)
@@ -180,11 +200,6 @@ class RimSpellService : SpellCheckerService() {
         }
 
         private companion object {
-            /**
-             * No attributes at all: neither "in the dictionary" nor "typo".
-             * The framework draws nothing, which is what should happen to a URL.
-             */
-            val NOT_JUDGED = SuggestionsInfo(0, null)
 
             /** Two-letter words are too easily "corrected" into something else. */
             const val MIN_LENGTH = 3
