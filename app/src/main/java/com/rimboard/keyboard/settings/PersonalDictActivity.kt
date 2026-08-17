@@ -16,7 +16,7 @@ import com.rimboard.keyboard.R
 import com.rimboard.keyboard.engine.UserData
 
 /** Personal dictionary: view, add and remove learned words. */
-class PersonalDictActivity : AppCompatActivity() {
+class PersonalDictActivity : LocalisedActivity() {
 
     private lateinit var userData: UserData
     private lateinit var adapterImpl: Adapter
@@ -26,9 +26,6 @@ class PersonalDictActivity : AppCompatActivity() {
     /** Whether the asynchronous load has landed, so "empty" means anything. */
     private var loaded = false
 
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(L10n.wrap(newBase))
-    }
 
     /**
      * The rules a hand-added word is folded to lower case with.

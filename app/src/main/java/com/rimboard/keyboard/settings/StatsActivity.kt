@@ -17,7 +17,7 @@ import java.util.Date
 import java.util.Locale
 
 /** Local typing statistics. Everything stays on this device. */
-class StatsActivity : AppCompatActivity() {
+class StatsActivity : LocalisedActivity() {
 
     private lateinit var container: LinearLayout
 
@@ -36,9 +36,6 @@ class StatsActivity : AppCompatActivity() {
             if (it.isEmpty) Locale.getDefault() else it[0]
         }
 
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(L10n.wrap(newBase))
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -24,7 +24,7 @@ import com.rimboard.keyboard.R
 import com.rimboard.keyboard.engine.UserData
 import java.io.File
 
-class SettingsActivity : AppCompatActivity() {
+class SettingsActivity : LocalisedActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menu.add(0, 1, 0, R.string.ui_lang_title)
@@ -50,9 +50,6 @@ class SettingsActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(L10n.wrap(newBase))
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -9,14 +9,11 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.rimboard.keyboard.R
-import com.rimboard.keyboard.settings.L10n
+import com.rimboard.keyboard.settings.LocalisedActivity
 import com.rimboard.keyboard.settings.SettingsActivity
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : LocalisedActivity() {
 
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(L10n.wrap(newBase))
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

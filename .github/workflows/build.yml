@@ -10,7 +10,20 @@ on:
     branches: [ main ]
     tags: [ 'v*' ]
   pull_request:
+  # The two inputs below are what turn "Run workflow" into a publish button:
+  # GitHub renders a boolean input as a checkbox and a string input as a field,
+  # so a release can be cut from the Actions tab without tagging from a
+  # computer. Tag pushes still publish on their own, exactly as before.
   workflow_dispatch:
+    inputs:
+      publish_release:
+        description: 'Attach the APKs to a GitHub release'
+        type: boolean
+        default: false
+      release_tag:
+        description: 'Tag for that release, e.g. v2.8.1 (v2.8.1-rc1 for a test build)'
+        type: string
+        default: ''
 
 permissions:
   contents: write
@@ -32,6 +45,41 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # One place decides whether this run publishes and under what tag, so the
+      # four steps that care cannot drift apart. A tag push publishes itself; a
+      # manual run publishes only when the box is ticked, and then the tag has
+      # to be given, because a release with no name is not something to guess
+      # at.
+      - name: Decide whether this build publishes a release
+        id: rel
+        run: |
+          if [ "${{ startsWith(github.ref, 'refs/tags/') }}" = "true" ]; then
+            tag="$GITHUB_REF_NAME"
+          elif [ "${{ inputs.publish_release }}" = "true" ]; then
+            tag="${{ inputs.release_tag }}"
+            if [ -z "$tag" ]; then
+              echo "::error::Publish was ticked but no tag was given. Re-run with a tag such as v2.8.1."
+              exit 1
+            fi
+            case "$tag" in
+              v*) ;;
+              *) echo "::error::A release tag has to start with v, e.g. v2.8.1. Got '$tag'."; exit 1 ;;
+            esac
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "tag=" >> "$GITHUB_OUTPUT"
+            echo "not publishing a release"
+            exit 0
+          fi
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          # A hyphen marks a test build throughout this file.
+          case "$tag" in
+            *-*) echo "prerelease=true" >> "$GITHUB_OUTPUT" ;;
+            *)   echo "prerelease=false" >> "$GITHUB_OUTPUT" ;;
+          esac
+          echo "publishing $tag"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -112,8 +160,12 @@ jobs:
             # v2.8.0-rc1 is allowed through and v2.8.0 is not. Someone
             # installing a finished release should not be trusting a key that
             # ships with every copy of the Android SDK.
-            if [ "${{ startsWith(github.ref, 'refs/tags/') && !contains(github.ref_name, '-') }}" = "true" ]; then
-              echo "::error::a release tag must not be signed with the debug key. Set the KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS and KEY_PASSWORD secrets, or tag it as a pre-release (v2.8.0-rc1)."
+            # Applies to the manual publish too, and deliberately: a button
+            # that can put a debug-signed build on the releases page under a
+            # plain version number would be a way around this rule rather than
+            # a convenience.
+            if [ "${{ steps.rel.outputs.publish == 'true' && steps.rel.outputs.prerelease == 'false' }}" = "true" ]; then
+              echo "::error::a release must not be signed with the debug key. Set the KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS and KEY_PASSWORD secrets, or publish it as a pre-release (v2.8.0-rc1)."
               exit 1
             fi
           fi
@@ -123,15 +175,17 @@ jobs:
       # them, and "app-online-release.apk" says neither which app nor which
       # build it is.
       - name: Name the release APKs
-        if: startsWith(github.ref, 'refs/tags/')
+        if: steps.rel.outputs.publish == 'true'
         run: |
-          v="${GITHUB_REF_NAME#v}"
+          v="${TAG#v}"
           mkdir -p release
           cp app/build/outputs/apk/offline/release/app-offline-release.apk \
              "release/RimBoard-$v-offline.apk"
           cp app/build/outputs/apk/online/release/app-online-release.apk \
              "release/RimBoard-$v-online.apk"
           ls -l release
+        env:
+          TAG: ${{ steps.rel.outputs.tag }}
 
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
@@ -148,14 +202,18 @@ jobs:
       # A release page is also the only route onto a phone that works from a
       # phone: Actions artifacts are desktop-only in the GitHub web UI and are
       # served as zips, which Android cannot install.
-      - name: Attach APKs to release (tags only)
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Attach APKs to the release
+        if: steps.rel.outputs.publish == 'true'
         uses: softprops/action-gh-release@v2
         with:
+          # Named explicitly rather than taken from the ref, because a manual
+          # run is not on a tag; the action creates the tag when it does not
+          # exist yet.
+          tag_name: ${{ steps.rel.outputs.tag }}
           # A hyphen in the tag marks a test build — v2.8.0-rc1 — and those are
           # published as pre-releases so nobody arriving at the repository is
           # handed one as though it were finished.
-          prerelease: ${{ contains(github.ref_name, '-') }}
+          prerelease: ${{ steps.rel.outputs.prerelease == 'true' }}
           generate_release_notes: true
           files: release/*.apk
           body: |
@@ -171,7 +229,7 @@ jobs:
             On-screen keyboard**. Full instructions, and how to check what you
             downloaded, are in the
             [README](https://github.com/An0nym010/rimboard#installing).
-            ${{ contains(github.ref_name, '-') && '
+            ${{ steps.rel.outputs.prerelease == 'true' && '
             ---
 
             > **Test build.** It is signed with the Android debug key, which

@@ -4,6 +4,22 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Changing the interface language reaches screens already open**
+- Every activity was built for the right language and none of them was rebuilt
+  when the choice changed. Only the screen holding the picker recreated itself;
+  everything else was already in the back stack, built for the old locale, so
+  pressing Back returned to the setup screen still in the previous language —
+  until the app was killed. Each activity now remembers which language it was
+  built for and rebuilds itself when it comes back to the front, so it holds
+  for a stack of any depth and for screens not written yet.
+
+**A publish button for releases**
+- The build workflow could only attach APKs to a release when a tag was
+  pushed, which needs a computer. "Run workflow" in the Actions tab now offers
+  a checkbox and a tag field, so a release can be cut from a phone. The rule
+  that a plain version number may not be debug-signed applies to it too — a
+  button that could bypass that would be a hole rather than a convenience.
+
 **The per-app tint is now something you can see**
 - It had been running all along and was tuned to invisibility: each surface
   was blended six percent toward the accent, which on a dark theme is nothing

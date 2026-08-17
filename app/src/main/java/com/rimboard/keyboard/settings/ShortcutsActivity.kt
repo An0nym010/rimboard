@@ -15,15 +15,12 @@ import androidx.appcompat.app.AppCompatActivity
 import com.rimboard.keyboard.R
 
 /** Manage text shortcuts: short codes that expand into full phrases. */
-class ShortcutsActivity : AppCompatActivity() {
+class ShortcutsActivity : LocalisedActivity() {
 
     private lateinit var adapterImpl: Adapter
     private lateinit var emptyView: TextView
     private var items: List<Pair<String, String>> = emptyList()
 
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(L10n.wrap(newBase))
-    }
 
     /**
      * The rules a trigger is folded to lower case with — the language being

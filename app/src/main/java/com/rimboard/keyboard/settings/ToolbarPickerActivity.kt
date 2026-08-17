@@ -31,7 +31,7 @@ import com.rimboard.keyboard.ui.ToolCatalog
  * from the bottom has to scroll mid-gesture) and it owns the touch stream, so
  * dragging cannot fight the scroll container or the row's own checkbox.
  */
-class ToolbarPickerActivity : AppCompatActivity() {
+class ToolbarPickerActivity : LocalisedActivity() {
 
     /** Every tool, in display order; the checked ones are what get pinned. */
     private val order = ArrayList<String>()
@@ -42,9 +42,6 @@ class ToolbarPickerActivity : AppCompatActivity() {
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(L10n.wrap(newBase))
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

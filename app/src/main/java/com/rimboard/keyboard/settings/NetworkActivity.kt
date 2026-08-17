@@ -32,7 +32,7 @@ import java.util.Locale
  * constant, and the verdict at the top is derived from a connection RimBoard
  * actually attempts while the user watches — see [NetProbe].
  */
-class NetworkActivity : AppCompatActivity() {
+class NetworkActivity : LocalisedActivity() {
 
     private lateinit var container: LinearLayout
     private var report: NetProbe.Report? = null
@@ -43,9 +43,6 @@ class NetworkActivity : AppCompatActivity() {
             if (it.isEmpty) Locale.getDefault() else it[0]
         }
 
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(L10n.wrap(newBase))
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -43,14 +43,11 @@ import java.io.ByteArrayInputStream
  * this shape passes through roughly unchanged in portrait; landscape reframes
  * it, which is the same compromise every keyboard makes.
  */
-class BackgroundCropActivity : AppCompatActivity() {
+class BackgroundCropActivity : LocalisedActivity() {
 
     private lateinit var crop: CropView
     private var saving = false
 
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(L10n.wrap(newBase))
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
