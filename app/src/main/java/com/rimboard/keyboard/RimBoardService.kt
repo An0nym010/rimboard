@@ -1363,6 +1363,14 @@ class RimBoardService : InputMethodService(),
                 s.showSuggestions(listOf(it, "", ""), -1)
                 return
             }
+            // Nothing in the field at all: no word to suggest from and none to
+            // suggest after, so the strip carries nothing. Openers used to
+            // appear here, which meant an untouched field already had three
+            // words in it before anything had been typed.
+            if (fieldIsEmpty()) {
+                maybeClipboardOrEmpty(s)
+                return
+            }
             // An empty context is only a prediction key at a real sentence
             // start; mid-sentence it means "nothing to go on", and offering
             // openers there would be worse than offering nothing.
@@ -1411,6 +1419,10 @@ class RimBoardService : InputMethodService(),
         if (shortcutExp != null) {
             shownWords = listOf(shortcutExp) + shownWords.take(2)
             shownHi = 0
+        } else {
+            val arranged = arrangeUnknownWord(res)
+            shownWords = arranged.first
+            shownHi = arranged.second
         }
         // The emoji has a chip of its own beside the words, so offering one
         // never costs a suggestion. Blocked emoji stay blocked: long-pressing
@@ -1421,6 +1433,49 @@ class RimBoardService : InputMethodService(),
                 ?.takeIf { !userData.isBlocked(it) }
         else null
         s.showSuggestions(shownWords, shownHi, emojiSug)
+    }
+
+    /**
+     * The word the strip is currently showing in quotes, and what it really is.
+     *
+     * The quotes are decoration — the chip reads `"hellooo"` and must commit
+     * `hellooo`. Kept as a pair rather than parsed back off the chip, because
+     * stripping quotation marks from a picked word would also strip them from
+     * someone who genuinely typed a quoted word.
+     */
+    private var quotedChip: Pair<String, String>? = null
+
+    /** Wraps a word for display as "not a word I know". */
+    private fun quoted(word: String) = "“$word”"
+
+    /**
+     * Puts an unrecognised word in the middle of the strip, in quotes, instead
+     * of at the front bare.
+     *
+     * Slot 0 was always the verbatim word, which meant an unknown word looked
+     * exactly like a known one and sat where the best suggestion should be. Now
+     * it is marked as unrecognised and moved off the front, so the two
+     * suggestions either side of it are the ones being offered — and the word
+     * itself is still there to tap, which is what stops the keyboard from
+     * arguing with someone typing a name.
+     *
+     * With nothing to suggest at all — no completion, no correction, no
+     * near-miss — the word is alone on the strip. That is the honest display
+     * for something like "mndsnfms": there is no candidate to rank against it,
+     * and filling the other two slots would mean inventing something. Note this
+     * is decided by *having no candidates*, not by judging the word random;
+     * the keyboard has no business declaring what is and is not a word.
+     */
+    private fun arrangeUnknownWord(res: com.rimboard.keyboard.engine.SuggestionsResult):
+        Pair<List<String>, Int> {
+        val verbatim = res.items.firstOrNull()
+        val known = verbatim != null &&
+            engine.acceptedWord(verbatim, effLang(), effLocale(), effAlt(), effAltLocale())
+        val out = com.rimboard.keyboard.model.StripLayout.arrange(
+            res.items, res.autocorrectIndex, known, ::quoted
+        )
+        quotedChip = out.quotedWord?.let { quoted(it) to it }
+        return out.words to out.highlight
     }
 
     /** Domains offered after "@" in an email field, so a pick is recognised. */
@@ -1449,6 +1504,14 @@ class RimBoardService : InputMethodService(),
         domainTyped = after.length
         s.showSuggestions((hits + listOf("", "", "")).take(3), -1)
         return true
+    }
+
+    /** Whether the field holds no text at all, either side of the cursor. */
+    private fun fieldIsEmpty(): Boolean {
+        val ic = currentInputConnection ?: return false
+        val before = ic.getTextBeforeCursor(1, 0)
+        val after = ic.getTextAfterCursor(1, 0)
+        return before.isNullOrEmpty() && after.isNullOrEmpty()
     }
 
     private fun maybeClipboardOrEmpty(s: SuggestionStripView) {
@@ -1483,6 +1546,8 @@ class RimBoardService : InputMethodService(),
             performRevert()
             return
         }
+        // The quotes on an unrecognised word are a label, not part of it.
+        quotedChip?.let { (chip, raw) -> if (word == chip) return onSuggestionPicked(index, raw) }
         if (word.isEmpty() || word.startsWith("\u21A9")) return
         if (word in domainChips) {
             val ic0 = currentInputConnection ?: return
@@ -2125,6 +2190,9 @@ class RimBoardService : InputMethodService(),
         // The calculator chip and revert chip aren't dictionary words; long-press
         // (block-word) doesn't apply to them.
         if (word.startsWith("= ") || word.startsWith("↩")) return
+        // Nor is the quoted verbatim word: it is not a suggestion the keyboard
+        // made, so there is nothing to tell it to stop suggesting.
+        if (quotedChip?.first == word) return
         val ctx = anchor.context
         val d = resources.displayMetrics.density
         // Follow the keyboard theme instead of a hardcoded dark chip, which

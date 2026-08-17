@@ -187,13 +187,21 @@ jobs:
         env:
           TAG: ${{ steps.rel.outputs.tag }}
 
-      - name: Upload APK artifacts
+      # One artifact per flavor, not one holding both. They are alternatives —
+      # nobody installs the pair — and a combined artifact makes you download
+      # the build you did not want in order to get the one you did. The names
+      # also say which is which before the zip is opened.
+      - name: Upload the offline APK
         uses: actions/upload-artifact@v4
         with:
-          name: RimBoard-debug
-          path: |
-            app/build/outputs/apk/offline/debug/app-offline-debug.apk
-            app/build/outputs/apk/online/debug/app-online-debug.apk
+          name: RimBoard-offline-debug
+          path: app/build/outputs/apk/offline/debug/app-offline-debug.apk
+
+      - name: Upload the online APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: RimBoard-online-debug
+          path: app/build/outputs/apk/online/debug/app-online-debug.apk
 
       # Releases must carry the release build. The debug one is debuggable,
       # which on a keyboard means anything on the device can attach to the

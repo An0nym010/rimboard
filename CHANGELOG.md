@@ -4,6 +4,26 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**An unrecognised word is marked as one**
+- The typed word always sat in the first slot, looking exactly like a
+  suggestion the keyboard was making. A word the dictionary does not know now
+  moves to the middle and appears in quotes — `“hellooo”` — with a suggestion
+  either side of it, so the front slot carries the best correction instead of
+  repeating what is already visible in the field. The word stays tappable: a
+  keyboard that hides what you typed is arguing with you about your own name.
+- **A word with nothing to suggest is alone on the strip**, quoted. That is the
+  honest display for `mndsnfms` — there is no candidate to rank against it, and
+  filling the other slots would mean inventing entries. It is decided by having
+  no candidates rather than by judging a word random, which matters: a rare or
+  foreign word is not gibberish.
+- **An empty field carries no suggestions.** Openers used to appear there, so
+  an untouched field already had three words in it before anything was typed.
+
+**Separate APKs in CI**
+- The build uploaded one artifact holding both flavors, so getting the one you
+  wanted meant downloading the one you did not. They are separate artifacts
+  now, named for the flavor.
+
 **Changing the interface language reaches screens already open**
 - Every activity was built for the right language and none of them was rebuilt
   when the choice changed. Only the screen holding the picker recreated itself;
