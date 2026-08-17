@@ -44,7 +44,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # One place decides whether this run publishes and under what tag, so the
       # four steps that care cannot drift apart. A tag push publishes itself; a
@@ -88,7 +88,7 @@ jobs:
           java-version: '17'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       # Written to the runner's temp dir, never the workspace, so it cannot be
       # picked up by a later step that packages or uploads the checkout.
@@ -192,13 +192,13 @@ jobs:
       # the build you did not want in order to get the one you did. The names
       # also say which is which before the zip is opened.
       - name: Upload the offline APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: RimBoard-offline-debug
           path: app/build/outputs/apk/offline/debug/app-offline-debug.apk
 
       - name: Upload the online APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: RimBoard-online-debug
           path: app/build/outputs/apk/online/debug/app-online-debug.apk
@@ -233,7 +233,7 @@ jobs:
       # served as zips, which Android cannot install.
       - name: Attach APKs to the release
         if: steps.rel.outputs.publish == 'true'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           # Named explicitly rather than taken from the ref, because a manual
           # run is not on a tag; the action creates the tag when it does not
