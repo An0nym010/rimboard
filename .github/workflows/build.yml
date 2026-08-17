@@ -203,6 +203,27 @@ jobs:
           name: RimBoard-online-debug
           path: app/build/outputs/apk/online/debug/app-online-debug.apk
 
+      # Written onto the run's own summary page, because that is where someone
+      # looking at a finished build actually is. The control that publishes a
+      # release lives on the *workflow* page rather than on a run, which is not
+      # obvious and is not discoverable from here without being told — so this
+      # tells them, with the link, at the moment it is wanted.
+      - name: Explain how to publish these APKs
+        if: steps.rel.outputs.publish != 'true'
+        run: |
+          {
+            echo "### Publish these APKs to a release"
+            echo
+            echo "This run only produced artifacts. To attach APKs to the"
+            echo "[Releases page](${{ github.server_url }}/${{ github.repository }}/releases):"
+            echo
+            echo "1. Open [the Build APK workflow](${{ github.server_url }}/${{ github.repository }}/actions/workflows/build.yml) — the workflow page, not this run."
+            echo "2. Press **Run workflow** on the right."
+            echo "3. Tick **Attach the APKs to a GitHub release** and give a tag, e.g. \`v2.8.1\` (\`v2.8.1-rc1\` for a test build)."
+            echo
+            echo "Pushing a tag beginning with \`v\` does the same thing on its own."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       # Releases must carry the release build. The debug one is debuggable,
       # which on a keyboard means anything on the device can attach to the
       # process that sees every keystroke.
