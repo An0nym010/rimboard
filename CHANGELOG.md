@@ -4,6 +4,35 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Sentence starts work again**
+- Reading the context back from the cursor decided whether a new sentence was
+  starting, then took the preceding word by scanning straight across the
+  boundary it had just found. After "Hello. " the openers appeared and were
+  replaced a few milliseconds later by continuations of "hello" — and the next
+  word typed was learned as following it, across the full stop. The
+  sentence-opener model was very nearly unreachable as a result.
+- Also fixed one word into a new sentence: the second word back no longer
+  reaches into the sentence before it.
+
+**Smaller fixes from the same review**
+- The n-gram decay halved every count once per committed word, but only
+  *removes* a context whose counts were all 1 — so on a mature model it could
+  fail to get under the cap and run a full sweep again on the next keystroke,
+  and the next. It now halves until it is actually under, once.
+- The run-together split guard multiplied an Int frequency by 150, which
+  overflows above 14.3 million and inverts the guard. Unreachable today —
+  "that" at 10.2M is the most frequent word of four or more letters in any
+  shipped dictionary — but an imported dictionary has no bound.
+- Autocorrect was disabled for anything with a capital after the first letter,
+  which caught caps-lock typing too, so `TEH` was never fixed. All-capitals is
+  now corrected; a capital *inside* a word still is not.
+- Each engine's warming thread is released on service destroy. Neither service
+  did, and the spell checker's teardown reasoned about the other executor while
+  missing this one.
+- The learned-words files are written through a temporary file and a rename.
+  Two `UserData` instances write them — the keyboard and the personal
+  dictionary screen — and a flush landing mid-write could revert an edit.
+
 **Live backgrounds**
 - **Theme → Live background**: a drifting night sky, or a grid of particles
   that scatters from each key press and springs back. Both react to where you

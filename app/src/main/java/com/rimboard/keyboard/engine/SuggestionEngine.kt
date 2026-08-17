@@ -180,6 +180,19 @@ class SuggestionEngine private constructor(
         Thread(r, "RimBoard-warm").apply { isDaemon = true }
     }
 
+    /**
+     * Releases the warming thread.
+     *
+     * Every engine owns one, two engines exist in this process (the keyboard
+     * and the spell checker), and neither service released it — the same
+     * discipline [UserData.shutdown] documents for its own executor, missed
+     * here. The thread is a daemon so it never blocked process exit; it simply
+     * sat idle for the life of the process.
+     */
+    fun shutdown() {
+        warmer.shutdown()
+    }
+
     /** Preload dictionaries on a background thread so the first keystroke never stalls. */
     fun warm(lang: String, locale: Locale, altLang: String?, altLocale: Locale?) {
         warmer.execute {
@@ -367,7 +380,15 @@ class SuggestionEngine private constructor(
     ): List<String> {
         if (typed.length < 3) return emptyList()
         if (typed.any { it.isDigit() }) return emptyList()
-        if (typed.drop(1).any { it.isUpperCase() }) return emptyList()
+        // A capital *inside* a word — iPhone, McDonald — is deliberate and must
+        // not be corrected. A word that is entirely capitals is not that: it is
+        // someone typing under caps lock, and refusing to correct them meant
+        // TEH stayed TEH. Acronyms are safe without a special case, because a
+        // real one is in the dictionary and returns above this line; NASA is
+        // "nasa" folded, and it is a word.
+        if (typed.drop(1).any { it.isUpperCase() } && typed != typed.uppercase(locale)) {
+            return emptyList()
+        }
         val dict = dictionary(lang, locale)
         val lower = typed.lowercase(locale)
         // A word the user added by hand is never corrected, whatever it looks

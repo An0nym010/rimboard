@@ -249,6 +249,7 @@ class RimBoardService : InputMethodService(),
                 .removePrimaryClipChangedListener(it)
         }
         thumbPool.shutdownNow()
+        engine.shutdown()
         userData.flushBlocking()
         userData.shutdown()
         // onFinishInputView flushes these too, but it is not guaranteed to run
@@ -885,10 +886,12 @@ class RimBoardService : InputMethodService(),
         // Trailing whitespace means the cursor sits between words, which is
         // where a next-word prediction makes sense. Mid-word it does not, and
         // the composing branch of updateStrip handles that case anyway.
-        val loc = locale()
-        val words = Regex("""[\p{L}\p{N}']+""").findAll(before).map { it.value }.toList()
-        prevWordForBigram = words.lastOrNull()?.lowercase(loc).orEmpty()
-        prevWord2 = words.getOrNull(words.size - 2)?.lowercase(loc).orEmpty()
+        val ctx = com.rimboard.keyboard.model.SentenceContext.from(before, locale())
+        // Assigned through the backing field rather than the property, because
+        // `prevWordForBigram`'s setter shifts `prevWord2` for the *committing*
+        // path and would overwrite the value just read back from the text.
+        prevWordForBigram = ctx.prevWord
+        prevWord2 = ctx.prevWord2
         // Derived from the same text as the two words above, rather than left
         // behind from wherever the cursor used to be. An empty context means
         // opposite things either side of this call — "nothing to go on" or "the
@@ -896,11 +899,7 @@ class RimBoardService : InputMethodService(),
         // position offer different suggestions depending on history: tapping to
         // the front of a field that already held a sentence produced no openers,
         // where the identical position in a fresh field produces them.
-        // Only spaces and tabs are trimmed: a trailing newline is itself a
-        // sentence break (handleEnter says so), and trimEnd() would eat the very
-        // character being tested for.
-        val tail = before.trimEnd(' ', '\t')
-        atSentenceStart = tail.isEmpty() || tail.last() in ".!?\n"
+        atSentenceStart = ctx.atSentenceStart
     }
 
     override fun onGlideComplete(sequence: String) {

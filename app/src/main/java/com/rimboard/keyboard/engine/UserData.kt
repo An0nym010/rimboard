@@ -53,6 +53,17 @@ class UserData private constructor(dir: File) {
          */
         private const val NGRAM_CONTEXT_CAP = 6000
 
+        /**
+         * Most halvings one decay may run.
+         *
+         * A bound rather than a plain `while`: every count is a positive Int,
+         * so halving terminates, but the loop should not be the only thing
+         * standing between a pathological table and a stalled keyboard. Ten
+         * passes reduce a count of a thousand to zero, which is far past any
+         * count this ever holds.
+         */
+        private const val MAX_DECAY_PASSES = 10
+
         /** Exposed so a test can assert the two limits stay compatible. */
         internal fun decayThreshold(): Int = NGRAM_CONTEXT_CAP
 
@@ -229,14 +240,14 @@ class UserData private constructor(dir: File) {
         try {
             val sb = StringBuilder()
             for ((w, c) in learned) sb.append(w).append('\t').append(c).append('\n')
-            learnedFile.writeText(sb.toString())
+            writeAtomically(learnedFile, sb.toString())
         } catch (_: Exception) {
         }
     }
 
     private fun flushBlocked() {
         try {
-            blockedFile.writeText(blocked.joinToString("\n"))
+            writeAtomically(blockedFile, blocked.joinToString("\n"))
         } catch (_: Exception) {
         }
     }
@@ -269,20 +280,38 @@ class UserData private constructor(dir: File) {
         if (bigrams.size + trigrams.size <= NGRAM_CONTEXT_CAP) return
         synchronized(this) {
             if (bigrams.size + trigrams.size <= NGRAM_CONTEXT_CAP) return
-            for (table in listOf(bigrams, trigrams)) {
-                val emptied = ArrayList<String>()
-                for ((ctx, counts) in table) {
-                    val gone = ArrayList<String>()
-                    for ((w, c) in counts) {
-                        val half = c / 2
-                        if (half <= 0) gone.add(w) else counts[w] = half
-                    }
-                    gone.forEach { counts.remove(it) }
-                    if (counts.isEmpty()) emptied.add(ctx)
-                }
-                emptied.forEach { table.remove(it) }
+            // Halved until the table is actually under the cap, rather than
+            // once per call. Halving only *removes* a context whose counts were
+            // all 1, and on a mature model most survivors are 2 or more —
+            // precisely because the previous pass culled the singletons. So one
+            // pass could leave the size unchanged, the next committed word
+            // would cross the threshold again, and a full sweep of six thousand
+            // contexts would run on consecutive keystrokes on the IME's main
+            // thread until enough counts collapsed. Paying it once here also
+            // makes the decay gradual, which is what the class comment claims.
+            var passes = 0
+            while (bigrams.size + trigrams.size > NGRAM_CONTEXT_CAP && passes < MAX_DECAY_PASSES) {
+                passes++
+                decayOnce()
             }
             dirty = true
+        }
+    }
+
+    /** One halving of every count in both tables, dropping what reaches zero. */
+    private fun decayOnce() {
+        for (table in listOf(bigrams, trigrams)) {
+            val emptied = ArrayList<String>()
+            for ((ctx, counts) in table) {
+                val gone = ArrayList<String>()
+                for ((w, c) in counts) {
+                    val half = c / 2
+                    if (half <= 0) gone.add(w) else counts[w] = half
+                }
+                gone.forEach { counts.remove(it) }
+                if (counts.isEmpty()) emptied.add(ctx)
+            }
+            emptied.forEach { table.remove(it) }
         }
     }
 
@@ -388,19 +417,20 @@ class UserData private constructor(dir: File) {
         io.execute {
             try {
                 pruneIfNeeded()
-                learnedFile.writeText(
+                writeAtomically(
+                    learnedFile,
                     learned.entries.joinToString("\n") { "${it.key}\t${it.value}" }
                 )
                 val sb = StringBuilder()
                 for ((a, m) in bigrams) for ((b, c) in m) {
                     sb.append(a).append('\t').append(b).append('\t').append(c).append('\n')
                 }
-                bigramFile.writeText(sb.toString())
+                writeAtomically(bigramFile, sb.toString())
                 sb.setLength(0)
                 for ((ctx, m) in trigrams) for ((b, c) in m) {
                     sb.append(ctx).append('\t').append(b).append('\t').append(c).append('\n')
                 }
-                trigramFile.writeText(sb.toString())
+                writeAtomically(trigramFile, sb.toString())
             } catch (e: Exception) {
                 // Put the flag back: it was cleared optimistically before the
                 // write, so a failure here would otherwise mean this data is
@@ -448,6 +478,33 @@ class UserData private constructor(dir: File) {
         } catch (e: InterruptedException) {
             Thread.currentThread().interrupt()
         } catch (_: Exception) {
+        }
+    }
+
+    /**
+     * Writes [text] to [f] through a temporary file and a rename.
+     *
+     * `writeText` truncates and then writes, so a reader arriving in between
+     * sees an empty or half-written file, and a process death mid-write leaves
+     * one on disk. That window matters here because there is more than one
+     * writer: the personal-dictionary screen builds its own [UserData] over the
+     * same files while the keyboard service holds another, and a flush from the
+     * service landing between the screen's write and the service's reload
+     * silently reverted the user's edit. A rename is atomic on the same
+     * filesystem, so a reader sees either the old file or the new one.
+     */
+    private fun writeAtomically(f: java.io.File, text: String) {
+        val tmp = java.io.File(f.parentFile, f.name + ".tmp")
+        tmp.writeText(text)
+        if (!tmp.renameTo(f)) {
+            // Rename can fail where the target exists on some filesystems.
+            f.delete()
+            if (!tmp.renameTo(f)) {
+                // Last resort: the non-atomic path, which is still better than
+                // losing the data entirely.
+                f.writeText(text)
+                tmp.delete()
+            }
         }
     }
 

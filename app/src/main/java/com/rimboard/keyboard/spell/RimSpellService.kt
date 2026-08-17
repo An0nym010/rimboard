@@ -53,7 +53,9 @@ class RimSpellService : SpellCheckerService() {
 
     private val userData: UserData by userDataLazy
 
-    private val engine: SuggestionEngine by lazy { SuggestionEngine(this, userData) }
+    private val engineLazy = lazy { SuggestionEngine(this, userData) }
+
+    private val engine: SuggestionEngine by engineLazy
 
     /**
      * Starts loading the dictionary before anything asks for a word.
@@ -103,6 +105,7 @@ class RimSpellService : SpellCheckerService() {
     override fun onDestroy() {
         // Guarded, so unbinding a service that never checked a word does not
         // build the store purely in order to tear it down.
+        if (engineLazy.isInitialized()) engine.shutdown()
         if (userDataLazy.isInitialized()) userData.shutdown()
         super.onDestroy()
     }

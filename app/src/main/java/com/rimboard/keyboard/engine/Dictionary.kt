@@ -495,7 +495,14 @@ class Dictionary(
             if (fa < floorFor(a) || fb < floorFor(b)) continue
             // An attested word is only a missing space if it is overwhelmingly
             // rarer than the two words it would become.
-            if (typedFreq > 0 && minOf(fa, fb) < typedFreq * SPLIT_DOMINANCE) continue
+            // Long: the product overflows Int above a typed frequency of about
+            // 14.3 million, and an overflowed product goes negative, which
+            // makes the comparison false and *skips the guard* — inverting it
+            // for the commonest words in the corpus. Unreachable today (the
+            // most frequent word of four or more letters in any shipped
+            // dictionary is "that" at 10.2M) but only by 40%, and an imported
+            // dictionary carries no bound at all.
+            if (typedFreq > 0 && minOf(fa, fb) < typedFreq.toLong() * SPLIT_DOMINANCE) continue
             // Both halves count, so a split into two common words beats one
             // into a common word and a rare one.
             val score = ln((fa + 1).toDouble()) + ln((fb + 1).toDouble())
