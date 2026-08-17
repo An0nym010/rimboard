@@ -130,7 +130,7 @@ class RimBoardService : InputMethodService(),
     private var gifQueryFieldLength: Int = 0
 
     /** Clipboard history lives only in memory; it is never written to disk. */
-    private class ClipEntry(val text: String, val at: Long)
+    private class ClipEntry(val text: String, val at: Long, val sensitive: Boolean = false)
 
     private val clipHistory = ArrayDeque<ClipEntry>()
     private var clipChangedListener: ClipboardManager.OnPrimaryClipChangedListener? = null
@@ -1517,7 +1517,21 @@ class RimBoardService : InputMethodService(),
     private fun maybeClipboardOrEmpty(s: SuggestionStripView) {
         if (maybeDomainChips(s)) return
         if (clipChipEligible()) {
-            s.showClipboard(L10n.wrap(this).getString(android.R.string.paste))
+            // Taken from the history the clipboard listener already captured,
+            // deliberately, rather than by reading the clipboard here. Reading
+            // it is what raises the system's "pasted from your clipboard"
+            // notice, and this runs on every strip update — it would fire that
+            // continuously while someone typed. The description alone, which
+            // [clipChipEligible] reads, carries no content and no notice.
+            val latest = clipHistory.firstOrNull()
+            s.showClipboard(
+                com.rimboard.keyboard.model.ClipChip.label(
+                    latest?.text,
+                    sensitive = latest?.sensitive ?: false,
+                    inPasswordField = isPassword,
+                    fallback = L10n.wrap(this).getString(android.R.string.paste)
+                )
+            )
         } else {
             feedIdle(s)
             // With nothing to suggest there is room to say what incognito is
@@ -2080,7 +2094,13 @@ class RimBoardService : InputMethodService(),
             if (pinnedClips.contains(trimmed)) return
             pruneClips()
             clipHistory.removeAll { it.text == trimmed }
-            clipHistory.addFirst(ClipEntry(trimmed, System.currentTimeMillis()))
+            // Recorded when the clip arrives rather than read later: this is
+            // the copier saying "do not preview this", and it belongs to the
+            // clip, not to whatever field happens to be focused afterwards.
+            val sensitive = Build.VERSION.SDK_INT >= 33 &&
+                clip.description?.extras
+                    ?.getBoolean(android.content.ClipDescription.EXTRA_IS_SENSITIVE) == true
+            clipHistory.addFirst(ClipEntry(trimmed, System.currentTimeMillis(), sensitive))
             while (clipHistory.size > 10) clipHistory.removeLast()
             updateClipView()
         } catch (_: Exception) {

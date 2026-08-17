@@ -4,6 +4,22 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**The paste chip shows what you copied**
+- It said "Paste", which tells you an action is available but not whether it is
+  the thing you meant. It now shows the text itself, flattened to one line and
+  cut short. Tapping it pastes the clipboard exactly as before — the label is
+  only a label.
+- Two cases keep the old wording, and they are the point of the change being
+  careful: a clip the copier marked sensitive (which is how a password manager
+  says "do not preview this", and which Android's own clipboard preview
+  honours), and any password field, which covers the apps that set no flag.
+  Incognito never captures clips in the first place, so nothing is shown there
+  either.
+- The text comes from the clipboard listener's own record rather than being
+  read on each strip update. Reading the clipboard is what raises the system's
+  "pasted from your clipboard" notice, and doing it per keystroke would fire
+  that continuously.
+
 **An unrecognised word is marked as one**
 - The typed word always sat in the first slot, looking exactly like a
   suggestion the keyboard was making. A word the dictionary does not know now
