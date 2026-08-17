@@ -569,11 +569,36 @@ object Themes {
         )
     }
 
-    fun resolve(context: Context, pref: String): KeyboardTheme {
-        val night = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
-            Configuration.UI_MODE_NIGHT_YES
+    /**
+     * The themes that follow something rather than being a fixed choice, and so
+     * can follow the app being typed in instead of the system.
+     *
+     * Only these two. A user who picked Ocean or Sky picked a specific look, and
+     * swapping it for its opposite polarity because the app is dark would be
+     * overruling the choice rather than refining it — the same reasoning as
+     * [FIXED_ACCENT], and the same answer.
+     */
+    private val FOLLOWS_SYSTEM = setOf("system", "dynamic")
+
+    internal fun followsSystem(pref: String) = pref in FOLLOWS_SYSTEM
+
+    /**
+     * [appIsLight] is the polarity of the app being typed in, where it could be
+     * read. It stands in for the system's night setting for the two themes that
+     * follow one, so a dark app gets a dark keyboard even at midday, and is
+     * ignored by every theme that was chosen outright.
+     */
+    fun resolve(context: Context, pref: String, appIsLight: Boolean? = null): KeyboardTheme {
+        val systemNight =
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                Configuration.UI_MODE_NIGHT_YES
+        val night =
+            if (appIsLight != null && followsSystem(pref)) !appIsLight else systemNight
         return when (pref) {
-            "system" -> if (isNightMode(context)) dark() else light()
+            // `night` rather than isNightMode: it already carries the app's own
+            // polarity where that was available, and reading the system again
+            // here would throw it away.
+            "system" -> if (night) dark() else light()
             "light" -> light()
             "dark" -> dark()
             "amoled" -> amoled()

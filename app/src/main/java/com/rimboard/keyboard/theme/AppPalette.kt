@@ -221,6 +221,69 @@ object AppPalette {
         null
     }
 
+    private val lightCache = HashMap<String, Boolean?>()
+
+    /**
+     * Whether [pkg] presents itself as a light theme, or null if it cannot be
+     * told.
+     *
+     * Two questions, asked in order. `isLightTheme` is the app declaring the
+     * answer and is exact where it is set; where it is not, the luminance of
+     * the window background is what the user is actually looking at, which is
+     * the thing being matched. A theme that answers neither gets null, and the
+     * keyboard then keeps following the system as before rather than guessing.
+     *
+     * Needs no permission beyond the package visibility the tint already
+     * requires — reading another app's theme is not reading its data.
+     */
+    fun isLightTheme(context: Context, pkg: String?, curatedOnly: Boolean): Boolean? {
+        if (pkg.isNullOrEmpty()) return null
+        if (curatedOnly && pkg !in CURATED) return null
+        val key = if (curatedOnly) "c:$pkg" else "a:$pkg"
+        lightCache[key]?.let { return it }
+        if (lightCache.containsKey(key)) return null
+        val answer = try {
+            val pm = context.packageManager
+            val info = pm.getApplicationInfo(pkg, 0)
+            val res = pm.getResourcesForApplication(info)
+            val theme = res.newTheme()
+            theme.applyStyle(info.theme, true)
+            val declared = theme.obtainStyledAttributes(
+                intArrayOf(android.R.attr.isLightTheme)
+            ).let { ta ->
+                try {
+                    // -1 rather than a boolean default: "not set" and "set to
+                    // false" are different answers and only one of them means
+                    // the app is dark.
+                    val v = ta.getInt(0, -1)
+                    if (v == -1) null else v != 0
+                } finally {
+                    ta.recycle()
+                }
+            }
+            declared ?: run {
+                val ta = theme.obtainStyledAttributes(
+                    intArrayOf(android.R.attr.windowBackground)
+                )
+                val bg = try { ta.getColor(0, 0) } finally { ta.recycle() }
+                // A windowBackground that is a drawable rather than a colour
+                // reads as 0 here, which is not an answer.
+                if (bg == 0 || (bg ushr 24) == 0) null else luminanceOf(bg) > 0.5f
+            }
+        } catch (_: Exception) {
+            null
+        }
+        lightCache[key] = answer
+        return answer
+    }
+
+    private fun luminanceOf(c: Int): Float {
+        val r = (c shr 16 and 0xFF) / 255f
+        val g = (c shr 8 and 0xFF) / 255f
+        val b = (c and 0xFF) / 255f
+        return 0.299f * r + 0.587f * g + 0.114f * b
+    }
+
     fun hueOf(context: Context, pkg: String?, curatedOnly: Boolean): Int? {
         if (pkg.isNullOrEmpty()) return null
         if (curatedOnly && pkg !in CURATED) return null
@@ -251,5 +314,8 @@ object AppPalette {
 
     /** Installing or updating an app can change its icon; the process outlives
      *  that, so the cache is dropped whenever memory is being reclaimed anyway. */
-    fun clearCache() = cache.clear()
+    fun clearCache() {
+        cache.clear()
+        lightCache.clear()
+    }
 }

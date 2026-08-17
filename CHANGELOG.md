@@ -4,7 +4,25 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**A dark app gets a dark keyboard**
+- **Theme → Match the app's light or dark mode**, on by default, beside the
+  tint settings. The app's own theme decides whether the keyboard is light or
+  dark, so a dark messaging app no longer gets a white keyboard at midday.
+- Read from the app's declared `isLightTheme`, falling back to the luminance of
+  its window background where that is not set, and giving up rather than
+  guessing where neither answers.
+- Applies only to the System and Material You themes — the two that were
+  already following something. A theme picked outright is left alone, which is
+  the same line the accent tint draws.
+
 **Search the settings**
+- Results are inline now rather than in a dialog, so they appear where the
+  settings list was instead of covering it.
+- Following a result scrolls to the row and flashes it twice. Landing on the
+  right screen was only most of the answer: these screens hold a dozen rows and
+  the one you searched for looked like all the others.
+
+**Search the settings (first cut)**
 - Around fifty settings sit behind nine sub-screens, which is the point where
   "I know it exists, I don't know where you put it" becomes the normal way to
   look for one. The magnifier in the settings toolbar searches all of them.

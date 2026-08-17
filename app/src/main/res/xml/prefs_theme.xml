@@ -26,6 +26,12 @@
         android:dependency="theme_per_app"
         app:useSimpleSummaryProvider="true" />
 
+    <SwitchPreferenceCompat
+        android:key="match_app_mode"
+        android:title="@string/pref_match_app_mode_title"
+        android:summary="@string/pref_match_app_mode_summary"
+        android:defaultValue="true" />
+
     <ListPreference
         android:key="app_color_source"
         android:title="@string/pref_app_color_source_title"

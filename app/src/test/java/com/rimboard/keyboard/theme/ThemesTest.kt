@@ -216,6 +216,19 @@ class ThemesTest {
     }
 
     @Test
+    fun `only the themes that follow something follow the app`() {
+        // A user who chose Ocean or Sky chose a look. Swapping it for the
+        // opposite polarity because the app is dark would overrule the choice
+        // rather than refine it — the same line the accent tint draws.
+        for (p in listOf("system", "dynamic")) {
+            assertTrue("$p should follow the app", Themes.followsSystem(p))
+        }
+        for (p in listOf("light", "dark", "amoled", "ocean", "sky", "contrast", "custom")) {
+            assertFalse("$p must not be flipped by the app", Themes.followsSystem(p))
+        }
+    }
+
+    @Test
     fun `every theme offered in settings is actually built`() {
         // Adding a theme means touching two places, and forgetting the second
         // fails silently: `resolve`'s `when` falls through to light or dark, so

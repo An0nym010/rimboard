@@ -282,4 +282,7 @@
     <string name="live_bg_stars">Cielo nocturno</string>
     <string name="live_bg_particles">Partículas</string>
     <string name="search_settings">Buscar en los ajustes</string>
+    <string name="search_no_results">Ningún ajuste coincide</string>
+    <string name="pref_match_app_mode_title">Seguir el modo claro u oscuro de la app</string>
+    <string name="pref_match_app_mode_summary">Una app oscura recibe un teclado oscuro, sea la hora que sea. Se aplica a los temas Sistema y Material You; un tema elegido a mano no se toca.</string>
 </resources>

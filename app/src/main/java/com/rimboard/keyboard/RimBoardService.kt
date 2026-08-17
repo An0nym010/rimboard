@@ -589,7 +589,15 @@ class RimBoardService : InputMethodService(),
         // photo the caps become scrims and only the accent survives from the
         // base theme, so tinting afterwards would be the one case where this
         // feature did nothing.
-        kbTheme = Themes.resolve(this, themePref).let { base ->
+        // The polarity of the app being typed in, where it can be read. Only
+        // the two themes that already followed something use it; a theme the
+        // user picked outright ignores it. Asked with the same curation setting
+        // as the tint, since it is the same question about the same app.
+        val appIsLight =
+            if (Prefs.matchAppMode(this)) com.rimboard.keyboard.theme.AppPalette.isLightTheme(
+                this, info.packageName, Prefs.curatedColorsOnly(this)
+            ) else null
+        kbTheme = Themes.resolve(this, themePref, appIsLight).let { base ->
             if (Prefs.themePerApp(this) && Themes.tintable(themePref))
                 Themes.forApp(
                     base, info.packageName,

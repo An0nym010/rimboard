@@ -62,6 +62,7 @@ object Prefs {
     const val KEY_APP_COLOR_SOURCE = "app_color_source"
     const val KEY_TINT_STRENGTH = "tint_strength"
     const val KEY_LIVE_BG = "live_background"
+    const val KEY_MATCH_APP_MODE = "match_app_mode"
     const val KEY_SYM_RETURN = "symbols_return"
     const val KEY_EMOJI_RETURN = "emoji_return"
     const val KEY_CLIP_RETURN = "clip_return"
@@ -243,6 +244,17 @@ object Prefs {
         get(c).getString(KEY_APP_COLOR_SOURCE, "curated") ?: "curated"
 
     fun curatedColorsOnly(c: Context) = appColorSource(c) != "all"
+
+    /**
+     * Whether a light or dark keyboard follows the app rather than the system.
+     *
+     * On by default. Matching the app you are looking at is what someone means
+     * by "the keyboard should fit in", and unlike the accent tint it changes
+     * nothing a user picked deliberately: it applies only to the two themes
+     * that were already following something, and is ignored by every theme
+     * chosen outright.
+     */
+    fun matchAppMode(c: Context) = get(c).getBoolean(KEY_MATCH_APP_MODE, true)
 
     /**
      * How saturated the tinted surfaces become.

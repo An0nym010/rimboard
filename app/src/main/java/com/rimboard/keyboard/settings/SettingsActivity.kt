@@ -133,45 +133,86 @@ class SettingsActivity : LocalisedActivity() {
         return out
     }
 
-    /** The search field and its results, over the current screen. */
+    private var searchInput: android.widget.EditText? = null
+    private var searchResults: LinearLayout? = null
+    private var searchScroll: View? = null
+
+    /**
+     * Opens the search field in the screen rather than over it.
+     *
+     * A dialog was the first version and it was the wrong shape: it covered the
+     * settings, so the results were shown in place of the thing they were
+     * meant to help you find, and dismissing it to look at a result put you
+     * back where you started. Inline, the results sit where the settings list
+     * was and leave everything else — the toolbar, the header, the back stack
+     * — exactly as it was.
+     */
     private fun showSearch() {
-        val d = resources.displayMetrics.density
-        val input = android.widget.EditText(this).apply {
-            setHint(R.string.search_settings)
-            setSingleLine()
-            setPadding((16 * d).toInt(), (12 * d).toInt(), (16 * d).toInt(), (12 * d).toInt())
-        }
-        val results = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        val scroll = android.widget.ScrollView(this).apply { addView(results) }
-        val box = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            addView(input)
-            addView(scroll)
-        }
-        val dialog = AlertDialog.Builder(this).setView(box).create()
-        input.addTextChangedListener(object : android.text.TextWatcher {
-            override fun afterTextChanged(s: android.text.Editable?) {
-                results.removeAllViews()
-                for (hit in SettingsSearch.search(searchIndex, s?.toString().orEmpty())) {
-                    results.addView(resultRow(hit, dialog), LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    ))
-                }
-            }
-            override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
-            override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
-        })
-        dialog.show()
+        val input = searchInput ?: return
+        input.visibility = View.VISIBLE
         input.requestFocus()
+        (getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager)
+            .showSoftInput(input, 0)
     }
 
-    private fun resultRow(hit: SettingsSearch.Entry, dialog: AlertDialog): View {
+    private fun hideSearch() {
+        searchInput?.let {
+            it.setText("")
+            it.visibility = View.GONE
+            (getSystemService(Context.INPUT_METHOD_SERVICE)
+                as android.view.inputmethod.InputMethodManager)
+                .hideSoftInputFromWindow(it.windowToken, 0)
+        }
+        searchScroll?.visibility = View.GONE
+        findViewById<View>(CONTAINER_ID)?.visibility = View.VISIBLE
+    }
+
+    private fun renderResults(query: String) {
+        val results = searchResults ?: return
+        val scroll = searchScroll ?: return
+        val container = findViewById<View>(CONTAINER_ID)
+        results.removeAllViews()
+        val hits = SettingsSearch.search(searchIndex, query)
+        // An empty query is not "no results", it is "not searching yet" — so
+        // the settings come back rather than being replaced by a blank panel.
+        if (query.isBlank()) {
+            scroll.visibility = View.GONE
+            container?.visibility = View.VISIBLE
+            return
+        }
+        scroll.visibility = View.VISIBLE
+        container?.visibility = View.GONE
+        if (hits.isEmpty()) {
+            results.addView(TextView(this).apply {
+                val d = resources.displayMetrics.density
+                setPadding((16 * d).toInt(), (16 * d).toInt(), (16 * d).toInt(), (16 * d).toInt())
+                setText(R.string.search_no_results)
+                alpha = 0.7f
+            })
+            return
+        }
+        for (hit in hits) {
+            results.addView(
+                resultRow(hit),
+                LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            )
+        }
+    }
+
+    private fun resultRow(hit: SettingsSearch.Entry): View {
         val d = resources.displayMetrics.density
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding((16 * d).toInt(), (10 * d).toInt(), (16 * d).toInt(), (10 * d).toInt())
+            setPadding((16 * d).toInt(), (12 * d).toInt(), (16 * d).toInt(), (12 * d).toInt())
             isClickable = true
+            val outValue = android.util.TypedValue()
+            context.theme.resolveAttribute(
+                android.R.attr.selectableItemBackground, outValue, true
+            )
+            setBackgroundResource(outValue.resourceId)
             addView(TextView(context).apply {
                 text = hit.title
                 textSize = 16f
@@ -185,13 +226,27 @@ class SettingsActivity : LocalisedActivity() {
                 alpha = 0.7f
             })
             setOnClickListener {
-                dialog.dismiss()
+                hideSearch()
                 supportFragmentManager.beginTransaction()
-                    .replace(CONTAINER_ID, SettingsFragment.newInstance(hit.screenXml))
+                    .replace(
+                        CONTAINER_ID,
+                        SettingsFragment.newInstance(hit.screenXml, hit.key)
+                    )
                     .addToBackStack(null)
                     .commit()
             }
         }
+    }
+
+    override fun onBackPressed() {
+        // Back closes the search before it leaves the screen, which is what a
+        // search field open over a list is expected to do.
+        if (searchInput?.visibility == View.VISIBLE) {
+            hideSearch()
+            return
+        }
+        @Suppress("DEPRECATION")
+        super.onBackPressed()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -205,8 +260,40 @@ class SettingsActivity : LocalisedActivity() {
         )
         hlp.setMargins((12 * d).toInt(), (12 * d).toInt(), (12 * d).toInt(), (4 * d).toInt())
         root.addView(header, hlp)
+
+        // Hidden until the magnifier is tapped, so the screen is unchanged for
+        // anyone not searching.
+        val input = android.widget.EditText(this).apply {
+            setHint(R.string.search_settings)
+            setSingleLine()
+            visibility = View.GONE
+            setPadding((16 * d).toInt(), (10 * d).toInt(), (16 * d).toInt(), (10 * d).toInt())
+            addTextChangedListener(object : android.text.TextWatcher {
+                override fun afterTextChanged(s: android.text.Editable?) {
+                    renderResults(s?.toString().orEmpty())
+                }
+                override fun beforeTextChanged(c: CharSequence?, a: Int, b: Int, x: Int) {}
+                override fun onTextChanged(c: CharSequence?, a: Int, b: Int, x: Int) {}
+            })
+        }
+        searchInput = input
+        root.addView(input, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+
+        val results = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        searchResults = results
+        val scroll = android.widget.ScrollView(this).apply {
+            visibility = View.GONE
+            addView(results)
+        }
+        searchScroll = scroll
+
         val container = FrameLayout(this).apply { id = CONTAINER_ID }
         root.addView(container, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+        // Same slot as the settings list and the same weight, so results take
+        // exactly the space the list had rather than pushing it around.
+        root.addView(scroll, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
         setContentView(root)
         if (savedInstanceState == null) {
@@ -701,9 +788,74 @@ class SettingsActivity : LocalisedActivity() {
 
         companion object {
             private const val ARG_XML = "xml"
-            fun newInstance(res: Int) = SettingsFragment().apply {
-                arguments = Bundle().apply { putInt(ARG_XML, res) }
+            private const val ARG_HIGHLIGHT = "highlight"
+
+            fun newInstance(res: Int, highlightKey: String? = null) = SettingsFragment().apply {
+                arguments = Bundle().apply {
+                    putInt(ARG_XML, res)
+                    highlightKey?.let { putString(ARG_HIGHLIGHT, it) }
+                }
             }
+        }
+
+        /**
+         * Scrolls to the row a search result pointed at and flashes it.
+         *
+         * Landing on the right screen is only most of the answer: these screens
+         * hold a dozen rows and the one that was searched for looks like all
+         * the others. The flash is what finishes the sentence the search
+         * started.
+         *
+         * Two posts deep, and both are needed: the adapter does not exist until
+         * the list has been laid out once, and the view holder for a row does
+         * not exist until after the scroll that brings it on screen.
+         */
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+            super.onViewCreated(view, savedInstanceState)
+            val key = arguments?.getString(ARG_HIGHLIGHT) ?: return
+            // Consumed, so returning to this screen with Back does not flash
+            // the row again as though it had just been found.
+            arguments?.remove(ARG_HIGHLIGHT)
+            listView.post {
+                val adapter = listView.adapter
+                val pos = (adapter as? androidx.preference.PreferenceGroup.PreferencePositionCallback)
+                    ?.getPreferenceAdapterPosition(key) ?: return@post
+                if (pos == androidx.recyclerview.widget.RecyclerView.NO_POSITION) return@post
+                listView.scrollToPosition(pos)
+                listView.post { flashRow(pos) }
+            }
+        }
+
+        private fun flashRow(pos: Int) {
+            val holder = listView.findViewHolderForAdapterPosition(pos) ?: return
+            val row = holder.itemView
+            val accent = android.util.TypedValue().let { tv ->
+                requireContext().theme.resolveAttribute(
+                    androidx.appcompat.R.attr.colorAccent, tv, true
+                )
+                tv.data
+            }
+            val original = row.background
+            val anim = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = 1400
+                addUpdateListener { a ->
+                    // Two pulses, fading out: one is easy to miss while the
+                    // scroll is still settling.
+                    val t = a.animatedValue as Float
+                    val pulse = kotlin.math.abs(kotlin.math.sin(t * Math.PI * 2)).toFloat()
+                    val alpha = ((1f - t) * pulse * 60f).toInt().coerceIn(0, 255)
+                    row.setBackgroundColor((alpha shl 24) or (accent and 0x00FFFFFF))
+                }
+                addListener(object : android.animation.AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: android.animation.Animator) {
+                        // Restored rather than left transparent: these rows are
+                        // recycled, and a row left with a colour would show it
+                        // under whatever setting scrolled into its place.
+                        row.background = original
+                    }
+                })
+            }
+            anim.start()
         }
 
 

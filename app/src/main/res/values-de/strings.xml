@@ -282,4 +282,7 @@
     <string name="live_bg_stars">Nachthimmel</string>
     <string name="live_bg_particles">Partikel</string>
     <string name="search_settings">Einstellungen durchsuchen</string>
+    <string name="search_no_results">Keine passende Einstellung</string>
+    <string name="pref_match_app_mode_title">Hell/Dunkel der App übernehmen</string>
+    <string name="pref_match_app_mode_summary">Eine dunkle App bekommt eine dunkle Tastatur, unabhängig von der Uhrzeit. Gilt für System und Material You; ein selbst gewähltes Design bleibt unverändert.</string>
 </resources>

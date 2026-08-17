@@ -284,4 +284,7 @@
     <string name="live_bg_stars">Ночное небо</string>
     <string name="live_bg_particles">Частицы</string>
     <string name="search_settings">Поиск в настройках</string>
+    <string name="search_no_results">Нет подходящей настройки</string>
+    <string name="pref_match_app_mode_title">Подстраивать светлую и тёмную тему под приложение</string>
+    <string name="pref_match_app_mode_summary">Тёмному приложению — тёмная клавиатура, в любое время дня. Работает для тем «Система» и Material You; выбранную вручную тему не меняет.</string>
 </resources>
