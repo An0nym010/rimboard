@@ -829,11 +829,15 @@ class SettingsActivity : LocalisedActivity() {
         private fun flashRow(pos: Int) {
             val holder = listView.findViewHolderForAdapterPosition(pos) ?: return
             val row = holder.itemView
+            // The return value decides whether `data` means anything: an
+            // unresolved attribute leaves it holding whatever the TypedValue
+            // was last used for, and the flash would then be an arbitrary
+            // colour rather than the theme's.
             val accent = android.util.TypedValue().let { tv ->
-                requireContext().theme.resolveAttribute(
+                val ok = requireContext().theme.resolveAttribute(
                     androidx.appcompat.R.attr.colorAccent, tv, true
                 )
-                tv.data
+                if (ok) tv.data else 0xFF3E7BFA.toInt()
             }
             val original = row.background
             val anim = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {

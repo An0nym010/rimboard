@@ -38,7 +38,6 @@
         android:entries="@array/app_color_source_entries"
         android:entryValues="@array/app_color_source_values"
         android:defaultValue="curated"
-        android:dependency="theme_per_app"
         app:useSimpleSummaryProvider="true" />
 
     <Preference

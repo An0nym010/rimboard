@@ -506,8 +506,34 @@ class RimBoardService : InputMethodService(),
         configureAll(info)
     }
 
+    /**
+     * Whether a palette lookup is already in flight, so a burst of focus
+     * changes into the same app does not start a worker each time.
+     */
+    private var paletteFetching: String? = null
+
     private fun configureAll(info: EditorInfo) {
         readPrefsAndFieldFlags(info)
+        // Started after the theme has been applied from the cache, so the
+        // keyboard is already on screen by the time this costs anything.
+        val pkg = info.packageName
+        if ((Prefs.themePerApp(this) || Prefs.matchAppMode(this)) && pkg != null &&
+            paletteFetching != pkg
+        ) {
+            paletteFetching = pkg
+            com.rimboard.keyboard.theme.AppPalette.prefetch(
+                this, pkg, Prefs.curatedColorsOnly(this)
+            ) {
+                paletteFetching = null
+                // Only if the user is still in the app this was read for: the
+                // answer is about that app and applying it anywhere else would
+                // paint the keyboard with a colour belonging to a field the
+                // user has already left.
+                if (currentPkg == pkg) {
+                    currentInputEditorInfo?.let { readPrefsAndFieldFlags(it) }
+                }
+            }
+        }
         engine.warm(effLang(), effLocale(), effAlt(), effAltLocale())
         kind = initialKindFor(info)
         applyLayout()
@@ -589,14 +615,17 @@ class RimBoardService : InputMethodService(),
         // photo the caps become scrims and only the accent survives from the
         // base theme, so tinting afterwards would be the one case where this
         // feature did nothing.
-        // The polarity of the app being typed in, where it can be read. Only
-        // the two themes that already followed something use it; a theme the
-        // user picked outright ignores it. Asked with the same curation setting
-        // as the tint, since it is the same question about the same app.
+        // Read from the cache only, never computed here. Working an app's
+        // colours out means parsing its whole resource table and rasterising
+        // its icon, and this runs on the main thread while the keyboard is
+        // appearing — the stall `warm()` exists to keep off this path. The
+        // first open in an app therefore uses the plain theme, and
+        // `paletteReady` reapplies a moment later when the answers land.
+        val curatedOnly = Prefs.curatedColorsOnly(this)
+        val palette = com.rimboard.keyboard.theme.AppPalette
         val appIsLight =
-            if (Prefs.matchAppMode(this)) com.rimboard.keyboard.theme.AppPalette.isLightTheme(
-                this, info.packageName, Prefs.curatedColorsOnly(this)
-            ) else null
+            if (Prefs.matchAppMode(this)) palette.cachedIsLight(info.packageName, curatedOnly)
+            else null
         kbTheme = Themes.resolve(this, themePref, appIsLight).let { base ->
             if (Prefs.themePerApp(this) && Themes.tintable(themePref))
                 Themes.forApp(
@@ -604,9 +633,7 @@ class RimBoardService : InputMethodService(),
                     // The app's real colour when its icon can be read, and the
                     // package-name hue when it cannot. Which of those happens
                     // is decided by package visibility, not by anything here.
-                    com.rimboard.keyboard.theme.AppPalette.hueOf(
-                        this, info.packageName, Prefs.curatedColorsOnly(this)
-                    ),
+                    palette.cachedHue(info.packageName, curatedOnly),
                     Prefs.tintStrength(this)
                 )
             else base

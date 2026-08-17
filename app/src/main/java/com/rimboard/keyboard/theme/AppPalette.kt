@@ -42,6 +42,18 @@ object AppPalette {
     /** Pixels dimmer or more transparent than this contribute nothing. */
     private const val MIN_ALPHA = 128
 
+    /**
+     * Guards both caches.
+     *
+     * They are written from [prefetch]'s worker and read from the typing path,
+     * and a `HashMap` resized under one thread while another reads it does not
+     * fail cleanly. Not a `ConcurrentHashMap`, because "this package has no
+     * answer" is itself a cached result and that map cannot hold a null value —
+     * losing the distinction would mean re-reading a whole resource table on
+     * every focus change into an app that had already declined to answer.
+     */
+    private val lock = Any()
+
     private val cache = HashMap<String, Int?>()
 
     /**
@@ -236,13 +248,9 @@ object AppPalette {
      * Needs no permission beyond the package visibility the tint already
      * requires — reading another app's theme is not reading its data.
      */
-    fun isLightTheme(context: Context, pkg: String?, curatedOnly: Boolean): Boolean? {
-        if (pkg.isNullOrEmpty()) return null
+    private fun computeIsLight(context: Context, pkg: String, curatedOnly: Boolean): Boolean? {
         if (curatedOnly && pkg !in CURATED) return null
-        val key = if (curatedOnly) "c:$pkg" else "a:$pkg"
-        lightCache[key]?.let { return it }
-        if (lightCache.containsKey(key)) return null
-        val answer = try {
+        return try {
             val pm = context.packageManager
             val info = pm.getApplicationInfo(pkg, 0)
             val res = pm.getResourcesForApplication(info)
@@ -273,8 +281,6 @@ object AppPalette {
         } catch (_: Exception) {
             null
         }
-        lightCache[key] = answer
-        return answer
     }
 
     private fun luminanceOf(c: Int): Float {
@@ -284,18 +290,11 @@ object AppPalette {
         return 0.299f * r + 0.587f * g + 0.114f * b
     }
 
-    fun hueOf(context: Context, pkg: String?, curatedOnly: Boolean): Int? {
-        if (pkg.isNullOrEmpty()) return null
+    private fun computeHue(context: Context, pkg: String, curatedOnly: Boolean): Int? {
         if (curatedOnly && pkg !in CURATED) return null
-        // Keyed by mode as well: the same package has an answer under one
-        // setting and none under the other, and a cache that forgot which
-        // would serve the wrong one after the setting changed.
-        val key = if (curatedOnly) "c:$pkg" else "a:$pkg"
-        cache[key]?.let { return it }
-        if (cache.containsKey(key)) return null
         // The declared theme colour first, the icon second. Both are the app
         // describing itself; the theme is the more direct statement of it.
-        val hue = themeHue(context, pkg) ?: try {
+        return themeHue(context, pkg) ?: try {
             val icon = context.packageManager.getApplicationIcon(pkg)
             val bmp = Bitmap.createBitmap(SIZE, SIZE, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bmp)
@@ -308,14 +307,78 @@ object AppPalette {
         } catch (_: Exception) {
             null
         }
-        cache[key] = hue
-        return hue
     }
 
     /** Installing or updating an app can change its icon; the process outlives
      *  that, so the cache is dropped whenever memory is being reclaimed anyway. */
-    fun clearCache() {
+    fun clearCache() = synchronized(lock) {
         cache.clear()
         lightCache.clear()
+    }
+
+    /** Whether both answers for [pkg] are already known, so nothing is needed. */
+    private fun known(key: String): Boolean = synchronized(lock) {
+        cache.containsKey(key) && lightCache.containsKey(key)
+    }
+
+    private fun cacheKey(pkg: String, curatedOnly: Boolean) =
+        if (curatedOnly) "c:$pkg" else "a:$pkg"
+
+    /**
+     * The hue for [pkg] if it has already been worked out, without doing any
+     * work now. Null means "not yet", not "no colour".
+     */
+    fun cachedHue(pkg: String?, curatedOnly: Boolean): Int? {
+        if (pkg.isNullOrEmpty()) return null
+        return synchronized(lock) { cache[cacheKey(pkg, curatedOnly)] }
+    }
+
+    /** As [cachedHue], for the light/dark answer. */
+    fun cachedIsLight(pkg: String?, curatedOnly: Boolean): Boolean? {
+        if (pkg.isNullOrEmpty()) return null
+        return synchronized(lock) { lightCache[cacheKey(pkg, curatedOnly)] }
+    }
+
+    /**
+     * Works out both answers for [pkg] off the main thread, then calls [onReady].
+     *
+     * Reading another app's theme means `getResourcesForApplication`, which
+     * parses that app's whole resource table, and reading its icon means
+     * loading a drawable and rasterising it. Both were being done on the IME's
+     * main thread inside the focus change, so the first time the keyboard
+     * opened in any given app it paid for both while appearing — the exact
+     * stall `SuggestionEngine.warm` exists to keep off that path, reintroduced
+     * by the back door.
+     *
+     * The keyboard therefore opens with whatever is already known, which on a
+     * first visit is nothing, and is told to reapply once the answers land.
+     * Being a frame late with a colour is not something anyone will notice;
+     * a keyboard that hesitates when it appears is.
+     */
+    fun prefetch(context: Context, pkg: String?, curatedOnly: Boolean, onReady: () -> Unit) {
+        if (pkg.isNullOrEmpty()) return
+        val key = cacheKey(pkg, curatedOnly)
+        if (known(key)) return
+        val app = context.applicationContext
+        Thread {
+            try {
+                val hue = computeHue(app, pkg, curatedOnly)
+                val light = computeIsLight(app, pkg, curatedOnly)
+                synchronized(lock) {
+                    cache[key] = hue
+                    lightCache[key] = light
+                }
+                android.os.Handler(android.os.Looper.getMainLooper()).post(onReady)
+            } catch (e: Exception) {
+                // A package that cannot be read is an ordinary outcome, not a
+                // failure — but it has to be recorded, or every focus change
+                // starts another thread to fail the same way.
+                synchronized(lock) {
+                    cache[key] = null
+                    lightCache[key] = null
+                }
+                android.util.Log.w("RimBoard", "app palette: $pkg", e)
+            }
+        }.apply { isDaemon = true }.start()
     }
 }

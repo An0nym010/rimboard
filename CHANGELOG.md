@@ -4,6 +4,20 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**The keyboard no longer stalls the first time it opens in an app**
+- Working out an app's colours means parsing its entire resource table and
+  rasterising its icon, and both were happening on the main thread inside the
+  focus change — so the first open in any given app paid for both while the
+  keyboard was appearing. That is the stall the dictionary warming thread
+  exists to keep off this path, reintroduced by the back door when the tint and
+  the light/dark matching were added.
+- The keyboard now opens with whatever is already known and reapplies a moment
+  later when the answers land. Being a frame late with a colour is not
+  something anyone notices; a keyboard that hesitates when it appears is.
+- **App colours** no longer greys out when the tint is switched off. It governs
+  which apps the light/dark matching reads too, so a disabled row was quietly
+  deciding the behaviour of an enabled feature.
+
 **A dark app gets a dark keyboard**
 - **Theme → Match the app's light or dark mode**, on by default, beside the
   tint settings. The app's own theme decides whether the keyboard is light or
