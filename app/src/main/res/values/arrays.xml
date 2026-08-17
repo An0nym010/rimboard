@@ -91,6 +91,14 @@
         <item>@string/theme_graphite</item>
         <item>@string/theme_rose</item>
         <item>@string/theme_mint</item>
+        <item>@string/theme_sky</item>
+        <item>@string/theme_sand</item>
+        <item>@string/theme_lilac</item>
+        <item>@string/theme_peach</item>
+        <item>@string/theme_sage</item>
+        <item>@string/theme_paper</item>
+        <item>@string/theme_plum</item>
+        <item>@string/theme_crimson</item>
         <item>@string/theme_custom</item>
         <item>@string/theme_custom2</item>
         <item>@string/theme_custom3</item>
@@ -109,6 +117,14 @@
         <item>graphite</item>
         <item>rose</item>
         <item>mint</item>
+        <item>sky</item>
+        <item>sand</item>
+        <item>lilac</item>
+        <item>peach</item>
+        <item>sage</item>
+        <item>paper</item>
+        <item>plum</item>
+        <item>crimson</item>
         <item>custom</item>
         <item>custom2</item>
         <item>custom3</item>

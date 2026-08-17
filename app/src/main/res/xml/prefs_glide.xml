@@ -15,6 +15,12 @@
         android:defaultValue="true" />
 
 
+    <SwitchPreferenceCompat
+        android:key="glide_delete"
+        android:title="@string/pref_glide_delete_title"
+        android:summary="@string/pref_glide_delete_summary"
+        android:defaultValue="true" />
+
     <ListPreference
         android:key="space_swipe_h"
         android:title="@string/pref_swipe_h_title"

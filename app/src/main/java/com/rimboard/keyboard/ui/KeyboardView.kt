@@ -116,6 +116,9 @@ class KeyboardView(context: Context) : View(context) {
 
     var previewEnabled: Boolean = true
     var glideEnabled: Boolean = true
+
+    /** Swipe left from backspace to delete whole words. */
+    var glideDeleteEnabled: Boolean = true
     var hapticFeedback: Boolean = true
     var repeatInitialMs: Long = 300L
     var repeatIntervalMs: Long = 50L
@@ -1000,7 +1003,7 @@ class KeyboardView(context: Context) : View(context) {
         }
 
         // Swipe left on backspace: delete whole words (one per step of travel)
-        if (ps.kb.key.code == Codes.BACKSPACE) {
+        if (ps.kb.key.code == Codes.BACKSPACE && glideDeleteEnabled) {
             if (!ps.wordDelete && x - ps.downX < -dp(30f)) {
                 ps.wordDelete = true
                 cancelTimers(ps)

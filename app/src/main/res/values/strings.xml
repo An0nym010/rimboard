@@ -42,6 +42,16 @@
     <string name="theme_graphite">Graphite</string>
     <string name="theme_rose">Rose</string>
     <string name="theme_mint">Mint</string>
+    <string name="theme_sky">Sky (light)</string>
+    <string name="theme_sand">Sand (light)</string>
+    <string name="theme_lilac">Lilac (light)</string>
+    <string name="theme_peach">Peach (light)</string>
+    <string name="theme_sage">Sage (light)</string>
+    <string name="theme_paper">Paper (light)</string>
+    <string name="theme_plum">Plum</string>
+    <string name="theme_crimson">Crimson</string>
+    <string name="pref_glide_delete_title">Glide delete</string>
+    <string name="pref_glide_delete_summary">Delete words by gliding left from the backspace key</string>
     <string name="theme_custom">Custom 1</string>
     <string name="theme_custom2" tools:ignore="MissingTranslation">Custom 2</string>
     <string name="theme_custom3" tools:ignore="MissingTranslation">Custom 3</string>

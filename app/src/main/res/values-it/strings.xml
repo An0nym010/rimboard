@@ -266,4 +266,14 @@
     <string name="tint_subtle">Tenue</string>
     <string name="tint_medium">Media</string>
     <string name="tint_strong">Intensa</string>
+    <string name="theme_sky">Cielo (chiaro)</string>
+    <string name="theme_sand">Sabbia (chiaro)</string>
+    <string name="theme_lilac">Lilla (chiaro)</string>
+    <string name="theme_peach">Pesca (chiaro)</string>
+    <string name="theme_sage">Salvia (chiaro)</string>
+    <string name="theme_paper">Carta (chiaro)</string>
+    <string name="theme_plum">Prugna</string>
+    <string name="theme_crimson">Cremisi</string>
+    <string name="pref_glide_delete_title">Scorri per eliminare</string>
+    <string name="pref_glide_delete_summary">Elimina parole scorrendo a sinistra dal tasto di cancellazione</string>
 </resources>

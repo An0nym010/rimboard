@@ -155,6 +155,126 @@ object Themes {
         isDark = false
     )
 
+    // ---- light palettes. The shipped set was nine dark to three light, which
+    // is backwards for a keyboard most people use outdoors in daylight. These
+    // follow the same structure as light()/rose()/mint(): white caps, a tinted
+    // wash behind them, one confident accent, and text dark enough to clear
+    // contrast on the cap rather than on the background.
+
+    private fun sky() = KeyboardTheme(
+        background = 0xFFE8F0F8.toInt(),
+        keyBg = 0xFFFFFFFF.toInt(),
+        keyBgFunc = 0xFFD3E2F0.toInt(),
+        keyBgPressed = 0xFFB6CFE4.toInt(),
+        keyText = 0xFF17222C.toInt(),
+        keyHint = 0xFF667C8E.toInt(),
+        accent = 0xFF1976D2.toInt(),
+        onAccent = 0xFFFFFFFF.toInt(),
+        stripText = 0xFF2C3E4D.toInt(),
+        previewBg = 0xFFFFFFFF.toInt(),
+        isDark = false
+    )
+
+    private fun sand() = KeyboardTheme(
+        background = 0xFFF5EFE2.toInt(),
+        keyBg = 0xFFFFFDF8.toInt(),
+        keyBgFunc = 0xFFE8DFCB.toInt(),
+        keyBgPressed = 0xFFD5C8AC.toInt(),
+        keyText = 0xFF2A2418.toInt(),
+        keyHint = 0xFF7D7259.toInt(),
+        accent = 0xFFB07B2E.toInt(),
+        onAccent = 0xFFFFFFFF.toInt(),
+        stripText = 0xFF453C28.toInt(),
+        previewBg = 0xFFFFFDF8.toInt(),
+        isDark = false
+    )
+
+    private fun lilac() = KeyboardTheme(
+        background = 0xFFF0EBF8.toInt(),
+        keyBg = 0xFFFFFFFF.toInt(),
+        keyBgFunc = 0xFFDFD6EE.toInt(),
+        keyBgPressed = 0xFFC7B8E0.toInt(),
+        keyText = 0xFF241E30.toInt(),
+        keyHint = 0xFF74688A.toInt(),
+        accent = 0xFF6C4BB6.toInt(),
+        onAccent = 0xFFFFFFFF.toInt(),
+        stripText = 0xFF3A3048.toInt(),
+        previewBg = 0xFFFFFFFF.toInt(),
+        isDark = false
+    )
+
+    private fun peach() = KeyboardTheme(
+        background = 0xFFFCEDE6.toInt(),
+        keyBg = 0xFFFFFFFF.toInt(),
+        keyBgFunc = 0xFFF6DACD.toInt(),
+        keyBgPressed = 0xFFE9BCA8.toInt(),
+        keyText = 0xFF2E1F18.toInt(),
+        keyHint = 0xFF8A6A5C.toInt(),
+        accent = 0xFFD2593B.toInt(),
+        onAccent = 0xFFFFFFFF.toInt(),
+        stripText = 0xFF4A342B.toInt(),
+        previewBg = 0xFFFFFFFF.toInt(),
+        isDark = false
+    )
+
+    private fun sage() = KeyboardTheme(
+        background = 0xFFEDF2EA.toInt(),
+        keyBg = 0xFFFFFFFF.toInt(),
+        keyBgFunc = 0xFFDAE4D3.toInt(),
+        keyBgPressed = 0xFFBFCFB5.toInt(),
+        keyText = 0xFF1F261B.toInt(),
+        keyHint = 0xFF6C7B65.toInt(),
+        accent = 0xFF4C7A3F.toInt(),
+        onAccent = 0xFFFFFFFF.toInt(),
+        stripText = 0xFF35402F.toInt(),
+        previewBg = 0xFFFFFFFF.toInt(),
+        isDark = false
+    )
+
+    private fun paper() = KeyboardTheme(
+        background = 0xFFF2F1EE.toInt(),
+        keyBg = 0xFFFFFFFF.toInt(),
+        keyBgFunc = 0xFFE2E0DA.toInt(),
+        keyBgPressed = 0xFFC9C6BE.toInt(),
+        keyText = 0xFF1C1C1A.toInt(),
+        keyHint = 0xFF6F6E69.toInt(),
+        accent = 0xFF3B3B38.toInt(),
+        onAccent = 0xFFFFFFFF.toInt(),
+        stripText = 0xFF35342F.toInt(),
+        previewBg = 0xFFFFFFFF.toInt(),
+        isDark = false
+    )
+
+    // ---- two more dark ones, for colours the dark set did not have.
+
+    private fun plum() = KeyboardTheme(
+        background = 0xFF1B1420.toInt(),
+        keyBg = 0xFF2E2237.toInt(),
+        keyBgFunc = 0xFF221A29.toInt(),
+        keyBgPressed = 0xFF43334F.toInt(),
+        keyText = 0xFFEDE4F2.toInt(),
+        keyHint = 0xFF9C8AA6.toInt(),
+        accent = 0xFFC77DFF.toInt(),
+        onAccent = 0xFF230A33.toInt(),
+        stripText = 0xFFE3D8EA.toInt(),
+        previewBg = 0xFF3A2C45.toInt(),
+        isDark = true
+    )
+
+    private fun crimson() = KeyboardTheme(
+        background = 0xFF1E1416.toInt(),
+        keyBg = 0xFF332225.toInt(),
+        keyBgFunc = 0xFF261A1C.toInt(),
+        keyBgPressed = 0xFF4A3034.toInt(),
+        keyText = 0xFFF2E6E8.toInt(),
+        keyHint = 0xFFAC8C91.toInt(),
+        accent = 0xFFE05561.toInt(),
+        onAccent = 0xFF2B0A0F.toInt(),
+        stripText = 0xFFE8DADD.toInt(),
+        previewBg = 0xFF3F2A2E.toInt(),
+        isDark = true
+    )
+
     private fun isNightMode(context: Context): Boolean =
         (context.resources.configuration.uiMode and
             android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
@@ -464,6 +584,14 @@ object Themes {
             "graphite" -> graphite()
             "rose" -> rose()
             "mint" -> mint()
+            "sky" -> sky()
+            "sand" -> sand()
+            "lilac" -> lilac()
+            "peach" -> peach()
+            "sage" -> sage()
+            "paper" -> paper()
+            "plum" -> plum()
+            "crimson" -> crimson()
             "custom" -> custom(context, 1)
             "custom2" -> custom(context, 2)
             "custom3" -> custom(context, 3)

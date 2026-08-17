@@ -40,6 +40,7 @@ object Prefs {
     const val KEY_SOUND_VOL = "sound_volume"
     const val KEY_HAPTIC_STR = "haptic_strength"
     const val KEY_GLIDE_TRAIL = "glide_trail"
+    const val KEY_GLIDE_DELETE = "glide_delete"
     /** Legacy light/medium/strong choice; read only to seed the slider. */
     const val KEY_BG_DIM = "bg_dim"
     const val KEY_BG_DIM_PCT = "bg_dim_pct"
@@ -163,6 +164,15 @@ object Prefs {
     // Must match the defaultValue in prefs_general.xml or the switch shows one
     // state while the keyboard obeys the other.
     fun glideTrail(c: Context) = get(c).getBoolean(KEY_GLIDE_TRAIL, true)
+
+    /**
+     * Swipe left from backspace to delete whole words.
+     *
+     * The gesture has shipped since before there was a screen to turn it off
+     * on, which is the wrong way round for something that deletes: anyone who
+     * triggers it by accident had no way to stop it happening again.
+     */
+    fun glideDelete(c: Context) = get(c).getBoolean(KEY_GLIDE_DELETE, true)
     /**
      * Dim overlay for the background image, as a draw alpha (0..230).
      *

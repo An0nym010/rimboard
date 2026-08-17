@@ -268,4 +268,14 @@
     <string name="tint_subtle">Слабая</string>
     <string name="tint_medium">Средняя</string>
     <string name="tint_strong">Сильная</string>
+    <string name="theme_sky">Небо (светлая)</string>
+    <string name="theme_sand">Песок (светлая)</string>
+    <string name="theme_lilac">Сирень (светлая)</string>
+    <string name="theme_peach">Персик (светлая)</string>
+    <string name="theme_sage">Шалфей (светлая)</string>
+    <string name="theme_paper">Бумага (светлая)</string>
+    <string name="theme_plum">Слива</string>
+    <string name="theme_crimson">Багровая</string>
+    <string name="pref_glide_delete_title">Свайп для удаления</string>
+    <string name="pref_glide_delete_summary">Удаляйте слова, проводя влево от клавиши удаления</string>
 </resources>

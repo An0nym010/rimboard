@@ -266,4 +266,14 @@
     <string name="tint_subtle">Sutil</string>
     <string name="tint_medium">Media</string>
     <string name="tint_strong">Intensa</string>
+    <string name="theme_sky">Cielo (claro)</string>
+    <string name="theme_sand">Arena (claro)</string>
+    <string name="theme_lilac">Lila (claro)</string>
+    <string name="theme_peach">Melocotón (claro)</string>
+    <string name="theme_sage">Salvia (claro)</string>
+    <string name="theme_paper">Papel (claro)</string>
+    <string name="theme_plum">Ciruela</string>
+    <string name="theme_crimson">Carmesí</string>
+    <string name="pref_glide_delete_title">Deslizar para borrar</string>
+    <string name="pref_glide_delete_summary">Borra palabras deslizando a la izquierda desde la tecla de borrado</string>
 </resources>

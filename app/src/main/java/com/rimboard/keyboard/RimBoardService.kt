@@ -617,6 +617,7 @@ class RimBoardService : InputMethodService(),
             kv.theme = photoTheme ?: t
             kv.previewEnabled = Prefs.popupPreview(this)
             kv.glideEnabled = Prefs.glide(this)
+            kv.glideDeleteEnabled = Prefs.glideDelete(this)
             when (Prefs.repeatSpeed(this)) {
                 "slow" -> { kv.repeatInitialMs = 420L; kv.repeatIntervalMs = 70L }
                 "fast" -> { kv.repeatInitialMs = 200L; kv.repeatIntervalMs = 32L }

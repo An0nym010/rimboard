@@ -35,14 +35,31 @@ object Haptics {
         null
     }
 
-    /** Reliable effect for [predefined]: the predefined effect only if the
-     *  device confirms support, otherwise a one-shot of [ms] at [amp] (1..255). */
+    /**
+     * Whether the device implements *all three* of the effects the strength
+     * setting maps to.
+     *
+     * Checked together rather than one at a time, and that is the fix for a
+     * real complaint: "Strong" felt weaker than the other two. Support is
+     * per-effect, so a device that implements `EFFECT_HEAVY_CLICK` but not
+     * `EFFECT_TICK` or `EFFECT_CLICK` got a predefined buzz for Strong and
+     * hand-built one-shots for Light and Medium. Those are two different
+     * scales: a one-shot at full amplitude for 28ms is a shove, while an OEM's
+     * idea of a "heavy click" can be a short crisp tap, so the ordering
+     * inverted. Either all three come from the device's own vocabulary or none
+     * of them do, and then the three are comparable by construction.
+     */
+    private fun predefinedUsable(v: Vibrator): Boolean =
+        Build.VERSION.SDK_INT >= 30 && v.areAllEffectsSupported(
+            VibrationEffect.EFFECT_TICK,
+            VibrationEffect.EFFECT_CLICK,
+            VibrationEffect.EFFECT_HEAVY_CLICK
+        ) == Vibrator.VIBRATION_EFFECT_SUPPORT_YES
+
+    /** Reliable effect for [predefined]: the predefined effect only when the
+     *  whole set is supported, otherwise a one-shot of [ms] at [amp] (1..255). */
     private fun effect(v: Vibrator, predefined: Int, ms: Long, amp: Int): VibrationEffect {
-        if (Build.VERSION.SDK_INT >= 30 &&
-            v.areAllEffectsSupported(predefined) == Vibrator.VIBRATION_EFFECT_SUPPORT_YES
-        ) {
-            return VibrationEffect.createPredefined(predefined)
-        }
+        if (predefinedUsable(v)) return VibrationEffect.createPredefined(predefined)
         val amplitude = if (v.hasAmplitudeControl()) amp else VibrationEffect.DEFAULT_AMPLITUDE
         return VibrationEffect.createOneShot(ms, amplitude)
     }
@@ -149,12 +166,27 @@ object Haptics {
         )
     }
 
+    /**
+     * The three strengths, as duration and amplitude.
+     *
+     * Both rise together on purpose. Amplitude alone is not enough — a good
+     * many motors have no amplitude control at all, and on those every level
+     * would land on `DEFAULT_AMPLITUDE` and feel identical — so duration
+     * carries the difference where amplitude cannot.
+     */
+    private val LIGHT = Triple(VibrationEffect.EFFECT_TICK, 10L, 80)
+    private val MEDIUM = Triple(VibrationEffect.EFFECT_CLICK, 20L, 160)
+    private val STRONG = Triple(VibrationEffect.EFFECT_HEAVY_CLICK, 35L, 255)
+
     fun tap(view: View) {
-        when (com.rimboard.keyboard.settings.Prefs.hapticStrength(view.context)) {
-            "light" -> fire(view, VibrationEffect.EFFECT_TICK, 10L, 60, HapticFeedbackConstants.KEYBOARD_TAP)
-            "strong" -> fire(view, VibrationEffect.EFFECT_HEAVY_CLICK, 28L, 255, HapticFeedbackConstants.KEYBOARD_TAP)
-            else -> fire(view, VibrationEffect.EFFECT_CLICK, 18L, 130, HapticFeedbackConstants.KEYBOARD_TAP)
+        val (predef, ms, amp) = when (
+            com.rimboard.keyboard.settings.Prefs.hapticStrength(view.context)
+        ) {
+            "light" -> LIGHT
+            "strong" -> STRONG
+            else -> MEDIUM
         }
+        fire(view, predef, ms, amp, HapticFeedbackConstants.KEYBOARD_TAP)
     }
 
     fun longPress(view: View) {

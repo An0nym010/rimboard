@@ -266,4 +266,14 @@
     <string name="tint_subtle">Sutil</string>
     <string name="tint_medium">Media</string>
     <string name="tint_strong">Forte</string>
+    <string name="theme_sky">Céu (claro)</string>
+    <string name="theme_sand">Areia (claro)</string>
+    <string name="theme_lilac">Lilás (claro)</string>
+    <string name="theme_peach">Pêssego (claro)</string>
+    <string name="theme_sage">Sálvia (claro)</string>
+    <string name="theme_paper">Papel (claro)</string>
+    <string name="theme_plum">Ameixa</string>
+    <string name="theme_crimson">Carmesim</string>
+    <string name="pref_glide_delete_title">Deslizar para apagar</string>
+    <string name="pref_glide_delete_summary">Apague palavras deslizando para a esquerda a partir da tecla de apagar</string>
 </resources>

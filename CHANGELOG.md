@@ -4,6 +4,25 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**"Strong" vibration was the weakest**
+- Support for the platform's predefined effects is per-effect, so a phone that
+  implements `EFFECT_HEAVY_CLICK` but not `EFFECT_TICK` or `EFFECT_CLICK` got a
+  predefined buzz for Strong and hand-built one-shots for Light and Medium.
+  Those are two different scales — a one-shot at full amplitude is a shove,
+  while an OEM's "heavy click" can be a short crisp tap — so the order
+  inverted. Either all three come from the device's own vocabulary or none do.
+- Duration now rises with amplitude across the three, because a good many
+  motors have no amplitude control and every level felt identical on those.
+
+**Eight more themes, six of them light**
+- Sky, Sand, Lilac, Peach, Sage and Paper, plus Plum and Crimson for the dark
+  set. The shipped set was nine dark to three light, which is backwards for a
+  keyboard used outdoors.
+
+**Glide delete has a setting**
+- The swipe-left-from-backspace gesture has shipped since before there was a
+  screen to turn it off on — the wrong way round for something that deletes.
+
 **"hellooo" is not a word, whatever the dictionary says**
 - It is in the shipped English list, along with "helloooo" and "hellooooo" —
   the frequency lists are built from web text, where people write that way

@@ -5,6 +5,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 /**
  * The photo-background theme variant is what keeps lettering readable on top
@@ -212,6 +213,26 @@ class ThemesTest {
             "the default tint is too faint to see: ${chroma(medium.background)}",
             chroma(medium.background) >= 8
         )
+    }
+
+    @Test
+    fun `every theme offered in settings is actually built`() {
+        // Adding a theme means touching two places, and forgetting the second
+        // fails silently: `resolve`'s `when` falls through to light or dark, so
+        // the picker shows a name, the user selects it, and the keyboard looks
+        // unchanged. Nothing errors and nothing says why.
+        val res = listOf(File("src/main/res"), File("app/src/main/res")).first { it.isDirectory }
+        val arrays = File(res, "values/arrays.xml").readText()
+        val values = Regex("""theme_values">(.*?)</string-array>""", RegexOption.DOT_MATCHES_ALL)
+            .find(arrays)!!.groupValues[1]
+            .let { Regex("<item>(.*?)</item>").findAll(it).map { m -> m.groupValues[1] }.toList() }
+        val source = listOf(File("src/main/java"), File("app/src/main/java"))
+            .first { it.isDirectory }
+            .resolve("com/rimboard/keyboard/theme/Theme.kt").readText()
+        val handled = Regex(""""(\w+)"\s*->""").findAll(source).map { it.groupValues[1] }.toSet()
+        val missing = values.filter { it != "system" && it !in handled }
+        assertTrue("offered in settings but not built: $missing", missing.isEmpty())
+        assertTrue("suspiciously few themes found", values.size >= 20)
     }
 
     @Test
