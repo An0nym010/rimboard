@@ -370,21 +370,82 @@ object Themes {
      * icon; without it the hue falls back to [hueFor], which is stable and
      * distinct but is not the app's colour and does not claim to be.
      */
-    fun forApp(base: KeyboardTheme, pkg: String?, hueOverride: Int? = null): KeyboardTheme {
+    /** HSL lightness of [c] — the midpoint of its brightest and darkest channel. */
+    internal fun lightnessOf(c: Int): Float {
+        val r = (c shr 16 and 0xFF) / 255f
+        val g = (c shr 8 and 0xFF) / 255f
+        val b = (c and 0xFF) / 255f
+        return (maxOf(r, g, b) + minOf(r, g, b)) / 2f
+    }
+
+    /**
+     * [base] recoloured at [sat] saturation around [hue], keeping its own
+     * lightness.
+     *
+     * The first version of this blended each surface a few percent toward the
+     * accent, on the reasoning that a saturated background reads as a fault
+     * rather than as a theme. That reasoning is sound and the execution was
+     * not: six percent of the way toward anything is invisible, so the feature
+     * ran for weeks looking exactly like a feature that was switched off.
+     *
+     * Blending was the wrong instrument. Mixing toward a colour drags
+     * *lightness* with it, which is why it had to be kept tiny — enough tint to
+     * see would have lifted a near-black background and dulled the contrast the
+     * theme was built around. Replacing the hue while holding lightness where
+     * it already is has no such cost, so it can go far enough to notice.
+     * Lightness is clamped a little away from pure black and white only because
+     * neither can hold any colour at all.
+     */
+    private fun recolour(base: Int, hue: Int, chroma: Float): Int {
+        val l = lightnessOf(base).coerceIn(0.03f, 0.97f)
+        // In HSL, chroma is `(1 - |2L - 1|) * S` — so how much colour a surface
+        // can hold at all is decided by its lightness, and near black or near
+        // white it is almost none. Asking for a fixed *saturation* therefore
+        // produces a visible tint on a mid-grey key and nothing whatsoever on
+        // the near-black background of a dark theme, which is most of the
+        // screen and exactly where this was reported as not working.
+        //
+        // So the setting names the chroma wanted and the saturation needed to
+        // reach it is solved for here. Where the lightness cannot carry that
+        // much colour, saturation pins at 1 and the surface gets as much as it
+        // can hold, which is the honest ceiling rather than a silent shortfall.
+        val available = (1f - Math.abs(2f * l - 1f)).coerceAtLeast(0.02f)
+        val sat = (chroma / available).coerceIn(0f, 1f)
+        return hsl(hue, sat, l)
+    }
+
+    /**
+     * [pkg]'s tint applied to [base].
+     *
+     * [hueOverride] is the app's own colour where it could be read; without it
+     * the hue falls back to [hueFor], which is stable and distinct but is not
+     * the app's colour and does not claim to be. [strength] is the *chroma* the
+     * surfaces aim for — see [recolour] for why that rather than saturation.
+     * The accent itself is always fully realised, since it is small and is the
+     * part meant to be seen.
+     */
+    fun forApp(
+        base: KeyboardTheme,
+        pkg: String?,
+        hueOverride: Int? = null,
+        strength: Float = 0.09f
+    ): KeyboardTheme {
         if (pkg.isNullOrEmpty()) return base
         val hue = hueOverride ?: hueFor(pkg)
         // Dark themes need a lighter, less saturated accent to stay legible
         // against a near-black surface; light ones need it darker so white
         // `onAccent` lettering survives on top of it.
         val accent = if (base.isDark) hsl(hue, 0.72f, 0.66f) else hsl(hue, 0.62f, 0.44f)
+        val s = strength.coerceIn(0f, 0.30f)
         return base.copy(
             accent = accent,
             onAccent = if (luminance(accent) < 0.5) 0xFFFFFFFF.toInt() else 0xFF14171C.toInt(),
-            background = mix(base.background, accent, 0.06f),
-            keyBg = mix(base.keyBg, accent, 0.05f),
-            keyBgFunc = mix(base.keyBgFunc, accent, 0.05f),
-            keyBgPressed = mix(base.keyBgPressed, accent, 0.10f),
-            previewBg = mix(base.previewBg, accent, 0.05f)
+            background = recolour(base.background, hue, s),
+            keyBg = recolour(base.keyBg, hue, s),
+            keyBgFunc = recolour(base.keyBgFunc, hue, s),
+            // A touch stronger, because a press is meant to register.
+            keyBgPressed = recolour(base.keyBgPressed, hue, (s * 1.4f).coerceAtMost(0.30f)),
+            previewBg = recolour(base.previewBg, hue, s)
         )
     }
 

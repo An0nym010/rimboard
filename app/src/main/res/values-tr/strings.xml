@@ -272,4 +272,8 @@
         <item quantity="one">%1$d istek</item>
         <item quantity="other">%1$d istek</item>
     </plurals>
+    <string name="pref_tint_strength_title">Renk yoğunluğu</string>
+    <string name="tint_subtle">Hafif</string>
+    <string name="tint_medium">Orta</string>
+    <string name="tint_strong">Güçlü</string>
 </resources>

@@ -262,4 +262,8 @@
         <item quantity="one">%1$d richiesta</item>
         <item quantity="other">%1$d richieste</item>
     </plurals>
+    <string name="pref_tint_strength_title">Intensita della tinta</string>
+    <string name="tint_subtle">Tenue</string>
+    <string name="tint_medium">Media</string>
+    <string name="tint_strong">Intensa</string>
 </resources>

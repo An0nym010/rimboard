@@ -56,6 +56,18 @@
         <item>tr</item>
     </string-array>
 
+    <string-array name="tint_strength_entries">
+        <item>@string/tint_subtle</item>
+        <item>@string/tint_medium</item>
+        <item>@string/tint_strong</item>
+    </string-array>
+
+    <string-array name="tint_strength_values">
+        <item>subtle</item>
+        <item>medium</item>
+        <item>strong</item>
+    </string-array>
+
     <string-array name="app_color_source_entries">
         <item>@string/app_color_source_curated</item>
         <item>@string/app_color_source_all</item>

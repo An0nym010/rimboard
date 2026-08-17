@@ -175,6 +175,52 @@ object AppPalette {
      * what it is from here. Cached because it cannot change while the app is
      * installed, and because this is called on a focus change.
      */
+    /**
+     * The hue of [pkg]'s own declared primary colour, or null.
+     *
+     * Tried before the icon, because it is a better answer to "the app's main
+     * colour": an icon is a picture and its dominant hue may be a detail, while
+     * `colorPrimary` is the colour the app *chose* to paint itself. It is also
+     * the colour the user is looking at while they type, which is the whole
+     * point of matching it.
+     *
+     * `colorPrimary` exists twice over. The framework attribute is resolved by
+     * a fixed id; AppCompat and Material define their own, and those live in
+     * the *target app's* resource namespace with an id only that app's
+     * resources can tell us — hence the lookup by name. Modern apps overwhelm-
+     * ingly use the second, so trying only the first would miss most of them.
+     *
+     * Needs no permission beyond the package visibility the tint already
+     * requires: reading another app's resources is not reading its data.
+     */
+    private fun themeHue(context: Context, pkg: String): Int? = try {
+        val pm = context.packageManager
+        val info = pm.getApplicationInfo(pkg, 0)
+        val res = pm.getResourcesForApplication(info)
+        val theme = res.newTheme()
+        theme.applyStyle(info.theme, true)
+        var found: Int? = null
+        for (name in listOf("colorPrimary", "colorPrimaryDark", "colorAccent")) {
+            val attr = res.getIdentifier(name, "attr", pkg)
+            val ids = if (attr != 0) intArrayOf(attr) else when (name) {
+                "colorPrimary" -> intArrayOf(android.R.attr.colorPrimary)
+                "colorPrimaryDark" -> intArrayOf(android.R.attr.colorPrimaryDark)
+                else -> intArrayOf(android.R.attr.colorAccent)
+            }
+            val ta = theme.obtainStyledAttributes(ids)
+            val c = try { ta.getColor(0, 0) } finally { ta.recycle() }
+            // A transparent or unset value is not an answer, and a grey is not
+            // a brand colour — plenty of themes leave colorPrimary near-white.
+            if (c != 0 && (c ushr 24) > 0) {
+                found = dominantHue(intArrayOf(c or (0xFF shl 24)))
+                if (found != null) break
+            }
+        }
+        found
+    } catch (_: Exception) {
+        null
+    }
+
     fun hueOf(context: Context, pkg: String?, curatedOnly: Boolean): Int? {
         if (pkg.isNullOrEmpty()) return null
         if (curatedOnly && pkg !in CURATED) return null
@@ -184,7 +230,9 @@ object AppPalette {
         val key = if (curatedOnly) "c:$pkg" else "a:$pkg"
         cache[key]?.let { return it }
         if (cache.containsKey(key)) return null
-        val hue = try {
+        // The declared theme colour first, the icon second. Both are the app
+        // describing itself; the theme is the more direct statement of it.
+        val hue = themeHue(context, pkg) ?: try {
             val icon = context.packageManager.getApplicationIcon(pkg)
             val bmp = Bitmap.createBitmap(SIZE, SIZE, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bmp)

@@ -59,6 +59,7 @@ object Prefs {
     const val KEY_LANG_PER_APP = "lang_per_app"
     const val KEY_THEME_PER_APP = "theme_per_app"
     const val KEY_APP_COLOR_SOURCE = "app_color_source"
+    const val KEY_TINT_STRENGTH = "tint_strength"
     const val KEY_SYM_RETURN = "symbols_return"
     const val KEY_EMOJI_RETURN = "emoji_return"
     const val KEY_CLIP_RETURN = "clip_return"
@@ -231,6 +232,20 @@ object Prefs {
         get(c).getString(KEY_APP_COLOR_SOURCE, "curated") ?: "curated"
 
     fun curatedColorsOnly(c: Context) = appColorSource(c) != "all"
+
+    /**
+     * How saturated the tinted surfaces become.
+     *
+     * Defaults to medium rather than subtle because subtle is where this
+     * started, at a strength low enough that the feature was indistinguishable
+     * from being switched off — which is how it was reported.
+     */
+    fun tintStrength(c: Context): Float =
+        when (get(c).getString(KEY_TINT_STRENGTH, "medium")) {
+            "subtle" -> 0.04f
+            "strong" -> 0.16f
+            else -> 0.09f
+        }
     fun symbolsReturn(c: Context) = get(c).getBoolean(KEY_SYM_RETURN, true)
     fun emojiReturn(c: Context) = get(c).getBoolean(KEY_EMOJI_RETURN, false)
     fun clipReturn(c: Context) = get(c).getBoolean(KEY_CLIP_RETURN, false)

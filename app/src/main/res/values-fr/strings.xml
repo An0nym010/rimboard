@@ -262,4 +262,8 @@
         <item quantity="one">%1$d requete</item>
         <item quantity="other">%1$d requetes</item>
     </plurals>
+    <string name="pref_tint_strength_title">Intensite de la teinte</string>
+    <string name="tint_subtle">Discrete</string>
+    <string name="tint_medium">Moyenne</string>
+    <string name="tint_strong">Forte</string>
 </resources>

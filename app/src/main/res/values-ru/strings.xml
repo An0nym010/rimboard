@@ -264,4 +264,8 @@
         <item quantity="many">%1$d запросов</item>
         <item quantity="other">%1$d запроса</item>
     </plurals>
+    <string name="pref_tint_strength_title">Насыщенность оттенка</string>
+    <string name="tint_subtle">Слабая</string>
+    <string name="tint_medium">Средняя</string>
+    <string name="tint_strong">Сильная</string>
 </resources>

@@ -4,6 +4,22 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**The per-app tint is now something you can see**
+- It had been running all along and was tuned to invisibility: each surface
+  was blended six percent toward the accent, which on a dark theme is nothing
+  at all. Reported, fairly, as the feature not working.
+- Blending was the wrong instrument, because mixing toward a colour drags
+  lightness with it — which is why it had to stay tiny, or a near-black
+  background would have lifted and taken the theme's contrast with it. The hue
+  is now replaced while each surface keeps its own lightness, so it can go far
+  enough to notice at no cost to legibility. Key text, hints and the light or
+  dark polarity are still untouched.
+- **Theme → Tint strength**: subtle, medium (default) or strong.
+- The colour is now taken from the app's declared `colorPrimary` where it can
+  be read, falling back to the launcher icon and then to the package-name hue.
+  A theme colour is what the app chose to paint itself, which is a better
+  answer to "the app's main colour" than the dominant hue of a picture.
+
 **A failed request says something you can act on**
 - The provider's own error body was the message, and it went straight onto the
   translate bar's two-line strip — so a failing service produced a clipped

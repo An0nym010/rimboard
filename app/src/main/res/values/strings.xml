@@ -265,6 +265,10 @@
     <string name="pref_lang_per_app_summary">Restore the last language used in each app</string>
     <string name="pref_theme_per_app_title">Tint to match the app</string>
     <string name="pref_theme_per_app_summary">Give each app its own accent colour, on top of the theme you chose</string>
+    <string name="pref_tint_strength_title">Tint strength</string>
+    <string name="tint_subtle">Subtle</string>
+    <string name="tint_medium">Medium</string>
+    <string name="tint_strong">Strong</string>
     <string name="pref_app_color_source_title">App colours</string>
     <string name="app_color_source_curated">Well-known apps (about 40)</string>
     <string name="app_color_source_all">Any app</string>

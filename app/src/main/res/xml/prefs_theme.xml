@@ -18,6 +18,15 @@
         android:defaultValue="true" />
 
     <ListPreference
+        android:key="tint_strength"
+        android:title="@string/pref_tint_strength_title"
+        android:entries="@array/tint_strength_entries"
+        android:entryValues="@array/tint_strength_values"
+        android:defaultValue="medium"
+        android:dependency="theme_per_app"
+        app:useSimpleSummaryProvider="true" />
+
+    <ListPreference
         android:key="app_color_source"
         android:title="@string/pref_app_color_source_title"
         android:entries="@array/app_color_source_entries"

@@ -262,4 +262,8 @@
         <item quantity="one">%1$d Anfrage</item>
         <item quantity="other">%1$d Anfragen</item>
     </plurals>
+    <string name="pref_tint_strength_title">Tonstarke</string>
+    <string name="tint_subtle">Dezent</string>
+    <string name="tint_medium">Mittel</string>
+    <string name="tint_strong">Kraftig</string>
 </resources>

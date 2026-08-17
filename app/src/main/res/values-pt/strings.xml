@@ -262,4 +262,8 @@
         <item quantity="one">%1$d solicitacao</item>
         <item quantity="other">%1$d solicitacoes</item>
     </plurals>
+    <string name="pref_tint_strength_title">Intensidade do tom</string>
+    <string name="tint_subtle">Sutil</string>
+    <string name="tint_medium">Media</string>
+    <string name="tint_strong">Forte</string>
 </resources>

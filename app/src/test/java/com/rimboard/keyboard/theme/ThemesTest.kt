@@ -168,6 +168,53 @@ class ThemesTest {
     }
 
     @Test
+    fun `tinting a surface keeps its lightness`() {
+        // This is what lets the tint be strong enough to see. Blending toward
+        // the accent dragged lightness with it, so it had to stay near six
+        // percent — invisible, and reported as the feature not working. Holding
+        // lightness while replacing hue costs nothing, so it can go further.
+        for (strength in listOf(0.04f, 0.09f, 0.16f)) {
+            val t = Themes.forApp(base, "com.whatsapp", strength = strength)
+            for ((name, before, after) in listOf(
+                Triple("background", base.background, t.background),
+                Triple("keyBg", base.keyBg, t.keyBg),
+                Triple("keyBgFunc", base.keyBgFunc, t.keyBgFunc),
+                Triple("previewBg", base.previewBg, t.previewBg)
+            )) {
+                val d = Math.abs(Themes.lightnessOf(before) - Themes.lightnessOf(after))
+                assertTrue(
+                    "$name lightness moved $d at strength $strength",
+                    d < 0.05f
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `a stronger setting is actually more coloured`() {
+        // The ordering has to hold or the setting is decoration. Measured as
+        // the spread between channels, which is what "coloured" means: a grey
+        // has none, and a saturated colour has a lot.
+        fun chroma(c: Int): Int {
+            val r = c shr 16 and 0xFF
+            val g = c shr 8 and 0xFF
+            val b = c and 0xFF
+            return maxOf(r, g, b) - minOf(r, g, b)
+        }
+        val subtle = Themes.forApp(base, "com.whatsapp", strength = 0.04f)
+        val medium = Themes.forApp(base, "com.whatsapp", strength = 0.09f)
+        val strong = Themes.forApp(base, "com.whatsapp", strength = 0.16f)
+        assertTrue(chroma(medium.background) > chroma(subtle.background))
+        assertTrue(chroma(strong.background) > chroma(medium.background))
+        // And the default must be visible at all, which is the whole complaint:
+        // the old six-percent blend put this in the low single digits.
+        assertTrue(
+            "the default tint is too faint to see: ${chroma(medium.background)}",
+            chroma(medium.background) >= 8
+        )
+    }
+
+    @Test
     fun `no package means no change at all`() {
         // onStartInputView can hand over a null package name; the keyboard
         // must then look exactly as the user configured it.

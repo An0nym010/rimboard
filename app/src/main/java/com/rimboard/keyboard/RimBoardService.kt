@@ -597,7 +597,8 @@ class RimBoardService : InputMethodService(),
                     // is decided by package visibility, not by anything here.
                     com.rimboard.keyboard.theme.AppPalette.hueOf(
                         this, info.packageName, Prefs.curatedColorsOnly(this)
-                    )
+                    ),
+                    Prefs.tintStrength(this)
                 )
             else base
         }
