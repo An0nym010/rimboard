@@ -283,4 +283,5 @@
     <string name="live_bg_none">Нет</string>
     <string name="live_bg_stars">Ночное небо</string>
     <string name="live_bg_particles">Частицы</string>
+    <string name="search_settings">Поиск в настройках</string>
 </resources>

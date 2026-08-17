@@ -281,4 +281,5 @@
     <string name="live_bg_none">Nessuno</string>
     <string name="live_bg_stars">Cielo notturno</string>
     <string name="live_bg_particles">Particelle</string>
+    <string name="search_settings">Cerca nelle impostazioni</string>
 </resources>

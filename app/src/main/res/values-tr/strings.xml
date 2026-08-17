@@ -291,4 +291,5 @@
     <string name="live_bg_none">Yok</string>
     <string name="live_bg_stars">Gece göğü</string>
     <string name="live_bg_particles">Parçacıklar</string>
+    <string name="search_settings">Ayarlarda ara</string>
 </resources>

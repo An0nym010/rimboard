@@ -27,11 +27,19 @@ import java.io.File
 class SettingsActivity : LocalisedActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menu.add(0, 1, 0, R.string.ui_lang_title)
+        menu.add(0, 2, 0, R.string.search_settings).apply {
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+            setIcon(android.R.drawable.ic_menu_search)
+        }
+        menu.add(0, 1, 1, R.string.ui_lang_title)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == 2) {
+            showSearch()
+            return true
+        }
         if (item.itemId == 1) {
             val entries = resources.getStringArray(R.array.ui_lang_entries)
             val values = resources.getStringArray(R.array.ui_lang_values)
@@ -50,6 +58,141 @@ class SettingsActivity : LocalisedActivity() {
         return super.onOptionsItemSelected(item)
     }
 
+
+    /**
+     * Every setting on every screen, with the screen it lives on.
+     *
+     * Built by inflating each preference XML rather than from a hand-written
+     * list, so a setting is searchable the moment it exists and its title here
+     * is the same string the screen shows, in the same language. Built once and
+     * kept: nine inflations is not something to do on every keystroke of a
+     * query.
+     */
+    private val searchIndex: List<SettingsSearch.Entry> by lazy { buildSearchIndex() }
+
+    /**
+     * Read straight from the preference XML with the resource parser.
+     *
+     * Not by inflating the hierarchy: `PreferenceManager`'s constructor and
+     * `inflateFromResource` are restricted to the library group, and lint says
+     * so. Suppressing that would be borrowing an internal API for a
+     * convenience, when the parser is public, cheaper, and gives exactly the
+     * two attributes wanted. Titles resolve through this activity's resources,
+     * which [LocalisedActivity] has already put in the chosen language, so an
+     * index built here is in the language on screen.
+     */
+    private fun buildSearchIndex(): List<SettingsSearch.Entry> {
+        val screenTitles = readAttributes(R.xml.preferences)
+            .filter { it.key.startsWith("screen_") }
+            .associate { it.key to it.title }
+        val out = ArrayList<SettingsSearch.Entry>()
+        for ((key, xml) in SCREEN_XML) {
+            val screenTitle = screenTitles[key] ?: continue
+            for (a in readAttributes(xml)) {
+                // A category header has a title and no key; it is a label, not
+                // a setting, and tapping a result for one would go nowhere.
+                if (a.title.isBlank() || a.key.isBlank()) continue
+                out.add(
+                    SettingsSearch.Entry(
+                        key = a.key,
+                        title = a.title,
+                        summary = a.summary,
+                        screenTitle = screenTitle,
+                        screenXml = xml
+                    )
+                )
+            }
+        }
+        return out
+    }
+
+    private class Attrs(val key: String, val title: String, val summary: String)
+
+    private fun readAttributes(xmlRes: Int): List<Attrs> {
+        val ns = "http://schemas.android.com/apk/res/android"
+        val out = ArrayList<Attrs>()
+        try {
+            resources.getXml(xmlRes).use { p ->
+                while (p.next() != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
+                    if (p.eventType != org.xmlpull.v1.XmlPullParser.START_TAG) continue
+                    val key = p.getAttributeValue(ns, "key").orEmpty()
+                    // Titles are string resources; a literal would return 0 and
+                    // is read back with getAttributeValue instead.
+                    val titleRes = p.getAttributeResourceValue(ns, "title", 0)
+                    val sumRes = p.getAttributeResourceValue(ns, "summary", 0)
+                    val title = if (titleRes != 0) getString(titleRes)
+                    else p.getAttributeValue(ns, "title").orEmpty()
+                    val summary = if (sumRes != 0) getString(sumRes)
+                    else p.getAttributeValue(ns, "summary").orEmpty()
+                    if (key.isNotBlank() || title.isNotBlank()) out.add(Attrs(key, title, summary))
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("RimBoard", "settings index: could not read xml $xmlRes", e)
+        }
+        return out
+    }
+
+    /** The search field and its results, over the current screen. */
+    private fun showSearch() {
+        val d = resources.displayMetrics.density
+        val input = android.widget.EditText(this).apply {
+            setHint(R.string.search_settings)
+            setSingleLine()
+            setPadding((16 * d).toInt(), (12 * d).toInt(), (16 * d).toInt(), (12 * d).toInt())
+        }
+        val results = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val scroll = android.widget.ScrollView(this).apply { addView(results) }
+        val box = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(input)
+            addView(scroll)
+        }
+        val dialog = AlertDialog.Builder(this).setView(box).create()
+        input.addTextChangedListener(object : android.text.TextWatcher {
+            override fun afterTextChanged(s: android.text.Editable?) {
+                results.removeAllViews()
+                for (hit in SettingsSearch.search(searchIndex, s?.toString().orEmpty())) {
+                    results.addView(resultRow(hit, dialog), LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ))
+                }
+            }
+            override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+        })
+        dialog.show()
+        input.requestFocus()
+    }
+
+    private fun resultRow(hit: SettingsSearch.Entry, dialog: AlertDialog): View {
+        val d = resources.displayMetrics.density
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding((16 * d).toInt(), (10 * d).toInt(), (16 * d).toInt(), (10 * d).toInt())
+            isClickable = true
+            addView(TextView(context).apply {
+                text = hit.title
+                textSize = 16f
+            })
+            // The path, which is the whole reason a result is worth showing:
+            // "where did you put this" is the question being asked, and the
+            // answer belongs in the result rather than one tap further on.
+            addView(TextView(context).apply {
+                text = hit.screenTitle
+                textSize = 12f
+                alpha = 0.7f
+            })
+            setOnClickListener {
+                dialog.dismiss()
+                supportFragmentManager.beginTransaction()
+                    .replace(CONTAINER_ID, SettingsFragment.newInstance(hit.screenXml))
+                    .addToBackStack(null)
+                    .commit()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -122,6 +265,28 @@ class SettingsActivity : LocalisedActivity() {
 
     companion object {
         const val CONTAINER_ID = 0x0A11CE
+
+        /**
+         * Which XML each sub-screen shows.
+         *
+         * The *titles* are deliberately not here: they are read from the root
+         * screen's own preferences at search time. Nine screens are titled from
+         * seven differently-named strings — `screen_general`, `cat_look`,
+         * `pref_glide_title` — and a second copy of that mapping would drift
+         * the first time one was renamed, leaving a search result labelled with
+         * the wrong screen and no way to notice.
+         */
+        val SCREEN_XML: Map<String, Int> = mapOf(
+            "screen_general" to R.xml.prefs_general,
+            "screen_theme" to R.xml.prefs_theme,
+            "screen_corrections" to R.xml.prefs_corrections,
+            "screen_glide" to R.xml.prefs_glide,
+            "screen_clipboard" to R.xml.prefs_clipboard,
+            "screen_privacy" to R.xml.prefs_privacy,
+            "screen_backup" to R.xml.prefs_backup,
+            "screen_advanced" to R.xml.prefs_advanced,
+            "screen_about" to R.xml.prefs_about
+        )
     }
 
     class SettingsFragment : PreferenceFragmentCompat() {

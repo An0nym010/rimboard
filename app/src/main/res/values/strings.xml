@@ -454,4 +454,5 @@ Your search words or selected text go to the service that answers them. Nothing 
     <string name="live_bg_none">None</string>
     <string name="live_bg_stars">Night sky</string>
     <string name="live_bg_particles">Particles</string>
+    <string name="search_settings">Search settings</string>
 </resources>

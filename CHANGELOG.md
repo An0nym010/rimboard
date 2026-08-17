@@ -4,6 +4,17 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Search the settings**
+- Around fifty settings sit behind nine sub-screens, which is the point where
+  "I know it exists, I don't know where you put it" becomes the normal way to
+  look for one. The magnifier in the settings toolbar searches all of them.
+- A result shows the setting's name *and the screen holding it*, so the answer
+  to "where is this" arrives with the result rather than after tapping it.
+- Titles come from the same strings the screens show, read in the language the
+  interface is set to, so a setting is searchable the moment it exists and
+  never under a stale name.
+- Accents are ignored in both directions: "duzeltme" finds "düzeltme".
+
 **Sentence starts work again**
 - Reading the context back from the cursor decided whether a new sentence was
   starting, then took the preceding word by scanning straight across the
