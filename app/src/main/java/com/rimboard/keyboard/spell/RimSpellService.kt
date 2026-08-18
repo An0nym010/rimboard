@@ -73,6 +73,14 @@ class RimSpellService : SpellCheckerService() {
      */
     override fun onCreate() {
         super.onCreate()
+        // A guess, and the only one available this early: no field has been
+        // bound yet, so the user's first keyboard language is the best
+        // available stand-in for the language of the first thing they will
+        // type in. Each session warms its own locale as well {EM} see
+        // [RimSession.onCreate] {EM} because this guess is wrong whenever the
+        // field is in the other language, and being wrong here used to mean
+        // the parse this call exists to avoid happened anyway, on a binder
+        // thread, inside the first check.
         val lang = Prefs.languages(this).firstOrNull() ?: "en"
         engine.warm(lang, Languages.byCode(lang).locale, null, null)
     }
@@ -146,6 +154,20 @@ class RimSpellService : SpellCheckerService() {
             // Read from the same setting the keyboard uses, for the same reason.
             altLang = Prefs.languages(service).firstOrNull { it != lang }
             altLoc = altLang?.let { Languages.byCode(it).locale }
+
+            // Now that the field's language is known, warm *that*. The service
+            // warmed its best guess at creation, and a guess is what it was:
+            // someone whose first keyboard language is Turkish, typing into a
+            // German field, got a cold dictionary parse on a binder thread
+            // with the framework waiting {EM} several hundred milliseconds on a
+            // phone, inside the first onGetSuggestions, which is precisely the
+            // stall warming exists to prevent.
+            //
+            // Cheap to call when the guess was right: `warm` hands the work to
+            // its own executor and the dictionary cache returns immediately for
+            // a language already loaded. Sessions are created per text field,
+            // so this runs often and must stay that way.
+            engine.warm(lang, loc, altLang, altLoc)
         }
 
         /**
