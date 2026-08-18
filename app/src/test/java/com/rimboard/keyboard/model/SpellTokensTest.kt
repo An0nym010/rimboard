@@ -3,6 +3,8 @@ package com.rimboard.keyboard.model
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
+private const val NEWLINE = "\n"
+
 /**
  * The offsets are the half that cannot be eyeballed: a wrong one puts the red
  * underline under the wrong word, which looks like the checker misjudging a
@@ -59,6 +61,50 @@ class SpellTokensTest {
     fun `empty and blank text yield nothing`() {
         assertEquals(emptyList<String>(), words(""))
         assertEquals(emptyList<String>(), words("   \n\t "))
+    }
+
+    private fun opens(s: String) = SpellTokens.of(s).map { it.text to it.startsSentence }
+
+    @Test
+    fun `only the first word opens the sentence`() {
+        assertEquals(
+            listOf("the" to true, "stroe" to false, "was" to false),
+            opens("the stroe was")
+        )
+    }
+
+    @Test
+    fun `a full stop opens the next one`() {
+        // Both halves of the bug this fixes are here. "Helo" must be judged as
+        // a sentence opener, or its capital reads as a name and the typo goes
+        // unflagged; and "left" must not be offered as context for it, which
+        // is ranking across a full stop.
+        assertEquals(
+            listOf("He" to true, "left" to false, "Helo" to true, "there" to false),
+            opens("He left. Helo there")
+        )
+    }
+
+    @Test
+    fun `question and exclamation marks and newlines do too`() {
+        assertEquals(listOf("a" to true, "b" to true), opens("a? b"))
+        assertEquals(listOf("a" to true, "b" to true), opens("a! b"))
+        assertEquals(listOf("a" to true, "b" to true), opens("a" + NEWLINE + "b"))
+        assertEquals(listOf("a" to true, "b" to false), opens("a, b"))
+    }
+
+    @Test
+    fun `the enders are the ones SentenceContext already defined`() {
+        // Not a second copy of ".!?" -- the keyboard side owns that list and
+        // this reads it, because the project has shipped a stale duplicate of
+        // a list before.
+        for (c in SentenceContext.ENDERS) {
+            assertEquals(
+                "'$c' should open the next sentence",
+                listOf("a" to true, "b" to true),
+                opens("a" + c + "b")
+            )
+        }
     }
 
     @Test

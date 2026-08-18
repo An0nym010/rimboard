@@ -214,10 +214,18 @@ class RimSpellService : SpellCheckerService() {
             for ((i, t) in tokens.withIndex()) {
                 offsets[i] = t.start
                 lengths[i] = t.length
-                // The first token of the sentence is the only one whose
-                // capital means "a sentence starts here" rather than "this is
-                // a name". See SpellCandidacy.worthChecking.
-                out[i] = judge(t.text, prev2, prev, limit, sentenceInitial = i == 0)
+                // A full stop ends the evidence as well as the sentence: the
+                // word before it is not context for the word after it. Ranking
+                // across that boundary is the mistake SentenceContext exists to
+                // prevent, and a TextInfo holding exactly one sentence is a
+                // convention of the caller rather than a guarantee.
+                if (t.startsSentence) {
+                    prev = ""
+                    prev2 = ""
+                }
+                // Only a word opening a sentence has a capital that means "a
+                // sentence starts here" rather than "this is a name".
+                out[i] = judge(t.text, prev2, prev, limit, sentenceInitial = t.startsSentence)
                     .also { it.setCookieAndSequence(info.cookie, info.sequence) }
                 prev2 = prev
                 prev = t.text

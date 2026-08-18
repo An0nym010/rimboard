@@ -20,8 +20,20 @@ package com.rimboard.keyboard.model
  */
 object SpellTokens {
 
-    /** One word, and where it sits in the text it came from. */
-    data class Token(val start: Int, val text: String) {
+    /**
+     * One word, where it sits in the text it came from, and whether it opens a
+     * sentence.
+     *
+     * [startsSentence] carries two things at once and both were wrong without
+     * it. A capital only means "this is a name" when it is *not* at a sentence
+     * start, so the first word after a full stop was read as a name and its
+     * typos went unflagged. And the preceding word is only evidence about this
+     * one when the two are in the same sentence: threading context across a
+     * full stop is exactly the bug [SentenceContext] was extracted to fix on
+     * the keyboard side, and this code had reintroduced it on the other side
+     * of the same engine.
+     */
+    data class Token(val start: Int, val text: String, val startsSentence: Boolean) {
         val length: Int get() = text.length
     }
 
@@ -39,8 +51,12 @@ object SpellTokens {
     fun of(text: CharSequence): List<Token> {
         val out = ArrayList<Token>()
         var i = 0
+        // The first word opens a sentence by definition; after that, anything
+        // in ENDERS standing between two words opens another.
+        var opens = true
         while (i < text.length) {
             if (!isWordChar(text[i])) {
+                if (text[i] in SentenceContext.ENDERS) opens = true
                 i++
                 continue
             }
@@ -50,7 +66,10 @@ object SpellTokens {
             var e = end
             while (s < e && !text[s].isLetter()) s++
             while (e > s && !text[e - 1].isLetter()) e--
-            if (e > s) out.add(Token(s, text.subSequence(s, e).toString()))
+            if (e > s) {
+                out.add(Token(s, text.subSequence(s, e).toString(), opens))
+                opens = false
+            }
             i = end
         }
         return out

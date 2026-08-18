@@ -23,8 +23,12 @@ import java.util.Locale
 object SentenceContext {
 
     /** Characters that end a sentence. A newline counts: pressing enter is a
-     *  sentence break, and the rest of the service already treats it as one. */
-    private const val ENDERS = ".!?\n"
+     *  sentence break, and the rest of the service already treats it as one.
+     *
+     *  Internal rather than private because [SpellTokens] asks the same
+     *  question of the sentence it is splitting, and this project has already
+     *  shipped two copies of a list that silently fell behind the original. */
+    internal const val ENDERS = ".!?\n"
 
     data class Context(
         val prevWord2: String,
