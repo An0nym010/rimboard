@@ -273,6 +273,24 @@ class SuggestionEngine private constructor(
     fun cachedDictionary(lang: String): Dictionary? = cache[lang + "#" + DictVersion.v]
 
     /**
+     * Whether the prediction model for [lang] is already in memory, via a
+     * lock-free read.
+     *
+     * [predictionModel] parses an asset on the calling thread when the answer
+     * is no, and blocks behind [warm]'s parse when one is already running.
+     * That is fine on the warm thread and not fine on a binder thread with the
+     * framework waiting {EM} it is the same stall the spell checker's warm fix
+     * removed, and the context ranking would have walked straight back into it
+     * by asking for predictions before anything had loaded them.
+     *
+     * A caller that wants ranking rather than a stall asks this first and does
+     * without the context when the answer is no. The first sentence typed in a
+     * cold field is ranked on the channel model alone, which is what it was
+     * ranked on before context existed at all.
+     */
+    fun predictionsReady(lang: String): Boolean = predictionModels.containsKey(lang)
+
+    /**
      * Whether [next] is a known continuation of [word].
      *
      * The n-grams only run forwards, so this is the one direction that can be
@@ -293,7 +311,12 @@ class SuggestionEngine private constructor(
         val a = word.lowercase(locale)
         val b = next.lowercase(locale)
         if (userData.follows(a, b)) return true
-        val known = predictionModel(lang)[a] ?: return false
+        // The learned bigrams above are a concurrent map and always safe to
+        // ask. The curated model is not loaded on demand here: doing so would
+        // parse an asset on a binder thread, and a missing answer is only a
+        // missed tie-break.
+        if (!predictionsReady(lang)) return false
+        val known = predictionModels[lang]?.get(a) ?: return false
         // Folded with the locale rather than equalsIgnoreCase, which is
         // locale-blind and would fold Turkish dotted and dotless i together.
         return known.any { it.lowercase(locale) == b }
@@ -868,15 +891,23 @@ class SuggestionEngine private constructor(
         return i == needle.length
     }
 
-    private val predictionModels = HashMap<String, Map<String, List<String>>>()
+    /**
+     * Concurrent so that [predictionsReady] can be answered without the lock.
+     * The lock below is still what stops two threads parsing the same asset;
+     * it is no longer also what stops a read seeing a half-resized map.
+     */
+    private val predictionModels =
+        java.util.concurrent.ConcurrentHashMap<String, Map<String, List<String>>>()
 
     /**
      * One lock per lazily-loaded map, rather than `@Synchronized` on the engine.
      *
-     * Locking is still required: [warm] loads these on a background thread while
-     * the typing path reads them on the UI thread, and `getOrPut` can resize the
-     * map — concurrent `HashMap` mutation corrupts it rather than failing
-     * cleanly, which would look like predictions intermittently misbehaving.
+     * Locking is still required, though for one reason rather than two now
+     * that [predictionModels] is concurrent: without it, two threads that both
+     * find a model missing would both parse the asset. What it no longer
+     * guards is the read {EM} see [predictionsReady], which has to be
+     * answerable without waiting behind a parse, since the whole point of
+     * asking is to avoid starting one.
      *
      * But `@Synchronized` put all three loaders behind *one* monitor, and that
      * monitor is held for the whole of a parse. So [warm] — whose entire purpose

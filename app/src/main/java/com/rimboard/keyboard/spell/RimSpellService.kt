@@ -331,8 +331,13 @@ class RimSpellService : SpellCheckerService() {
             // dictionary's own candidates and never invents one, and the bonus
             // is bounded below the spatial term, so context breaks a near-tie
             // without pulling a distant word past an obvious adjacent-key fix.
+            // Guarded on the model being loaded, not merely on there being a
+            // preceding word: predictions() would otherwise parse the model on
+            // this thread the first time it is asked, which is the stall the
+            // warm fix exists to prevent and which this ranking would have
+            // reintroduced through a different door.
             val contextRank =
-                if (prev.isEmpty()) emptyMap()
+                if (prev.isEmpty() || !engine.predictionsReady(lang)) emptyMap()
                 else engine.predictions(prev2, prev, lang, loc, CONTEXT_DEPTH)
                     .withIndex().associate { (i, w) -> w.lowercase(loc) to i }
             val cap = suggestionsLimit.coerceIn(1, MAX_SUGGESTIONS)
