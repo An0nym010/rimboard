@@ -213,7 +213,11 @@ class NetworkActivity : LocalisedActivity() {
         val perms = r?.declaredPermissions.orEmpty()
         container.addView(mono(d, if (perms.isEmpty()) "…" else perms.joinToString("\n")))
         container.addView(TextView(this).apply {
-            text = getString(R.string.net_perm_note)
+            // The package name is formatted in rather than written into the
+            // string: the two flavors no longer share one, so a hardcoded name
+            // would have printed a command that reports on the *other* build —
+            // on the screen whose entire purpose is checking this one.
+            text = getString(R.string.net_perm_note, packageName)
             textSize = 12f
             setPadding(0, (6 * d).toInt(), 0, 0)
         })

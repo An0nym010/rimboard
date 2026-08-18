@@ -1331,9 +1331,21 @@ class KeyboardView(context: Context) : View(context) {
 
         override fun getVisibleVirtualViews(ids: MutableList<Int>) {
             for (i in bounds.indices) ids.add(i)
+            // While a popup is open its alternatives are the only thing worth
+            // exploring, but they are drawn by this view rather than being
+            // children of it, so nothing would announce them without this.
+            // Without them the long-press action below opens a popup that a
+            // screen-reader user cannot then reach into.
+            if (popupOwner != null) {
+                for (i in popupKeys.indices) ids.add(POPUP_ID_BASE + i)
+            }
         }
 
         override fun onPopulateNodeForVirtualView(id: Int, node: AccessibilityNodeInfoCompat) {
+            if (id >= POPUP_ID_BASE) {
+                populatePopupNode(id - POPUP_ID_BASE, node)
+                return
+            }
             val kb = bounds.getOrNull(id)
             if (kb == null) {
                 // A node with empty bounds throws, so never leave one bare.
@@ -1361,16 +1373,86 @@ class KeyboardView(context: Context) : View(context) {
         override fun onPerformActionForVirtualView(
             id: Int, action: Int, arguments: Bundle?
         ): Boolean {
+            if (id >= POPUP_ID_BASE) {
+                val key = popupKeys.getOrNull(id - POPUP_ID_BASE) ?: return false
+                if (action != AccessibilityNodeInfoCompat.ACTION_CLICK) return false
+                listener?.onPopupKeySelected(key)
+                closeA11yPopup()
+                return true
+            }
             val kb = bounds.getOrNull(id) ?: return false
             return when (action) {
                 AccessibilityNodeInfoCompat.ACTION_CLICK -> {
                     listener?.onKeyPressed(kb.key)
                     true
                 }
+                // Advertised on every key that has alternatives, and until now
+                // not implemented: the node offered the action, the hint said
+                // what it was for, and performing it did nothing at all.
+                AccessibilityNodeInfoCompat.ACTION_LONG_CLICK -> openA11yPopup(kb)
                 else -> false
             }
         }
+
+        private fun populatePopupNode(index: Int, node: AccessibilityNodeInfoCompat) {
+            val key = popupKeys.getOrNull(index)
+            if (key == null || popupCell <= 0f) {
+                node.contentDescription = ""
+                node.setBoundsInParent(Rect(0, 0, 1, 1))
+                return
+            }
+            node.contentDescription = spokenLabel(key)
+            node.isEnabled = true
+            node.isFocusable = true
+            node.addAction(AccessibilityNodeInfoCompat.ACTION_CLICK)
+            val left = popupRect.left + index * popupCell
+            node.setBoundsInParent(
+                Rect(
+                    left.toInt(), popupRect.top.toInt(),
+                    (left + popupCell).toInt(), popupRect.bottom.toInt()
+                )
+            )
+        }
     }
+
+    /**
+     * Opens a key's alternatives for a screen reader, with no finger involved.
+     *
+     * The popup is owned by a [PointerState] because every other way of opening
+     * one begins with a touch. There is no touch here, so one is made that
+     * stands where the key is — and it is deliberately not put in `pointers`,
+     * since nothing will ever deliver an UP for it and it would then be flushed
+     * into the next keystroke by the rollover logic.
+     */
+    private fun openA11yPopup(kb: KeyBounds): Boolean {
+        if (kb.key.popup.isEmpty()) return false
+        val ps = PointerState(kb, kb.centerX(), kb.y + kb.h / 2f)
+        openPopup(ps)
+        keyA11y.invalidateRoot()
+        return true
+    }
+
+    private fun closeA11yPopup() {
+        popupOwner?.let { commitPopupSilently(it) }
+        keyA11y.invalidateRoot()
+    }
+
+    /** Closes a popup without committing its selection; the caller has already
+     *  reported the key it chose. */
+    private fun commitPopupSilently(ps: PointerState) {
+        ps.popupOpen = false
+        ps.cancelled = true
+        if (popupOwner === ps) {
+            snapshotPopupOut()
+            popupOwner = null
+            popupKeys = emptyList()
+        }
+        invalidate()
+    }
+
+    /** Virtual-view ids at or above this address a popup alternative rather
+     *  than a key on the board. */
+    private val POPUP_ID_BASE = 100000
 
     private val keyA11y = KeyA11y().also { ViewCompat.setAccessibilityDelegate(this, it) }
 

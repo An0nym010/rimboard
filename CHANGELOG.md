@@ -4,6 +4,28 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**The two builds are two apps**
+- They shared an application id, so installing either replaced the other and
+  only one could ever be listed anywhere. `online` now carries a `.online`
+  suffix. `offline` keeps the plain name, because it is the build the README
+  sends people to first — anyone already carrying an online build installs this
+  one fresh, which is the price of doing this at all and is smallest now, while
+  every release so far has been a debug-signed pre-release.
+- Two things had been written against the shared id and quietly broke with it:
+  the toolbar-picker row named its own package in an `<intent>`, so on the
+  suffixed build it pointed at an app that is not installed and did nothing
+  when tapped; and the network screen printed an `adb` command naming the
+  *other* build, on the screen whose whole purpose is checking the one you are
+  running. A test now rejects any resource that hardcodes the id, while still
+  allowing the class names that must spell it out.
+
+**Touch and hold works for a screen reader**
+- Keys with alternatives advertised a long-press action and set a hint saying
+  what it was for, and performing it did nothing: only `ACTION_CLICK` was
+  implemented. It opens the popup now, and the alternatives are exposed as
+  their own explorable items — without which the action would open something a
+  screen-reader user could not reach into.
+
 **The keyboard no longer stalls the first time it opens in an app**
 - Working out an app's colours means parsing its entire resource table and
   rasterising its icon, and both were happening on the main thread inside the

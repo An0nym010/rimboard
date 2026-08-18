@@ -396,7 +396,7 @@ Your search words or selected text go to the service that answers them. Nothing 
     <string name="net_verdict_online_idle_detail" tools:ignore="MissingTranslation">This build can open connections, but nothing answered just now — usually that means the phone itself is offline.</string>
 
     <string name="net_perm_header" tools:ignore="MissingTranslation">Permissions this APK declares</string>
-    <string name="net_perm_note" tools:ignore="MissingTranslation">Read from the manifest Android itself holds, so it is the same list <tt>adb shell dumpsys package com.rimboard.keyboard</tt> reports.</string>
+    <string name="net_perm_note" tools:ignore="MissingTranslation">Read from the manifest Android itself holds, so it is the same list <tt>adb shell dumpsys package %1$s</tt> reports.</string>
     <string name="net_probe_header" tools:ignore="MissingTranslation">Live connection test</string>
     <string name="net_probe_running" tools:ignore="MissingTranslation">Trying to open a connection…</string>
     <string name="net_probe_again" tools:ignore="MissingTranslation">Test again</string>

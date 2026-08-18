@@ -44,6 +44,18 @@ android {
         }
         create("online") {
             dimension = "net"
+            // Its own applicationId, so the two builds are two apps: they can
+            // be installed side by side, and each can be listed separately.
+            // Sharing one meant installing either replaced the other and only
+            // one could ever reach a store.
+            //
+            // The suffix goes on `online` rather than on `offline` because
+            // offline is the build the README sends people to first, and it
+            // therefore keeps the plain name. Anyone already carrying an online
+            // build will have to install this one fresh; that is the price of
+            // doing this at all, and it is smallest now, while every release so
+            // far has been a debug-signed pre-release.
+            applicationIdSuffix = ".online"
             versionNameSuffix = "-online"
         }
     }

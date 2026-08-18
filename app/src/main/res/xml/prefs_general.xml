@@ -73,14 +73,14 @@
             android:summary="@string/pref_autocaps_summary"
             android:defaultValue="true" />
 
+    <!-- Launched from code rather than by a nested <intent>. That form needs
+         targetPackage, which is the applicationId, and the two flavors no
+         longer share one - so the hardcoded name resolved to nothing on the
+         build whose id carries a suffix, and the row silently did nothing. -->
     <Preference
         android:key="toolbar_picker"
         android:title="@string/pref_toolbar_title"
-        android:summary="@string/pref_toolbar_summary">
-        <intent
-            android:targetPackage="com.rimboard.keyboard"
-            android:targetClass="com.rimboard.keyboard.settings.ToolbarPickerActivity" />
-    </Preference>
+        android:summary="@string/pref_toolbar_summary" />
 
     <SwitchPreferenceCompat
             android:key="haptic"

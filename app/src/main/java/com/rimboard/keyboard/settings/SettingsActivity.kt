@@ -488,6 +488,10 @@ class SettingsActivity : LocalisedActivity() {
                 startActivity(Intent(requireContext(), StatsActivity::class.java))
                 true
             }
+            findPreference<Preference>("toolbar_picker")?.setOnPreferenceClickListener {
+                startActivity(Intent(requireContext(), ToolbarPickerActivity::class.java))
+                true
+            }
             findPreference<Preference>("custom_colors")?.setOnPreferenceClickListener {
                 showCustomColors()
                 true
