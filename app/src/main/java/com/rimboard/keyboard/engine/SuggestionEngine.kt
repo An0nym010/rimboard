@@ -290,6 +290,37 @@ class SuggestionEngine private constructor(
      */
     fun predictionsReady(lang: String): Boolean = predictionModels.containsKey(lang)
 
+    /** Languages whose model a non-blocking caller has already asked for. */
+    private val modelQueued = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
+    /**
+     * The prediction model for [lang], loading it only if [mayLoad].
+     *
+     * When it may not, a missing model is not fetched on this thread and is not
+     * simply given up on either: the warm thread is asked for it, so the next
+     * keystroke has it. That matters because the alternative to blocking is
+     * otherwise "this language quietly never gets curated predictions", which
+     * is the kind of silence that survives for a release — [warm] loads the
+     * model for the language it was called with, and a caller can be asking
+     * about another one.
+     */
+    private fun modelFor(lang: String, mayLoad: Boolean): Map<String, List<String>> {
+        if (mayLoad) return predictionModel(lang)
+        predictionModels[lang]?.let { return it }
+        // add() is the guard: one queued load per language, not one per
+        // keystroke spent waiting for it.
+        if (modelQueued.add(lang)) {
+            warmer.execute {
+                try {
+                    predictionModel(lang)
+                } catch (e: Exception) {
+                    android.util.Log.w(TAG, "prediction model($lang) failed", e)
+                }
+            }
+        }
+        return emptyMap()
+    }
+
     /**
      * Whether [next] is a known continuation of [word].
      *
@@ -702,7 +733,11 @@ class SuggestionEngine private constructor(
         // is the same signal the strip already shows once a word is committed;
         // here it reorders the completions of the word being typed.
         val contextRank = if (prevWord.isEmpty()) emptyMap()
-        else predictions(prevWord2, prevWord, lang, locale, CONTEXT_COMPLETION_DEPTH)
+        // mayLoad = false: this runs per keystroke on the UI thread, and
+        // predictionModel parses an asset when the model is missing.
+        else predictions(
+            prevWord2, prevWord, lang, locale, CONTEXT_COMPLETION_DEPTH, mayLoad = false
+        )
             .withIndex().associate { (i, w) -> w.lowercase(locale) to i }
 
         val merged = LinkedHashMap<String, Long>() // lowercase word -> score
@@ -964,7 +999,8 @@ class SuggestionEngine private constructor(
     @JvmOverloads
     fun predictions(
         prevWord2: String, prevWord: String, lang: String, locale: Locale, limit: Int,
-        personalized: Boolean = true
+        personalized: Boolean = true,
+        mayLoad: Boolean = true
     ): List<String> {
         // No preceding word means the start of a message or of a new sentence,
         // which is a context in its own right rather than the absence of one:
@@ -1000,7 +1036,7 @@ class SuggestionEngine private constructor(
                 surface.putIfAbsent(k, w)
             }
         }
-        predictionModel(lang)[key].orEmpty().forEachIndexed { i, w ->
+        modelFor(lang, mayLoad)[key].orEmpty().forEachIndexed { i, w ->
             // Fades with rank, so the curated model's own ordering survives the
             // merge. At the top it is worth a few repeated user sightings; by
             // the end of the list it only breaks ties.

@@ -1444,7 +1444,13 @@ class RimBoardService : InputMethodService(),
             ) {
                 engine.predictions(
                     prevWord2, prevWordForBigram, currentLangCode(), locale(), 3,
-                    personalized = !isIncognito()
+                    personalized = !isIncognito(),
+                    // The strip is redrawn after every keystroke on the main
+                    // thread. A missing prediction model is parsed from assets
+                    // by the loading path, and waiting for that here would
+                    // stall typing to decorate it — the model arrives on the
+                    // warm thread and the strip picks it up on the next word.
+                    mayLoad = false
                 )
             } else emptyList()
             if (preds.isNotEmpty() &&

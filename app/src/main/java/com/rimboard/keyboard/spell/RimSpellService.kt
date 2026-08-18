@@ -331,14 +331,16 @@ class RimSpellService : SpellCheckerService() {
             // dictionary's own candidates and never invents one, and the bonus
             // is bounded below the spatial term, so context breaks a near-tie
             // without pulling a distant word past an obvious adjacent-key fix.
-            // Guarded on the model being loaded, not merely on there being a
-            // preceding word: predictions() would otherwise parse the model on
-            // this thread the first time it is asked, which is the stall the
-            // warm fix exists to prevent and which this ranking would have
-            // reintroduced through a different door.
+            // mayLoad = false rather than a readiness check of its own: this
+            // runs on a binder thread and predictions() would otherwise parse
+            // the model here, which is the stall the warm fix removed and this
+            // ranking had reintroduced by another door. Passing the flag says
+            // it once, in the place that cannot afford it, and still gets the
+            // learned bigrams — which a readiness check would have thrown
+            // away along with the model.
             val contextRank =
-                if (prev.isEmpty() || !engine.predictionsReady(lang)) emptyMap()
-                else engine.predictions(prev2, prev, lang, loc, CONTEXT_DEPTH)
+                if (prev.isEmpty()) emptyMap()
+                else engine.predictions(prev2, prev, lang, loc, CONTEXT_DEPTH, mayLoad = false)
                     .withIndex().associate { (i, w) -> w.lowercase(loc) to i }
             val cap = suggestionsLimit.coerceIn(1, MAX_SUGGESTIONS)
             // A few more than will be shown, so the word after the typo has

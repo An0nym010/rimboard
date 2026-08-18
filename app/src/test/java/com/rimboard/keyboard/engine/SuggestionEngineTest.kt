@@ -81,6 +81,22 @@ class SuggestionEngineTest {
         assertEquals("hello", e.correctionCandidates("hallo", "en", en).firstOrNull())
     }
 
+    /**
+     * Loads the prediction model, which in the app is [SuggestionEngine.warm]'s
+     * job and used to happen by accident here.
+     *
+     * `suggestionsFor` runs on the UI thread once per keystroke, so it no
+     * longer loads the model itself {EM} it ranks without context until the
+     * warm thread has one. A test that wants to assert what context does must
+     * therefore say that there is some, and this is the synchronous door to
+     * it. Without the call these tests do not fail loudly: two of them assert
+     * an ordering and go red, but the third asserts an *absence* and would
+     * quietly pass for the wrong reason, proving nothing.
+     */
+    private fun SuggestionEngine.primeModel(lang: String, locale: Locale) {
+        predictions("", "i", lang, locale, 1)
+    }
+
     @Test
     fun `the preceding word lifts a contextual completion over a commoner one`() {
         // Same words, but now "I" precedes them and the bundled model says "I"
@@ -89,7 +105,8 @@ class SuggestionEngineTest {
             "dictionaries/en.txt" to "and 9000\nam 3000\nan 2000",
             "predictions/en.txt" to "i\tam are was"
         )
-        val out = engine(assets).suggestionsFor(
+        val eng = engine(assets).apply { primeModel("en", en) }
+        val out = eng.suggestionsFor(
             "a", "en", en, allowAutocorrect = false, personalized = false,
             prevWord = "i"
         ).items
@@ -108,7 +125,10 @@ class SuggestionEngineTest {
             "dictionaries/en.txt" to "the 9000\nthis 4000\nam 3000",
             "predictions/en.txt" to "i\tam are"
         )
-        val out = engine(assets).suggestionsFor(
+        // Primed, or this passes for the wrong reason: with no model loaded
+        // there is no context at all, so "am" would be absent because nothing
+        // was consulted rather than because the rule held.
+        val out = engine(assets).apply { primeModel("en", en) }.suggestionsFor(
             "th", "en", en, allowAutocorrect = false, personalized = false,
             prevWord = "i"
         ).items
@@ -313,7 +333,7 @@ class SuggestionEngineTest {
             "dictionaries/en.txt" to "and 9000\nam 3000",
             "predictions/en.txt" to "i\tam"
         )
-        val eng = engine(assets)
+        val eng = engine(assets).apply { primeModel("en", en) }
         val neutral = eng.suggestionsFor(
             "a", "en", en, allowAutocorrect = false, personalized = false
         ).items.drop(1).first()
