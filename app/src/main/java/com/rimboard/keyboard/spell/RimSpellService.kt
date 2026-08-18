@@ -7,6 +7,7 @@ import android.view.textservice.TextInfo
 import com.rimboard.keyboard.engine.SuggestionEngine
 import com.rimboard.keyboard.engine.UserData
 import com.rimboard.keyboard.model.Languages
+import com.rimboard.keyboard.model.SpellCache
 import com.rimboard.keyboard.model.SpellCandidacy
 import com.rimboard.keyboard.model.SpellTokens
 import com.rimboard.keyboard.settings.Prefs
@@ -237,6 +238,36 @@ class RimSpellService : SpellCheckerService() {
             // exactly the behaviour it got before the sentence path existed.
             judge(textInfo?.text.orEmpty(), "", "", suggestionsLimit, sentenceInitial = true)
 
+        /**
+         * The question a verdict answers. Everything that can change the
+         * answer is in here, so a hit is a hit for the right reasons.
+         */
+        private data class Ask(
+            val word: String,
+            val prev: String,
+            val prev2: String,
+            val sentenceInitial: Boolean,
+            val limit: Int
+        )
+
+        /**
+         * A verdict as data rather than as a [SuggestionsInfo].
+         *
+         * The framework writes a cookie into whatever a session returns, so
+         * handing out the same instance twice is a bug this class has already
+         * had once — see [notJudged]. Caching the ingredients and building a
+         * fresh answer from them each time keeps the saving without keeping
+         * the hazard.
+         */
+        private data class Verdict(val attrs: Int, val words: List<String>)
+
+        /**
+         * Sixty-four is a long sentence's worth of distinct words. The point
+         * is not to remember much, it is to stop re-judging the word the user
+         * is still in the middle of getting wrong.
+         */
+        private val verdicts = SpellCache<Ask, Verdict>(64)
+
         private fun judge(
             word: String,
             prev2: String,
@@ -244,10 +275,36 @@ class RimSpellService : SpellCheckerService() {
             suggestionsLimit: Int,
             sentenceInitial: Boolean
         ): SuggestionsInfo {
-            if (!SpellCandidacy.worthChecking(word, sentenceInitial, lang, loc)) return notJudged()
+            val ask = Ask(word, prev, prev2, sentenceInitial, suggestionsLimit)
+            var v = verdicts.get(ask)
+            if (v == null) {
+                v = verdictFor(word, prev2, prev, suggestionsLimit, sentenceInitial)
+                // Only once there is a dictionary to have judged against. Until
+                // the load finishes every word is unknown and every correction
+                // list is empty, and caching that would pin "everything in this
+                // field is a typo, and there is nothing to be done about it"
+                // for the life of the session.
+                if (engine.cachedDictionary(lang) != null) verdicts.put(ask, v)
+            }
+            // A new instance per answer, always. See [notJudged].
+            return SuggestionsInfo(
+                v.attrs, if (v.words.isEmpty()) null else v.words.toTypedArray()
+            )
+        }
+
+        private fun verdictFor(
+            word: String,
+            prev2: String,
+            prev: String,
+            suggestionsLimit: Int,
+            sentenceInitial: Boolean
+        ): Verdict {
+            if (!SpellCandidacy.worthChecking(word, sentenceInitial, lang, loc)) {
+                return Verdict(0, emptyList())
+            }
 
             if (engine.acceptedWord(word, lang, loc, altLang, altLoc)) {
-                return SuggestionsInfo(SuggestionsInfo.RESULT_ATTR_IN_THE_DICTIONARY, null)
+                return Verdict(SuggestionsInfo.RESULT_ATTR_IN_THE_DICTIONARY, emptyList())
             }
 
             // Same ranking the suggestion strip uses, so the fix offered by a
@@ -284,7 +341,7 @@ class RimSpellService : SpellCheckerService() {
             if (out.isNotEmpty()) {
                 attrs = attrs or SuggestionsInfo.RESULT_ATTR_HAS_RECOMMENDED_SUGGESTIONS
             }
-            return SuggestionsInfo(attrs, out.toTypedArray())
+            return Verdict(attrs, out)
         }
 
 
