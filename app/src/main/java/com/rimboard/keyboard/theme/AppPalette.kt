@@ -57,12 +57,16 @@ object AppPalette {
     private val cache = HashMap<String, Int?>()
 
     /**
-     * The apps whose icons are read under the default "curated" setting.
+     * The apps read under the narrowed "Well-known apps" setting.
      *
-     * The point of a list rather than a switch is that it is finite and can be
-     * read: on this setting the keyboard looks at these and at nothing else,
-     * whatever else the manifest makes visible to it. Everything absent keeps
-     * the package-name hue, which is what the whole feature did before.
+     * No longer the default — it made two on-by-default features inert in
+     * every app off the list, which reads as a fault rather than as restraint.
+     * It remains what "Well-known apps" means, and the point of a list rather
+     * than a switch is unchanged: it is finite and can be read, so on that
+     * setting the keyboard looks at these and at nothing else, whatever else
+     * the manifest makes visible to it. Everything absent then keeps the
+     * package-name hue and follows the system for light or dark, which is what
+     * the whole feature did before.
      *
      * Chosen as the apps people spend their typing in — messaging first, then
      * the social and work apps a keyboard is opened in every day. It is not

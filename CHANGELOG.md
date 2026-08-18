@@ -28,11 +28,16 @@ Release notes for every RimBoard version. The current release is summarised in t
   field could not describe two apps either. It has moved into `AppPalette`,
   where the key is, as a set of the lookups actually running, cleared on both
   paths.
-- The setting said more than it did. "Match the app's light or dark mode" is on
-  by default and promised a dark keyboard in a dark app, but it reads the app's
-  theme through the same "App colours" list the tint does — which defaults to
-  about forty well-known apps. In anything else the switch was on, correct, and
-  did nothing, with no way to tell that from a fault. The summary now says so.
+- **"App colours" now defaults to any app.** The setting promised more than it
+  delivered. "Match the app's light or dark mode" and the per-app tint are both
+  on by default, and both promise to match the app you are in — but both read
+  it through this one list, which defaulted to about forty well-known apps. In
+  anything else the switches were on, correct and inert, which is not
+  distinguishable from broken. The list is still there as "Well-known apps" for
+  anyone who wants it. What the wide default costs is unchanged and written
+  down in the README and in the manifest beside the `<queries>` block that
+  makes it possible: the keyboard reads the declared theme of the app being
+  typed in, and on the offline build nothing it reads can leave the phone.
 
 **Leaving the translate bar no longer sends a translation**
 - Opening a picker was meant to stop whatever the previous one had in flight,

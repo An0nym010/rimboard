@@ -294,5 +294,5 @@
     <string name="search_settings">Ayarlarda ara</string>
     <string name="search_no_results">Eşleşen ayar yok</string>
     <string name="pref_match_app_mode_title">Uygulamanın açık/koyu moduna uy</string>
-    <string name="pref_match_app_mode_summary">Koyu bir uygulamada klavye de koyu olur, saat kaç olursa olsun. Sistem ve Material You temaları için geçerli; kendin seçtiğin tema değişmez. Aşağıdaki Uygulama renkleri ile aynı uygulamaları okur; varsayılan ayarda bilinen uygulamalara uyar, diğerlerinde sistemi izlemeyi sürdürür.</string>
+    <string name="pref_match_app_mode_summary">Koyu bir uygulamada klavye de koyu olur, saat kaç olursa olsun. Sistem ve Material You temaları için geçerli; kendin seçtiğin tema değişmez.</string>
 </resources>

@@ -33,9 +33,14 @@
 
         - The offline build holds no INTERNET permission, so nothing it learns
           can leave the device by any route at all.
-        - The "App colours" setting decides which packages are actually read,
-          and defaults to a fixed list of about forty (see AppPalette.CURATED).
-          That is a restraint on this app's own code, not on its capability —
+        - The "App colours" setting decides which packages are actually read.
+          It defaults to all of them. It defaulted to about forty well-known
+          ones (AppPalette.CURATED, still what the narrow setting means), and
+          that was the wrong pairing: the two features it governs are on by
+          default and promise to match the app being typed in, so the narrow
+          default made that promise false almost everywhere and the features
+          read as broken rather than as restrained. Either way this is a
+          restraint on this app's own code, not on its capability —
           a setting cannot revoke a manifest declaration. Making it provable
           would take a second build dimension, the way INTERNET did.
     -->

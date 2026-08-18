@@ -234,14 +234,25 @@ object Prefs {
     fun themePerApp(c: Context) = get(c).getBoolean(KEY_THEME_PER_APP, true)
 
     /**
-     * Which apps the per-app tint may read a real colour from: `curated` (a
-     * fixed list of about forty, the default) or `all`.
+     * Which apps the keyboard may read a colour and a polarity from: `all`
+     * (the default) or `curated`, a fixed list of about forty well-known apps.
      *
-     * Defaults to the narrower one because the wider one is a choice about
-     * what the keyboard looks at, and a default is not a choice the user made.
+     * It started at the narrower one, reasoning that widening what the
+     * keyboard looks at is a choice and a default is not a choice the user
+     * made. What that missed is that both features it governs are themselves
+     * on by default and describe themselves without qualification. "A dark app
+     * gets a dark keyboard" was untrue in the forty-first app, and a feature
+     * that is silently inert in most places is reported as broken rather than
+     * as restrained — which is exactly how it was reported.
+     *
+     * So the honest pairing is the wide default with the narrow setting kept
+     * and the cost written down where it can be checked: the `<queries>` block
+     * in the manifest, and the README section that explains it. Reading is the
+     * whole of what happens either way, and on the offline build nothing read
+     * can leave the phone at all.
      */
     fun appColorSource(c: Context): String =
-        get(c).getString(KEY_APP_COLOR_SOURCE, "curated") ?: "curated"
+        get(c).getString(KEY_APP_COLOR_SOURCE, "all") ?: "all"
 
     fun curatedColorsOnly(c: Context) = appColorSource(c) != "all"
 

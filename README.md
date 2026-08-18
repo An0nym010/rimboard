@@ -337,8 +337,9 @@ aapt dump xmltree app-offline-release.apk AndroidManifest.xml | grep authorities
 One thing worth stating plainly, because it is not a permission and so will
 not show up in any of the checks below.
 
-The per-app tint takes its colour from the current app's launcher icon, and
-reading another app's icon requires that app to be *visible* to this process.
+The per-app tint takes its colour from the current app's declared theme and
+falls back to its launcher icon, and the light/dark matching reads that same
+theme. Both require that app to be *visible* to this process.
 Android grants that through a `<queries>` block in the manifest, and RimBoard
 declares a launcher-intent query — so **every app on your phone that has an
 icon is visible to the keyboard**, and it could in principle enumerate them.
@@ -349,8 +350,14 @@ icon is visible to the keyboard**, and it could in principle enumerate them.
 - On the **offline build this cannot go anywhere**, because that build holds no
   `INTERNET` permission by any route. Whatever it can see, it cannot tell.
 - **Settings → Theme → App colours** decides which apps are actually read, and
-  defaults to a fixed list of about forty well-known apps. Everything else
-  keeps a colour derived from a hash of its package name.
+  **defaults to any app**. It defaulted to a fixed list of about forty
+  well-known ones, and that was the wrong pairing: the two features it governs
+  are on by default and promise to match the app you are typing in, so the
+  narrow default made that promise false everywhere else — and a feature
+  that is silently inert in most places reads as broken, not as restrained.
+  Set it to **Well-known apps** for the old behaviour: everything off the list
+  then keeps a colour derived from a hash of its package name, and follows the
+  system rather than the app for light or dark.
 
 Be clear about what that setting is and is not: it restrains RimBoard's own
 code, not RimBoard's capability. A setting cannot revoke a manifest
