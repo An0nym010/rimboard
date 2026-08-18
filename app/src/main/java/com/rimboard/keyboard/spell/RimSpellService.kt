@@ -1,11 +1,13 @@
 package com.rimboard.keyboard.spell
 
 import android.service.textservice.SpellCheckerService
+import android.view.textservice.SentenceSuggestionsInfo
 import android.view.textservice.SuggestionsInfo
 import android.view.textservice.TextInfo
 import com.rimboard.keyboard.engine.SuggestionEngine
 import com.rimboard.keyboard.engine.UserData
 import com.rimboard.keyboard.model.Languages
+import com.rimboard.keyboard.model.SpellTokens
 import com.rimboard.keyboard.settings.Prefs
 import java.util.Locale
 
@@ -146,8 +148,70 @@ class RimSpellService : SpellCheckerService() {
             altLoc = altLang?.let { Languages.byCode(it).locale }
         }
 
-        override fun onGetSuggestions(textInfo: TextInfo?, suggestionsLimit: Int): SuggestionsInfo {
-            val word = textInfo?.text.orEmpty()
+        /**
+         * A whole sentence, tokenised here rather than by the framework.
+         *
+         * The default implementation splits the sentence and calls
+         * [onGetSuggestions] once per word, which is why this service used to
+         * judge every word in isolation. The engine has always been able to
+         * re-rank corrections by what the preceding word predicts — the
+         * keyboard's own strip has used it for as long as it has existed —
+         * and this was the one caller that could not supply it, because a
+         * single [TextInfo] holds one word and no way to ask what came before.
+         *
+         * "the stroe" is one edit from both "store" and "stone". Frequency
+         * alone picks by popularity; the preceding word picks the shop.
+         *
+         * The cookie and sequence of the sentence are copied onto every answer
+         * derived from it, which is how the framework matches each result back
+         * to the span it belongs to — the same mechanism, and the same
+         * failure if it is skipped, as the shared-instance bug that
+         * [notJudged] carries a comment about.
+         */
+        override fun onGetSentenceSuggestionsMultiple(
+            textInfos: Array<out TextInfo>?,
+            suggestionsLimit: Int
+        ): Array<SentenceSuggestionsInfo> {
+            val infos = textInfos ?: return emptyArray()
+            return Array(infos.size) { k -> judgeSentence(infos[k], suggestionsLimit) }
+        }
+
+        private fun judgeSentence(info: TextInfo, limit: Int): SentenceSuggestionsInfo {
+            val text = info.text.orEmpty()
+            val tokens = SpellTokens.of(text)
+            val out = arrayOfNulls<SuggestionsInfo>(tokens.size)
+            val offsets = IntArray(tokens.size)
+            val lengths = IntArray(tokens.size)
+            // Two words of context, the same depth the keyboard's own ranking
+            // uses. Taken from the tokens rather than from the raw text so
+            // that punctuation between them is already gone.
+            var prev2 = ""
+            var prev = ""
+            for ((i, t) in tokens.withIndex()) {
+                offsets[i] = t.start
+                lengths[i] = t.length
+                out[i] = judge(t.text, prev2, prev, limit)
+                    .also { it.setCookieAndSequence(info.cookie, info.sequence) }
+                prev2 = prev
+                prev = t.text
+            }
+            return SentenceSuggestionsInfo(out, offsets, lengths)
+        }
+
+        /**
+         * The word-at-a-time entry point, kept because the framework still uses
+         * it for callers that ask for word-level checking. It simply has no
+         * context to offer.
+         */
+        override fun onGetSuggestions(textInfo: TextInfo?, suggestionsLimit: Int): SuggestionsInfo =
+            judge(textInfo?.text.orEmpty(), "", "", suggestionsLimit)
+
+        private fun judge(
+            word: String,
+            prev2: String,
+            prev: String,
+            suggestionsLimit: Int
+        ): SuggestionsInfo {
             if (!worthChecking(word)) return notJudged()
 
             if (engine.acceptedWord(word, lang, loc, altLang, altLoc)) {
@@ -159,9 +223,19 @@ class RimSpellService : SpellCheckerService() {
             // made. Contractions first: "dont" is a missing apostrophe rather
             // than a mistyped word, and edit distance does not know that.
             val contraction = engine.contractionFor(word, lang, loc)?.first
+            // What the preceding word predicts, as a rank map, exactly as the
+            // keyboard builds it for the word being typed. It re-ranks the
+            // dictionary's own candidates and never invents one, and the bonus
+            // is bounded below the spatial term, so context breaks a near-tie
+            // without pulling a distant word past an obvious adjacent-key fix.
+            val contextRank =
+                if (prev.isEmpty()) emptyMap()
+                else engine.predictions(prev2, prev, lang, loc, CONTEXT_DEPTH)
+                    .withIndex().associate { (i, w) -> w.lowercase(loc) to i }
             val corrections = engine.correctionCandidates(
                 word, lang, loc, altLang, altLoc,
-                limit = suggestionsLimit.coerceIn(1, MAX_SUGGESTIONS)
+                limit = suggestionsLimit.coerceIn(1, MAX_SUGGESTIONS),
+                contextRank = contextRank
             )
             // A run-together pair. Last, because it is the largest change: the
             // others fix a word, this one adds a boundary between two.
@@ -213,6 +287,14 @@ class RimSpellService : SpellCheckerService() {
 
             /** More than this and the popup is a menu rather than a fix. */
             const val MAX_SUGGESTIONS = 5
+
+            /**
+             * How far down the prediction list a word still counts as
+             * "expected here". Deep enough to catch an ordinary continuation,
+             * shallow enough that the tail of the list — which is barely
+             * ranked at all — does not start nudging corrections about.
+             */
+            const val CONTEXT_DEPTH = 12
         }
     }
 }
