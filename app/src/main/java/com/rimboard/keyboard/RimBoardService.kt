@@ -29,6 +29,7 @@ import com.rimboard.keyboard.model.KeyboardLayout
 import com.rimboard.keyboard.model.Languages
 import com.rimboard.keyboard.model.LayoutKind
 import com.rimboard.keyboard.model.Layouts
+import com.rimboard.keyboard.model.PanelRouting
 import com.rimboard.keyboard.model.TapTiming
 import com.rimboard.keyboard.settings.L10n
 import com.rimboard.keyboard.settings.Prefs
@@ -2055,9 +2056,7 @@ class RimBoardService : InputMethodService(),
         val lp = panel.layoutParams as FrameLayout.LayoutParams
         lp.height = kv.measureKeyboardHeight()
         panel.layoutParams = lp
-        for (other in arrayOf(clipboardView, editPanelView, toolbarPanelHost)) {
-            if (other !== panel) other?.visibility = View.GONE
-        }
+        panels().forEach { if (it !== panel) it?.visibility = View.GONE }
         kv.visibility = View.GONE
         panel.visibility = View.VISIBLE
         animatePanelIn(panel)
@@ -3203,7 +3202,10 @@ class RimBoardService : InputMethodService(),
         // The translate bar lives above the strip and the pickers below it, so
         // which container is opened follows the panel rather than the route.
         val host = (if (panel === translateView) barHost else searchHost) ?: return
-        val other = if (host === barHost) searchHost else barHost
+        // Named for what it is. It was `other`, which the panel loop below then
+        // shadowed — the compiler said so on every build, and the two meanings
+        // sat four lines apart.
+        val otherHost = if (host === barHost) searchHost else barHost
         val kbH = keyboardView?.measureKeyboardHeight() ?: return
         val lp = host.layoutParams
         // Browsing gets the whole keyboard's height because the keys are
@@ -3222,27 +3224,56 @@ class RimBoardService : InputMethodService(),
         }
         host.layoutParams = lp
         // The reverse of the guard in revealPanel: a picker replaces any panel.
-        for (other in arrayOf(clipboardView, editPanelView, toolbarPanelHost)) {
-            other?.visibility = View.GONE
-        }
+        panels().forEach { it?.visibility = View.GONE }
         for (i in 0 until host.childCount) {
             host.getChildAt(i).visibility =
                 if (host.getChildAt(i) === panel) View.VISIBLE else View.GONE
         }
-        // Switching straight from one picker to the other must not leave the
-        // first one's pending search or its field-seed bookkeeping behind.
-        gifView?.cancelPending()
-        if (panel !== gifView) {
-            gifQueryFromField = null
-            gifQueryFieldLength = 0
-        }
+        // Every picker but the one opening, rather than the GIF picker alone.
+        // The rule was stated here and half applied: the translate bar's
+        // debounce survived being replaced, fired into a bar the user had left,
+        // and sent a translation — which against a metered source is a request
+        // they pay for and never asked for.
+        cancelOtherPickers(panel)
         host.visibility = View.VISIBLE
         // Opening the bar must collapse the picker container and vice versa, or
         // the one left behind keeps its height and leaves a gap.
-        other?.let { collapse(it) }
+        otherHost?.let { collapse(it) }
         keyboardView?.visibility = if (withKeyboard) View.VISIBLE else View.GONE
         searchRoute = route
         animatePanelIn(host)
+    }
+
+    /**
+     * Stops whatever the pickers other than [opening] have in flight.
+     *
+     * See [PanelRouting.toCancel] for why this is stated as "every one but the
+     * one opening" rather than as a list: a fourth picker added later is
+     * cancelled by default instead of being silently missed, which is how the
+     * translate bar came to be overlooked when the GIF picker was written.
+     */
+    private fun cancelOtherPickers(opening: View?) {
+        val target = when (opening) {
+            gifView -> PanelRouting.Picker.GIF
+            translateView -> PanelRouting.Picker.TRANSLATE
+            emojiView -> PanelRouting.Picker.EMOJI
+            else -> PanelRouting.Picker.NONE
+        }
+        for (p in PanelRouting.toCancel(target)) {
+            when (p) {
+                PanelRouting.Picker.GIF -> gifView?.cancelPending()
+                PanelRouting.Picker.TRANSLATE -> translateView?.cancelPending()
+                PanelRouting.Picker.EMOJI -> {}  // its search is local; nothing in flight
+                PanelRouting.Picker.NONE -> {}
+            }
+        }
+        // A cancelled debounce only stops what has not been sent. A request
+        // already on the wire cannot be recalled, so its answer is disowned.
+        if (PanelRouting.abandonsTranslate(target)) translateGeneration++
+        if (PanelRouting.clearsGifSeed(target)) {
+            gifQueryFromField = null
+            gifQueryFieldLength = 0
+        }
     }
 
     private fun collapse(host: FrameLayout) {

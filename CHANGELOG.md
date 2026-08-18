@@ -4,6 +4,23 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Leaving the translate bar no longer sends a translation**
+- Opening a picker was meant to stop whatever the previous one had in flight,
+  and cancelled the GIF search only. So opening emoji or GIF while the
+  translate bar held text left its debounce armed: it fired into a bar the user
+  had already left and sent a translation — which against a metered source is a
+  request paid for and never asked for. The reply then passed the staleness
+  check too, because the counter that guards it was only moved on by closing
+  the bar, not by replacing it.
+- Every picker but the one opening is now stopped, stated that way round so a
+  fourth added later is covered by default rather than silently missed — which
+  is exactly how the translate bar was overlooked when the GIF picker was
+  written.
+- The panel list had three separate copies, so adding a panel meant editing
+  three places and forgetting one would leave two on screen at once. One now.
+  A variable shadowing another four lines above it, which the compiler had been
+  warning about on every build, is renamed.
+
 **Two clipboard faults, found by making it testable**
 - **Pinning a clip and unpinning it lost the "do not preview" flag.** A
   password manager marks what it copies as not-for-preview, and unpinning
