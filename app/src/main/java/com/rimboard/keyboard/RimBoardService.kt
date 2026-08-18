@@ -26,6 +26,7 @@ import com.rimboard.keyboard.engine.UserData
 import com.rimboard.keyboard.model.Codes
 import com.rimboard.keyboard.model.Key
 import com.rimboard.keyboard.model.KeyboardLayout
+import com.rimboard.keyboard.model.GraphemeDelete
 import com.rimboard.keyboard.model.Languages
 import com.rimboard.keyboard.model.LayoutKind
 import com.rimboard.keyboard.model.Layouts
@@ -889,7 +890,13 @@ class RimBoardService : InputMethodService(),
         var i = before.length
         while (i > 0 && before[i - 1].isWhitespace()) i--
         while (i > 0 && !before[i - 1].isWhitespace()) i--
-        ic.deleteSurroundingText(before.length - i, 0)
+        // A word longer than the window runs the scan back to 0, and the window
+        // may have begun mid-character. Neither loop can stop on a low
+        // surrogate — a surrogate is not whitespace, so the scan walks
+        // straight past it — so this is only reachable at i == 0, and the
+        // orphaned high half is the unit immediately before the window.
+        val split = i == 0 && Character.isLowSurrogate(before[0])
+        ic.deleteSurroundingText(before.length - i + if (split) 1 else 0, 0)
         afterEdit()
     }
 
@@ -1294,14 +1301,14 @@ class RimBoardService : InputMethodService(),
         if (!selected.isNullOrEmpty()) {
             ic.commitText("", 1)
         } else {
-            val before = ic.getTextBeforeCursor(2, 0)
-            if (before != null && before.length >= 2 &&
-                Character.isSurrogatePair(before[before.length - 2], before[before.length - 1])
-            ) {
-                ic.deleteSurroundingText(2, 0)
-            } else {
-                ic.deleteSurroundingText(1, 0)
-            }
+            // Sixteen units rather than two: a character can be far longer
+            // than a surrogate pair — the family emoji is eight — and the
+            // rule needs the whole of the last one in view to measure it.
+            val before = ic.getTextBeforeCursor(16, 0)
+            val units = GraphemeDelete.unitsToDeleteBefore(before ?: "")
+            // A window that could not be read at all falls back to one unit,
+            // which is what this did before and is never worse than nothing.
+            ic.deleteSurroundingText(if (units > 0) units else 1, 0)
         }
         afterEdit()
     }

@@ -168,7 +168,11 @@ class RimSpellService : SpellCheckerService() {
             val split = engine.splitFor(word, lang, loc)
             val out = (listOfNotNull(contraction) + corrections + listOfNotNull(split))
                 .distinct()
-                .take(suggestionsLimit.coerceAtLeast(1))
+                // The same bound as the correction query above. Without it
+                // MAX_SUGGESTIONS held only the corrections, and a framework
+                // limit above five let the contraction and the split past it
+                // — seven entries in a popup documented to hold five.
+                .take(suggestionsLimit.coerceIn(1, MAX_SUGGESTIONS))
 
             var attrs = SuggestionsInfo.RESULT_ATTR_LOOKS_LIKE_TYPO
             if (out.isNotEmpty()) {
