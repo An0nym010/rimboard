@@ -476,9 +476,7 @@ class RimBoardService : InputMethodService(),
         composing.setLength(0)
         prevWordForBigram = ""
         atSentenceStart = true
-        revert = null
-        autoSpace = false
-        glideWords = emptyList()
+        clearWordState()
         backspaceRepeats = 0
         val ui = Prefs.uiLanguage(this)
         if (appliedUiLang != null && appliedUiLang != ui) {
@@ -860,11 +858,25 @@ class RimBoardService : InputMethodService(),
         }
     }
 
-    private fun deleteWordBeforeCursor() {
-        val ic = currentInputConnection ?: return
+    /**
+     * Forgets everything that describes the word just committed.
+     *
+     * These three always move together and were written out at eight separate
+     * sites. They were all correct — this is not a fix — but three lines
+     * repeated eight times is a place where the ninth is written from memory,
+     * and the failure would be quiet: a stale revert offers to undo a
+     * correction that is no longer in the field, and stale glide words put
+     * alternatives on the strip for a word the user has moved past.
+     */
+    private fun clearWordState() {
         revert = null
         autoSpace = false
         glideWords = emptyList()
+    }
+
+    private fun deleteWordBeforeCursor() {
+        val ic = currentInputConnection ?: return
+        clearWordState()
         if (composing.isNotEmpty()) {
             composing.setLength(0)
             ic.commitText("", 1)
@@ -1098,9 +1110,7 @@ class RimBoardService : InputMethodService(),
             pendingPunctSpace = false
         }
         val text = applyShift(raw)
-        revert = null
-        autoSpace = false
-        glideWords = emptyList()
+        clearWordState()
         lastShiftTapTime = 0 // a typed character breaks a double-tap-shift sequence
         val c = text.firstOrNull() ?: return
         val isWordChar = c.isLetter() || (c == '\'' && composing.isNotEmpty())
@@ -1138,9 +1148,7 @@ class RimBoardService : InputMethodService(),
         ic.endBatchEdit()
         prevWordForBigram = ""
         atSentenceStart = false
-        revert = null
-        autoSpace = false
-        glideWords = emptyList()
+        clearWordState()
         afterEdit()
     }
 
@@ -1232,9 +1240,7 @@ class RimBoardService : InputMethodService(),
                 lastSpaceTime = 0
                 prevWordForBigram = ""
                 atSentenceStart = true
-                revert = null
-                autoSpace = false
-                glideWords = emptyList()
+                clearWordState()
                 afterEdit()
                 leaveSymbolsAfterSpace()
                 return
@@ -1272,9 +1278,7 @@ class RimBoardService : InputMethodService(),
             performRevert()
             return
         }
-        revert = null
-        autoSpace = false
-        glideWords = emptyList()
+        clearWordState()
         if (composing.isNotEmpty()) {
             composing.deleteCharAt(composing.length - 1)
             if (composing.isEmpty()) {
@@ -1328,9 +1332,7 @@ class RimBoardService : InputMethodService(),
             commitComposedWord(ic, allowAutocorrect = autocorrectActive, separator = "")
             ic.endBatchEdit()
         }
-        revert = null
-        autoSpace = false
-        glideWords = emptyList()
+        clearWordState()
         val info = currentInputEditorInfo
         val noAction = info == null ||
             (info.imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION) != 0
@@ -2267,9 +2269,7 @@ class RimBoardService : InputMethodService(),
         ic.endBatchEdit()
         prevWordForBigram = ""
         atSentenceStart = false
-        revert = null
-        autoSpace = false
-        glideWords = emptyList()
+        clearWordState()
         if (!isIncognito()) {
             val recents = (listOf(emoji) + Prefs.emojiRecents(this).filter { it != emoji }).take(24)
             Prefs.setEmojiRecents(this, recents)
