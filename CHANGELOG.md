@@ -4,6 +4,36 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**The keyboard stayed light after the system went dark**
+- "Match the app's light or dark mode" reads the app's declared theme, and
+  another package's resources resolve through *this* process's configuration
+  — so an app with `-night` resources reads as light while the system is
+  light, and as dark once it is not. That answer was cached under the package
+  name alone, and nothing dropped it when the configuration changed: the
+  reading taken before a flip went on being served after it. The app turned
+  black, the keyboard stayed white, and it did so by overruling with a stale
+  answer the very night setting it would have followed had it read nothing at
+  all. The polarity is now part of the cache key, so a flip asks a new question
+  instead of getting the old one's answer.
+- What this still cannot see is an app's *own* dark-mode switch. That is
+  resolved inside the app and is not visible from outside it, so an in-app
+  toggle changes nothing here; following the system is the whole of what any
+  keyboard can do.
+- The guard against two lookups at once was a single field naming the last
+  package asked about, set before the call but cleared only from the callback.
+  Every lookup that returned early — the answers already known, or the read
+  failing — left it set for good, and it then refused the next question
+  about that same app: after the palette cache was dropped under memory
+  pressure, an app's colours never came back while the user stayed in it. One
+  field could not describe two apps either. It has moved into `AppPalette`,
+  where the key is, as a set of the lookups actually running, cleared on both
+  paths.
+- The setting said more than it did. "Match the app's light or dark mode" is on
+  by default and promised a dark keyboard in a dark app, but it reads the app's
+  theme through the same "App colours" list the tint does — which defaults to
+  about forty well-known apps. In anything else the switch was on, correct, and
+  did nothing, with no way to tell that from a fault. The summary now says so.
+
 **Leaving the translate bar no longer sends a translation**
 - Opening a picker was meant to stop whatever the previous one had in flight,
   and cancelled the GIF search only. So opening emoji or GIF while the

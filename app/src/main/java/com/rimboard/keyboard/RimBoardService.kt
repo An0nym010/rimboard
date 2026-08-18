@@ -504,25 +504,20 @@ class RimBoardService : InputMethodService(),
         configureAll(info)
     }
 
-    /**
-     * Whether a palette lookup is already in flight, so a burst of focus
-     * changes into the same app does not start a worker each time.
-     */
-    private var paletteFetching: String? = null
-
     private fun configureAll(info: EditorInfo) {
         readPrefsAndFieldFlags(info)
         // Started after the theme has been applied from the cache, so the
         // keyboard is already on screen by the time this costs anything.
+        // No guard here against asking twice: `prefetch` returns immediately
+        // when the answer is known or a worker is already running for it, and
+        // it can tell because it holds the key. The guard that used to live
+        // here could not — it was one field holding one package name, and it
+        // was left set by every lookup that returned early.
         val pkg = info.packageName
-        if ((Prefs.themePerApp(this) || Prefs.matchAppMode(this)) && pkg != null &&
-            paletteFetching != pkg
-        ) {
-            paletteFetching = pkg
+        if (Prefs.themePerApp(this) || Prefs.matchAppMode(this)) {
             com.rimboard.keyboard.theme.AppPalette.prefetch(
-                this, pkg, Prefs.curatedColorsOnly(this)
+                this, pkg, Prefs.curatedColorsOnly(this), Themes.isNightMode(this)
             ) {
-                paletteFetching = null
                 // Only if the user is still in the app this was read for: the
                 // answer is about that app and applying it anywhere else would
                 // paint the keyboard with a colour belonging to a field the
@@ -617,12 +612,18 @@ class RimBoardService : InputMethodService(),
         // colours out means parsing its whole resource table and rasterising
         // its icon, and this runs on the main thread while the keyboard is
         // appearing — the stall `warm()` exists to keep off this path. The
-        // first open in an app therefore uses the plain theme, and
-        // `paletteReady` reapplies a moment later when the answers land.
+        // first open in an app therefore uses the plain theme, and the
+        // prefetch callback reapplies a moment later when the answers land.
         val curatedOnly = Prefs.curatedColorsOnly(this)
+        // Part of the cache key, not just of the answer: an app's declared
+        // theme resolves through this process's configuration, so what was
+        // read while the system was light does not describe the same app once
+        // the system is dark. See AppPalette.cacheKey.
+        val night = Themes.isNightMode(this)
         val palette = com.rimboard.keyboard.theme.AppPalette
         val appIsLight =
-            if (Prefs.matchAppMode(this)) palette.cachedIsLight(info.packageName, curatedOnly)
+            if (Prefs.matchAppMode(this))
+                palette.cachedIsLight(info.packageName, curatedOnly, night)
             else null
         kbTheme = Themes.resolve(this, themePref, appIsLight).let { base ->
             if (Prefs.themePerApp(this) && Themes.tintable(themePref))
@@ -631,7 +632,7 @@ class RimBoardService : InputMethodService(),
                     // The app's real colour when its icon can be read, and the
                     // package-name hue when it cannot. Which of those happens
                     // is decided by package visibility, not by anything here.
-                    palette.cachedHue(info.packageName, curatedOnly),
+                    palette.cachedHue(info.packageName, curatedOnly, night),
                     Prefs.tintStrength(this)
                 )
             else base

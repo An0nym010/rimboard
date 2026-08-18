@@ -275,10 +275,14 @@ object Themes {
         isDark = true
     )
 
-    private fun isNightMode(context: Context): Boolean =
-        (context.resources.configuration.uiMode and
-            android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
-            android.content.res.Configuration.UI_MODE_NIGHT_YES
+    /**
+     * Internal because [AppPalette] asks the same question: an app's theme is
+     * resolved through this process's configuration, so the answers it caches
+     * are only valid for one polarity and have to be keyed by it.
+     */
+    internal fun isNightMode(context: Context): Boolean =
+        (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
 
     private fun highContrast() = KeyboardTheme(
         background = 0xFF000000.toInt(),
@@ -589,9 +593,7 @@ object Themes {
      * ignored by every theme that was chosen outright.
      */
     fun resolve(context: Context, pref: String, appIsLight: Boolean? = null): KeyboardTheme {
-        val systemNight =
-            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
-                Configuration.UI_MODE_NIGHT_YES
+        val systemNight = isNightMode(context)
         val night =
             if (appIsLight != null && followsSystem(pref)) !appIsLight else systemNight
         return when (pref) {

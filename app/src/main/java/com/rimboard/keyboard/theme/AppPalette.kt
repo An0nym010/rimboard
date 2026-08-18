@@ -316,27 +316,50 @@ object AppPalette {
         lightCache.clear()
     }
 
-    /** Whether both answers for [pkg] are already known, so nothing is needed. */
-    private fun known(key: String): Boolean = synchronized(lock) {
-        cache.containsKey(key) && lightCache.containsKey(key)
-    }
+    /**
+     * The keys a worker is already running for.
+     *
+     * Kept here rather than in the keyboard, because the key is here. The
+     * keyboard held a single field naming the package it had last asked
+     * about, and that was wrong twice over: it was set before the call but
+     * cleared only from the callback, so a lookup that returned early —
+     * everything already known — left it set for good and the next question
+     * about that same app was refused outright; and one field cannot describe
+     * two apps, so a focus change away and back overwrote it regardless.
+     */
+    private val inFlight = HashSet<String>()
 
-    private fun cacheKey(pkg: String, curatedOnly: Boolean) =
-        if (curatedOnly) "c:$pkg" else "a:$pkg"
+    /**
+     * The question being asked, which is not only which app it is asked about.
+     *
+     * Both answers are read out of the app's *resolved* theme, and resolving
+     * another package's resources runs them through this process's
+     * configuration — so an app with `-night` resources answers "light" while
+     * the system is light and "dark" once it is not. Keying on the package
+     * alone cached whichever answer came first and went on serving it after
+     * the system had flipped: the app turned black, the keyboard stayed white,
+     * having overruled with a stale reading the very night setting it would
+     * have followed if it had read nothing at all. Nothing dropped the entry
+     * either — only [clearCache], which runs when memory is short and not
+     * when the thing being cached has changed. The polarity is part of the
+     * question, so it is part of the key.
+     */
+    internal fun cacheKey(pkg: String, curatedOnly: Boolean, night: Boolean) =
+        (if (curatedOnly) "c" else "a") + (if (night) "n" else "d") + ":$pkg"
 
     /**
      * The hue for [pkg] if it has already been worked out, without doing any
      * work now. Null means "not yet", not "no colour".
      */
-    fun cachedHue(pkg: String?, curatedOnly: Boolean): Int? {
+    fun cachedHue(pkg: String?, curatedOnly: Boolean, night: Boolean): Int? {
         if (pkg.isNullOrEmpty()) return null
-        return synchronized(lock) { cache[cacheKey(pkg, curatedOnly)] }
+        return synchronized(lock) { cache[cacheKey(pkg, curatedOnly, night)] }
     }
 
     /** As [cachedHue], for the light/dark answer. */
-    fun cachedIsLight(pkg: String?, curatedOnly: Boolean): Boolean? {
+    fun cachedIsLight(pkg: String?, curatedOnly: Boolean, night: Boolean): Boolean? {
         if (pkg.isNullOrEmpty()) return null
-        return synchronized(lock) { lightCache[cacheKey(pkg, curatedOnly)] }
+        return synchronized(lock) { lightCache[cacheKey(pkg, curatedOnly, night)] }
     }
 
     /**
@@ -355,29 +378,51 @@ object AppPalette {
      * Being a frame late with a colour is not something anyone will notice;
      * a keyboard that hesitates when it appears is.
      */
-    fun prefetch(context: Context, pkg: String?, curatedOnly: Boolean, onReady: () -> Unit) {
+    fun prefetch(
+        context: Context,
+        pkg: String?,
+        curatedOnly: Boolean,
+        night: Boolean,
+        onReady: () -> Unit
+    ) {
         if (pkg.isNullOrEmpty()) return
-        val key = cacheKey(pkg, curatedOnly)
-        if (known(key)) return
+        val requested = cacheKey(pkg, curatedOnly, night)
+        // Both checks under one acquisition, because they are one decision:
+        // asked and answered, or asked and being answered.
+        synchronized(lock) {
+            if (cache.containsKey(requested) && lightCache.containsKey(requested)) return
+            if (!inFlight.add(requested)) return
+        }
         val app = context.applicationContext
         Thread {
+            var hue: Int? = null
+            var light: Boolean? = null
             try {
-                val hue = computeHue(app, pkg, curatedOnly)
-                val light = computeIsLight(app, pkg, curatedOnly)
-                synchronized(lock) {
-                    cache[key] = hue
-                    lightCache[key] = light
-                }
-                android.os.Handler(android.os.Looper.getMainLooper()).post(onReady)
+                hue = computeHue(app, pkg, curatedOnly)
+                light = computeIsLight(app, pkg, curatedOnly)
             } catch (e: Exception) {
                 // A package that cannot be read is an ordinary outcome, not a
                 // failure — but it has to be recorded, or every focus change
                 // starts another thread to fail the same way.
-                synchronized(lock) {
-                    cache[key] = null
-                    lightCache[key] = null
-                }
                 android.util.Log.w("RimBoard", "app palette: $pkg", e)
+            } finally {
+                // Filed under the polarity it was actually read under, which
+                // is the requested one unless the system flipped while this
+                // thread was running. Filing it under the requested key then
+                // would cache a light answer as the dark one, which is the bug
+                // this key was widened to fix; leaving the requested key empty
+                // costs one more lookup, and the flip has already asked for it.
+                val answered = cacheKey(pkg, curatedOnly, Themes.isNightMode(app))
+                synchronized(lock) {
+                    cache[answered] = hue
+                    lightCache[answered] = light
+                    inFlight.remove(requested)
+                }
+                // Posted on the failure path too. It used to return without
+                // posting, which left the caller believing a lookup was still
+                // running — and the caller refuses to start another while it
+                // believes that.
+                android.os.Handler(android.os.Looper.getMainLooper()).post(onReady)
             }
         }.apply { isDaemon = true }.start()
     }

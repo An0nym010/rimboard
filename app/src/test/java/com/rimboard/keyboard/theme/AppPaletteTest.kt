@@ -1,6 +1,7 @@
 package com.rimboard.keyboard.theme
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -137,6 +138,54 @@ class AppPaletteTest {
             assertTrue("'$p' is not a package name", p.contains('.') && !p.contains(' '))
             assertTrue("'$p' has stray case or punctuation", p.trim() == p)
         }
+    }
+
+    @Test
+    fun `the same app in light and in dark is not the same cache entry`() {
+        // The bug this exists for: both answers are read out of the app's
+        // resolved theme, and another package's resources resolve through this
+        // process's configuration — so an app with `-night` resources says
+        // "light" while the system is light and "dark" once it is not. Keyed on
+        // the package alone, the first answer was cached and kept being served
+        // after the system had flipped, and `resolve` turns a stale "the app is
+        // light" into "keep the keyboard light". The visible failure is a white
+        // keyboard under a black app, holding out against the system's own
+        // night setting — which is exactly what the keyboard would have
+        // followed had it read nothing at all.
+        assertNotEquals(
+            AppPalette.cacheKey("com.whatsapp", curatedOnly = true, night = false),
+            AppPalette.cacheKey("com.whatsapp", curatedOnly = true, night = true)
+        )
+    }
+
+    @Test
+    fun `each of the three things the answer depends on changes the key`() {
+        // Two packages, both settings, both polarities: eight questions, and
+        // eight answers that must not be filed on top of one another.
+        val keys = mutableListOf<String>()
+        for (pkg in listOf("com.whatsapp", "com.discord")) {
+            for (curated in listOf(true, false)) {
+                for (night in listOf(true, false)) {
+                    keys += AppPalette.cacheKey(pkg, curated, night)
+                }
+            }
+        }
+        assertEquals("keys collide: $keys", keys.size, keys.toSet().size)
+    }
+
+    @Test
+    fun `the key stays keyed on the whole package name`() {
+        // Cheap to get wrong while adding a field to the front of a key, and
+        // it fails the way this whole class of bug fails: silently, as one app
+        // wearing another's colour.
+        assertTrue(
+            AppPalette.cacheKey("com.whatsapp", curatedOnly = true, night = false)
+                .endsWith("com.whatsapp")
+        )
+        assertNotEquals(
+            AppPalette.cacheKey("com.whatsapp.w4b", curatedOnly = true, night = false),
+            AppPalette.cacheKey("com.whatsapp", curatedOnly = true, night = false)
+        )
     }
 
     @Test
