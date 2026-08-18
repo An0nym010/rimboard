@@ -7,6 +7,7 @@ import android.view.textservice.TextInfo
 import com.rimboard.keyboard.engine.SuggestionEngine
 import com.rimboard.keyboard.engine.UserData
 import com.rimboard.keyboard.model.Languages
+import com.rimboard.keyboard.model.SpellCandidacy
 import com.rimboard.keyboard.model.SpellTokens
 import com.rimboard.keyboard.settings.Prefs
 import java.util.Locale
@@ -212,7 +213,10 @@ class RimSpellService : SpellCheckerService() {
             for ((i, t) in tokens.withIndex()) {
                 offsets[i] = t.start
                 lengths[i] = t.length
-                out[i] = judge(t.text, prev2, prev, limit)
+                // The first token of the sentence is the only one whose
+                // capital means "a sentence starts here" rather than "this is
+                // a name". See SpellCandidacy.worthChecking.
+                out[i] = judge(t.text, prev2, prev, limit, sentenceInitial = i == 0)
                     .also { it.setCookieAndSequence(info.cookie, info.sequence) }
                 prev2 = prev
                 prev = t.text
@@ -226,15 +230,21 @@ class RimSpellService : SpellCheckerService() {
          * context to offer.
          */
         override fun onGetSuggestions(textInfo: TextInfo?, suggestionsLimit: Int): SuggestionsInfo =
-            judge(textInfo?.text.orEmpty(), "", "", suggestionsLimit)
+            // sentenceInitial = true because this path cannot know: it is
+            // handed one word with no neighbours. That is the lenient answer
+            // — it keeps judging capitalised words rather than silently
+            // declining them — so a caller using the word-level API gets
+            // exactly the behaviour it got before the sentence path existed.
+            judge(textInfo?.text.orEmpty(), "", "", suggestionsLimit, sentenceInitial = true)
 
         private fun judge(
             word: String,
             prev2: String,
             prev: String,
-            suggestionsLimit: Int
+            suggestionsLimit: Int,
+            sentenceInitial: Boolean
         ): SuggestionsInfo {
-            if (!worthChecking(word)) return notJudged()
+            if (!SpellCandidacy.worthChecking(word, sentenceInitial, lang, loc)) return notJudged()
 
             if (engine.acceptedWord(word, lang, loc, altLang, altLoc)) {
                 return SuggestionsInfo(SuggestionsInfo.RESULT_ATTR_IN_THE_DICTIONARY, null)
@@ -277,35 +287,9 @@ class RimSpellService : SpellCheckerService() {
             return SuggestionsInfo(attrs, out.toTypedArray())
         }
 
-        /**
-         * Whether this token is the kind of thing a spell checker should have
-         * an opinion about at all.
-         *
-         * The distinction that matters is between "correctly spelled" and "not
-         * my business": returning the former for a URL would be a lie, and
-         * returning "typo" would underline half of every technical message. An
-         * empty attribute set is the API's way of saying nothing, and it is the
-         * right answer for all of these.
-         */
-        private fun worthChecking(word: String): Boolean {
-            if (word.length < MIN_LENGTH) return false
-            // Digits anywhere: version numbers, IDs, "covid19".
-            if (word.any { it.isDigit() }) return false
-            // Acronyms and constants — NASA, HTTP, MAX_VALUE — are not in any
-            // word list and are not misspelled either.
-            if (word.length > 1 && word == word.uppercase(loc)) return false
-            // A capital inside the word: camelCase, brand names, and the
-            // mid-word capitals autocorrect already refuses to touch.
-            if (word.drop(1).any { it.isUpperCase() }) return false
-            // Anything with the shape of an address rather than a word.
-            if (word.any { it in "@/\\:_" }) return false
-            return word.all { it.isLetter() || it == '\'' || it == '’' }
-        }
 
         private companion object {
 
-            /** Two-letter words are too easily "corrected" into something else. */
-            const val MIN_LENGTH = 3
 
             /** More than this and the popup is a menu rather than a fix. */
             const val MAX_SUGGESTIONS = 5
