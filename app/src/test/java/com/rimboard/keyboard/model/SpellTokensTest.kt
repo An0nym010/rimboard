@@ -108,6 +108,32 @@ class SpellTokensTest {
     }
 
     @Test
+    fun `the follower is the next word in the same sentence`() {
+        val t = SpellTokens.of("the stroe was shut")
+        assertEquals("stroe", SpellTokens.followerOf(t, 0))
+        assertEquals("was", SpellTokens.followerOf(t, 1))
+        assertEquals("", SpellTokens.followerOf(t, 3))
+    }
+
+    @Test
+    fun `a word across a full stop is not a follower`() {
+        // The mirror of the context reset. "left" must not be handed "Store"
+        // as evidence about it, for the same reason "Store" is not ranked
+        // against "left".
+        val t = SpellTokens.of("He left. Store was shut")
+        assertEquals("", SpellTokens.followerOf(t, 1))
+        assertEquals("was", SpellTokens.followerOf(t, 2))
+    }
+
+    @Test
+    fun `asking past either end is empty rather than a crash`() {
+        val t = SpellTokens.of("one two")
+        assertEquals("", SpellTokens.followerOf(t, 1))
+        assertEquals("", SpellTokens.followerOf(t, 99))
+        assertEquals("", SpellTokens.followerOf(emptyList(), 0))
+    }
+
+    @Test
     fun `every token can be cut back out of the text it came from`() {
         // The invariant the framework relies on: offset and length must
         // address exactly the word that was judged.

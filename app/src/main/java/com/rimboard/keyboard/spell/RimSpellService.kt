@@ -225,7 +225,10 @@ class RimSpellService : SpellCheckerService() {
                 }
                 // Only a word opening a sentence has a capital that means "a
                 // sentence starts here" rather than "this is a name".
-                out[i] = judge(t.text, prev2, prev, limit, sentenceInitial = t.startsSentence)
+                out[i] = judge(
+                    t.text, prev2, prev, SpellTokens.followerOf(tokens, i),
+                    limit, sentenceInitial = t.startsSentence
+                )
                     .also { it.setCookieAndSequence(info.cookie, info.sequence) }
                 prev2 = prev
                 prev = t.text
@@ -244,7 +247,7 @@ class RimSpellService : SpellCheckerService() {
             // — it keeps judging capitalised words rather than silently
             // declining them — so a caller using the word-level API gets
             // exactly the behaviour it got before the sentence path existed.
-            judge(textInfo?.text.orEmpty(), "", "", suggestionsLimit, sentenceInitial = true)
+            judge(textInfo?.text.orEmpty(), "", "", "", suggestionsLimit, sentenceInitial = true)
 
         /**
          * The question a verdict answers. Everything that can change the
@@ -254,6 +257,7 @@ class RimSpellService : SpellCheckerService() {
             val word: String,
             val prev: String,
             val prev2: String,
+            val next: String,
             val sentenceInitial: Boolean,
             val limit: Int
         )
@@ -280,13 +284,14 @@ class RimSpellService : SpellCheckerService() {
             word: String,
             prev2: String,
             prev: String,
+            next: String,
             suggestionsLimit: Int,
             sentenceInitial: Boolean
         ): SuggestionsInfo {
-            val ask = Ask(word, prev, prev2, sentenceInitial, suggestionsLimit)
+            val ask = Ask(word, prev, prev2, next, sentenceInitial, suggestionsLimit)
             var v = verdicts.get(ask)
             if (v == null) {
-                v = verdictFor(word, prev2, prev, suggestionsLimit, sentenceInitial)
+                v = verdictFor(word, prev2, prev, next, suggestionsLimit, sentenceInitial)
                 // Only once there is a dictionary to have judged against. Until
                 // the load finishes every word is unknown and every correction
                 // list is empty, and caching that would pin "everything in this
@@ -304,6 +309,7 @@ class RimSpellService : SpellCheckerService() {
             word: String,
             prev2: String,
             prev: String,
+            next: String,
             suggestionsLimit: Int,
             sentenceInitial: Boolean
         ): Verdict {
@@ -329,11 +335,28 @@ class RimSpellService : SpellCheckerService() {
                 if (prev.isEmpty()) emptyMap()
                 else engine.predictions(prev2, prev, lang, loc, CONTEXT_DEPTH)
                     .withIndex().associate { (i, w) -> w.lowercase(loc) to i }
-            val corrections = engine.correctionCandidates(
+            val cap = suggestionsLimit.coerceIn(1, MAX_SUGGESTIONS)
+            // A few more than will be shown, so the word after the typo has
+            // something to promote from. Re-ranking a list that has already
+            // been cut cannot recover a candidate the cut removed, and the
+            // extra ones cost nothing: the scan behind this runs over every
+            // candidate regardless and the count only decides where to stop.
+            val pool = engine.correctionCandidates(
                 word, lang, loc, altLang, altLoc,
-                limit = suggestionsLimit.coerceIn(1, MAX_SUGGESTIONS),
+                limit = cap + RIGHT_CONTEXT_POOL,
                 contextRank = contextRank
             )
+            // The word *after* the typo, which the n-grams can only be asked
+            // about one way round: not "what precedes this" but "does this
+            // candidate usually come before it". A stable sort on a yes/no, so
+            // a candidate that fits the following word rises above one that
+            // does not while the engine's own ordering survives inside each
+            // group {EM} the same restraint the left-hand context is held to,
+            // which is that evidence breaks ties rather than overruling the
+            // channel model.
+            val corrections =
+                if (next.isEmpty()) pool
+                else pool.sortedByDescending { engine.continues(it, next, lang, loc) }
             // A run-together pair. Last, because it is the largest change: the
             // others fix a word, this one adds a boundary between two.
             val split = engine.splitFor(word, lang, loc)
@@ -366,6 +389,14 @@ class RimSpellService : SpellCheckerService() {
              * ranked at all — does not start nudging corrections about.
              */
             const val CONTEXT_DEPTH = 12
+
+            /**
+             * Extra candidates fetched so the following word has something to
+             * promote from. Four is enough for the right answer to be sitting
+             * just below the cut, which is the case this exists for, without
+             * turning the popup's shortlist into a long tail of near-misses.
+             */
+            const val RIGHT_CONTEXT_POOL = 4
         }
     }
 }

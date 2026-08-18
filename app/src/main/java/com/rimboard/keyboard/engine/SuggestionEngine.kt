@@ -272,6 +272,33 @@ class SuggestionEngine private constructor(
      */
     fun cachedDictionary(lang: String): Dictionary? = cache[lang + "#" + DictVersion.v]
 
+    /**
+     * Whether [next] is a known continuation of [word].
+     *
+     * The n-grams only run forwards, so this is the one direction that can be
+     * asked cheaply: given a candidate, is the word that actually follows it in
+     * the text one that usually follows it in the language? That turns the word
+     * *after* a typo into evidence about it, which nothing could use before —
+     * "the stroe was shut" has "was" sitting right there, and "store was" is a
+     * pair while "stone was" is not.
+     *
+     * Two lookups and no allocation beyond the case folding: a map get on the
+     * learned bigrams, and a get plus a short scan of the curated model's list.
+     * Deliberately not [predictions], which builds and merges two score maps,
+     * filters both lists and sorts the result — all of it thrown away to
+     * answer a yes/no, once per candidate, on a binder thread.
+     */
+    fun continues(word: String, next: String, lang: String, locale: Locale): Boolean {
+        if (word.isEmpty() || next.isEmpty()) return false
+        val a = word.lowercase(locale)
+        val b = next.lowercase(locale)
+        if (userData.follows(a, b)) return true
+        val known = predictionModel(lang)[a] ?: return false
+        // Folded with the locale rather than equalsIgnoreCase, which is
+        // locale-blind and would fold Turkish dotted and dotless i together.
+        return known.any { it.lowercase(locale) == b }
+    }
+
     @Volatile
     var blockOffensive = true
     private val offensiveSets = HashMap<String, Set<String>>()

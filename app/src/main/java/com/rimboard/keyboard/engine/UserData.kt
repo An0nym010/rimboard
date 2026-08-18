@@ -349,6 +349,21 @@ class UserData private constructor(dir: File) {
      * word pair — typed once, never again — displaced the whole hand-written
      * model for that context until it decayed away.
      */
+    /**
+     * Whether [next] has been seen following [prev], as a plain lookup.
+     *
+     * [predictScores] answers a richer question and builds a map to do it,
+     * which is the right shape for ranking what to offer next and the wrong
+     * one for asking a yes/no about a pair. The spell checker asks this once
+     * per candidate correction, on a binder thread, so it allocates nothing.
+     *
+     * No blocked check, unlike [predictScores]: this is asked about a word the
+     * user has actually typed, as evidence, not about a word being offered to
+     * them.
+     */
+    fun follows(prev: String, next: String): Boolean =
+        bigrams[prev]?.containsKey(next) == true
+
     fun predictScores(prev2: String, prev1: String): Map<String, Double> {
         val scores = HashMap<String, Double>()
         bigrams[prev1]?.forEach { (w, c) ->

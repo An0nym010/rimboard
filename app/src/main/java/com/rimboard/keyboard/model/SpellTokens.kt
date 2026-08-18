@@ -40,6 +40,20 @@ object SpellTokens {
     private fun isWordChar(c: Char) = c.isLetter() || c == '\'' || c == '\u2019'
 
     /**
+     * The word after [index], or empty if there is none in the same sentence.
+     *
+     * The same rule as the word before it, applied in the other direction: a
+     * word on the far side of a full stop is not evidence about this one.
+     * Without the boundary check, "He left. Store was shut" would hand "left"
+     * the word "Store" as its follower, which is the mirror of the bug the
+     * sentence markers were added to fix.
+     */
+    fun followerOf(tokens: List<Token>, index: Int): String {
+        val next = tokens.getOrNull(index + 1) ?: return ""
+        return if (next.startsSentence) "" else next.text
+    }
+
+    /**
      * The word tokens of [text], in order.
      *
      * A token is a run of letters, which may contain an apostrophe but may not
