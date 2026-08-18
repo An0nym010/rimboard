@@ -4,6 +4,22 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Two clipboard faults, found by making it testable**
+- **Pinning a clip and unpinning it lost the "do not preview" flag.** A
+  password manager marks what it copies as not-for-preview, and unpinning
+  rebuilt the entry from its text alone — so a password came back unmarked and
+  the suggestion strip would then show it. The entry is carried across intact
+  now, and the flag survives a restart too: the pinned file records it, reading
+  both the old plain-string form and the new one.
+- **The paste chip ignored the auto-clear timeout.** The clipboard panel pruned
+  before drawing and the chip did not, so it kept previewing a clip past the
+  time the user had set for it to be forgotten. Reading the history prunes it,
+  so both obey the setting.
+- The history and pinned list moved out of the service into `ClipboardStore`,
+  which is what let either be seen. Behaviour otherwise unchanged, including
+  the fencepost — a clip is dropped once it is *older* than the timeout rather
+  than as it reaches it — now written down rather than incidental.
+
 **The two builds are two apps**
 - They shared an application id, so installing either replaced the other and
   only one could ever be listed anywhere. `online` now carries a `.online`

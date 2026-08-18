@@ -129,10 +129,11 @@ class RimBoardService : InputMethodService(),
      */
     private var gifQueryFieldLength: Int = 0
 
-    /** Clipboard history lives only in memory; it is never written to disk. */
-    private class ClipEntry(val text: String, val at: Long, val sensitive: Boolean = false)
-
-    private val clipHistory = ArrayDeque<ClipEntry>()
+    /**
+     * Clipboard history and pinned clips. History lives only in memory and is
+     * never written to disk; the pinned list is persisted by [savePinned].
+     */
+    private val clips = com.rimboard.keyboard.model.ClipboardStore()
     private var clipChangedListener: ClipboardManager.OnPrimaryClipChangedListener? = null
     private var editPanelView: EditPanelView? = null
     private var toolbarPanel: com.rimboard.keyboard.ui.ToolbarPanelView? = null
@@ -143,8 +144,6 @@ class RimBoardService : InputMethodService(),
     private var floatingBlock: View? = null
     private var editSelectMode = false
 
-    /** Pinned clips persist in device-protected storage; the user opts in per item. */
-    private val pinnedClips = ArrayList<String>()
 
     /** Words removed by the backspace swipe, restorable by sliding right. */
     private val wordUndo = ArrayDeque<String>()
@@ -568,7 +567,7 @@ class RimBoardService : InputMethodService(),
         }
         if (Prefs.pendingReload(this)) {
             userData.reload()
-            pinnedClips.clear()
+            clips.clearAll()
             loadPinned()
             Prefs.setPendingReload(this, false)
         }
@@ -1578,7 +1577,11 @@ class RimBoardService : InputMethodService(),
             // notice, and this runs on every strip update — it would fire that
             // continuously while someone typed. The description alone, which
             // [clipChipEligible] reads, carries no content and no notice.
-            val latest = clipHistory.firstOrNull()
+            // Through the store, so this obeys the auto-clear timeout. Read
+            // straight off the history it did not: the clipboard panel pruned
+            // before drawing and this did not, so the chip went on previewing
+            // a clip past the time the user had set for it to be forgotten.
+            val latest = clips.latest(System.currentTimeMillis(), Prefs.clipTimeoutMin(this))
             s.showClipboard(
                 com.rimboard.keyboard.model.ClipChip.label(
                     latest?.text,
@@ -2101,8 +2104,10 @@ class RimBoardService : InputMethodService(),
     }
 
     private fun updateClipView() {
-        pruneClips()
-        clipboardView?.setClips(pinnedClips.toList(), clipHistory.map { it.text })
+        clipboardView?.setClips(
+            clips.pinnedTexts(),
+            clips.history(System.currentTimeMillis(), Prefs.clipTimeoutMin(this)).map { it.text }
+        )
     }
 
     private fun showEditPanel() {
@@ -2115,24 +2120,47 @@ class RimBoardService : InputMethodService(),
 
     private fun pinnedFile() = File(UserData.dataDir(this), "pinned_clips.json")
 
+    /**
+     * Reads the pinned clips, accepting both the plain-string form written by
+     * earlier versions and the object form that carries the do-not-preview
+     * flag. Without the flag a pinned password would come back previewable
+     * after a restart, which is the same fault the pin round trip had.
+     */
     private fun loadPinned() {
         try {
             val arr = JSONArray(pinnedFile().readText())
-            for (i in 0 until arr.length()) pinnedClips.add(arr.getString(i))
+            val out = ArrayList<com.rimboard.keyboard.model.ClipboardStore.Entry>()
+            for (i in 0 until arr.length()) {
+                val obj = arr.optJSONObject(i)
+                if (obj != null) {
+                    out.add(
+                        com.rimboard.keyboard.model.ClipboardStore.Entry(
+                            obj.optString("t"), obj.optLong("at"), obj.optBoolean("s")
+                        )
+                    )
+                } else {
+                    out.add(
+                        com.rimboard.keyboard.model.ClipboardStore.Entry(arr.getString(i), 0L)
+                    )
+                }
+            }
+            clips.setPinned(out.filter { it.text.isNotBlank() })
         } catch (_: Exception) {
         }
     }
 
-    private fun pruneClips() {
-        val mins = Prefs.clipTimeoutMin(this)
-        if (mins <= 0) return
-        val cutoff = System.currentTimeMillis() - mins * 60_000L
-        clipHistory.removeAll { it.at < cutoff }
-    }
-
     private fun savePinned() {
         try {
-            pinnedFile().writeText(JSONArray(pinnedClips).toString())
+            val arr = JSONArray()
+            for (e in clips.pinnedEntries()) {
+                arr.put(
+                    org.json.JSONObject()
+                        .put("t", e.text)
+                        .put("at", e.at)
+                        .put("s", e.sensitive)
+                )
+            }
+            pinnedFile().writeText(arr.toString())
         } catch (_: Exception) {
         }
     }
@@ -2146,17 +2174,13 @@ class RimBoardService : InputMethodService(),
             val text = clip.getItemAt(0).coerceToText(this)?.toString() ?: return
             if (text.isBlank()) return
             val trimmed = if (text.length > 10000) text.substring(0, 10000) else text
-            if (pinnedClips.contains(trimmed)) return
-            pruneClips()
-            clipHistory.removeAll { it.text == trimmed }
             // Recorded when the clip arrives rather than read later: this is
             // the copier saying "do not preview this", and it belongs to the
             // clip, not to whatever field happens to be focused afterwards.
             val sensitive = Build.VERSION.SDK_INT >= 33 &&
                 clip.description?.extras
                     ?.getBoolean(android.content.ClipDescription.EXTRA_IS_SENSITIVE) == true
-            clipHistory.addFirst(ClipEntry(trimmed, System.currentTimeMillis(), sensitive))
-            while (clipHistory.size > 10) clipHistory.removeLast()
+            if (!clips.add(trimmed, System.currentTimeMillis(), sensitive)) return
             updateClipView()
         } catch (_: Exception) {
         }
@@ -2175,19 +2199,13 @@ class RimBoardService : InputMethodService(),
     }
 
     override fun onClipsCleared() {
-        clipHistory.clear()
+        clips.clearHistory()
         updateClipView()
     }
 
     override fun onClipPinToggle(text: String, pinned: Boolean) {
-        clipHistory.removeAll { it.text == text }
-        pinnedClips.remove(text)
-        if (pinned) {
-            pinnedClips.add(0, text)
-        } else {
-            clipHistory.addFirst(ClipEntry(text, System.currentTimeMillis()))
-            while (clipHistory.size > 10) clipHistory.removeLast()
-        }
+        val now = System.currentTimeMillis()
+        if (pinned) clips.pin(text, now) else clips.unpin(text, now)
         savePinned()
         updateClipView()
     }
