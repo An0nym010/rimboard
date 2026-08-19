@@ -103,6 +103,26 @@ class Dictionary(
          * that keeps it — enough to settle the ordinary case without ever
          * making the fix unreachable.
          */
+        /**
+         * What a swapped first letter costs a candidate.
+         *
+         * Measured, once the benchmark grew a slip that damages the first
+         * letter — until then this constant and the corpus were talking
+         * past each other and it could not be tuned at all. Swept with
+         * everything else held still, against the accuracy figures and against
+         * the reported "naberr" case:
+         *
+         *   0.0  naberr fails   en first-letter 98%
+         *   0.6  naberr fails   en first-letter 95%
+         *   1.2  naberr ok      en first-letter 93%   <- lowest that holds
+         *   1.8  naberr ok      en first-letter 93%
+         *   2.4  naberr ok      en first-letter 93%, tr falls to 93%
+         *
+         * So the trade is real and now has a number on it: five points of
+         * first-letter accuracy in English buys not turning "naberr" into
+         * "haber". 1.2 is the cheapest value that pays for it, and the band
+         * either side is flat, which is the comfortable place to sit.
+         */
         private const val FIRST_LETTER_PENALTY = 1.2
 
         /** Neither half of a split may be rarer than this. */

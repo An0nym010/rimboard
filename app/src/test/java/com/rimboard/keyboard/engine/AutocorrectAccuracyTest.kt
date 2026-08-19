@@ -74,7 +74,7 @@ class AutocorrectAccuracyTest {
                 .toList()
         }
 
-    private enum class Slip { NEIGHBOUR, DOUBLED, DROPPED, SWAPPED }
+    private enum class Slip { NEIGHBOUR, DOUBLED, DROPPED, SWAPPED, FIRST }
 
     /** One word, damaged one way, or null when this word cannot take that damage. */
     private fun damage(word: String, slip: Slip, prox: KeyProximity, rnd: Random): String? {
@@ -88,6 +88,16 @@ class AutocorrectAccuracyTest {
             Slip.DROPPED -> word.substring(0, i) + word.substring(i + 1)
             Slip.SWAPPED -> word.substring(0, i) + word[i + 1] + word[i] +
                 word.substring(i + 2)
+            // The first key is aimed at from rest and is the letter read back
+            // first, so getting it wrong is both rarer and more jarring to
+            // have rewritten. FIRST_LETTER_PENALTY exists for that, and until
+            // this slip existed nothing here ever damaged the first letter,
+            // so the penalty could not be measured at all — the corpus and
+            // the constant were talking past each other. This is also the
+            // shape of the fault a user reported: "naberr" for "naber", where
+            // a commoner word one letter further away won on the first letter.
+            Slip.FIRST -> prox.neighbours(word[0]).firstOrNull()
+                ?.let { it + word.substring(1) }
         }?.takeIf { it != word }
     }
 
@@ -166,8 +176,10 @@ class AutocorrectAccuracyTest {
         // rather than from a wish. Measured the day the contested figures
         // were added, as all/contested:
         //
-        //   en: neighbour 100/100, doubled 100/100, dropped  96/96, swapped 100/100
-        //   tr: neighbour  96/96,  doubled  96/96,  dropped  88/86, swapped 100/100
+        //   en: neighbour 100/100, doubled 100/100, dropped 96/96,
+        //       swapped 100/100, first 93/93
+        //   tr: neighbour  96/96,  doubled  96/96,  dropped 88/86,
+        //       swapped 100/100, first 95/95
         //
         // The two columns turned out to sit almost on top of each other, which
         // says something worth keeping: nearly every generated typo is
