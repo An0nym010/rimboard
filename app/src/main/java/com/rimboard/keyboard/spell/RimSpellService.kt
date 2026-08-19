@@ -106,7 +106,26 @@ class RimSpellService : SpellCheckerService() {
          * also run on binder threads, so the shared instance was being mutated
          * from several at once.
          */
-        internal fun notJudged() = SuggestionsInfo(0, null)
+        internal fun notJudged() = infoFor(0, emptyList())
+
+        /**
+         * Every answer this service hands back, built here and only here.
+         *
+         * The rule above is not about the not-judged case, it is about every
+         * case, and it used to be enforced by [notJudged] being the only
+         * constructor call anyone thought about. That stopped being true when
+         * verdicts started being cached as data and rebuilt per answer: the
+         * real construction moved to the session, [notJudged] stopped being
+         * called by anything but its own test, and the guard was left watching
+         * a door the code no longer used.
+         *
+         * The array is rebuilt too, not only the [SuggestionsInfo]. A cached
+         * [Verdict] holds one list for as many answers as it is asked for, and
+         * handing the same array to several of them would recreate the shared
+         * mutable object in the one place still worth worrying about.
+         */
+        internal fun infoFor(attrs: Int, words: List<String>): SuggestionsInfo =
+            SuggestionsInfo(attrs, if (words.isEmpty()) null else words.toTypedArray())
     }
 
     /**
@@ -320,10 +339,10 @@ class RimSpellService : SpellCheckerService() {
                 // for the life of the session.
                 if (engine.cachedDictionary(lang) != null) verdicts.put(ask, v)
             }
-            // A new instance per answer, always. See [notJudged].
-            return SuggestionsInfo(
-                v.attrs, if (v.words.isEmpty()) null else v.words.toTypedArray()
-            )
+            // A new instance per answer, always — and the only place in the
+            // service that builds one, so the rule has somewhere to live and
+            // something to test. See [infoFor].
+            return infoFor(v.attrs, v.words)
         }
 
         private fun verdictFor(
