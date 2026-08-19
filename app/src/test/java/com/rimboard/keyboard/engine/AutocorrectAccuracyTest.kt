@@ -179,7 +179,7 @@ class AutocorrectAccuracyTest {
         //   en: neighbour 100/100, doubled 100/100, dropped 96/96,
         //       swapped 100/100, first 93/93
         //   tr: neighbour  96/96,  doubled  96/96,  dropped 88/86,
-        //       swapped 100/100, first 95/95
+        //       swapped 100/100, first 95/95   (dropped contested was 86)
         //
         // The two columns turned out to sit almost on top of each other, which
         // says something worth keeping: nearly every generated typo is

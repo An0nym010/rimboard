@@ -233,4 +233,39 @@ class EngineDepthTest {
         ).items
         assertTrue(out.none { it.startsWith("bookl") && it.length > 5 })
     }
+
+    @Test
+    fun `a rare accented word does not outrank a common ordinary one`() {
+        // Found by the accuracy benchmark. The accented form is built from the
+        // stem rather than looked up, and it leads the list because folding
+        // exactly onto a real word is strong evidence — but nothing checked
+        // whether that word was one the corpus takes seriously.
+        //
+        // In the shipped Turkish list "hayı" has a frequency of 65 against a
+        // correction floor of 185, which is to say it is noise, and it was
+        // being offered for the typo "hayi" ahead of "haydi", a word two
+        // thousand times commoner. Here the floor is the small-dictionary
+        // minimum, so frequency 1 stands in for "below it".
+        val e = engine(mapOf("dictionaries/tr.txt" to "haydi 9000\nhayı 1"))
+        assertEquals(
+            listOf("haydi"),
+            e.correctionCandidates("hayi", "tr", tr, limit = 1)
+        )
+    }
+
+    @Test
+    fun `a generated inflection is absent from the corpus, not rare in it`() {
+        // The other side of that rule, and the reason it is asked as "does the
+        // corpus have this and rank it low" rather than "is this common". An
+        // agglutinative language produces perfectly good words no frequency
+        // list will ever contain, and rejecting unknown words here would have
+        // switched the whole generated-inflection feature off. It very nearly
+        // did: the first version of the check did exactly that and this suite
+        // caught it.
+        val e = engine(mapOf("dictionaries/tr.txt" to "kitap 9000"))
+        assertEquals(
+            listOf("kitaplarımızdan"),
+            e.correctionCandidates("kitaplarimizdan", "tr", tr, limit = 1)
+        )
+    }
 }

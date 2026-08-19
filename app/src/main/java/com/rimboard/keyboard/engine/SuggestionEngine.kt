@@ -547,7 +547,12 @@ class SuggestionEngine private constructor(
             // through consonant doubling: "bennce" parses as a stem and a
             // suffix, rebuilds to itself, and was offered as the fix for
             // itself ahead of "bence".
-            it != lower && !isOffensive(it, lang, locale) && !userData.isBlocked(it)
+            // Not a word the corpus counted and ranked below the bar every
+            // edit-distance candidate has to clear. A *generated* inflection
+            // is absent rather than rare and stays welcome; see
+            // [Dictionary.tooRareToOffer].
+            it != lower && !dict.tooRareToOffer(it) &&
+                !isOffensive(it, lang, locale) && !userData.isBlocked(it)
         }
         // Agglutinative languages build endless valid surface forms a frequency
         // dictionary cannot list. If the word peels down to a known stem

@@ -209,6 +209,12 @@ class Dictionary(
     private val exact = HashSet<String>()
     /** Bare-letter form -> index of the most frequent accented word matching it. */
     private val foldedIndex = HashMap<String, Int>()
+    /**
+     * Kept from the build, because [correctionFloor] copies and sorts the whole
+     * frequency array and this is asked per correction.
+     */
+    private var floorFreq = 0
+
     private val byLen: Array<IntArray>
     // The transition model lives in flat primitive arrays. As a nested
     // HashMap<Char, HashMap<Char, Double>> it allocated on the order of a
@@ -297,6 +303,7 @@ class Dictionary(
             }
         }
         val floor = correctionFloor()
+        floorFreq = floor
         val buckets = Array(25) { ArrayList<Int>() }
         for (i in words.indices) {
             if (freqs[i] < floor) continue
@@ -576,6 +583,29 @@ class Dictionary(
     /** Corpus frequency of [wordLower], or 0. Used to choose between two
      *  spellings that are both in the list — see [SuggestionEngine.elongationBase]. */
     internal fun frequency(wordLower: String): Int = freqOf(wordLower)
+
+    /**
+     * Whether the corpus has this word and thinks it too rare to offer.
+     *
+     * Every edit-distance candidate already clears the correction floor: the
+     * length buckets are built from words above it and nothing below can ever
+     * be scored. Paths that reach a word another way bypassed that entirely,
+     * and could lead the list with something the ranking would never have
+     * considered. Turkish "hayı" is the case that found it — frequency 65
+     * against a floor of 185, which is to say corpus noise, offered ahead of
+     * "haydi" for the typo "hayi". "haydi" is two thousand times commoner.
+     *
+     * Asks the question this way round on purpose. A generated inflection is
+     * *absent* from the corpus rather than rare in it, and absence is exactly
+     * what an agglutinative language produces: "kitaplarımızdan" is a
+     * perfectly good word that no frequency list will ever contain. Rejecting
+     * unknown words here would switch that feature off. What is rejected is
+     * only a word the corpus saw, counted, and ranked below the bar.
+     */
+    internal fun tooRareToOffer(wordLower: String): Boolean {
+        val f = freqOf(wordLower)
+        return f > 0 && f < floorFreq
+    }
 
     private fun freqOf(word: String): Int {
         var lo = 0
