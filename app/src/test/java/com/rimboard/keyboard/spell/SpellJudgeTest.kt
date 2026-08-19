@@ -146,6 +146,42 @@ class SpellJudgeTest {
     }
 
     @Test
+    fun `the first word of a sentence is ranked against how sentences start`() {
+        // "f" and "h" sit either side of "g" on the same row, so both
+        // substitutions cost the same and the channel model has no opinion
+        // between them — which is exactly the tie context is allowed to
+        // break. The opener row is keyed under U+0001, the sentinel the engine
+        // uses for the start of a sentence.
+        val assets = mapOf(
+            dict("fate" to 5000, "hate" to 5000),
+            "predictions/en.txt" to "\u0001\thate happy hello"
+        )
+        val j = judge(assets)
+        assertEquals(
+            "mid-sentence there is no context and the tie stands",
+            listOf("fate", "hate"), verdict(j, "gate", initial = false).words
+        )
+        assertEquals(
+            "opening a sentence, the openers decide it",
+            listOf("hate", "fate"), verdict(j, "gate", initial = true).words
+        )
+    }
+
+    @Test
+    fun `an unknown position asks for no opener context`() {
+        // The word-at-a-time API cannot know where it sits, and "might be the
+        // first word" is not evidence that it is. Same assets, null position:
+        // the tie must stand rather than be broken by a guess.
+        val assets = mapOf(
+            dict("fate" to 5000, "hate" to 5000),
+            "predictions/en.txt" to "\u0001\thate happy hello"
+        )
+        assertEquals(
+            listOf("fate", "hate"), verdict(judge(assets), "gate", initial = null).words
+        )
+    }
+
+    @Test
     fun `a word with a digit in it is left alone`() {
         val j = judge(mapOf(dict("covid" to 9000)))
         assertFalse("version numbers and identifiers are not spelling", typo(verdict(j, "covid19")))
