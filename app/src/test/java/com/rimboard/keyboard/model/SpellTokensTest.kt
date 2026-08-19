@@ -53,8 +53,18 @@ class SpellTokensTest {
     }
 
     @Test
-    fun `digits break a word the way punctuation does`() {
-        assertEquals(listOf("abc", "def"), words("abc123def"))
+    fun `a digit stays inside the word rather than splitting it`() {
+        // This asserted the opposite until 2026-08-19, and the opposite was a
+        // regression. SpellCandidacy declines any word containing a digit
+        // — its comment names "covid19" — and it can only decline what
+        // it is shown whole. Splitting handed it "covid", which is not in the
+        // 200k dictionary and came back underlined with corrections. The
+        // framework's own splitter had kept these together; taking
+        // tokenisation over is what lost it.
+        assertEquals(listOf("abc123def"), words("abc123def"))
+        assertEquals(listOf("covid19"), words("covid19"))
+        assertEquals(listOf("ipv6", "and", "utf8"), words("ipv6 and utf8"))
+        assertEquals(listOf("I", "have", "3", "cats"), words("I have 3 cats"))
     }
 
     @Test

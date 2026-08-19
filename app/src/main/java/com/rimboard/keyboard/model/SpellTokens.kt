@@ -37,7 +37,20 @@ object SpellTokens {
         val length: Int get() = text.length
     }
 
-    private fun isWordChar(c: Char) = c.isLetter() || c == '\'' || c == '\u2019'
+    /**
+     * Digits are part of a word here, though they can never be part of a
+     * *spelling*.
+     *
+     * [SpellCandidacy] declines anything containing a digit — version
+     * numbers, identifiers, "covid19", which its comment names — and it can
+     * only decline what it is shown whole. Splitting on digits handed it
+     * "covid" instead, which is not in the dictionary and so came back
+     * underlined with corrections offered for it. The framework's own splitter
+     * kept such runs together, so this was a regression introduced by taking
+     * tokenisation over, and invisible from here: the rule that should have
+     * caught it was still there, still correct, and no longer being asked.
+     */
+    private fun isWordChar(c: Char) = c.isLetter() || c.isDigit() || c == '\'' || c == '\u2019'
 
     /**
      * The word after [index], or empty if there is none in the same sentence.
@@ -78,8 +91,14 @@ object SpellTokens {
             while (end < text.length && isWordChar(text[end])) end++
             var s = i
             var e = end
-            while (s < e && !text[s].isLetter()) s++
-            while (e > s && !text[e - 1].isLetter()) e--
+            // Trims the apostrophes off the ends and nothing else. Written as
+            // "not a letter" when a letter and an apostrophe were the only two
+            // things a token could contain; now that a digit can be in one too,
+            // that spelling quietly ate the digits — "covid19" trimmed back
+            // to "covid", which is the exact fault admitting digits was meant
+            // to fix, one line further down.
+            while (s < e && !text[s].isLetterOrDigit()) s++
+            while (e > s && !text[e - 1].isLetterOrDigit()) e--
             if (e > s) {
                 out.add(Token(s, text.subSequence(s, e).toString(), opens))
                 opens = false
