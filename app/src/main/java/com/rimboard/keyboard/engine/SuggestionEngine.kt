@@ -539,14 +539,29 @@ class SuggestionEngine private constructor(
         // the list rather than competing as an edit-distance guess. It still
         // passes through the filters and case-matching below.
         val accented = accentedFormFor(lower, lang, dict)?.takeIf {
-            !isOffensive(it, lang, locale) && !userData.isBlocked(it)
+            // Never the word that was typed. This exists to turn a bare-letter
+            // spelling into its accented one, so a result identical to the
+            // query means there was nothing to accent and no correction to
+            // make — and because it leads the list, returning it put the
+            // typo at the head of its own suggestions. Turkish reaches that
+            // through consonant doubling: "bennce" parses as a stem and a
+            // suffix, rebuilds to itself, and was offered as the fix for
+            // itself ahead of "bence".
+            it != lower && !isOffensive(it, lang, locale) && !userData.isBlocked(it)
         }
         // Agglutinative languages build endless valid surface forms a frequency
         // dictionary cannot list. If the word peels down to a known stem
         // through recognised suffixes, it is a real word the corpus merely
         // never saw — do not "correct" it. See [Morphology]. Skipped when the
         // bare form spells an accented word, which is a correction, not a stem.
-        if (accented == null &&
+        // Skipped when the bare form spells an accented word, and equally
+        // when it spells an elongation: both are corrections rather than
+        // stems. Only the first of those was excluded, so an elongation whose
+        // extra letters happen to peel off as a suffix was declared a valid
+        // agglutinated form and offered nothing at all. Turkish "tabiii" peels
+        // its last "i" and lands on "tabii", which is a real word, so the
+        // engine concluded the typo was fine and stayed silent.
+        if (accented == null && elongated == null &&
             com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) { dict.contains(it) }
         ) {
             return emptyList()
