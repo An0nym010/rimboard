@@ -238,6 +238,19 @@ class RimSpellService : SpellCheckerService() {
             // and a queued re-read only when something actually moved.
             service.refreshLearned()
 
+            // The engine defaults this on and the keyboard sets it from the
+            // preference on every focus change. This engine is a different
+            // instance and nothing ever set it, so "block offensive words"
+            // applied to half the app: turn it off and the keyboard offers the
+            // word while the spell checker goes on refusing to, leaving an
+            // underline that cannot be fixed from the popup that put it there.
+            //
+            // Read per session rather than once, for the same reason the
+            // keyboard reads it per focus change — the setting can be
+            // changed at any moment and a spell checker service outlives a
+            // great many trips to the settings screen.
+            engine.blockOffensive = Prefs.blockOffensive(service)
+
             SuggestionEngine.declareNeeded(
                 SuggestionEngine.NEEDED_SPELL, setOfNotNull(lang, altLang)
             )
