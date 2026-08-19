@@ -149,6 +149,15 @@ class RimSpellService : SpellCheckerService() {
      * scripts without spaces, punctuation, sentence boundaries — that this
      * would otherwise have to reimplement badly.
      */
+    /** How many expensive answers are left in the call being served. */
+    private class Budget(private var left: Int) {
+        fun take(): Boolean {
+            if (left <= 0) return false
+            left--
+            return true
+        }
+    }
+
     private class RimSession(
         private val engine: SuggestionEngine,
         private val service: RimSpellService
@@ -222,6 +231,8 @@ class RimSpellService : SpellCheckerService() {
         private fun judgeSentence(info: TextInfo, limit: Int): SentenceSuggestionsInfo {
             val text = info.text.orEmpty()
             val tokens = SpellTokens.of(text)
+            // One budget for the sentence, not for each word in it.
+            val budget = Budget(CORRECTION_BUDGET)
             val out = arrayOfNulls<SuggestionsInfo>(tokens.size)
             val offsets = IntArray(tokens.size)
             val lengths = IntArray(tokens.size)
@@ -246,7 +257,7 @@ class RimSpellService : SpellCheckerService() {
                 // sentence starts here" rather than "this is a name".
                 out[i] = judge(
                     t.text, prev2, prev, SpellTokens.followerOf(tokens, i),
-                    limit, sentenceInitial = t.startsSentence
+                    limit, sentenceInitial = t.startsSentence, budget = budget
                 )
                     .also { it.setCookieAndSequence(info.cookie, info.sequence) }
                 prev2 = prev
@@ -268,7 +279,13 @@ class RimSpellService : SpellCheckerService() {
             // capitalised words are still judged rather than silently declined,
             // while the ranking gets no sentence-opener context, because
             // "might be the first word" is not evidence that it is.
-            judge(textInfo?.text.orEmpty(), "", "", "", suggestionsLimit, sentenceInitial = null)
+            judge(
+                textInfo?.text.orEmpty(), "", "", "", suggestionsLimit,
+                sentenceInitial = null,
+                // One word asked about on its own is never the pathological
+                // case this bounds, so it gets exactly what it needs.
+                budget = Budget(1)
+            )
 
         /**
          * The question a verdict answers. Everything that can change the
@@ -308,7 +325,17 @@ class RimSpellService : SpellCheckerService() {
          * fresh answer from them each time keeps the saving without keeping
          * the hazard.
          */
-        private data class Verdict(val attrs: Int, val words: List<String>)
+        private data class Verdict(
+            val attrs: Int,
+            val words: List<String>,
+            /**
+             * False when the correction search was skipped for budget rather
+             * than finished. The word is still reported as a typo — that
+             * much was known cheaply — but the empty suggestion list is a
+             * deferral and not an answer, so it must not be cached as one.
+             */
+            val complete: Boolean = true
+        )
 
         /**
          * Sixty-four is a long sentence's worth of distinct words. The point
@@ -323,7 +350,8 @@ class RimSpellService : SpellCheckerService() {
             prev: String,
             next: String,
             suggestionsLimit: Int,
-            sentenceInitial: Boolean?
+            sentenceInitial: Boolean?,
+            budget: Budget
         ): SuggestionsInfo {
             val ask = Ask(
                 word, prev, prev2, next, sentenceInitial, suggestionsLimit,
@@ -331,13 +359,13 @@ class RimSpellService : SpellCheckerService() {
             )
             var v = verdicts.get(ask)
             if (v == null) {
-                v = verdictFor(word, prev2, prev, next, suggestionsLimit, sentenceInitial)
+                v = verdictFor(word, prev2, prev, next, suggestionsLimit, sentenceInitial, budget)
                 // Only once there is a dictionary to have judged against. Until
                 // the load finishes every word is unknown and every correction
                 // list is empty, and caching that would pin "everything in this
                 // field is a typo, and there is nothing to be done about it"
                 // for the life of the session.
-                if (engine.cachedDictionary(lang) != null) verdicts.put(ask, v)
+                if (v.complete && engine.cachedDictionary(lang) != null) verdicts.put(ask, v)
             }
             // A new instance per answer, always — and the only place in the
             // service that builds one, so the rule has somewhere to live and
@@ -351,7 +379,8 @@ class RimSpellService : SpellCheckerService() {
             prev: String,
             next: String,
             suggestionsLimit: Int,
-            sentenceInitial: Boolean?
+            sentenceInitial: Boolean?,
+            budget: Budget
         ): Verdict {
             // Unknown position reads as a sentence start here: that is the
             // lenient direction, and declining every capitalised word on a
@@ -362,6 +391,25 @@ class RimSpellService : SpellCheckerService() {
 
             if (engine.acceptedWord(word, lang, loc, altLang, altLoc)) {
                 return Verdict(SuggestionsInfo.RESULT_ATTR_IN_THE_DICTIONARY, emptyList())
+            }
+
+            // Everything above this line is a lookup. Everything below it
+            // walks every dictionary word within the edit budget, and this is
+            // where a sentence can turn expensive: paste a paragraph in a
+            // language that is not enabled and every word of it is unknown, so
+            // every word of it pays for a full scan, on a binder thread, in one
+            // call. The cache absorbs repeats and does nothing for a wall of
+            // words that are each wrong once.
+            //
+            // Past the budget the word is still underlined — being unknown
+            // was established cheaply, and saying so costs nothing — but no
+            // corrections are worked out for it. An underline with no
+            // suggestions is a shape the API has and this code already
+            // produces when nothing is found.
+            if (!budget.take()) {
+                return Verdict(
+                    SuggestionsInfo.RESULT_ATTR_LOOKS_LIKE_TYPO, emptyList(), complete = false
+                )
             }
 
             // Same ranking the suggestion strip uses, so the fix offered by a
@@ -457,6 +505,18 @@ class RimSpellService : SpellCheckerService() {
              * turning the popup's shortlist into a long tail of near-misses.
              */
             const val RIGHT_CONTEXT_POOL = 4
+
+            /**
+             * How many words in one sentence may have corrections worked out.
+             *
+             * Far above any real sentence {EM} twenty-four misspellings in one
+             * is not writing, it is a paste {EM} so this never fires on the
+             * case it is not for. What it bounds is the case where every word
+             * is unknown, which is a paragraph in a language the user has not
+             * enabled, and which without a bound is hundreds of full-dictionary
+             * scans in a single call the framework is waiting on.
+             */
+            const val CORRECTION_BUDGET = 24
         }
     }
 }
