@@ -8,7 +8,6 @@ import com.rimboard.keyboard.engine.SuggestionEngine
 import com.rimboard.keyboard.engine.UserData
 import com.rimboard.keyboard.model.Languages
 import com.rimboard.keyboard.model.SpellCache
-import com.rimboard.keyboard.model.SpellCandidacy
 import com.rimboard.keyboard.model.SpellTokens
 import com.rimboard.keyboard.settings.Prefs
 import java.util.Locale
@@ -185,14 +184,6 @@ class RimSpellService : SpellCheckerService() {
      * scripts without spaces, punctuation, sentence boundaries — that this
      * would otherwise have to reimplement badly.
      */
-    /** How many expensive answers are left in the call being served. */
-    private class Budget(private var left: Int) {
-        fun take(): Boolean {
-            if (left <= 0) return false
-            left--
-            return true
-        }
-    }
 
     private class RimSession(
         private val engine: SuggestionEngine,
@@ -203,6 +194,15 @@ class RimSpellService : SpellCheckerService() {
         private var loc: Locale = Locale.ENGLISH
         private var altLang: String? = null
         private var altLoc: Locale? = null
+
+        /**
+         * The rule for judging one word, rebuilt when the session learns which
+         * language it is for. Given a default here rather than made lateinit,
+         * for the same reason the four fields above have defaults: the
+         * framework is not contractually obliged to call onCreate before it
+         * asks anything.
+         */
+        private var rule = SpellJudge(engine, lang, loc)
 
         override fun onCreate() {
             // The system hands over the locale it bound this session for, which
@@ -251,6 +251,8 @@ class RimSpellService : SpellCheckerService() {
             // great many trips to the settings screen.
             engine.blockOffensive = Prefs.blockOffensive(service)
 
+            rule = SpellJudge(engine, lang, loc, altLang, altLoc)
+
             SuggestionEngine.declareNeeded(
                 SuggestionEngine.NEEDED_SPELL, setOfNotNull(lang, altLang)
             )
@@ -289,7 +291,7 @@ class RimSpellService : SpellCheckerService() {
             val text = info.text.orEmpty()
             val tokens = SpellTokens.of(text)
             // One budget for the sentence, not for each word in it.
-            val budget = Budget(CORRECTION_BUDGET)
+            val budget = Budget(SpellJudge.CORRECTION_BUDGET)
             val out = arrayOfNulls<SuggestionsInfo>(tokens.size)
             val offsets = IntArray(tokens.size)
             val lengths = IntArray(tokens.size)
@@ -373,26 +375,6 @@ class RimSpellService : SpellCheckerService() {
             val contextual: Boolean
         )
 
-        /**
-         * A verdict as data rather than as a [SuggestionsInfo].
-         *
-         * The framework writes a cookie into whatever a session returns, so
-         * handing out the same instance twice is a bug this class has already
-         * had once — see [notJudged]. Caching the ingredients and building a
-         * fresh answer from them each time keeps the saving without keeping
-         * the hazard.
-         */
-        private data class Verdict(
-            val attrs: Int,
-            val words: List<String>,
-            /**
-             * False when the correction search was skipped for budget rather
-             * than finished. The word is still reported as a typo — that
-             * much was known cheaply — but the empty suggestion list is a
-             * deferral and not an answer, so it must not be cached as one.
-             */
-            val complete: Boolean = true
-        )
 
         /**
          * Sixty-four is a long sentence's worth of distinct words. The point
@@ -416,7 +398,9 @@ class RimSpellService : SpellCheckerService() {
             )
             var v = verdicts.get(ask)
             if (v == null) {
-                v = verdictFor(word, prev2, prev, next, suggestionsLimit, sentenceInitial, budget)
+                v = rule.verdictFor(
+                    word, prev2, prev, next, suggestionsLimit, sentenceInitial, budget
+                )
                 // Only once there is a dictionary to have judged against. Until
                 // the load finishes every word is unknown and every correction
                 // list is empty, and caching that would pin "everything in this
@@ -430,150 +414,7 @@ class RimSpellService : SpellCheckerService() {
             return infoFor(v.attrs, v.words)
         }
 
-        private fun verdictFor(
-            word: String,
-            prev2: String,
-            prev: String,
-            next: String,
-            suggestionsLimit: Int,
-            sentenceInitial: Boolean?,
-            budget: Budget
-        ): Verdict {
-            // Unknown position reads as a sentence start here: that is the
-            // lenient direction, and declining every capitalised word on a
-            // guess would be worse than judging one name too many.
-            if (!SpellCandidacy.worthChecking(word, sentenceInitial ?: true, lang, loc)) {
-                return Verdict(0, emptyList())
-            }
-
-            if (engine.acceptedWord(word, lang, loc, altLang, altLoc)) {
-                return Verdict(SuggestionsInfo.RESULT_ATTR_IN_THE_DICTIONARY, emptyList())
-            }
-
-            // Everything above this line is a lookup. Everything below it
-            // walks every dictionary word within the edit budget, and this is
-            // where a sentence can turn expensive: paste a paragraph in a
-            // language that is not enabled and every word of it is unknown, so
-            // every word of it pays for a full scan, on a binder thread, in one
-            // call. The cache absorbs repeats and does nothing for a wall of
-            // words that are each wrong once.
-            //
-            // Past the budget the word is still underlined — being unknown
-            // was established cheaply, and saying so costs nothing — but no
-            // corrections are worked out for it. An underline with no
-            // suggestions is a shape the API has and this code already
-            // produces when nothing is found.
-            if (!budget.take()) {
-                return Verdict(
-                    SuggestionsInfo.RESULT_ATTR_LOOKS_LIKE_TYPO, emptyList(), complete = false
-                )
-            }
-
-            // Same ranking the suggestion strip uses, so the fix offered by a
-            // long-press on the underline is the fix the keyboard would have
-            // made. Contractions first: "dont" is a missing apostrophe rather
-            // than a mistyped word, and edit distance does not know that.
-            val contraction = engine.contractionFor(word, lang, loc)?.first
-            // What the preceding word predicts, as a rank map, exactly as the
-            // keyboard builds it for the word being typed. It re-ranks the
-            // dictionary's own candidates and never invents one, and the bonus
-            // is bounded below the spatial term, so context breaks a near-tie
-            // without pulling a distant word past an obvious adjacent-key fix.
-            // mayLoad = false rather than a readiness check of its own: this
-            // runs on a binder thread and predictions() would otherwise parse
-            // the model here, which is the stall the warm fix removed and this
-            // ranking had reintroduced by another door. Passing the flag says
-            // it once, in the place that cannot afford it, and still gets the
-            // learned bigrams — which a readiness check would have thrown
-            // away along with the model.
-            // An empty preceding word is two different situations and only
-            // one of them is "nothing to go on". A word that *opens* a sentence
-            // has a context of its own: the engine keys that under
-            // UserData.START, and en, tr, de, es and ru each ship twenty
-            // curated openers for it. The keyboard has always used them —
-            // predictions() says so in as many words, having once returned
-            // nothing there and left the strip blank — and the spell checker
-            // was throwing them away, so the first word of every sentence was
-            // ranked on frequency alone. Where the position is unknown there is
-            // still nothing to go on, and this asks for nothing.
-            val contextRank =
-                if (prev.isEmpty() && sentenceInitial != true) emptyMap()
-                else engine.predictions(prev2, prev, lang, loc, CONTEXT_DEPTH, mayLoad = false)
-                    .withIndex().associate { (i, w) -> w.lowercase(loc) to i }
-            val cap = suggestionsLimit.coerceIn(1, MAX_SUGGESTIONS)
-            // A few more than will be shown, so the word after the typo has
-            // something to promote from. Re-ranking a list that has already
-            // been cut cannot recover a candidate the cut removed, and the
-            // extra ones cost nothing: the scan behind this runs over every
-            // candidate regardless and the count only decides where to stop.
-            val pool = engine.correctionCandidates(
-                word, lang, loc, altLang, altLoc,
-                limit = cap + RIGHT_CONTEXT_POOL,
-                contextRank = contextRank
-            )
-            // The word *after* the typo, which the n-grams can only be asked
-            // about one way round: not "what precedes this" but "does this
-            // candidate usually come before it". A stable sort on a yes/no, so
-            // a candidate that fits the following word rises above one that
-            // does not while the engine's own ordering survives inside each
-            // group — the same restraint the left-hand context is held to,
-            // which is that evidence breaks ties rather than overruling the
-            // channel model.
-            val corrections =
-                if (next.isEmpty()) pool
-                else pool.sortedByDescending { engine.continues(it, next, lang, loc) }
-            // A run-together pair. Last, because it is the largest change: the
-            // others fix a word, this one adds a boundary between two.
-            val split = engine.splitFor(word, lang, loc)
-            val out = (listOfNotNull(contraction) + corrections + listOfNotNull(split))
-                .distinct()
-                // The same bound as the correction query above. Without it
-                // MAX_SUGGESTIONS held only the corrections, and a framework
-                // limit above five let the contraction and the split past it
-                // — seven entries in a popup documented to hold five.
-                .take(suggestionsLimit.coerceIn(1, MAX_SUGGESTIONS))
-
-            var attrs = SuggestionsInfo.RESULT_ATTR_LOOKS_LIKE_TYPO
-            if (out.isNotEmpty()) {
-                attrs = attrs or SuggestionsInfo.RESULT_ATTR_HAS_RECOMMENDED_SUGGESTIONS
-            }
-            return Verdict(attrs, out)
-        }
 
 
-        private companion object {
-
-
-            /** More than this and the popup is a menu rather than a fix. */
-            const val MAX_SUGGESTIONS = 5
-
-            /**
-             * How far down the prediction list a word still counts as
-             * "expected here". Deep enough to catch an ordinary continuation,
-             * shallow enough that the tail of the list — which is barely
-             * ranked at all — does not start nudging corrections about.
-             */
-            const val CONTEXT_DEPTH = 12
-
-            /**
-             * Extra candidates fetched so the following word has something to
-             * promote from. Four is enough for the right answer to be sitting
-             * just below the cut, which is the case this exists for, without
-             * turning the popup's shortlist into a long tail of near-misses.
-             */
-            const val RIGHT_CONTEXT_POOL = 4
-
-            /**
-             * How many words in one sentence may have corrections worked out.
-             *
-             * Far above any real sentence — twenty-four misspellings in one
-             * is not writing, it is a paste — so this never fires on the
-             * case it is not for. What it bounds is the case where every word
-             * is unknown, which is a paragraph in a language the user has not
-             * enabled, and which without a bound is hundreds of full-dictionary
-             * scans in a single call the framework is waiting on.
-             */
-            const val CORRECTION_BUDGET = 24
-        }
     }
 }
