@@ -460,4 +460,6 @@ Your search words or selected text go to the service that answers them. Nothing 
     <string name="pref_match_app_mode_summary">A dark app gets a dark keyboard, whatever the time of day. Applies to the System and Material You themes; a theme you picked outright is left alone.</string>
     <string name="pref_contact_names_title">Names from contacts</string>
     <string name="pref_contact_names_summary">Stop underlining the people you write to. Asks permission when turned on; names are read into memory only, never sent anywhere.</string>
+    <string name="pref_system_dict_title">Words from the personal dictionary</string>
+    <string name="pref_system_dict_summary">Also accept the words saved under Settings → Personal dictionary, which your other apps share. Read only, never added to. Asks permission when turned on.</string>
 </resources>

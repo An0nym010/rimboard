@@ -38,6 +38,25 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <!--
+        READ_USER_DICTIONARY, for the list at Settings -> Languages -> Personal
+        dictionary. That list is shared by every app on the phone and is the
+        one place a user types a word by hand specifically to say "this is a
+        word"; RimBoard kept its own learned words and never looked at it, so a
+        word added there, or taught by another keyboard, or carried over from an
+        old phone, was still underlined here.
+
+        Read-only, and narrower than contacts in every way that matters: it
+        holds words the user chose to write down, nothing is inferred from it,
+        and WRITE_USER_DICTIONARY is deliberately not requested — this reads
+        that list and never adds to it, the same rule the spell checker holds
+        itself to for its own learning.
+
+        Two gates, both shut by default, as with contacts: the "Words from the
+        personal dictionary" setting, and Android's own permission prompt.
+    -->
+    <uses-permission android:name="android.permission.READ_USER_DICTIONARY" />
+
+    <!--
         From API 30 an app sees no other packages unless it declares which it
         cares about, and that filtering applies to queryIntentActivities too.
         Without this the keyboard could not tell whether a translator was

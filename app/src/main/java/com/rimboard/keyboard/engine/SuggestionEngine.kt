@@ -398,6 +398,15 @@ class SuggestionEngine private constructor(
      */
     @Volatile
     var contactNames: Set<String> = emptySet()
+
+    /**
+     * Words from Android's own personal dictionary, or empty. Same contract as
+     * [contactNames], separate property because they answer to separate
+     * settings and separate permissions — turning one off must not silently
+     * take the other with it.
+     */
+    @Volatile
+    var userDictionaryWords: Set<String> = emptySet()
     private val offensiveSets = HashMap<String, Set<String>>()
 
     /** See [predictionModelLock] for why this is not `@Synchronized`. */
@@ -660,7 +669,12 @@ class SuggestionEngine private constructor(
         // name in any of them: "Yilmaz" is not a Turkish stem with a suffix on
         // it and not an English word, and both of those would be the wrong
         // question to ask about somebody's surname.
-        if (com.rimboard.keyboard.model.ContactNames.contains(contactNames, typed)) return true
+        if (com.rimboard.keyboard.model.PersonalWords.contains(contactNames, typed)) return true
+        // The list the user typed by hand to say "this is a word". It outranks
+        // every guess below and is the closest thing here to being told.
+        if (com.rimboard.keyboard.model.PersonalWords.contains(userDictionaryWords, typed)) {
+            return true
+        }
         if (accentedFormFor(lower, lang, dict) != null) return false
         if (com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) { dict.contains(it) }) {
             return true

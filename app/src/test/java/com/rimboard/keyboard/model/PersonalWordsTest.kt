@@ -13,9 +13,9 @@ import org.junit.Test
  * strict and the person you write to every day stays underlined, which is the
  * whole reason the permission was added.
  */
-class ContactNamesTest {
+class PersonalWordsTest {
 
-    private fun of(vararg names: String) = ContactNames.of(names.asSequence())
+    private fun of(vararg names: String) = PersonalWords.of(names.asSequence())
 
     @Test
     fun `a plain name gives up both its parts`() {
@@ -64,18 +64,47 @@ class ContactNamesTest {
         val many = (1..500).asSequence().map { "Firstname$it Lastname" }
         // Digits in the generated names would drop them whole, so spell them.
         val plain = (1..500).asSequence().map { "Aaa Bbb Ccc" }
-        assertTrue("digits should have dropped these", ContactNames.of(many).isEmpty())
-        assertEquals(setOf("aaa", "bbb", "ccc"), ContactNames.of(plain))
-        assertEquals(2, ContactNames.of(sequenceOf("one two three"), limit = 2).size)
+        assertTrue("digits should have dropped these", PersonalWords.of(many).isEmpty())
+        assertEquals(setOf("aaa", "bbb", "ccc"), PersonalWords.of(plain))
+        assertEquals(2, PersonalWords.of(sequenceOf("one two three"), limit = 2).size)
     }
 
     @Test
     fun `matching folds both sides the same way`() {
         val names = of("Ipek")
-        assertTrue(ContactNames.contains(names, "ipek"))
-        assertTrue(ContactNames.contains(names, "IPEK"))
-        assertTrue(ContactNames.contains(names, "Ipek"))
-        assertFalse(ContactNames.contains(names, "ipel"))
-        assertFalse("an empty book matches nothing", ContactNames.contains(emptySet(), "ipek"))
+        assertTrue(PersonalWords.contains(names, "ipek"))
+        assertTrue(PersonalWords.contains(names, "IPEK"))
+        assertTrue(PersonalWords.contains(names, "Ipek"))
+        assertFalse(PersonalWords.contains(names, "ipel"))
+        assertFalse("an empty book matches nothing", PersonalWords.contains(emptySet(), "ipek"))
+    }
+
+    // ---- the one difference between the two sources ----
+
+    @Test
+    fun `a dictionary entry keeps its digits, a contact drops them`() {
+        // The single genuine difference, and the reason this is one rule with
+        // a parameter rather than two rules that would drift apart. A phone
+        // number in a contact's name is not a name; "covid19" typed into the
+        // personal dictionary is a word somebody sat down and added.
+        assertEquals(
+            emptySet<String>(),
+            PersonalWords.of(sequenceOf("covid19"), dropEntriesWithDigits = true)
+        )
+        assertEquals(
+            setOf("covid"),
+            PersonalWords.of(sequenceOf("covid19"), dropEntriesWithDigits = false)
+        )
+    }
+
+    @Test
+    fun `a multi-word dictionary entry gives up both words`() {
+        // Android's personal dictionary allows phrases, and the spell checker
+        // is handed one word at a time, so a phrase kept whole would match
+        // nothing it ever sees.
+        assertEquals(
+            setOf("new", "york"),
+            PersonalWords.of(sequenceOf("New York"), dropEntriesWithDigits = false)
+        )
     }
 }

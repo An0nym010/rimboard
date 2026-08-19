@@ -545,6 +545,18 @@ class SettingsActivity : LocalisedActivity() {
                 }
                 true
             }
+            findPreference<Preference>("system_dictionary")?.setOnPreferenceChangeListener { _, v ->
+                // No prompt to raise: the permission is not in the public SDK
+                // and cannot be requested at runtime. The switch is the gate,
+                // and the store treats a refusal from the provider as an empty
+                // list. See UserDictionaryStore.enabled.
+                if (v == true) {
+                    com.rimboard.keyboard.engine.UserDictionaryStore.warm(requireContext())
+                } else {
+                    com.rimboard.keyboard.engine.UserDictionaryStore.forget()
+                }
+                true
+            }
             findPreference<Preference>("haptic_strength")?.setOnPreferenceChangeListener { _, _ ->
                 view?.post { view?.let { com.rimboard.keyboard.Haptics.test(it) } }
                 true

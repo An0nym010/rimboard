@@ -296,6 +296,7 @@ class RimBoardService : InputMethodService(),
         // somebody's address book in a process the system is deciding whether
         // to kill is the wrong side of that bargain.
         com.rimboard.keyboard.engine.ContactStore.forget()
+        com.rimboard.keyboard.engine.UserDictionaryStore.forget()
         // Second only to the dictionaries in size, and cheaper still to give
         // up: a thumbnail is one download away, and if the panel is open the
         // placeholders return rather than the grid emptying.
@@ -709,6 +710,8 @@ class RimBoardService : InputMethodService(),
             // and no wait at all.
             com.rimboard.keyboard.engine.ContactStore.warm(this)
             engine.contactNames = com.rimboard.keyboard.engine.ContactStore.names()
+            com.rimboard.keyboard.engine.UserDictionaryStore.warm(this)
+            engine.userDictionaryWords = com.rimboard.keyboard.engine.UserDictionaryStore.words()
             kv.hapticFeedback = Prefs.haptic(this)
             kv.oneHanded = (if (Prefs.floating(this)) 0 else Prefs.oneHanded(this))
             kv.keyHeightFactor = Prefs.heightFactor(this)

@@ -120,6 +120,7 @@ class RimSpellService : SpellCheckerService() {
         else SuggestionEngine.neededLanguages()
         SuggestionEngine.trimDictionaries(keep)
         com.rimboard.keyboard.engine.ContactStore.forget()
+        com.rimboard.keyboard.engine.UserDictionaryStore.forget()
     }
 
     companion object {
@@ -253,6 +254,8 @@ class RimSpellService : SpellCheckerService() {
             engine.blockOffensive = Prefs.blockOffensive(service)
             com.rimboard.keyboard.engine.ContactStore.warm(service)
             engine.contactNames = com.rimboard.keyboard.engine.ContactStore.names()
+            com.rimboard.keyboard.engine.UserDictionaryStore.warm(service)
+            engine.userDictionaryWords = com.rimboard.keyboard.engine.UserDictionaryStore.words()
 
             rule = SpellJudge(engine, lang, loc, altLang, altLoc)
 

@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.provider.ContactsContract
 import androidx.core.content.ContextCompat
-import com.rimboard.keyboard.model.ContactNames
+import com.rimboard.keyboard.model.PersonalWords
 import com.rimboard.keyboard.settings.Prefs
 import java.util.concurrent.Executors
 
@@ -23,7 +23,7 @@ import java.util.concurrent.Executors
  * service, so [forget] exists and the trim path calls it.
  *
  * What leaves this class is a set of lowercase name parts and nothing else. No
- * numbers, no addresses, no contact identity — [ContactNames] takes display
+ * numbers, no addresses, no contact identity — [PersonalWords] takes display
  * names and gives back words, and the words are all that is kept.
  */
 object ContactStore {
@@ -88,11 +88,11 @@ object ContactStore {
         )?.use { c ->
             val col = c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)
             if (col < 0) return emptySet()
-            val raw = ArrayList<String>(c.count.coerceAtMost(ContactNames.MAX_NAMES))
+            val raw = ArrayList<String>(c.count.coerceAtMost(PersonalWords.MAX_NAMES))
             while (c.moveToNext()) {
                 c.getString(col)?.let { raw.add(it) }
             }
-            return ContactNames.of(raw.asSequence())
+            return PersonalWords.of(raw.asSequence())
         }
         return emptySet()
     }

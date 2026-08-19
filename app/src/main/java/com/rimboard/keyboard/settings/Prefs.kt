@@ -69,6 +69,7 @@ object Prefs {
     const val KEY_CURRENCIES = "currencies"
     const val KEY_OFFENSIVE = "block_offensive"
     const val KEY_CONTACT_NAMES = "contact_names"
+    const val KEY_SYSTEM_DICT = "system_dictionary"
     const val KEY_AS_SUGG = "autospace_suggestion"
     const val KEY_TOOLBAR = "toolbar_keys"
     const val KEY_PINNED_ORDER = "pinned_order"
@@ -314,6 +315,17 @@ object Prefs {
     /** Used when the permission prompt is refused, so the switch cannot lie. */
     fun setContactNames(c: Context, v: Boolean) {
         get(c).edit().putBoolean(KEY_CONTACT_NAMES, v).apply()
+    }
+
+    /**
+     * Whether the words in Android's own personal dictionary count as spelled
+     * correctly. Off by default, for the same reason as [contactNames]: a
+     * default that reads a permission-gated source is not a choice.
+     */
+    fun systemDictionary(c: Context) = get(c).getBoolean(KEY_SYSTEM_DICT, false)
+
+    fun setSystemDictionary(c: Context, v: Boolean) {
+        get(c).edit().putBoolean(KEY_SYSTEM_DICT, v).apply()
     }
     fun autoSpaceSuggestion(c: Context) = get(c).getBoolean(KEY_AS_SUGG, true)
     fun toolbarKeys(c: Context): Set<String> =

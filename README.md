@@ -6,9 +6,9 @@ suggestions, and a real incognito mode. No ads, no accounts, no analytics.
 RimBoard ships as **two builds**, and which one you install is the privacy
 decision:
 
-- **`offline`** — **two permissions**: `VIBRATE` for key haptics, and
-  `READ_CONTACTS`, which is inert unless you turn on **Names from contacts**
-  *and* grant it. No `INTERNET`, so Android will not give the app a network
+- **`offline`** — **three permissions**: `VIBRATE` for key haptics, and
+  `READ_CONTACTS` and `READ_USER_DICTIONARY`, both inert until you switch the
+  matching setting on. No `INTERNET`, so Android will not give the app a network
   connection even if its code asked for one — which is what makes the
   contacts permission survivable: nothing read can leave the device by any
   route. This is the default recommendation and the build the privacy claims
@@ -81,8 +81,9 @@ An `offline` APK can be checked for the thing it claims outright:
 aapt dump permissions RimBoard-<version>-offline.apk
 ```
 
-It should list `VIBRATE` and `READ_CONTACTS`, and nothing else. See
-[Proving it](#proving-it) for what each is for and what bounds it.
+It should list `VIBRATE`, `READ_CONTACTS` and `READ_USER_DICTIONARY`, and
+nothing else. See [Proving it](#proving-it) for what each is for and what
+bounds it.
 
 **Upgrading:** Android refuses to replace an app in place if the signing key
 changed, so if you installed a build signed with the debug key you will have to
@@ -171,6 +172,19 @@ The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
   grant the permission; what is kept is a set of lowercase name parts in
   memory, never written to disk, dropped when the setting goes off or memory
   runs short. No numbers, no addresses, no contact identity.
+- **`READ_USER_DICTIONARY`, off by default.** The list at Settings —
+  Languages — Personal dictionary is shared by every app and is where a user
+  writes a word down by hand to say "this is a word". Reading it means a word
+  you added there, or taught another keyboard, or brought from an old phone,
+  stops being underlined here. Read only: `WRITE_USER_DICTIONARY` is
+  deliberately not requested, so this never adds to your list.
+
+  Worth knowing that this one is unusual. The permission is **not in the public
+  SDK** any more — `android.Manifest` no longer carries a constant for it,
+  though the provider it guards is still public and documented. So there is no
+  runtime prompt to show you: the setting is the gate, the read is attempted,
+  and a refusal from the system is treated as an empty list. On a build that
+  declines, the switch simply has no effect.
 - **No microphone, no storage, no location** — in either build.
 - **No `INTERNET` in the `offline` build**, which is what makes its guarantee
   a guarantee rather than a promise. The `online` build declares `INTERNET`
@@ -406,6 +420,7 @@ aapt dump permissions app-offline-release.apk
 package: com.rimboard.keyboard
 uses-permission: name='android.permission.VIBRATE'
 uses-permission: name='android.permission.READ_CONTACTS'
+uses-permission: name='android.permission.READ_USER_DICTIONARY'
 permission: com.rimboard.keyboard.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 uses-permission: name='com.rimboard.keyboard.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
 ```
@@ -528,6 +543,9 @@ away. Two things address that, and the first one costs nothing:
   the rule above cannot see. This is **off**, and turning it on is what
   triggers Android's permission prompt. Refuse the prompt and the switch goes
   back off rather than sitting on claiming to work.
+- **Settings — Advanced — Words from the personal dictionary** accepts the
+  words in Android's own shared list, the one at Settings — Languages —
+  Personal dictionary. Also **off**, read only, and never added to.
 
 What the second one holds is a set of lowercase name parts, in memory, never
 written to disk and dropped the moment the setting is turned off or the system

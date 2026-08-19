@@ -297,4 +297,6 @@
     <string name="pref_match_app_mode_summary">Koyu bir uygulamada klavye de koyu olur, saat kaç olursa olsun. Sistem ve Material You temaları için geçerli; kendin seçtiğin tema değişmez.</string>
     <string name="pref_contact_names_title">Kişilerden isimler</string>
     <string name="pref_contact_names_summary">Yazıştığın kişilerin adlarının altı çizilmesin. Açılınca izin ister; isimler yalnızca belleğe okunur, hiçbir yere gönderilmez.</string>
+    <string name="pref_system_dict_title">Kişisel sözlükteki kelimeler</string>
+    <string name="pref_system_dict_summary">Ayarlar → Kişisel sözlük altına kaydedilen ve diğer uygulamaların da paylaştığı kelimeleri de kabul et. Yalnızca okunur, hiçbir şey eklenmez. Açılınca izin ister.</string>
 </resources>

@@ -289,4 +289,6 @@
     <string name="pref_match_app_mode_summary">Тёмному приложению — тёмная клавиатура, в любое время дня. Работает для тем «Система» и Material You; выбранную вручную тему не меняет.</string>
     <string name="pref_contact_names_title">Имена из контактов</string>
     <string name="pref_contact_names_summary">Не подчёркивать имена тех, кому вы пишете. При включении запрашивает разрешение; имена читаются только в память и никуда не отправляются.</string>
+    <string name="pref_system_dict_title">Слова из личного словаря</string>
+    <string name="pref_system_dict_summary">Также принимать слова из Настроек → Личный словарь, общие с другими приложениями. Только чтение, ничего не добавляется. При включении запрашивает разрешение.</string>
 </resources>

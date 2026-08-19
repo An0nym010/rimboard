@@ -287,4 +287,6 @@
     <string name="pref_match_app_mode_summary">Una app oscura recibe un teclado oscuro, sea la hora que sea. Se aplica a los temas Sistema y Material You; un tema elegido a mano no se toca.</string>
     <string name="pref_contact_names_title">Nombres de contactos</string>
     <string name="pref_contact_names_summary">Deja de subrayar a las personas a las que escribes. Pide permiso al activarlo; los nombres solo se leen en memoria y no se envían a ninguna parte.</string>
+    <string name="pref_system_dict_title">Palabras del diccionario personal</string>
+    <string name="pref_system_dict_summary">Aceptar también las palabras guardadas en Ajustes → Diccionario personal, que comparten tus otras apps. Solo lectura, nunca se añade nada. Pide permiso al activarlo.</string>
 </resources>

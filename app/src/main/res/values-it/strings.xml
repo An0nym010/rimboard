@@ -287,4 +287,6 @@
     <string name="pref_match_app_mode_summary">Un&#8217;app scura riceve una tastiera scura, a qualsiasi ora. Vale per i temi Sistema e Material You; un tema scelto esplicitamente resta invariato.</string>
     <string name="pref_contact_names_title">Nomi dai contatti</string>
     <string name="pref_contact_names_summary">Non sottolineare più le persone a cui scrivi. Chiede il permesso quando lo attivi; i nomi restano in memoria e non vengono inviati da nessuna parte.</string>
+    <string name="pref_system_dict_title">Parole dal dizionario personale</string>
+    <string name="pref_system_dict_summary">Accetta anche le parole salvate in Impostazioni → Dizionario personale, condivise con le altre app. Solo lettura, non viene mai aggiunto nulla. Chiede il permesso quando lo attivi.</string>
 </resources>

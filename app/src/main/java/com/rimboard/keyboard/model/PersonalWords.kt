@@ -3,25 +3,32 @@ package com.rimboard.keyboard.model
 import java.util.Locale
 
 /**
- * The words in your address book, as words.
+ * Words the user has vouched for outside the dictionary, as words.
  *
- * A contact's display name is not a word: it is "Anne-Marie O'Brien", or
- * "Mum", or "Ahmet Yılmaz (work)", or a phone number someone never named. What
- * the spell checker can use is the parts of it that could plausibly appear in a
- * sentence, so the name of somebody you write to every day stops coming back
- * underlined.
+ * Two sources feed this and neither hands over anything usable as it stands. A
+ * contact's display name is "Anne-Marie O'Brien", or "Mum", or "Ahmet Yılmaz
+ * (work)", or a phone number nobody named. An entry in Android's own personal
+ * dictionary is usually one word and is sometimes "New York". What the spell
+ * checker can use out of either is the parts that could plausibly appear in a
+ * sentence, so the people you write to and the words you have taught the phone
+ * stop coming back underlined.
+ *
+ * One rule rather than two, because the two would have been the same rule with
+ * one difference, and a duplicated rule in this project has twice now been the
+ * thing that drifted. The difference is a parameter: a contact holding digits
+ * is a phone number and contributes nothing, while a dictionary entry holding
+ * digits is something the user typed on purpose.
  *
  * Pure, and separate from the reading, because the reading needs a permission
- * and a ContentResolver and the deciding needs neither. Everything here is a
- * judgement about strings and every one of them is checkable.
+ * and a ContentResolver and the deciding needs neither.
  *
  * Folded with [Locale.ROOT] on both sides of the comparison rather than with
  * the language being typed. That is not a shortcut: the two sides have to agree
  * with each other, and a Turkish dotted capital folds one way under `tr` and
- * another under `ROOT`. Using the same rule for the stored name and the typed
- * word is what makes them meet.
+ * another under `ROOT`. Using the same rule for the stored word and the typed
+ * one is what makes them meet.
  */
-object ContactNames {
+object PersonalWords {
 
     /**
      * How many name parts are kept.
@@ -58,11 +65,15 @@ object ContactNames {
      * saved as a phone number contributes nothing instead of contributing the
      * letters around the digits.
      */
-    fun of(displayNames: Sequence<String>, limit: Int = MAX_NAMES): Set<String> {
+    fun of(
+        entries: Sequence<String>,
+        limit: Int = MAX_NAMES,
+        dropEntriesWithDigits: Boolean = true
+    ): Set<String> {
         val out = LinkedHashSet<String>()
-        for (raw in displayNames) {
+        for (raw in entries) {
             if (out.size >= limit) break
-            if (raw.any { it.isDigit() }) continue
+            if (dropEntriesWithDigits && raw.any { it.isDigit() }) continue
             var i = 0
             while (i < raw.length && out.size < limit) {
                 if (!isNameChar(raw[i])) {
@@ -82,7 +93,7 @@ object ContactNames {
         return out
     }
 
-    /** Whether [word] is one of [names], folded the same way they were. */
-    fun contains(names: Set<String>, word: String): Boolean =
-        names.isNotEmpty() && word.lowercase(Locale.ROOT) in names
+    /** Whether [word] is one of [words], folded the same way they were. */
+    fun contains(words: Set<String>, word: String): Boolean =
+        words.isNotEmpty() && word.lowercase(Locale.ROOT) in words
 }
