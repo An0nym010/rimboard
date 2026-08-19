@@ -261,7 +261,23 @@ class RimSpellService : SpellCheckerService() {
             val prev2: String,
             val next: String,
             val sentenceInitial: Boolean?,
-            val limit: Int
+            val limit: Int,
+            /**
+             * Whether the prediction model was loaded when this was answered.
+             *
+             * The verdict depends on it {EM} without the model there is no
+             * curated context to rank by {EM} so leaving it out of the key
+             * meant a verdict reached during the seconds before warm() lands
+             * was served for the rest of the session, unranked, long after the
+             * evidence for ranking it had arrived. That is the same fault, in
+             * the same shape, as the app-palette cache keyed on the package
+             * but not on the polarity it was read under.
+             *
+             * Safe to read once and trust because it only ever goes from false
+             * to true: a model is never unloaded, so a key claiming context
+             * cannot outlive it.
+             */
+            val contextual: Boolean
         )
 
         /**
@@ -290,7 +306,10 @@ class RimSpellService : SpellCheckerService() {
             suggestionsLimit: Int,
             sentenceInitial: Boolean?
         ): SuggestionsInfo {
-            val ask = Ask(word, prev, prev2, next, sentenceInitial, suggestionsLimit)
+            val ask = Ask(
+                word, prev, prev2, next, sentenceInitial, suggestionsLimit,
+                contextual = engine.predictionsReady(lang)
+            )
             var v = verdicts.get(ask)
             if (v == null) {
                 v = verdictFor(word, prev2, prev, next, suggestionsLimit, sentenceInitial)
