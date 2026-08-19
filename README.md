@@ -494,6 +494,23 @@ into your personal dictionary would be a much broader claim than "learns as you
 type". It reads your learned words so they stop being underlined, and adds
 nothing to them. And it **never touches the network**, on either build.
 
+**There is no permission to add, and that is not a limitation.** Android has no
+runtime permission for spell checking: a spell checker is a service the system
+binds to, and your selecting it in Settings is the whole of the consent step.
+The one permission-looking line in the manifest, `BIND_TEXT_SERVICE`, is a
+permission the *system* must hold in order to bind to this service — it is a
+lock on the door, not a key the app is asking you for. `aapt dump permissions`
+on the offline APK still prints `VIBRATE` and nothing else, and that check is
+the point: if a build ever needed more, the proof would stop working.
+
+The one permission that would genuinely change behaviour is `READ_CONTACTS`,
+which is how other keyboards stop underlining people's names. It is not here
+and is not planned. The same problem is handled without it: a capitalised word
+in mid-sentence is read as a name and left alone, in every language except
+German, which capitalises all its nouns. That costs the occasional missed typo
+that begins with a capital, and buys not having to hand your address book to a
+keyboard.
+
 ## Extending the dictionaries
 
 The bundled lists hold up to 200,000 words for the eight core languages and
