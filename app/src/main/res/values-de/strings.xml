@@ -60,7 +60,7 @@
     <string name="pref_learn_title">Neue Wörter lernen</string>
     <string name="pref_learn_summary">Getippte Wörter merken (nur auf diesem Gerät gespeichert)</string>
     <string name="pref_clipboard_title">Zwischenablage-Vorschlag</string>
-    <string name="pref_clipboard_summary">Einfügen-Chip anzeigen, wenn ein leeres Feld ausgewählt wird</string>
+    <string name="pref_clipboard_summary">Einfügen-Chip in einem leeren Feld anzeigen, eine Minute lang nach dem Kopieren</string>
     <string name="pref_incognito_title">Immer inkognito</string>
     <string name="pref_incognito_summary">Nie lernen oder aus dem Verlauf vorschlagen. Pro Sitzung: Komma halten → 🕶</string>
     <string name="pref_clear_learned_title">Gelernte Wörter löschen</string>

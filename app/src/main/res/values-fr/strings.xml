@@ -60,7 +60,7 @@
     <string name="pref_learn_title">Apprendre de nouveaux mots</string>
     <string name="pref_learn_summary">Mémoriser les mots saisis (stockés uniquement sur cet appareil)</string>
     <string name="pref_clipboard_title">Suggestion du presse-papiers</string>
-    <string name="pref_clipboard_summary">Proposer une puce Coller quand un champ vide est sélectionné</string>
+    <string name="pref_clipboard_summary">Proposer une puce Coller dans un champ vide, pendant une minute après la copie</string>
     <string name="pref_incognito_title">Toujours incognito</string>
     <string name="pref_incognito_summary">Ne jamais apprendre ni suggérer. Par session : appui long sur la virgule → 🕶</string>
     <string name="pref_clear_learned_title">Supprimer les mots appris</string>

@@ -519,6 +519,11 @@ class RimBoardService : InputMethodService(),
         // panel, which has no exit of its own.
         closeAnyPanel()
         captureClip()
+        // A clip is retired by being pasted, but only for the field it was
+        // pasted into. Filling two fields of a form from the same clipboard is
+        // an ordinary thing to do, and a chip that retires for good would
+        // offer itself for the first field and never the second.
+        pastedClipAt = 0L
         configureAll(info)
     }
 
@@ -1634,27 +1639,13 @@ class RimBoardService : InputMethodService(),
     }
 
     private fun maybeClipboardOrEmpty(s: SuggestionStripView) {
-        if (maybeDomainChips(s)) return
-        if (clipChipEligible()) {
-            // Taken from the history the clipboard listener already captured,
-            // deliberately, rather than by reading the clipboard here. Reading
-            // it is what raises the system's "pasted from your clipboard"
-            // notice, and this runs on every strip update — it would fire that
-            // continuously while someone typed. The description alone, which
-            // [clipChipEligible] reads, carries no content and no notice.
-            // Through the store, so this obeys the auto-clear timeout. Read
-            // straight off the history it did not: the clipboard panel pruned
-            // before drawing and this did not, so the chip went on previewing
-            // a clip past the time the user had set for it to be forgotten.
-            val latest = clips.latest(System.currentTimeMillis(), Prefs.clipTimeoutMin(this))
-            s.showClipboard(
-                com.rimboard.keyboard.model.ClipChip.label(
-                    latest?.text,
-                    sensitive = latest?.sensitive ?: false,
-                    inPasswordField = isPassword,
-                    fallback = L10n.wrap(this).getString(android.R.string.paste)
-                )
-            )
+        if (maybeDomainChips(s)) {
+            disarmClipChip()
+            return
+        }
+        val chip = clipChipLabel()
+        if (chip != null) {
+            s.showClipboard(chip, chipExpiresIn)
         } else {
             feedIdle(s)
             // With nothing to suggest there is room to say what incognito is
@@ -1665,17 +1656,100 @@ class RimBoardService : InputMethodService(),
         }
     }
 
-    private fun clipChipEligible(): Boolean {
-        if (!Prefs.clipboardSuggest(this)) return false
-        val ic = currentInputConnection ?: return false
-        val before = ic.getTextBeforeCursor(1, 0)
-        val after = ic.getTextAfterCursor(1, 0)
-        if (!before.isNullOrEmpty() || !after.isNullOrEmpty()) return false
+    /** The copy this chip is offering, and the copy last pasted from it. */
+    private var chipClipAt = 0L
+    private var pastedClipAt = 0L
+
+    /**
+     * How long the chip on screen has left, or 0 for no chip.
+     *
+     * The strip runs the timer — see [SuggestionStripView.showClipboard] —
+     * because it is the view that gets torn down and a runnable posted from
+     * here would outlive it.
+     */
+    private var chipExpiresIn = 0L
+
+    private fun disarmClipChip() {
+        chipClipAt = 0L
+        chipExpiresIn = 0L
+    }
+
+    override fun onClipChipExpired() {
+        updateStrip()
+    }
+
+    /**
+     * The paste chip's label, or null for no chip.
+     *
+     * Reads the clip's *description* and never its content. Reading the
+     * content is what raises the system's "pasted from your clipboard" notice,
+     * and this runs on every strip update — it would fire that continuously
+     * while someone typed. The text previewed on the chip comes instead from
+     * the history the clipboard listener captured as the copy happened, which
+     * costs nothing and raises nothing.
+     *
+     * Those are two sources, and the fault worth knowing about is what happens
+     * when they disagree. [captureClip] declines to record anything in
+     * incognito, so the newest clip *this keyboard knows* can be an entirely
+     * different one from what is on the clipboard now — and the chip would
+     * then preview one clip and paste another. `ClipDescription.getTimestamp`
+     * settles it: our record describes the current clip only if it is at least
+     * as new as the system's stamp for it. Where it is not, the chip is still
+     * offered and simply names the action instead.
+     *
+     * That stamp is also the better clock for the age test, because it is the
+     * system's own and is therefore right about copies made while this service
+     * was asleep, was in incognito, or had not started. The store's time is
+     * when *we noticed*, which is the same instant in the ordinary case and
+     * much later in the interesting ones. It stands in only where the platform
+     * reports no stamp at all.
+     */
+    private fun clipChipLabel(): String? {
+        if (!Prefs.clipboardSuggest(this)) {
+            disarmClipChip()
+            return null
+        }
+        val ic = currentInputConnection
+        val before = ic?.getTextBeforeCursor(1, 0)
+        val after = ic?.getTextAfterCursor(1, 0)
         val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        if (!cm.hasPrimaryClip()) return false
-        val desc = cm.primaryClipDescription ?: return false
-        return desc.hasMimeType("text/plain") || desc.hasMimeType("text/html") ||
-            desc.hasMimeType("text/*")
+        val desc = if (cm.hasPrimaryClip()) cm.primaryClipDescription else null
+        val hasText = desc != null && (
+            desc.hasMimeType("text/plain") || desc.hasMimeType("text/html") ||
+                desc.hasMimeType("text/*")
+            )
+        val now = System.currentTimeMillis()
+        // Through the store, so a preview still obeys the auto-clear timeout.
+        val latest = clips.latest(now, Prefs.clipTimeoutMin(this))
+        val stamped = desc?.timestamp ?: 0L
+        val known = latest != null && (stamped <= 0L || latest.at >= stamped)
+        val copiedAt = if (stamped > 0L) stamped else latest?.at ?: 0L
+
+        val label = com.rimboard.keyboard.model.ClipChip.offer(
+            clip = if (known) latest?.text else null,
+            // Both from the same record or neither: a flag read off a clip we
+            // have just decided is a different one describes nothing.
+            sensitive = known && latest?.sensitive == true,
+            copiedAt = copiedAt,
+            now = now,
+            pastedAt = pastedClipAt,
+            fieldEmpty = ic != null && before.isNullOrEmpty() && after.isNullOrEmpty(),
+            clipboardHasText = hasText,
+            inPasswordField = isPassword,
+            fallback = L10n.wrap(this).getString(android.R.string.paste)
+        )
+        if (label == null) {
+            disarmClipChip()
+            return null
+        }
+        // Nothing else redraws the strip while the user sits looking at it, so
+        // without this the window would only be applied at the next keystroke
+        // — and the one moment it is meant to cover is a field nobody has
+        // typed in yet.
+        chipClipAt = copiedAt
+        chipExpiresIn =
+            copiedAt + com.rimboard.keyboard.model.ClipChip.WINDOW_MS - now + 100L
+        return label
     }
 
     override fun onSuggestionPicked(index: Int, word: String) {
@@ -1789,6 +1863,12 @@ class RimBoardService : InputMethodService(),
         if (clip.itemCount == 0) return
         val text = clip.getItemAt(0).coerceToText(this)?.toString() ?: return
         if (text.isEmpty()) return
+        // Used, so this clip is done: clearing the field must not bring back an
+        // offer to paste the thing that was just pasted. Recorded as the copy's
+        // own timestamp, so copying the same text again is a new clip and is
+        // offered again.
+        pastedClipAt = chipClipAt
+        disarmClipChip()
         finishComposingSilently()
         currentInputConnection?.commitText(text, 1)
         afterEdit()

@@ -82,7 +82,7 @@
     <string name="pref_learn_title">Learn new words</string>
     <string name="pref_learn_summary">Remember words you type (stored only on this device)</string>
     <string name="pref_clipboard_title">Clipboard suggestion</string>
-    <string name="pref_clipboard_summary">Offer a Paste chip when you focus an empty field</string>
+    <string name="pref_clipboard_summary">Offer a Paste chip in an empty field, for a minute after you copy</string>
     <string name="pref_incognito_title">Always incognito</string>
     <string name="pref_incognito_summary">Never learn or suggest from history. Also toggle per-session via long-press comma → 🕶</string>
     <string name="pref_clear_learned_title">Delete learned words</string>

@@ -23,6 +23,14 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     interface Listener {
         fun onSuggestionPicked(index: Int, word: String)
         fun onClipboardPasteRequested()
+
+        /**
+         * The paste chip's window has run out. The strip does not decide what
+         * replaces it — an empty field can want the incognito label, the idle
+         * tools or nothing — so it asks to be rebuilt rather than hiding the
+         * chip itself.
+         */
+        fun onClipChipExpired()
         fun onClipboardPanelRequested()
         fun onQuickAction(code: Int)
         fun onSuggestionLongPressed(word: String, anchor: View)
@@ -286,6 +294,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         centerBox.visibility = GONE
         boldIndex = highlightIndex
         clipChip.visibility = GONE
+        removeCallbacks(clipExpiry)
         centerLabel.visibility = GONE
         // The mark stays up alongside the suggestions rather than replacing
         // them: incognito changes where a suggestion may come from, not
@@ -313,12 +322,38 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         centerLabel.visibility = VISIBLE
     }
 
-    fun showClipboard(label: String) {
+    /**
+      * Shows the paste chip, for [expiresIn] milliseconds.
+      *
+      * The timer lives here rather than in the service because this is the
+      * thing that can go away: the input view is torn down and rebuilt
+      * constantly — every rotation goes through `onConfigurationChanged` —
+      * and a runnable posted from the service would outlive the strip it was
+      * posted for. Detaching cancels it, which is the rule `DelayedWorkTest`
+      * enforces on every view here.
+      *
+      * It is needed at all because nothing else redraws the strip while
+      * someone sits looking at an empty field, and that is precisely the
+      * moment the chip is shown in. Without a timer the window would only be
+      * noticed at the next keystroke, which is the one thing that has not
+      * happened yet.
+      */
+    fun showClipboard(label: String, expiresIn: Long) {
         if (drawerOpen) return showDrawer()
         showEmpty()
         clipChip.text = label
         clipChip.visibility = VISIBLE
         emojiScroll.visibility = GONE
+        // After showEmpty, which goes through hideAll and takes the previous
+        // one back off the queue.
+        if (expiresIn > 0L) postDelayed(clipExpiry, expiresIn)
+    }
+
+    private val clipExpiry = Runnable { listener?.onClipChipExpired() }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        removeCallbacks(clipExpiry)
     }
 
     private var pinnedItems: List<Pair<Int, Int>> = emptyList()
@@ -395,6 +430,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         dividers.forEach { it.visibility = GONE }
         centerBox.visibility = GONE
         clipChip.visibility = GONE
+        removeCallbacks(clipExpiry)
         emojiScroll.visibility = GONE
         centerLabel.visibility = GONE
         incogIcon.visibility = GONE

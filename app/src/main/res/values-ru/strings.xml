@@ -60,7 +60,7 @@
     <string name="pref_learn_title">Запоминать новые слова</string>
     <string name="pref_learn_summary">Запоминать введённые слова (хранятся только на этом устройстве)</string>
     <string name="pref_clipboard_title">Подсказка из буфера обмена</string>
-    <string name="pref_clipboard_summary">Показывать кнопку «Вставить» при выборе пустого поля</string>
+    <string name="pref_clipboard_summary">Показывать кнопку «Вставить» в пустом поле в течение минуты после копирования</string>
     <string name="pref_incognito_title">Всегда инкогнито</string>
     <string name="pref_incognito_summary">Никогда не запоминать и не подсказывать из истории. На сеанс: удерживайте запятую → 🕶</string>
     <string name="pref_clear_learned_title">Очистить выученные слова</string>
