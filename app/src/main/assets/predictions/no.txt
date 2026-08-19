@@ -1,41 +1,976 @@
-	jeg hei takk ja nei beklager ok hvordan hva bra det du kan vil skal har god vi nå imorgen
-jeg	er har ikke vil kan skal
-du	er har kan vil skal vet
-han	er har kan
-hun	er har
-vi	er har kan sees
-det	er var ikke en
-den	er her
-en	liten god annen
-ikke	så bra riktig
-er	det en ikke
-var	det ikke
-at	jeg du det
-og	jeg det du
-men	jeg det ikke
-som	jeg du
-for	at det meg
-med	deg meg oss
-på	deg meg det
-hva	er gjør
-hvordan	går har
-hvor	er
-når	kommer
-hvorfor	ikke
-veldig	bra godt
-bra	jobbet
+	jeg hei takk ja nei beklager ok hvordan hva bra det du kan vil skal har god vi nå imorgen han hun de hvor er dette ikke hvorfor i når hvem denne den
+jeg	er har ikke vil kan skal vet liker
+du	er har kan vil skal vet ikke må
+han	er har kan var hadde ikke ble
+hun	er har var hadde ble så
+vi	er har kan sees må skal var
+det	er var ikke en du som
+den	er her nye eneste som andre beste
+en	liten god annen av gang stor ny mann
+ikke	så bra riktig å noe at på er
+er	det en ikke du et veldig
+var	det ikke en i veldig så
+at	jeg du det han vi hun
+og	jeg det du en de med så
+men	jeg det ikke du han de
+som	jeg du er en ikke om helst
+for	at det meg å deg en
+med	deg meg oss å en dem
+på	deg meg det en at å grunn
+hva	er gjør som jeg du han skal
+hvordan	går har kan man jeg er du var
+hvor	er mange mye lenge ofte du
+når	kommer du jeg det han man de
+hvorfor	ikke er jeg har snakker vil hører
+veldig	bra godt glad god mye lite vanskelig
+bra	jobbet med ut for at
 takk	for så
 hei	da
-god	morgen natt kveld
-allerede	nå
+god	morgen natt kveld til idé hukommelse i og
+allerede	nå gått har gjort skrevet fortalt
 ennå	ikke
-nå	er
-her	er
-der	er
-bare	en ikke
-alltid	har
-aldri	mer
-kanskje	ikke
-skal	jeg du
-kan	jeg du ikke
-vil	du jeg
+nå	er har kan så jeg må
+her	er i for og eller inne
+der	er borte i før det var
+bare	en ikke for én et si på
+alltid	har med på vært for en
+aldri	mer vært til sett ha hørt hatt
+kanskje	ikke jeg du det hun
+skal	jeg du vi gjøre være bli
+kan	jeg du ikke være gjøre se
+vil	du jeg ikke ha bli at være
+i	dag en går morgen det et
+å	være gjøre bli gå se lære
+har	du ikke en vært aldri blitt
+til	å meg en deg at det
+meg	ikke for i en selv med
+av	en meg det deg de å
+et	par problem stort brev veldig bilde
+deg	ikke en for om selv i
+de	er har fleste ikke var andre
+så	mye jeg du snill på mange
+om	det å han jeg du en
+min	er har mor bror far ble
+dette	er var landet prosjektet ikke problemet
+seg	selv ikke i for med om
+noe	å til som annet om sånt
+denne	byen filmen medisinen artikkelen maskinen typen
+hadde	ikke en vært på ingenting ingen
+må	være gjøre ikke ha passe du
+være	en alene i der så med
+oss	ikke alle til i å se
+fra	å deg meg en tid andre
+vet	ikke at du hva hvor ingenting
+ut	som av i på til hvordan
+ha	en vært et noe det gjort
+ble	født ikke hjemme det tvunget en
+gjøre	det noe dette feil i med
+noen	ganger gang som av andre mennesker
+din	er hjelp mor kone venn har
+alle	andre sammen er har de ser
+kommer	til du fra ikke tilbake aldri
+ham	om i til ikke en på
+går	kveld til ikke på det i
+liker	å ikke du det ham virkelig
+mye	penger koster bedre mer for som
+enn	å jeg meg deg de en
+mange	av ganger mennesker år folk venner
+dag	er har skal i etter og
+ingen	som anelse andre vet tvil rolle
+sin	egen mor kone på i til
+skulle	ønske ha gjøre ikke komme skje
+henne	i med ikke til og før
+tror	du ikke jeg at det han
+opp	i tidlig med på for en
+etter	en å at den noen noe
+gjør	det du meg ikke vondt dette
+kunne	ikke du finne ha jeg gjøre
+gå	på til og ut hjem med
+ville	ikke ha være aldri du jeg
+trenger	ikke en å du et hjelp
+dere	ikke er alle har en var
+la	oss meg seg merke ham han
+alt	for er dette jeg som du
+mer	enn penger og tid om på
+ser	ut på du ikke veldig en
+blir	det du ikke jeg en ofte
+bli	en med i ferdig lærer konge
+hvem	er som vil skal var sin
+dem	som i for til ikke en
+kom	til hjem for tilbake på og
+se	på deg en hva dere her
+vært	i der en her gift opptatt
+hans	er ble var og
+hvis	du det jeg han de hun
+ta	en med vare på av den
+sa	at han til det du ikke
+eller	ikke annen en annet noe kanskje
+snakker	du ikke dere om i de
+få	en det tak låne noe noen
+selv	om og i er
+over	at til en å det den
+to	ganger år timer flasker tre og
+år	siden gammel i er yngre senere
+igjen	i og til
+da	jeg han hun får vi
+tre	år dager ganger av tusen barn
+man	kan ikke er må skal blir
+mitt	er liv har hjerte hver
+andre	siden i mennesker er enn folks
+før	han du jeg de det eller
+gang	i jeg har til en vært
+bor	i på du ikke sammen
+hele	tatt tiden dagen natten livet verden
+mine	venner egne er ble foreldre for
+sier	at han du til ikke det
+si	det noe meg at til deg
+snakke	med om så på litt
+litt	penger mer vann til over kaffe
+gjorde	det alt en så du som
+godt	i som for å overens hva
+nok	til av tid penger for å
+uten	å deg vann din
+ved	å siden et første bordet en
+ingenting	til å om er i
+sine	egne foreldre grunner på i
+gikk	inn til ut på og av
+elsker	deg å henne du ham meg
+penger	på fra enn med jeg er
+siden	av jeg han i vi det
+tok	av en med det på meg
+tid	til tar før er for
+inn	i på den gjennom
+gi	meg opp deg oss henne en
+får	ikke du en det jeg den
+morgen	er det ettermiddag
+ønske	jeg at du det han
+ditt	er hjerte beste har og i
+bedre	enn i å
+folk	som har til begynner sier fra
+ofte	til at ikke om
+også	en et
+tilbake	til i det
+mot	meg det til ham
+virkelig	ikke det en at et
+stor	hjelp familie og for suksess
+lenge	har blir siden vil du
+hjem	igjen fra
+bør	ikke du være jeg følge vite
+dine	er
+komme	med inn på til seg overens
+barn	er har
+mann	av som
+hver	dag gang morgen forsker kveld
+huset	mitt ditt sitt er var med
+feil	i og
+blitt	utsatt hjemme
+gjort	det for noe nok
+sett	en deg ham et henne nok
+helt	sikker klart vanlig enig alene i
+spise	den det så noe
+tar	det feil ikke etter av en
+livet	er i sitt mitt ditt på
+finne	ut en et noen noe det
+bilen	min din sin er
+sitt	liv til og eget
+fikk	du en jeg ikke
+skolen	i vår
+ganger	i er så om har blir
+alene	i
+gammel	venn nok er mann og som
+fordi	jeg det han du hun den
+fortsatt	på er har i singel med
+synes	du det at ikke å jeg
+lære	å seg et meg mye mer
+nesten	ikke alle ingen ferdig alltid klar
+burde	ikke være ha jeg gjøre ringe
+disse	to er dager bøkene
+vær	så snill stille forsiktig redd
+sammen	med i
+klar	for til over
+samme	som dag feilen
+spiser	du ikke kjøtt alltid en han
+ned	i på
+rett	til i og på for foran
+hennes	er
+ønsker	å ikke du meg at dere
+visste	at ikke du hvor hvorfor aldri
+vår	er
+verden	er
+mellom	de to frankrike oss
+mennesker	som er i tror på har
+vann	og på fra
+flere	ganger
+langt	fra ut til unna er på
+byen	i er har
+nye	ideer
+første	gang kjærlighet blikk toget
+forstår	ikke meg du
+hjemme	i nå
+døde	i av for nesten på
+dra	til hjem dit på nå
+ganske	bra god
+måtte	gjøre gå ha beskytte
+hjelpe	deg meg dem oss henne
+hjelp	meg av
+venner	som har med
+kjøpte	en du et to det denne
+jobber	for i som på ikke
+sant	at
+ferdig	med å
+ting	som om til jeg
+ga	meg seg en opp
+ny	bil dag her jobb
+trodde	du at jeg det ikke han
+siste	gang verk toget
+vanskelig	å for
+snakket	med om
+neste	uke år måned helg
+lenger	enn
+like	godt høy gammel gamle mye
+føler	seg meg jeg ikke du
+kjøpe	en den deg noe nye
+dårlig	humør samvittighet til
+glad	for i ut
+ord	på som
+venn	av på i som
+tiden	på var da
+under	bordet sengen
+faren	min sin din hans til
+fort	kan jeg du
+veien	til hjem er
+rundt	i meg på
+redd	for du
+hater	å
+hunden	min er sin vår
+grunn	av til
+viktig	å for
+rommet	mitt var ditt sitt
+ti	minutter år dollar på
+fortelle	deg meg sannheten ham
+bil	foran
+jo	mer at ikke flere
+tatt	en av
+ligger	i på
+fortalte	meg oss ham deg du en
+gjennom	vinduet en mye
+holde	følge et en det kjeft
+står	det opp på der i
+snill	og å ikke
+lang	tid
+skjedde	med det i
+leve	uten i et
+hvilken	er som klasse bok
+vite	det hva hvem hvorfor
+mor	er sa og kjøpte har
+lett	å som
+kjenner	du deg det til
+gir	ikke henne oss deg meg en
+beste	venn for
+lese	denne en
+sent	på for til å
+hatt	en nok
+dager	siden og til
+finnes	det ikke ingen
+liv	er
+klokken	seks syv åtte min er
+begynte	å det
+fant	et det en sted du hunden
+mannen	som min er sin
+gått	ned ut dit opp
+dagen	i min
+mistet	jobben livet
+tenker	på du han
+eneste	som måten
+drikker	ikke vann kaffe øl du
+barna	mine trenger er
+spiller	du ikke ingen sjakk
+slik	at som er en
+gode	venner og
+skrive	til med en
+prøvde	å
+dro	til på
+ja	det jeg men
+svært	naturlig
+hund	er
+lyst	til å på
+vant	til kampen
+holdt	på meg en pusten
+gamle	mannen
+nei	jeg det til
+mener	du at
+jobbe	hardt i overtid hardere med
+mat	til er
+landet	sitt for i
+høre	på hva
+mulig	å at
+mens	han du jeg
+fem	år minutter seks personer
+leser	du ikke denne avisen
+toget	går vårt
+natt	og
+vårt	er
+sover	ikke
+spille	fotball
+bruke	denne
+annet	enn valg
+bok	i
+borte	i er fra
+akkurat	nå som
+drar	til ofte du
+tidlig	på i for
+spiste	du en middag
+kvinne	som i
+jobb	er
+person	som jeg
+slutt	å
+heller	ikke
+skjer	i det med
+broren	min din
+hører	på du ikke dere
+gjerne	ha
+én	gang ting feil
+kommet	til for enda ennå hit
+deres	er
+bruker	du en
+først	av
+sannheten	er
+spørsmål	om
+måte	å
+sted	for å i
+moren	min din sin hans
+hørte	en at du på deg
+stort	problem som hus
+foreldrene	mine dine sine
+sikker	på
+lever	i ikke jeg
+annen	måte grunn
+begge	hendene to
+spurte	meg om ham etter
+vel	ikke det hva
+ei	jente
+fint	ut at
+stille	et
+vei	til hjem
+stå	opp på
+jobben	min din sin
+forklare	det dette deg
+håper	at det du
+skrev	et en til
+begynner	å
+lite	om land
+største	byen by
+problemet	er
+døren	og
+prøver	å
+tro	at på
+vinduet	og
+spørre	ham meg henne
+ringte	meg og
+dyr	er
+tenke	på
+fleste	andre
+sulten	som
+helst	for
+timer	på i
+gitt	meg oss
+funnet	ut ham henne
+dessverre	kan ikke er
+john	er
+lage	mat en
+lurer	på
+likte	ikke den
+prøve	å noe
+satt	på i
+ute	av
+forelsket	i seg meg
+fått	nok en sparken
+hendene	sine dine
+hit	for og
+problemer	med og
+født	i på
+trengte	det ikke hjelp
+hardt	arbeid
+øynene	mine dine for
+kaldt	i vann å
+spørsmålet	ditt hans
+svar	på meg
+møte	deg noen
+råd	til
+politiet	arresterte
+jente	som i
+hus	er
+trøtt	ut
+virker	ikke som
+fire	dager fem er
+forstå	hva
+unnskyld	meg jeg
+interessant	bok spørsmål
+par	dager
+time	siden
+hørt	på fra om
+slo	opp av
+egen	teori
+vente	på til
+sagt	det
+høy	som grad
+skriv	så
+været	var er
+ventet	på
+bo	i på alene
+sist	gang
+full	av
+mindre	enn
+sint	på og
+fortalt	meg oss at
+måten	å vi
+klarer	ikke å
+vondt	i å
+ba	meg han ham
+egentlig	er mener ikke
+minutter	siden
+venter	på her du
+husker	du
+laget	av
+rik	mann
+reise	til
+hjelper	ikke
+usa	for
+elsket	henne ham
+holder	på
+hundre	år og prosent
+leste	i
+frem	til
+vekk	nå
+brev	til fra
+varmt	i
+gift	med i og
+spist	middag
+opptatt	i
+beklager	men at
+skriver	til
+stolt	av over
+ett	og
+kjærlighet	er
+enig	med i
+betyr	det ikke
+hos	meg
+sove	på
+sov	godt i ikke
+vannet	i er
+dø	for
+gal	etter men
+sitter	ved på
+sannsynligvis	hver ikke
+kjent	med hverandre for
+arbeid	og
+sønn	er
+fin	helg
+flink	til i med
+navnet	hans ditt mitt
+løp	etter
+kjøre	bil meg
+lei	av meg
+gav	meg ham
+bestemte	seg meg jeg
+finner	ikke ut
+hodet	mitt
+klarte	ikke å du
+slags	mat spørsmål
+nærheten	av
+møtet	i
+klart	å det
+følge	med
+pleide	å
+brevet	ditt
+dollar	i
+klare	meg
+kjørte	inn
+bestemt	seg meg deg
+glemte	å
+uansett	hva hvor
+lest	alle
+svare	på
+side	av
+passe	på
+tenkte	på du
+kone	er
+ærlig	talt
+foran	oss bygningen
+interessert	i
+reiste	til seg du
+slå	av opp på
+kjøpt	en
+reiser	du ofte
+rom	for
+nær	huset venn
+bilder	av
+brød	og uten
+kort	til
+skrevet	på til
+greit	om for
+arbeidet	som
+lille	av
+røyke	på
+klokka	seks
+tenkt	å på
+besøke	graven
+slutte	å
+vis	meg
+ringe	etter
+bodde	i der her
+viste	meg oss seg
+følte	seg jeg at
+all	verden
+blå	øyne
+bilde	av
+kjøtt	og
+spør	om
+bøkene	hennes
+tv	i
+høres	ikke
+skjønner	ikke hva du
+koster	denne den
+faktisk	ikke
+møtte	en
+sto	opp på
+gutten	som
+kun	på
+stod	i opp
+london	i
+glem	å at det
+filmen	var
+betale	for
+begynne	med å
+kjøper	du
+eldre	enn
+redde	for
+galt	med
+prøv	å
+del	av
+hvert	år
+stedet	for
+telefonen	din
+absolutt	ingenting
+umulig	å for
+forrige	uke måned gang
+hold	kjeft
+legger	deg meg
+tidligere	var i
+drepe	meg oss
+nettopp	ferdig
+velkommen	til
+egne	øyne
+åtte	ni timer
+åpnet	døren du
+ni	ti
+vent	her
+møtt	ham
+ønsket	å ikke
+innen	en
+blant	annet oss
+svaret	er ditt
+leter	etter du
+katt	og
+oppe	langt
+mamma	er
+lot	meg ham
+vennene	mine sine dine
+kaller	meg en
+fortell	meg
+bryr	seg meg
+stemme	på
+hånd	om
+høyere	enn
+ringer	deg
+sluttet	å
+fortsatte	å
+viser	seg
+sette	oss
+mente	ikke at
+tusen	takk ord
+vise	deg meg
+krever	mye
+legge	meg til
+sendte	meg
+fare	for
+løse	problemet
+ring	meg
+familien	min sin
+pass	på
+minst	tre en
+giftet	seg
+hyggelig	å
+lo	av
+sønnen	min din sin
+sengen	min
+jorden	er
+film	på
+kampen	mot
+beskytte	henne ham
+bekymret	for
+merke	til
+løpet	av
+bodd	i her
+overrasket	over meg
+begynt	å
+huske	å
+eier	en denne
+regner	i det
+lagt	på
+håret	mitt ditt
+stolen	er
+vakre	ting
+sitte	på
+datter	har
+sjanse	for
+hjertet	har mitt
+tvil	om
+håpet	at
+fred	og
+gråt	i
+guttene	har er
+ber	deg
+tide	å at
+erfaring	med
+søster	er
+leke	med på
+lærte	meg
+hår	i
+sånn	er
+snakk	med
+ferd	med
+stund	til
+planen	din
+synd	på at
+vennen	min din
+blåser	fra
+foretrekker	du å
+meningen	du
+glass	vann
+leker	med
+nøkkelen	til
+sen	til
+visst	om
+sommeren	er
+skynd	deg
+nødvendig	å for
+gråter	du
+vare	på
+savner	deg
+omtrent	tre
+slike	ting
+elske	deg
+fram	til
+sukker	og
+vinteren	er
+fornøyd	med
+gull	er
+kona	mi
+lukket	døren
+lov	til å
+skoene	dine mine
+lyset	av
+be	om
+fortsette	å
+stand	til
+raskere	enn
+verdt	å
+invitert	til
+støtte	på
+datamaskinen	min
+handler	om
+forventer	at ikke
+hatten	sin
+virket	ikke
+bedt	om
+kunnskap	om
+kameraet	mitt
+glede	seg
+dårlige	været
+større	enn
+afrika	er
+dersom	du
+fortjener	å
+teori	for
+bruk	av
+føle	deg
+ligner	på
+lært	meg
+pusten	din
+plukket	opp
+løpe	fort
+stadig	mer
+gifte	seg meg
+tjene	penger
+personen	jeg
+stole	på
+anelse	om
+kjæresten	min din
+unngå	å
+hull	i
+valg	enn
+åpne	vinduet
+klærne	sine
+innså	at
+glemt	å
+alvorlig	problem
+fast	i
+sko	er
+planlegger	å
+an	på å
+stoler	på ikke
+a	er
+vaske	opp
+kopp	te kaffe
+alder	av
+satte	seg
+flyttet	til
+dratt	til
+rør	noe den
+nødt	til
+slett	ikke
+dekket	av
+hotellet	i
+new	york
+åpenbart	at
+søsteren	min
+greier	ikke
+forskjellen	mellom
+danse	med
+fullt	av
+husk	å
+gangen	jeg
+italia	er
+endret	seg
+tilgi	meg
+farge	har
+frisk	igjen
+reparere	den
+begynnelsen	av
+mulighet	for
+henger	på
+sies	at
+bekymre	deg
+onkelen	min
+forskjell	mellom på
+gleder	meg
+spill	og
+berømt	for
+klasse	går
+treffe	deg
+lukk	døren
+merket	at
+løy	til
+halvparten	av
+glade	for
+ulykken	skjedde
+skru	ned
+datteren	min sin
+delta	i
+kledd	i
+ellers	kommer
+hoppet	ut
+dreier	seg
+foregår	i
+ender	opp
+oppførte	seg
+overens	med
+herr	smith
+grenser	til
+tak	i
+øye	med
+brøt	ut
+teorien	er
+levde	et
+ulv	i
+selge	bilen
+forhold	til
+kranglet	alltid
+sur	på
+oppdaget	at
+antar	du
+slutten	av
+nektet	å
+lovet	å
+fyren	er
+føles	som
+tenk	på
+kilometer	i
+grunnen	til
+tegn	på
+kysset	henne
+betydning	for
+resten	av
+levert	til
+løftet	lokket
+verdifull	mat
+fiender	i
+skriker	bare veldig
+fortsetter	å
+babyen	sin
+gjett	hva
+rev	i
+utsatt	for
+driver	med
+yngre	enn ut
+effekt	i
+vidt	jeg
+lette	etter
+takknemlig	for
+klatre	opp
+ansvarlig	for
+respekt	for
+takket	være
+stol	på
+tross	for
+faktum	at
+lettere	å
+gjemte	meg
+lyver	aldri
+oppfører	seg
+kjeder	meg
+grunner	som
+nest	største
+lukke	øynene
+ansvar	for
+gjenta	det
+følelse	av
+lider	av
+aner	ikke
+klatret	opp
+skynde	deg
+bry	seg
+hjulpet	oss deg
+fornuft	er
+tvunget	til
+forestille	meg
+enklere	å
+talent	for
+overbevist	om
+lure	meg
+sterkere	enn
+skiller	mellom
+bevise	det
+kino	i
+fylt	av
+brillene	mine
+kalte	meg
+flytte	til
+medlem	av
+lurte	på
+hør	på
+imponert	over
+mangel	på
+følelsen	av
+forandret	deg
+planer	om
+besatt	av
+ligge	i
+usikker	på
+skape	en
+inntrykk	av
+forskjellig	fra
+omkring	meg
+delen	av
+halvt	år
+vinden	blåser
+gratulerer	med
+per	dag
+snudde	seg
+midt	i
+late	som
+viktigere	enn
+lommeboken	min
+basert	på
+ærlighet	er
+skjønte	ikke
+rekker	du
+naboen	min
+skade	på
+fører	til
+takler	ikke
+glipp	av
+nære	venner
+bestefaren	min
+forsøkte	å
+vokste	opp
+bortkastet	tid
+san	francisco
+vurderer	å
+avhenger	av
+energi	er
+dømt	til
+behov	for
+prøvd	å
+muligheten	til
+ordene	på
+koblet	til
+nevne	en
+lillebroren	min
+mora	mi
+allergisk	mot
+narr	av
+overnatte	hos
+pleier	å
+idet	han
+tanken	på
+avhengig	av
+stammer	fra
+innrømme	at
+skyggen	av
+later	som
+klassisk	musikk
+konen	min
+nekter	å
+puss	tennene
+tyngre	enn
+bekymrer	meg
+prate	med
+dobbelt	så
+motsatte	av
+kommunisere	med
+vennlig	og
+balanse	mellom
+forstanden	ikke
+truffet	av
+regjering	som
+omringet	av
+ante	ikke
+plaget	av
+skylden	for
+byene	i
+evnen	til
+slappe	av
+tillegg	til
+kontakt	med
+trykk	på
+sørg	for
+slapp	av
+kopper	kaffe
+bagasjen	min
+klør	i
+peiling	på
+graven	til
+overrasker	meg
+innrømmet	at
+innerst	inne
+central	park
+sammenlignet	med
+levere	inn
+utsetter	turen
+livene	våre
+mangelen	på
+bortsett	fra
+lukten	av
+villig	til
+bølge	av
+lokket	av
+lekene	sine
+sørger	for
+kødder	du
+haug	med
+tusenvis	av
+vandret	rundt
+skammet	seg
+benekter	alt

@@ -1,41 +1,1286 @@
-	ahoj ďakujem áno nie prepáč ok ako čo dobre ja to ty môžeš chcem musím dobrý zajtra teraz kde prečo
-ja	nie som mám chcem
-ty	nie si máš chceš
-on	je má
-ona	je má
-my	sme máme
-nie	viem môžem chcem
-to	je bolo veľmi
-čo	to je robíš
-ako	sa to
-kde	je si
-kedy	to bude
-prečo	nie
-veľmi	dobre
-dobre	že sa
-ďakujem	za moc
-prosím	ťa vás
+	ahoj ďakujem áno nie prepáč ok ako čo dobre ja to ty môžeš chcem musím dobrý zajtra teraz kde prečo je som mám si v kto toto koľko na myslím dnes ste
+ja	nie som mám chcem viem ťa ho
+ty	nie si máš chceš vieš ma sa nevieš
+on	je má ma vie hovorí nie
+ona	je má hovorí sa nie nemá
+my	sme máme všetci sa vieme s
+nie	viem môžem chcem je som si sú ste sme
+to	je bolo veľmi nie čo pre urobiť isté
+čo	to je robíš sa si som by ste
+ako	sa to dlho dobre ja je
+kde	je si sa sú to ste
+kedy	to bude si sa ste je príde
+prečo	nie si sa ste je to som
+veľmi	dobre rád pekne sa dobrý dobrá
+dobre	že sa viete po tým čo a
+ďakujem	za moc vám ti že veľmi
+prosím	ťa vás povedz povedzte zostaň podať
 ahoj	ako
-dobrý	deň večer
-do	videnia
-áno	je
-je	to veľmi
-bolo	to
-bude	to dobre
-mám	to na
-máš	pravdu
-chcem	aby
-musím	ísť
-môžem	ti
-už	nie je
-ešte	nie raz
-teraz	nie
-dnes	je
-zajtra	ráno
-včera	bolo
-tu	je
-tam	je
-len	nie že
-pretože	nie
-že	to nie
-ale	nie ja
+dobrý	deň večer nápad človek v šéf
+do	videnia školy nemocnice kina kostola toho nej
+áno	je som rozumiem hovorím
+je	to veľmi v môj moja na
+bolo	to tam mi v od dnes
+bude	to dobre mať stáť zajtra páčiť na
+mám	to na rád rada pre sa veľa veľmi
+máš	pravdu rád rada čas na veľa
+chcem	aby sa vedieť byť to ísť
+musím	ísť ti sa byť to urobiť
+môžem	ti pomôcť sa si ťa použiť
+už	nie je si som niekedy ste
+ešte	nie raz som stále voľné niečo
+teraz	nie som je môžeš robiť hodín
+dnes	je má večer som ráno bude
+zajtra	ráno bude je sa poobede budem
+včera	bolo som večer bol bola ráno
+tu	je na nie veľa už sa
+tam	je kde ísť budem bolo veľa
+len	nie že na dve som to jednu sa
+pretože	nie som to
+že	to nie je sa som si by
+ale	nie ja aj je nemôžem pre neviem
+sa	mi to na ti že volá
+som	sa si že to na ho
+si	že to sa si mi niekedy
+na	to svete mňa teba ňu zemi
+v	poriadku noci tejto tomto škole kuchyni
+a	ty čo v ja na boh
+sú	veľmi v si na tieto to
+mi	to čo povedal prosím že o
+ste	si sa mi to niekedy tu
+má	rád veľa štyri dve veľmi dnes
+by	som si ste sme to sa
+po	obede celý prvýkrát
+o	čom nej tebe pol svojom sebe
+s	tebou ňou ním tým nami vami
+z	toho nich nás domu čoho neho
+sme	sa si mali v to z
+bol	som si veľmi v to by
+ti	to páči všetko že pomôcť za
+kto	je to napísal má sa som
+rád	že by počúvam kávu ťa hudbu
+ma	to na bolí o že prečo
+aby	si som ste sa sme to
+všetko	čo je najlepšie v sa bolo
+za	to čo nami všetko vašu ruku
+toto	je slovo sú nie miesto som
+bola	to som v si veľmi šťastná
+ho	na ako ale vidím poznáš z
+môj	otec brat syn manžel priateľ muž
+ťa	vidím milujem to vidieť veľmi pobozkať
+jej	meno to že pomôcť jediná vlasy
+pre	mňa teba vás nás ňu humor
+moja	sestra matka vina dcéra mama priateľka
+povedal	že som mi pravdu nie si
+vás	vidím veľmi nenávidia to bolí niečo
+vám	to za že veľmi pomôcť všetko
+rada	že počúvam by kávu hudbu ťa
+byť	veľmi šťastný s v šťastná šťastní
+nič	nie som o nepovedal mi iné
+jeho	meno žena otec dom rodina srdce
+niečo	nové čo iné na sladké povedať
+mu	to že pomôcť aby o dnes
+ísť	do domov s na von spať
+koľko	stojí máš máte to peňazí je
+nikdy	som sa predtým viac to nie
+aj	ja keď v ty keby na
+od	teba slnka vás nej mojej koho
+veľa	peňazí času vody priateľov ľudí šťastia
+ju	spievať mohol milujem prekvapiť nemáte uvidel
+vo	väzení svojej vode svojom vesmíre vašom
+tak	ako dlho sa rýchlo dobre skoro
+ich	na semeno všetky naposledy všetkých
+máte	radi rady rád rada pravdu nejaké
+deň	je v som sa matiek ako
+neviem	čo prečo či ako kde kto
+myslím	že si na
+alebo	nie v kávu čo bez dievča
+keď	sa som je si budete budeš
+hovorí	po že sa v iba so
+pravdu	a pretože
+ak	by sa chceš je to chcete
+každý	deň má človek vie kto z
+urobiť	sám dnes ale sama
+mal	by som si pravdu na ísť
+viem	že čo kde ako aký prečo
+ani	slovo ja slova neviem sa písať
+tento	nôž dom víkend kameň rok list
+čas	na je sa ísť
+k	narodeninám čomu nej srdcu nám dnešným
+boli	sme ste otvorené zranení biele zabití
+moje	meno kľúče priezvisko srdce narodeniny tajomstvo
+aké	je sú bude to máš má
+naozaj	si sa mám hrdý netuším chcem
+so	mnou sebou svojimi svojím všetkými svojou
+všetci	sme sú ľudia sa ste hovoria
+táto	pieseň otázka taška izba budova
+niekedy	v ducha videl opicu videla videli
+majú	rady radi dlhé veľmi krídla veľké
+nemám	rád rada chuť ani čas žiadne
+tri	roky hodiny deti týždne mesiace body
+videl	som si že
+vždy	som pravdu sa so keď všetko
+vieš	čo kto hovoriť že po hrať
+meno	je na nie
+máme	pre dve na tri len robiť
+tvoj	otec obľúbený syn brat názor list
+urobil	som si by pre sám
+chceš	aby ísť vedieť sa byť si
+domov	o ak neskoro
+stále	sú si je nie sa zima
+tvoja	matka dcéra odpoveď sestra žena rodina
+ktorý	je sa som má žije si
+doma	hovoríme
+teba	veľmi zabudnúť dobré pekné
+hovoríš	po dobre
+pomôcť	ale
+aký	je si som nádherný bol veľký
+mňa	príliš o
+bez	teba ohľadu toho neho vody dôkazu
+viac	než ako času peňazí to vody
+nás	veľmi je prepustiť nechať
+sám	seba sebou do vo
+viete	hovoriť po čo kto ako hrať
+ten	muž ktorý kto dom list chlapec
+dvere	a boli sú neboli
+príliš	veľa ťažká neskoro málo drahé rýchlo
+nemôžem	uveriť si ti nájsť sa to
+dlho	som si sa čakať sme to
+toho	čo aby o svedkom istého vedomá
+nám	dávajú treba nič
+robiť	zajtra v keď
+ľudia	sú sa majú veria hovoria nemajú
+svoje	deti meno vlastné dieťa sľuby
+otec	je mi bol by má mal
+hovoríte	po
+hovoriť	po
+všetky	dvere jeho deti vaše možnosti tvoje
+povedz	mi to im mu že jej
+iba	som to srdcom v sa
+myslíš	že si ty len
+môže	byť pomôcť urobiť to mať prísť
+ktoré	sa si by som urobil nie
+vie	že hovoriť všetko kde dobre čo
+chcel	by som byť aby pomôcť ísť
+povedať	čo pravdu to prečo
+slovo	má je z po ktoré v
+život	je taký nie ide
+milujem	ťa svoju čínu
+páči	sa moja
+človek	je ktorý
+nikto	nevie tu nie ťa sa o
+žije	v vo na
+deti	sa sú tri
+zo	všetkých mňa svojich stromu strechy svojej
+stalo	sa včera s
+pred	mojím tromi zákonom nami vami
+dom	je v má sa
+povedala	že som pravdu čo
+budem	mať v tam sa žiť doma
+boh	povedal videl je nazval urobil stvoril
+kávu	alebo
+rokov	má v a
+jeden	z druhého zo plus pohár krok
+chce	ísť aby byť sa pomôcť
+môžeš	mi ísť to počítať urobiť sa
+list	je z od
+nemá	rád rada zmysel
+či	je sa neskôr vám ti to
+kúpil	som si koňa
+než	som ja si
+žena	je sa mala
+dve	hodiny dcéry deti uši možnosti nohy
+odpoveď	je bola na
+mať	čas vždy v psa
+aká	je si bola krásna
+hovorím	po o trochu pravdu
+dobré	správy ráno a
+potrebujem	tvoju ťa nové izbu čas
+svete	je
+pri	okne ohni písaní
+povie	po pravdu v
+mala	by som pravdu na si byť
+svoju	dcéru matku prácu pravdu izbu rodinu
+ráno	deň som sa mi
+mali	by ste byť sme
+zem	je a sa na zem
+túto	prácu pieseň báseň otázku
+tieto	dvere veci
+videla	si som
+dobrá	otázka správa rada v
+medzi	ľuďmi
+vidím	piatich
+chcete	aby vedieť ísť sa povedať
+musíme	sa to ísť byť pomáhať
+ktorá	sa je má farba
+svoj	sľub život názor vlastný cieľ kľúč
+tým	čo ktorí že skôr nič má
+lepšie	ako než
+prišiel	som do si na domov
+môžete	mi to ísť sa
+nechcem	aby ísť počuť o ťa sa
+musíš	byť sa ísť to viacej mu
+myslel	som že to
+často	sa
+nebol	v som doma to si
+im	aby že to zajtra čo povedal
+jesť	viac mäso sladké v
+vedieť	čo ak kde prečo
+oči	sú a
+vyzerá	to ako byť presne skvele
+vôbec	nie nič som sa netuším
+volá	tvoj tvoja
+práve	som sme teraz
+večer	a som
+peniaze	späť
+robí	tvoj tvoja majstra
+pravda	že je
+taký	smutný je aký dobrý hladný hlúpy
+nové	auto šaty naučila naučil
+poriadku	a
+tvoje	meno silné slabé sny
+kým	sa si
+ľudí	si
+trochu	po starší
+niekto	kto z musí
+vy	ste máte
+vaše	meno silné slabé
+mnou	môžeš prosím
+psa	a
+musí	byť mať to ísť
+tomu	čo nemôžem kto
+všetkých	čias síl som
+celý	deň čas týždeň život rok
+váš	názor obľúbený brat list
+šiel	do som domov na k spať
+kam	ide ísť ideš si chceš by
+skoro	som na každý spať
+úplne	som v neprijateľné
+vidieť	čo viac
+znova	uvidím
+nevie	čo čítať ako prečo
+muž	je a má
+mohol	by byť
+vaša	odpoveď žena dcéra rodina
+dosť	času peňazí veľa
+pod	stolom posteľou zub vodou kontrolou
+voda	je
+vonku	je bolo
+znamená	to že toto
+dva	je tri roky razy plus a
+istý	že či
+dal	mi som by výpoveď si do
+patrí	medzi k do mne
+noc	a som
+seba	príliš
+veľký	dom je
+tú	otázku hru istú budovu kosť
+videli	ste niekedy
+príde	domov alebo
+naučiť	sa hrať po variť cudzí
+idem	do na si
+brat	žije je
+pozri	sa na čo
+vlasy	sú a
+svojho	otca druhu psa brata
+poznáš	ich po to ju ho
+budeš	mať robiť potrebovať
+problém	s
+dúfam	že
+šťastný	nový že
+vedel	som že si
+myslíte	že si
+hudbu	počúvaš
+svojej	izbe matke izby
+raz	za jeden v
+tá	káva
+rýchlo	sa
+svet	je
+spať	pred
+mesiac	je v svieti budem má
+nech	sa žije si odíde je
+sama	o
+povedzte	mi jej mu im nám
+píše	list na a
+dievča	s sa
+nerozumiem	čo ani
+prvý	pohľad raz deň krok
+také	jednoduché ťažké krásne zábavné
+päť	je prstov plus rokov sa
+matka	je mala
+pracuje	v ako tvoja
+štyri	päť deti nohy
+prepáčte	že nerozumiem kde
+sestra	sa je má pracuje
+daj	mi si mu
+rok	má veľa
+stojí	táto na lístok v pri
+dobrú	noc pamäť správu chuť
+ide	do o to tento
+veľké	oči šťastie a
+tejto	knihe izbe budove
+jedno	z čo dieťa
+možno	som to sa by je
+týždeň	som je
+musíte	sa byť viacej mu jej
+nemáš	rád čo pravdu za rada mi
+vodu	a do
+i	j keď
+žiť	v bez na večne
+urobila	som si
+bolí	ma hlava chrbát ťa
+môžeme	pomôcť urobiť sa
+moju	ženu otázku sestru kávu dcéru pomoc
+isté	platí chyby
+išiel	do som domov sám
+poznám	ho ju
+až	do po taký také v
+syn	je
+nevedel	som si že
+keby	som si
+nemohol	by som prísť urobiť
+našiel	som
+zabudol	som si že
+akú	hudbu máš som pizzu
+auto	je
+cez	les deň žalúdok
+ňu	veľmi
+peňazí	na
+napísal	túto som list mi tieto
+ruky	a preč hore
+názor	sa na
+narodeniny	sú
+najlepšie	k ako čo
+taká	smutná hladná
+stôl	je
+času	na ktorá
+buď	sám na ticho šťastný
+veci	ktoré
+chcela	by som ísť byť
+takmer	nikdy každý nič
+slnko	je svieti vychádza zapadá
+naše	postele peniaze
+zima	je
+čom	hovoríš hovoríte je to
+náš	dom
+chuť	na
+nej	hovorí už
+desať	minút rokov hodín centimetrov
+krásna	a
+hovoria	že po o
+nový	rok dom bicykel život
+nebola	to som moja
+nemôže	byť uveriť
+naša	jediná posledná rodina
+človeka	a ktorý poznáš je po
+hodín	a denne
+šťastie	že
+srdce	je
+určite	si
+ktorú	som si
+hneď	ako prídem sa som za by
+okolo	sveta
+krásne	dievča
+nevidel	som
+otázka	je
+tie	peniaze isté dvere
+radšej	by
+sem	príde pred
+svojich	nepriateľov priateľov snov
+tomto	meste obchode obrázku
+miesto	je na kde
+oni	to sú všetci sa
+zviera	na
+noci	je
+jedlo	je bolo
+nepovedal	že som
+zmysel	pre života
+budete	mať milo
+dcéra	je
+zdá	sa
+počul	som si
+nemal	som by
+dieťa	sa
+hovoril	som s
+hrdý	na
+potom	boh som
+číslo	je
+láska	je
+čakať	do
+lebo	oni v
+našej	škole krajine školy ulici
+mary	je
+pol	tretej štvrtej
+slová	ktoré ma
+zostať	v na
+jediný	kto dôkaz
+u	nás mňa lekára zubára
+presne	ako tak o to
+ťažké	časy
+niekoľko	otázok rokov slov dní
+uvidíme	sa
+podľa	svojho mňa teba
+žijem	v
+priateľ	je človeka
+nemyslím	si že
+žijú	v na
+rodina	je
+stratil	som
+nájsť	si
+izbe	je
+dlhé	vlasy uši
+no	tak
+pohár	vody je
+koho	je som si
+nich	je
+tebe	sa nikdy
+hore	na
+pán	boh doktor
+začína	o skúška v
+neskôr	mi
+viacej	by
+narodil	som v
+vyzeráš	ako naozaj
+chýba	mi vám
+pozor	na
+minulý	týždeň rok mesiac
+nebuď	taký taká
+skôr	či ako než
+odísť	skôr
+jediná	nádej šanca dcéra kto
+krásny	deň
+povedali	že
+nohy	sú
+späť	do
+choď	do spať sa rovno
+kúpiť	nový
+ženy	sú rady
+vitajte	v na vo
+odišiel	z do
+celkom	dobre dobrá
+okno	je
+deje	v
+nechce	ísť byť aby sa
+biele	ako
+volám	sa
+pracujem	v ako
+počítač	je
+býva	v na
+pracovať	v
+raňajky	sú
+istá	že či
+robíš	v zajtra vo
+boha	a
+pozná	new pravdu
+možné	že
+pravdepodobne	spí trochu sa
+našla	som
+treba	urobiť viacej
+kvety	a
+zabudla	som si
+pieseň	je
+zemi	je
+jedna	z
+pôjdem	do
+budeme	robiť
+kôň	je
+prišla	som domov
+odkiaľ	sa si vieš poznáš
+hrať	na
+dajte	mi
+poznáte	ich odpoveď
+prísť	na zajtra
+buďte	opatrní
+vedia	že
+nejaké	otázky ďalšie
+môjho	otca názoru mladšieho
+nebude	to trvať
+predtým	ako som
+mama	je
+čoskoro	sa ju
+poviem	ti vám mu im
+niekoho	kto na
+správy	pre
+vďaka	že za bohu
+nemáte	za
+pozrite	sa čo
+vami	všetkými
+ľúto	čo
+nevieš	kde
+učiť	sa
+listy	na
+dala	mi
+svojom	veku dome
+starý	otec
+dostal	som list
+ktorí	sa vás
+bohatý	muž
+priatelia	budú
+dní	v
+nemáme	čas
+mojím	domom snom bratom
+vašu	správu pomoc láskavosť odpoveď
+zdravie	je
+počula	som si
+nechcel	som
+sedem	dní
+osem	miliárd
+chlapec	je sa alebo
+išla	domov som do
+mohli	by
+celú	noc večnosť
+zavolám	ti vám
+nebolo	to by
+potrebujeme	viac
+nechceš	ísť aby
+obaja	sme
+čítať	ani
+šla	som domov do
+prestať	piť fajčiť
+roky	vo
+ľahko	sa dostupný
+ktorej	som strane
+nepoznám	vaše ju tvoje
+myslela	som
+proti	tomu vojne
+mojej	matky
+žiadne	peniaze
+zuby	boli
+preto	sa aby
+jednu	z
+bolesť	hlavy
+stať	sa
+vták	je
+zdravím	som ja
+čierne	vlasy
+potrebuješ	veľa
+nemajú	radi zuby
+tvoju	správu pomoc
+čoho	sa
+priateľka	je
+von	oknom
+oveľa	lepšie viac väčšia menšia
+čím	sa skôr
+izbu	s
+netuším	o kde kto
+rodičia	sú nie
+kameň	kde
+vrátila	sa
+nebudem	sa ti jesť
+deväť	životov hodín
+pekne	za ďakujem
+vrátil	sa
+sedí	na vedľa
+myslí	že si len
+prepáč	že ale
+prídem	včas na
+ďaleko	od je
+bývam	v
+hrá	na s
+moji	rodičia priatelia bratia
+štvrtok	piatok
+nepovedala	som že
+ku	mne
+naposledy	videl
+cítim	sa omnoho
+farba	je sa
+krv	je
+začal	učiť jesť
+naňho	hrdý
+najlepší	priateľ priatelia
+musel	som ísť
+uveriť	že vlastným
+poďme	do
+počkaj	tu kým
+poď	sem so
+ideme	do
+rozumiem	ti vám
+silné	zviera a stránky
+nimi	v
+čomu	veria
+kuchyni	je
+chodím	do pešo
+urobili	ste sme
+mohla	by
+víno	je
+miluješ	ma
+prišli	sme ste
+obľúbený	predmet film
+sladké	sny
+pekný	deň
+silný	a
+budúci	mesiac týždeň rok
+mladá	a
+farby	je sú
+robil	včera
+malé	dieťa
+išli	sme
+domáce	úlohy zviera
+koľkokrát	si ste
+jedol	som
+chceme	aby
+medveď	je
+vezmi	si papier
+obed	je
+slova	z
+jedného	dňa
+používa	na iba
+počuť	ani
+žiadny	dôkaz problém zmysel
+správa	je sa
+nemôžeš	ísť
+manžel	je
+postele	sú
+nádherný	výhľad kameň
+dáš	si
+jedla	som si
+všade	som boli
+izba	je
+chceli	by sme
+hudba	je
+káva	je bola
+film	a sa
+okrem	boha teba toho
+leto	je
+tej	istej
+kvôli	tebe
+naučil	som
+novú	prácu
+počúvam	hudbu
+otvoril	okno dvere
+vidíme	sa iba
+mladý	a
+otvoriť	okno
+celé	popoludnie ráno
+spokojný	so s
+nevedela	som si
+stretol	som
+vrátim	sa
+zaujíma	vás
+modré	oči
+rozumieš	po čo tomu
+darček	pre
+utiecť	z
+pomáha	na
+vedela	že som
+môžu	byť
+počkám	na
+úlohu	v
+krok	dopredu
+prípade	požiaru
+žil	na
+posledný	deň
+čakal	som
+more	bolo
+rýchlejšie	ako než
+spýtal	sa
+klame	ten
+zomrel	na
+žijete	v
+stretnutie	sa
+rozhodol	som sa
+vieme	že
+spadol	z som
+cesta	je k
+zostal	v
+pizzu	máš
+nepoznal	som
+plus	dva päť
+vtedy	som
+lásku	na
+prajem	ti
+nevidela	som
+pokoj	s
+nechaj	ma to
+koniec	ako
+robím	to
+konečne	som
+nôž	je
+takže	čo
+nepáči	sa
+samozrejme	že
+verí	v
+bojí	tmy
+nevedia	čo
+hľadal	som
+stanica	je
+jedným	z
+hovorila	som
+dvakrát	do
+známy	svojou
+oko	v
+pamäť	na
+pravé	meno
+dá	sa
+tí	ktorí
+rodiny	v
+teda	som nie
+pár	minút
+zabil	som
+dole	ponožky
+robia	to
+chodí	do s
+veľkú	rodinu
+spomenúť	na
+pozrel	sa na
+zostaň	so doma
+dlhý	rozhovor
+vysoký	ako
+manželka	je
+väčšina	ľudí
+južnej	amerike
+počkajte	tu
+zatiaľ	čo
+vyhral	som si
+rozdiel	medzi od
+dostala	som
+posledná	príležitosť šanca
+stratila	som
+najradšej	mám
+drevo	je
+huby	ktoré
+právo	na
+starší	ako
+žiadna	správa
+práca	je
+niektorí	ľudia
+lepší	nápad
+platí	pre
+nepočul	som
+skutočnosti	nie
+heslo	je
+spravil	som
+mýliš	sa
+čokoľvek	sa
+začať	čo
+dôvod	prečo
+klamal	o
+mojich	silách
+milujú	vodu
+spal	som
+komu	môžete
+situácia	je
+dávno	som
+verím	v
+inú	možnosť
+najhoršie	je
+ceste	do
+očividne	je
+dáte	si
+mená	sú
+vzal	som
+skutočné	meno
+mieste	by
+zase	niečo raz
+východ	slnka
+priezvisko	je
+čítal	som
+požiadal	o som
+myslia	že
+pracoval	som ako
+byt	je
+nebuďte	na
+tvojom	mieste živote
+spôsob	ako
+plná	hviezd
+skús	to
+hovoríme	po
+nechajte	ma
+píšem	list
+ktorom	sa hoteli
+nášho	syna
+čakám	na
+dám	ti vám
+zlý	tréner
+zabudnúť	na
+doľava	a
+pripravení	na
+vyhrali	ste
+domom	je
+žiješ	v
+smiať	sa na
+rastie	veľa
+prestal	som
+robíme	chyby
+bolesti	brucha hlavy
+nehovorí	po
+väčšia	ako
+ľúbim	ťa
+dvaja	chlapci robia
+dvadsať	rokov
+dvanásť	rokov
+fakt	milé
+nebo	bolo a
+pôjde	do
+papier	a
+veľkej	británie
+musia	byť
+pobozkal	ma na
+prídeš	do
+choďte	rovno
+bratia	a
+voľné	miesto
+obe	sme
+tvojej	otázke
+ktorým	sa
+dáva	zmysel
+žijeme	v
+podarilo	sa
+san	juan
+nová	skúsenosť
+niekde	inde
+súhlasím	s
+nedá	sa
+zobudil	ma som
+kiež	by
+chutí	ti
+blahoželám	k
+preklad	je
+úžasné	správy
+posledné	slovo
+hľadala	som
+nechceme	aby ísť
+vraví	že
+sto	rokov
+pil	som si
+cítil	som
+neboj	sa
+psi	sú
+nevadí	mi
+postavil	som
+predal	som
+zavolaj	mi
+záleží	na len
+spojených	štátov
+sľúbil	že
+vašej	otázke
+new	york
+volal	som
+každé	ráno
+nemyslíš	si že vážne
+večera	je
+vysoká	ako
+trocha	vody
+najlepšia	priateľka obrana
+skvelý	nápad
+nemohli	by
+dokonca	aj
+sľubujem	že ti
+priniesol	som
+proste	a
+požičať	svoj
+slabé	stránky
+nemohla	by
+dlhšie	ako než
+rozumiete	po
+pochádza	z
+ceny	idú
+najviac	na
+obraz	vyzerá
+druhu	a
+väčšie	ako
+pamätáš	si
+hlavu	do
+bojím	sa
+nemožno	žiť
+nemusí	byť
+našich	myšlienok
+patria	medzi k
+vojna	sa je
+otvor	dvere
+piješ	kávu
+mysli	na
+stretneme	sa
+štátov	amerických
+muži	sú
+krátke	vlasy nohy
+urob	to
+cítiš	sa
+jediné	čo
+loď	sa
+zmena	je
+spýtala	sa som
+kravy	sú
+vašom	živote
+odo	mňa
+svojím	miestom
+napíš	mi
+napísala	som
+naučila	som
+rozbil	okno
+kolená	a
+zabudli	ste
+zlato	je
+budova	je
+veríte	v
+veríš	v
+vyhrala	som
+neveríš	choď
+ježiš	povedal
+odkedy	sa
+myšlienky	sú
+vedie	cez
+šálku	kávy
+nezáleží	na
+mysleli	sme
+stretli	sme
+naším	domom
+teším	sa
+akej	farby
+zlá	vec
+potreboval	som
+skutočný	dôvod
+tvojho	života
+aspoň	raz
+realita	je
+vesmíre	je
+menej	ako
+človeku	nemožno
+ach	bože
+nemala	som
+dali	sme
+vedomosti	sú
+istí	že
+bojíš	sa
+zatvor	dvere
+vesmír	je
+piatej	som
+vzala	som
+omnoho	lepšie
+nedáva	zmysel to
+paríž	je
+úplnú	pravdu
+stvoril	boh
+hľadá	nájde
+nechápem	ako
+studené	ruky
+brána	je
+šťastia	a
+národ	proti
+najvyšší	čas
+zrazu	sa
+trvať	dlho
+zabila	som
+povolenie	na
+ročné	obdobie obdobia
+kedysi	som
+srdcom	to
+hovorte	pomalšie
+páčia	sa
+zmeškal	som
+teší	ma
+pamätám	si
+strávil	tri
+neviete	kde
+ukážem	ti vám
+požičal	som
+ktorých	je
+sloboda	je
+celom	svete
+sadnite	si
+napriek	tomu
+bránu	som
+vezmite	si
+zaujímalo	by
+odpovedať	na
+vráť	sa
+koža	je
+bál	som že
+ťažkosti	s
+poznáme	sa
+spýtaj	sa
+ľudská	kosť
+prvýkrát	čo
+jednou	z
+ruka	má
+zrovna	som včera
+desiatej	doma
+nemyslíte	si že
+podať	to pohár
+poradí	od
+slepý	ako
+zavoláš	mi
+staršia	sestra
+brať	do
+dostať	sa
+domácu	úlohu
+lev	je
+prešiel	cez
+hral	si
+ovláda	tri
+období	v
+spadla	z
+snažil	som
+duša	je
+spala	som
+vydala	som
+tromi	rokmi
+prines	mi
+robila	včera
+snažím	sa
+piatich	mužov
+druhej	strane
+nepamätám	si
+pripraviť	na
+spýtajte	sa
+rob	čo
+zabudni	na
+píšu	listy
+taška	je
+zostaňte	so
+rohu	miestnosti
+odvtedy	som
+nechcela	som
+sadni	si
+prečítaj	si
+nechať	ísť
+vyber	si
+najlepších	hráčov
+rozhodnúť	kde
+odpusť	im
+b	c
+prestala	som
+veselé	vianoce
+kúp	mi
+poprosil	ma
+robte	dobre
+pamätáte	si
+voľný	čas
+beží	rýchlejšie
+povieš	na
+vyšiel	z
+odchádza	o
+zobuď	ma
+rozhodli	sa
+sadol	si
+vstúpiť	do
+snažila	som
+všimol	som
+zaujímavá	otázka
+vecí	ktoré
+pomôžte	mi
+rozpráva	sa
+obleč	sa
+tvoji	rodičia
+dostanem	na
+zopár	slov
+gratulujem	k
+kope	sena sám
+niekým	iným
+čiernej	hory
+zatvorte	dvere
+prineste	mi
+čisté	svedomie
+čí	je
+rusko	je
+zamiloval	som
+očividné	že
+steny	majú
+zlým	smerom
+priamo	do
+nastal	večer
+dych	života
+zabudnite	na
+nehode	vedomie
+slnečné	okuliare
+presvedčený	že
+rozhodla	som
+nevedeli	ste
+silnejší	ako
+tretí	deň
+nabudúce	by
+minulú	noc
+vychádza	na
+zavri	dvere
+m	n
+p	r
+ďalšia	otázka
+ahojte	všetci
+každom	prípade
+počuješ	ma
+ničoho	sa
+polovica	z
+zaslúžiš	si
+odmietol	pomôcť
+zavrieť	dvere
+vedú	do
+podaj	mi
+osud	je
+želám	vám
+chyť	ma
+všetkému	čo
+ukáž	mi
+miliárd	ľudí
+ľahni	si
+pila	si
+odpovedz	mi
+predpokladám	že
+kiežby	som
+mnohé	ženy
+mars	je
+naučím	ťa
+necítim	sa
+menšie	ako
+island	je
+držte	sa
+samého	seba
+stáli	tie
+neba	a
+mokré	vlasy
+skákať	na
+nepočula	som
+poslednom	čase
+pozrela	sa
+hnedé	oči
+striebro	je
+skúseností	ako
+rovno	potom
+vhodné	pre
+vopred	vám
+nepovedali	že
+nočný	vták
+padol	na
+parkovanie	na
+záchod	je
+pocit	že
+mrzí	ma
+c	č
+blond	vlasy
+menšia	ako
+brehu	rieky
+ulica	bola
+popri	rieke
+vystúpil	na
+ohľadu	na
+zďaleka	nie
+považuje	za
+chystám	sa
+vyrobená	z
+čia	je
+telefónne	číslo
+rozumeli	ste
+spravila	som
+nebojím	sa
+ukážte	mi
+chýbaš	mi
+nečakal	som
+dostanete	hľadajte
+snom	je
+stolička	je
+obávam	sa
+pravej	ruke
+niečím	pomôcť
+pravú	lásku
+vášho	života
+žili	v
+podobá	na
+opýtal	sa
+modli	sa
+slušne	som
+podstatné	mená
+skvele	ale
+páčiš	sa
+vaši	priatelia
+pohyb	a
+istú	chybu
+hrozný	koniec
+hrdí	na
+dávajte	a
+padla	na
+nespoznal	som
+zľahka	na
+nemyslel	som
+vráťte	sa
+zdravia	je
+kapitola	sama
+typ	človeka
+dôvera	sa
+zlepšenie	nálady
+istej	rieky
+informácia	ktorá
+minulé	leto
+f	g
+g	h
+h	ch
+j	k
+l	m
+t	u
+jednému	z
+hudobný	nástroj
+rozprávali	sme
+členov	má
+pomýlil	som
+stavím	sa
+ponáhľaj	sa
+tvrdí	že
+títo	ľudia
+akého	dôvodu
+iskra	nádeje
+pochádzajú	z
+alica	sú
+ospravedlňujem	sa
+pomôž	mi
+zabudnime	na
+nemyslí	že
+posledných	voľbách
+hľadajte	a
+vyzerám	ako
+príroda	je
+správnu	odpoveď
+výhľad	na
+urazil	som
+chystáš	urobiť
+hocičo	sa
+netušila	som
+nejako	pomôcť
+pošlite	mi
+strop	svojej
+zapadá	na
+politik	a
+nasledujúce	po
+rozumieme	si
+náhradný	kľúč
+sedíme	na
+časová	jednotka
+sedím	v
+krajšia	než
+ukázala	mi
+vyrobené	v
+nejakého	dôvodu
+vráťme	sa
+dovoľte	mi
+pravdepodobnosť	že
+štvrť	na
+dones	mi
+vyhlásil	že
+minule	som
+upokoj	sa
+treťom	poschodí
+svetlé	farby
+ch	i
+dnešnú	skúšku
+opýtam	sa
+naučte	sa
+stretnime	sa
+krvný	tlak
+mladšieho	brata
+zajtrajší	deň
+necíti	dobre
+včerajšie	zatmenie
+zahral	na
+pošli	mi
+tmavé	vlasy
+divný	sen
+úprimnú	sústrasť
+vhodný	čas
+miestom	v
+uložené	v
+šikovný	ako
+civilisti	boli
+pekla	s
+ihlu	v
+obviňovať	bez
+siedmich	dní
+kanada	je
+voľnej	prírode
+netvár	sa

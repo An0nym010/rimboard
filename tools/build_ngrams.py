@@ -46,6 +46,7 @@ import bz2
 import collections
 import os
 import sys
+import time
 import urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -57,7 +58,9 @@ START = "\u0001"
 ISO3 = {
     "en": "eng", "tr": "tur", "de": "deu", "es": "spa", "fr": "fra", "it": "ita",
     "pt": "por", "ru": "rus", "nl": "nld", "pl": "pol", "sv": "swe", "id": "ind",
-    "ro": "ron", "cs": "ces", "da": "dan", "no": "nor", "fi": "fin", "hu": "hun",
+    # Norwegian is "nob" (Bokmal), not "nor": Tatoeba has no generic Norwegian
+    # and 404s on it. Bokmal is the written form the app's "no" list is.
+    "ro": "ron", "cs": "ces", "da": "dan", "no": "nob", "fi": "fin", "hu": "hun",
     "uk": "ukr", "el": "ell", "hr": "hrv", "sk": "slk",
 }
 
@@ -82,13 +85,29 @@ def fetch(code3):
            % (code3, code3))
     print("  downloading %s" % url)
     req = urllib.request.Request(url, headers={"User-Agent": "curl/8"})
-    with urllib.request.urlopen(req, timeout=180) as r, open(path, "wb") as f:
-        while True:
-            chunk = r.read(1 << 20)
-            if not chunk:
-                break
-            f.write(chunk)
-    return path
+    # Retried, because this host is flaky in a way that is not about us: two
+    # HEAD requests and one TLS handshake failed during a single afternoon and
+    # every one of them succeeded on a retry. Without this a twenty-language
+    # run throws away the languages it had already finished.
+    last = None
+    for attempt in range(4):
+        try:
+            tmp = path + ".part"
+            with urllib.request.urlopen(req, timeout=180) as r, open(tmp, "wb") as f:
+                while True:
+                    chunk = r.read(1 << 20)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+            os.replace(tmp, path)
+            return path
+        except Exception as e:  # noqa: BLE001 - any network failure is retryable
+            last = e
+            if attempt < 3:
+                wait = 3 * (attempt + 1)
+                print("    %s; retrying in %ds" % (type(e).__name__, wait))
+                time.sleep(wait)
+    raise last
 
 
 def dictionary(lang):
@@ -206,6 +225,14 @@ def merge(lang, rows, starts):
 
 if __name__ == "__main__":
     langs = sys.argv[1:] or ["tr", "en"]
+    failed = []
     for lang in langs:
         print(lang)
-        build(lang)
+        try:
+            build(lang)
+        except Exception as e:  # noqa: BLE001 - one language must not sink the run
+            print("  %s FAILED: %s" % (lang, e))
+            failed.append(lang)
+    if failed:
+        print()
+        print("failed, safe to re-run (downloads are cached): %s" % " ".join(failed))

@@ -1,43 +1,1962 @@
-	jag hej tack ja nej förlåt ok hur vad bra det du kan vill ska har god vi nu imorgon
-jag	är har inte vill kan ska
-du	är har kan vill ska vet
-han	är har kan
-hon	är har kan
-vi	är har kan ses
-det	är var inte en
-den	är här
-en	liten bra annan
-inte	så bra riktigt
-är	det en inte
-var	det inte är
-att	jag du det
-och	jag det du
-men	jag det inte
-som	jag du det
-för	att det mig
-med	dig mig oss
-på	dig mig det
-vad	är gör
-hur	är går mår
-när	kommer du
-varför	inte
-mycket	bra bättre
-bra	jobbat
-tack	så för
-hej	då
-god	morgon natt kväll
-redan	nu
-ännu	inte
-nu	är
-idag	är
-imorgon	ska
-igår	var
-här	är
-där	är
-bara	en inte
-alltid	har
-aldrig	mer
-kanske	inte
-måste	jag du
-kan	jag du inte
-vill	du jag
+	jag hej tack ja nej förlåt ok hur vad bra det du kan vill ska har god vi nu imorgon han hon de är var den varför min vem en ni när
+jag	är har inte vill kan ska tycker vet
+du	är har kan vill ska vet inte att måste
+han	är har kan var inte hade kommer
+hon	är har kan var hade inte kommer
+vi	är har kan ses måste ska kommer
+det	är var inte en här där finns
+den	är här där som till enda
+en	liten bra annan ny stor gång av bok
+inte	så bra riktigt att om på vad det
+är	det en inte du ett min
+var	det inte är en snäll i
+att	jag du det han göra vara
+och	jag det du en med hämta gick
+men	jag det inte han hon nu
+som	jag du det en är helst om
+för	att det mig dig mycket en
+med	dig mig oss en det att honom
+på	dig mig det att en den
+vad	är gör jag som du har han
+hur	är går mår många mycket länge kan man
+när	kommer du jag han man det hon
+varför	inte är skulle har vill kan jag
+mycket	bra bättre pengar att om kostar mer
+bra	jobbat på för att idé ut jobb
+tack	så för det vare till jag
+hej	då allihopa
+god	morgon natt kväll jul och människa dag
+redan	nu sagt gått ätit varit berättat i
+ännu	inte en ett
+nu	är har ska igen får kan
+idag	är har verkar
+imorgon	ska är kommer bitti
+igår	var kväll natt
+här	är för meningen i filmen bilen
+där	är borta var för inne en
+bara	en inte ett att för tre
+alltid	har på en till att för varit
+aldrig	mer att sett varit på hört ha
+kanske	inte är kan skulle kommer har
+måste	jag du vara göra gå ta inte
+kan	jag du inte vi ni göra
+vill	du jag inte ha ni att
+har	du en inte ett ni aldrig
+i	dag morgon går en den ett
+mig	att inte en i för ett
+om	det att du jag en han
+till	mig skolan dig att en jobbet
+ett	stort brev barn par glas hus
+dig	inte att på om en själv
+de	är här har där kommer var
+av	en det sig dig med att
+min	far bror pappa bil syster mamma
+ni	är inte har måste kan att
+kommer	att inte du det aldrig tillbaka
+så	mycket att jag fort länge här
+sig	själv i för att inte med
+skulle	vilja du jag kunna göra vara
+ska	vi jag du göra inte gå
+göra	det något med dig någonting detta
+honom	att i inte på en om
+din	hjälp hund mamma bil fru far
+ha	en ett den gjort lite det
+vara	en här i så på med
+hade	en inte ett du ingen jag
+tycker	om inte du att jag ni
+ut	som med i ur att för
+vet	att inte du vad hur ni
+man	kan inte gör ska som har
+alla	är sina fall har mina i
+behöver	inte en du ett bara jag
+gå	och till ut på hem nu
+oss	att i inte på till om
+än	jag att en vad så du
+ingen	aning anledning som av är har
+upp	tidigt i för till på det
+går	till inte det och på kväll
+sin	hund egen far fru mor bil
+henne	i att på en inte med
+gör	det du ont mig inte som
+mitt	rum hus namn liv i jobb
+gillar	att inte du verkligen den ni
+er	inte alla om att båda hjälp
+finns	det en ingen ett många inget
+från	en min att mig skolan början
+någon	som annan gång har roll annanstans
+ta	en hand med det av reda
+kom	hem till och hit in inte
+hans	namn hus fru nya rum bror
+vem	är som har jag han vill
+åt	mig dig en upp honom oss
+många	människor gånger vänner av år olika
+tror	att inte du på jag ni
+blev	väldigt arg du kvar en tvungen
+gick	till i in ut på och
+fick	du en ett inte han mig
+ser	ut du jag inte fram en
+får	jag inte man du det vi
+eller	hur inte senare en för ej
+dag	är kommer har och i var
+lite	mer pengar för vatten kaffe frisk
+något	att annat som om sådant fel
+detta	är hus kommer skepp faktum kan
+sa	att till åt du jag det
+efter	en att sin dig min den
+gjorde	det du en ett mig jag
+två	gånger år dagar timmar är veckor
+allt	som är för jag det du
+såg	du en honom inte henne ett
+väldigt	upptagen mycket bra glad rik trött
+mina	föräldrar vänner barn nycklar pengar glasögon
+kunde	inte vara ha komma jag göra
+älskar	att dig mig du den honom
+borde	inte ha vara gå göra vi
+in	i på den och en mig
+talar	du ni inte om bara lite
+över	det att huvud en dig huvudet
+få	ett en veta det lite se
+känner	mig du inte till jag ni
+dem	att som inte i med är
+sitt	rum liv eget hus jobb namn
+ge	mig upp dig oss den honom
+ditt	namn rum liv hår skrivbord brev
+tog	en du av med mig på
+komma	på in ihåg i med hit
+tre	år gånger dagar månader timmar veckor
+verkligen	inte det att om på din
+igen	dörren den honom när dig rör
+mer	än om kaffe tid att kan
+bli	en inte bättre intressant av att
+barn	är i har att behöver var
+ville	inte ha att bli säga bara
+se	på dig det upp till om
+år	sedan gammal i äldre är och
+fortfarande	inte i på är ont mycket
+hennes	namn röst far hus hår adress
+bor	i på du här inte med
+bil	är i inte står men med
+hjälpa	till dig mig oss henne er
+vid	att det liv den första dörren
+tid	att till för på med är
+sina	föräldrar barn pengar misstag vänner ögon
+hela	tiden dagen natten världen staden kvällen
+ligger	på i den en inte närmaste
+pratar	du ni inte med om för
+kunna	få vara hjälpa lämna förklara ta
+pengar	på är till för i men
+vilken	är tid färg sorts vacker hylla
+vilja	ha att träffa äta åka köpa
+tillbaka	till om den hem i på
+äter	du en inte frukost för mycket
+någonting	att som annat om sådant av
+några	frågor minuter pengar dagar av vänner
+äta	något det lunch någonting en middag
+inget	att annat val av emot som
+hem	till från nu sent igen i
+denna	mening bok fråga gata gång punkt
+säga	det någonting att nej något till
+varje	dag morgon gång år månad kväll
+köpte	en du den ett ni lite
+säger	att det man du är till
+själv	i att så inte
+blir	det du en inte jag stor
+prata	med om inte så långsammare på
+morgon	är bitti ska kommer kväll så
+mot	mig sitt väggen dig söder honom
+skolan	i idag på är ligger med
+gav	mig honom henne den du upp
+dina	föräldrar ögon pengar barn händer åsikter
+också	en om till ha ett ryska
+trodde	att inte du jag aldrig ni
+hus	är ligger i med till har
+utan	att dig mig en socker vatten
+varit	i en här på med sjuk
+tala	med om det högre inte för
+låt	oss mig inte honom det den
+fel	på med i att person är
+rätt	till svar beslut att så och
+under	bordet ett den sängen kontroll det
+visste	inte att du vad jag det
+hemma	i hos just och på från
+hund	är har till var i sprang
+gång	till en i jag de var
+sedan	dess jag i vi de du
+länge	har sedan leve jag kommer till
+åka	till dit hem med tillbaka nu
+stor	som hjälp familj och framgång hund
+heter	du den din han hon
+ingenting	att om alls kan är som
+hjälp	mig av med här oss
+hatar	att dig mig min den när
+ofta	på i med här som att
+sett	en den det henne min vad
+längre	än
+dörren	är öppen och för på efter
+tar	du det en hand jag med
+huset	är som där stod var ligger
+håller	på med inte du det alltid
+gammal	är för man som nog vän
+kaffe	åt utan på framför tack och
+namn	är på var som i stod
+står	på inte i och det för
+nästan	varje aldrig ingen inte ingenting en
+förstår	inte mig du jag ni dig
+gjort	det ett en för allt dig
+vår	lärare bil hjälp skola nya hund
+helt	enkelt och säker fel annan på
+bättre	än om att på jobb nu
+andra	världskriget sidan människor är chans barnen
+svårt	att för skadad
+nya	bil skor huset zeeland klocka film
+köpa	en den ett det bröd några
+verkar	som vara inte ha det väldigt
+då	och han är jag det aldrig
+klockan	är sex fem åtta nio sju
+ur	sängen huset mitt funktion vägen rummet
+människor	som är i har att på
+liv	och på är i som utan
+vänta	på här en ett lite i
+ner	i på från dig för det
+inga	pengar problem vänner barn gränser fler
+stanna	här hemma kvar i hos där
+hoppas	att på kunna jag verkligen
+bort	den sin min från din sitt
+vänner	i som att och är
+bilen	är i på medan och till
+hand	om i med på
+far	är har dog var och till
+lära	sig mig dig känna oss ut
+fråga	honom inte mig till henne är
+tiden	är på var går
+kände	sig mig igen att inte du
+slut	på med
+tänker	du inte på jag ni åka
+rädd	för att han
+första	gången som steget bokstaven
+gott	som nytt humör hjärta om tecken
+snäll	och mot med
+fram	emot till i och genom en
+ensam	i hemma och med
+just	nu det den
+ny	bil dator bok era klänning valp
+säker	på nu här att
+försökte	att ta få inte förgäves döda
+mat	är och i åt
+nästa	vecka gång år månad söndag buss
+jobb	att är åt som i
+sluta	röka prata med upp nu vara
+vatten	i är och tack kokar till
+veta	vad varför det att var hur
+hittade	du en den inte ett det
+vän	till med vars är i som
+mamma	är var sa så jag jobbar
+ord	för och med är på
+dog	i av innan när en hon
+spelar	du ingen ofta golf ett det
+precis	som vad i det ätit kommit
+berätta	för det sanningen en vad inte
+någonsin	sett har kommer varit ätit skulle
+väg	till att hem ut
+rum	är för i med och
+skriva	med en om på sitt under
+gamla	stan huset bil vänner är bilen
+bok	är om på som att medan
+spela	fotboll med inte någon spel
+dricker	inte du te vatten alltid aldrig
+dagen	i på efter
+började	bli gråta skriva svettas prata du
+trött	på ut idag så i för
+väl	inte det vänta ändå hålla
+ont	i att om
+saker	som och att är när om
+lång	tid som och vecka är eller
+sätt	att dig på som er igång
+vilket	är land djur skepp företag tåg
+lika	lång mycket gärna snabbt gamla många
+pappa	är i har var som
+tio	minuter år i procent åren dollar
+snart	att kommer som du
+riktigt	bra vad illa så trött roligt
+lämna	mig ett dig tillbaka in inte
+fem	minuter i dagar år dollar gånger
+ned	i från det på en den
+lätt	att som för
+rummet	var är med att
+ganska	säker bra dyr säkra smart hungrig
+hålla	med ett dig mig till sig
+innan	jag du han det tisdag de
+gånger	i om så ska per
+föräldrar	är var dog älskar om har
+ens	vad om på ett kan med
+illa	om till ute sig när som
+hunden	är följde har med åt hoppade
+hår	är och var i
+problem	med men är
+tyckte	om att inte du han ni
+maria	är har skulle var hade
+upptagen	ut just med hela att den
+stort	som sett hus misstag problem land
+läsa	det utan mellan en eller
+jobbet	i
+nog	att inte för av bäst med
+dit	med en på nu själv
+bror	är har
+emot	att det förslaget oss mig
+håll	dig ett er käften i ut
+blivit	mycket en tillsagd stulen påkörd
+vägen	till hem för är
+barnen	är redan var
+glad	att ut för över
+nej	jag det inte tack till
+bad	om mig honom henne inte oss
+te	eller är med
+hit	för i och varje så
+satt	på och i bredvid där ensam
+dagar	i till senare sedan efter
+faktiskt	inte aldrig på ganska väldigt det
+sitter	på i och inte vid du
+arbetar	på i du som inte här
+annat	än land sätt val
+fått	nog en sparken ihop höra det
+slog	mig honom henne upp sig i
+hitta	ett en på den honom det
+livet	är av i
+son	är blev har
+fru	är lycklig
+händer	är var om
+genom	att fönstret dörren en
+snabbt	som för i han
+träffa	dig honom oss henne dem mig
+full	av med som
+önskar	att dig er jag bara
+höll	på sig i med upp honom
+vacker	dag som flicka fjäril klänning tjej
+hände	med i det här egentligen
+staden	är i har så ligger stod
+säg	till inte det åt mig att
+sant	att
+del	av föredrar människor är
+tåget	till har stannar är
+båda	två är händerna de mina
+mannen	är som dog erkände åt bor
+åker	till om du hem jag vi
+kvar	i här på att
+deras	namn hus kontrakt
+ihåg	det den att vad mig hans
+långt	härifrån är från borta hår till
+hämta	en lite mig min din upp
+borta	från är på länge
+öl	till och i
+hörde	du ett det en någon att
+tillsammans	med i
+väntar	på du ni inte
+världen	är
+alls	bra om rädd
+sjuk	ut så länge hon
+samma	sak gång sätt buss skola problem
+liten	by stund flicka
+bästa	vän vi sättet
+ger	mig oss dig aldrig inte sig
+titta	på inte en förbi under
+börjar	bli på det vi redan
+mor	är
+tidigt	för på i så
+varandra	i
+folk	som inte säger på i efter
+läser	en du den inte bibeln tidningen
+försök	att inte igen bara vara hålla
+bordet	är och för
+arg	på
+åkte	till fast hem tillbaka dit på
+särskilt	bra mycket som upptagen länge
+ögon	är
+enda	som jag möjliga ord hopp
+ja	jag det ä så eller
+mellan	två en träden fyra raderna liv
+saknar	dig du er mig ni ett
+syster	är tycker leker
+sent	till på den i för
+ung	och men ut för var
+annan	gång dag än åsikt möjlighet är
+senare	kommer än
+försöker	att du säga komma bara ta
+familj	i är och flyttade har bor
+fort	som jag att han
+föll	ner på från till för av
+berättade	för inte du sanningen om en
+vart	ska är gick han jag tog
+frågor	till som om kan
+hos	oss mig sin en dig sina
+förra	året veckan månaden natten sommaren vintern
+gången	jag som du vi på träffade
+sover	i du på inte som med
+misstag	på
+våra	kunder liv barn vänner beslut
+tro	på att det mig er
+höra	min dig att din mig det
+förstå	vad det att dig detta allt
+sagt	det till att nej något upp
+helst	inte för är kan
+träffade	du honom henne en
+sex	månader dagar i med varje sju
+sova	på ut nu lite i här
+dricka	kaffe för en öl det vin
+fyra	dagar år fem ögon ben på
+vårt	hus land bästa öde lag skepp
+skrev	du en ett ner till jag
+vilka	är färger vill filmer
+kort	hår för sträcka och tid
+först	i måste då
+lever	i fortfarande än ett på du
+använder	du det ni en man endast
+ibland	är förstår kan
+arbete	att med
+öppna	dörren fönstret inte den munnen ett
+ute	och efter i på eller
+runt	i om hörnet föremål
+frågade	mig honom om du dig en
+gått	i ner med och sedan ut
+dags	att för
+glömde	att min bort
+roligt	att på i längre med
+stod	på i och en vid det
+nära	att stationen vänner vän stranden
+minns	inte du jag ni det
+plats	i för med
+problemet	är med
+lycklig	här
+tittade	på ut in i bort
+natten	är
+dålig	på idé vana andedräkt dag
+flera	gånger år olika månader dagar timmar
+musik	är på jag
+gärna	till ha säga vilja på ställa
+dessa	är pengar villkor
+sov	i på över inte du jag
+dö	än inte utan
+minuter	sen innan sedan efter för
+idé	att var
+lärare	är
+ätit	lunch färdigt upp middag på en
+sista	tåget gången som du tiden
+land	i kommer som tål
+tag	i på plats
+mår	du bra inte din jag dåligt
+brev	till i från på
+lär	mig sig dig oss ut
+medan	han jag du vi hon andra
+vecka	sedan senare
+be	om dig
+låter	det som inte trovärdig besviken bra
+tillräckligt	med gammal bra
+undrar	om varför vem vad hur vart
+tyska	med är och
+låg	och på i med
+tv	i när
+tidigare	än
+ringde	mig du inte i på polisen
+hjälpte	mig henne du dem honom oss
+hundar	är eller
+jobbar	på du för här med
+råd	med att
+glöm	inte vad det aldrig
+lita	på inte
+hända	igen att om det något
+skriver	ett till en du dagbok
+ifrån	sig att oss
+läste	du en inte brevet tidningen i
+rik	men skulle eller är som
+sanningen	för är
+kommit	fram än tillbaka för hem på
+kostar	den det en denna två
+ledsen	ut men att för jag
+bussen	till var är
+resa	till själv
+lunch	med i på
+följa	med dig skolans mitt reglerna
+john	är har att
+stannade	hemma i du och där kvar
+polisen	har är
+vore	här kul ett så bra du
+stora	dagen
+simma	i över lika idag
+gifta	mig sig dig i oss
+filmen	är var
+dotter	är har
+person	som
+ju	inte mer förr helt
+tvungen	att
+bäst	att om
+era	platser barn
+kul	att
+huvudet	på och
+sen	till
+djur	är
+hör	du till inte på ni av
+svar	är på överraskade
+lämnade	mig nyckeln in
+fast	i för anställning tjuven vid säkerhetsbältet
+enkelt	inte att som
+kör	en fortfarande in
+skeppet	är som
+fanns	ingen inte inga det en
+mjölk	i kvar är
+dåligt	humör för väder samvete
+kvinnor	är
+satte	sig mig upp på sitt
+natt	och
+stund	till
+döda	dig mig någon er
+menar	du det allvar
+timmar	i att om sedan på
+säljer	ni inte skor de bilar du
+kallt	krig i vatten väder
+slå	dig på upp ihjäl mig ihop
+middag	på med
+egen	hand dator dörr
+pojken	är var har som låg
+mötet	i nu
+tänka	på mig sig
+dödade	den inte en honom du
+rädda	för dig mig världen alla
+olika	slags saker
+meningen	är med att
+lådan	är var
+bodde	i en du här där
+lägg	dig inte av tillbaka allt
+sprang	iväg så för omkring till efter
+hungrig	som
+hjälper	oss inte mig dig det
+gud	är skapade
+ringa	dig henne polisen honom några mig
+brukade	vara göra dricka
+solen	är skiner går
+brukar	du ta inte gå vara
+varmt	i idag och
+betyder	det mycket inte
+säkert	att
+män	är och
+eftersom	jag hon han det
+viktigt	att för
+lärde	mig sig du oss känna dig
+frukost	klockan åt i
+ihop	med det sig pengar
+visade	sig mig på
+grund	av
+fungerar	inte det den
+fisk	till
+leva	utan med i
+knappt	några se gå
+betala	dig med för er kontant
+festen	var i
+börja	med om imorgon
+året	runt om i
+sjunga	en i och
+köra	bil en på
+snälla	och förlåt låt gå ge
+inne	på i
+sitta	här i med bredvid där på
+måndag	tisdag
+ert	skrivbord bord hus papper
+ursäkt	för men
+morgonen	den
+klarar	du inte det av sig jag
+hört	talas den något vad henne på
+kläder	är och i
+flickan	som har gick stack är
+sak	som
+drack	en inte kaffe
+även	om en dess
+alldeles	för nyss till
+tyst	och i
+redo	att för
+stå	i ut till upp på inte
+barnet	kunde blev har kastade
+vinna	tid över
+föredrar	att jag du kaffe
+mindre	än och
+tur	att är som var
+maten	var är
+mening	på är med som
+låta	mig dig bli det dem
+behövde	inte göra
+fönstret	som såg
+stationen	för
+förlorade	medvetandet allt sina sitt
+föddes	i på blind du
+läst	ut den alla
+bryr	mig sig du
+bakom	dig galler ryggen sig mig soffan
+intresserad	av
+behöva	en din lite det
+hårt	i för arbete som
+handen	på i
+pratade	med om aldrig du
+haft	en ett det sex
+litar	inte på du ni helt
+arbeta	under hårt
+okej	med om att
+klar	med
+visa	mig dig vad
+hatt	på
+älskade	mig att henne den
+människa	får
+ringer	dig mig vi
+egentligen	inte att har är
+pengarna	tillbaka i är
+spelade	fotboll på en
+gillade	den mig inte
+vems	sida är bil idé barn
+vackra	blommor bilder
+blommor	i
+högt	i är
+använda	den din telefonen
+bo	i på här hos
+lyssna	på inte
+glas	vatten öl vin mjölk
+hänt	med så något
+kvinna	om vars
+flickvän	var är
+köpt	en ett julklappar de två
+kärlek	kan är
+vattnet	är i
+timme	sedan till om
+bör	inte följa vara åka
+framför	te mitt oss en
+låna	din mig en den
+tal	var om på
+svart	te hår hatt
+arbetet	i själv
+aning	om
+ägg	i till
+ät	inte vad upp
+jorden	är vad
+försöka	att igen göra lösa
+färdig	nu än med
+hämtar	det den lite dig din
+röka	på i tobak
+nytt	hus år jobb för
+gift	med mig och dig
+steg	upp på för jag till
+glömt	bort min att det något
+ben	är har i
+öppnade	dörren sin lådan munnen
+intressant	att
+bär	alltid en på inte
+trevlig	resa kväll helg
+iväg	nu
+parken	har
+allting	är var som bra i
+skor	är
+vann	över du
+svara	på inte
+dum	fråga ut
+ses	i igen på vid senare nästa
+lät	mig ingen
+adress	här
+tittar	på du
+sida	av är
+förstod	inte jag du aldrig vad att
+klart	för att
+telefon	i
+par	dagar skor
+känna	dig sig mig honom till det
+närheten	av
+stranden	är
+lyssnar	på inte du
+lägenhet	var
+körde	på tillbaka mot in över
+landet	har i
+studera	hela
+chans	att
+förklara	det vad vägen
+händerna	fulla ofta
+ögonen	och när
+slutade	tro röka du
+möjligt	att
+rör	inte mig sig dig på
+sängen	är hela
+sådan	här
+tänkte	på att inte du väl
+laga	mat den
+ställa	en frågor dig sig upp några
+ordet	i
+galen	i men
+skyldig	mig till dig er
+månader	i sedan på innan
+bröt	sig mot sitt benet
+sju	på åtta
+talade	inte med du om ni
+litet	land hus runt
+passar	dig inte perfekt henne bra
+sönder	den min igår
+fall	av vara
+frågan	är
+uppe	på hela i
+nyss	förbi sa
+dator	är har
+dör	man av utan
+äldre	än
+skrattade	åt
+dansa	med
+reda	på
+början	på till är
+trots	att allt det
+ursäkta	mig jag att
+ungefär	en tre två i lika hälften
+stark	vilja som
+sjunger	inte tidigt en
+historia	för låter
+klara	det dig provet med
+anledning	att till
+blå	ögon slips
+kina	i
+stolt	över
+lägga	mig den sig dig till
+spanska	är
+kött	eller
+film	som på är
+senaste	åren dagarna tio tiden gången
+farfar	är
+tappade	bort
+ljög	för om
+sällan	på
+någonstans	att i
+fler	än
+trädgården	med
+stal	min en pengar pengarna
+tagit	med på
+eget	rum sätt fel hår hus liv
+kopp	kaffe te
+vackert	väder
+födelsedag	är i
+nöjd	med
+verkade	inte vara
+europa	är
+letar	efter
+stannar	här hemma du i
+hälsa	på är
+ljuger	för du
+stoppa	mig det oss henne
+gråter	du alltid
+största	stad
+kvinnan	är har som
+förlåt	att jag mig för oss
+exakt	var vad vem det när
+skratta	eller
+marken	och
+stäng	av dörren fönstret
+långa	öron ben
+goda	vänner skäl
+stad	i
+skynda	dig på er sig mig
+före	konserten mig
+vissa	länder människor
+paris	är
+kalla	mig vädret på vinden dig
+väntade	på du inte
+skall	gå du koka
+tåg	avgår
+röda	hatten
+släpp	in inte min mig
+söndag	är kommer
+bredvid	mig henne varandra
+personer	som med
+halv	sju tre nio fyra åtta
+ring	mig
+färdigt	än
+fängelse	för
+stället	för
+varken	för röker i
+tills	han det i vidare
+ber	om dig du
+dröm	är om
+bestämde	sig mig
+van	vid att
+dra	åt i in en
+följ	efter den bara med
+promenad	varje i på
+exempel	på
+fotboll	är i på
+ön	är har ligger
+åtta	på timmar nio
+havet	är
+flicka	med
+sägs	om att
+luktar	illa gott med rök
+tyvärr	inte kan är
+kolla	in på min det upp
+tvätta	händerna dig dina
+köper	en inte
+vintern	är
+äger	en du den rum
+semester	i
+följde	efter med
+förlora	är dig
+leka	med
+sköt	mig upp du
+ändå	inte
+trädet	är
+himlen	är var
+vänlig	och mot
+glasögon	på
+överens	med om
+endast	ett kärlek för
+ändra	på sig
+små	barn
+kniv	och
+valde	att ut en du
+stör	mig inte det
+skorna	är passar som
+buss	till
+annars	kommer
+sommaren	är
+igenom	de
+floden	är
+morfar	och
+ryssland	är
+gäller	för att
+utom	fara kontroll sig jag
+långsamt	så
+skola	ligger är
+huvud	taget längre
+skicka	mig ett en det
+kysste	henne honom mig sin
+annorlunda	ut
+värt	ett att det
+sätta	på igång dig upp
+svaret	är på
+veckor	på innan sedan gammal
+bett	om dig mig er
+fortsatte	att
+röd	bil
+tusen	tack bitar dollar euro
+affären	är
+klänning	till
+vädret	är bra i
+omöjligt	att
+välkommen	till hem
+taket	är
+golvet	är och
+la	mig på du
+inför	framtiden klassen
+tycka	om
+byta	om kläder rum plats
+trevligt	att
+nio	tio på
+ansikte	är var
+lust	att
+besökte	mig ett
+förrän	i han klockan jag
+röker	mycket eller
+all	anledning del världen förändring
+tjänar	inte tre på
+smakar	gott konstigt som
+visst	är kan
+följer	med du efter ni
+beställde	en
+gifte	sig mig
+springer	i snabbt
+stämmer	inte det
+stängde	av dörren
+olyckan	är var
+säng	är
+hittat	något en
+blod	för i
+håret	på
+herr	smith white
+därför	att jag du är
+städa	rummet ditt upp
+sidan	av är
+bestämt	mig sig dig
+förr	eller
+sjön	är
+större	än problem i
+bild	av på
+morse	var
+flygplatsen	för
+lyckades	inte
+hoppade	över in på från upp
+berättar	för allt en sanningen
+telefonen	ringde är
+reglerna	gäller
+blind	på
+färg	har på är
+känt	varandra honom henne mig för
+råkade	ut
+ena	ögat eller efter och
+skrivit	en ett på
+vitt	jag vin
+bland	vänner
+vit	som hund
+flytta	till på tillbaka
+hatade	det honom
+penna	och
+handlar	om inte
+glömma	bort det att
+hög	är
+består	av
+svår	att
+hellre	dö ensam
+avskyr	att
+lösa	det problemet
+röra	på
+flesta	av människor
+farligt	att
+länder	som runt
+slutar	du
+fåglar	flyger sjunger kan har
+ärlig	person
+sådant	här
+oroa	dig sig er
+skriv	din ner
+förbi	på
+lilla	flickan
+fattig	som
+gilla	det honom den
+tolv	månader veckor timmar
+matchen	blev
+bar	gärning på
+massor	av med
+enligt	tidningen
+skickade	ett mig
+usa	är
+vikt	vid
+skrattar	du sällan aldrig åt
+öga	på
+drog	en
+svarade	på inte
+lördag	och
+tillhör	min henne inte de
+kaffet	är var
+talas	om vid i
+sjöng	en i
+skrek	på för av
+främmande	i
+äntligen	är
+flög	över till iväg
+fågel	i
+jobba	på
+ställ	dig undan den inte er
+tillbringade	en min jag natten
+tvättar	du händerna bilen mig
+bio	i med
+krig	är mellan
+känns	det som
+antar	att
+sälja	den sin det
+lånade	honom ut en den
+utanför	staden
+viktig	för
+papper	är
+grät	hela
+tappat	bort
+lycka	till
+blommorna	är
+hänger	på ihop du
+sjukdom	kunde
+kallas	för
+berättat	för det
+hittar	inte jag
+undan	med
+skillnaden	mellan på
+arm	är i
+fångade	en tre
+träffat	dig henne
+farbror	bor
+själva	verket
+taget	om inte
+fågeln	är
+läs	det inte
+lovar	att
+humör	idag just
+ställer	upp mycket frågor
+söker	efter jobb
+prova	den det
+kräver	att
+hann	inte med
+mormor	har
+arbetade	för hårt
+tjugo	dollar minuter år
+massa	pengar saker
+gömde	sig mig
+försiktig	så med
+hotellet	har
+välja	vilken mellan vad
+slutet	av på
+italien	är
+inom	kort
+vilse	i
+vinden	blåste
+nyckeln	till på i
+omkring	i och
+kasta	inte bollen ut
+lovade	att mig
+skada	dig mig
+lagar	mat du
+levande	eller
+fulla	drag av
+förändrats	mycket
+fann	jag
+liknar	sin
+låtsades	vara att inte
+våren	är
+radion	är
+sten	föll på
+frisk	luft
+kontakt	med
+leker	med i
+ljuga	för
+situationen	är
+betalade	för
+må	vara
+reste	sig under till
+ihjäl	honom tid
+försvann	i utan
+vanligtvis	inte till på
+slutat	röka
+fisken	är
+amerika	är
+socker	i
+tänk	på vad
+sålde	den några
+flyger	en
+dyrt	att
+emily	är
+dan	var
+företaget	är
+ställde	en sig
+present	till från
+kär	i
+hål	i på
+orolig	för över
+erkände	att
+flyga	ett
+istället	för
+lugna	ner ned
+växte	upp
+hinner	inte du
+världens	största vackraste
+fri	som
+skjorta	är
+meddelande	på
+missade	tåget jag
+högre	så
+fiskar	i är
+datorn	är
+skillnad	från mellan
+biblioteket	två
+böckerna	är i
+rött	vin
+hel	del hop
+antagligen	inte att
+yngre	än
+tecken	på
+eld	på
+klarade	det sig
+sakna	dig er det
+fattar	inte du
+jättebra	jobb idé
+fint	hus väder
+fullt	upp av
+bröder	och
+new	york
+lägger	mig ägg
+byggnaden	är
+använde	en för
+varm	dag
+hissen	är
+frågar	du
+fest	i
+söt	flicka tjej
+uppskattar	verkligen
+lyckliga	ut
+träffas	på igen
+dåliga	vädret
+synd	om att
+lugn	och
+förtjänar	en inte det att
+kyrkan	i
+berlin	är
+räkna	med till
+tänkt	på
+förklaring	var
+femtio	år
+täckt	av med
+stänga	dörren av fönstren
+guld	är
+ringt	mig
+saknas	en
+kastade	en in
+fredag	lördag
+vilda	djur
+egna	ögon
+regler	gäller
+märkte	att det
+målade	du den i
+fortsätt	med
+lider	av
+lyssnade	på inte
+stig	upp in på
+simmar	inte
+skydda	dig oss
+syskon	har
+hängde	upp sig
+hästar	är äger och
+drick	inte
+säkra	på
+klagar	alltid på jämt
+gjord	av på
+skjuta	upp
+rörde	sig
+närvarande	inte
+svarta	kläder
+frukt	är
+gissa	vad vem
+bron	är
+vaknade	jag
+alltför	mycket
+lagade	middag
+per	år månad
+bestämma	sig mig dig er
+kanada	för
+högsta	byggnad volym
+värre	än
+beredd	att
+direkt	att
+sådana	saker här
+sökte	efter
+rena	rama
+insåg	att han
+åtminstone	en
+använd	den
+nummer	ett
+öppet	på
+född	i och
+ryggen	på
+fatta	ett att
+kropp	är
+blyg	och
+york	är
+bygga	en
+stolen	är
+vackraste	solnedgång
+platsen	för är
+minst	en fem
+lättare	att än
+danmark	är
+dela	med
+skakade	hand på
+skaffa	barn en
+bry	sig dig mig
+dök	upp
+slår	vad
+troligen	inte
+fortsätta	att
+hallå	där är
+priset	på
+väger	mycket du
+resten	av
+tydligt	att
+hoppa	över av
+träffar	du honom
+sättet	att
+tvivlar	på jag
+pratat	med
+övertyga	honom henne dem dom
+flyttade	till
+absolut	inte
+öronen	på
+godis	åt
+skar	mig sig
+bott	i sex här
+tomten	bor
+ledig	i
+dagarna	blir i
+desto	mer bättre
+röstade	du inte
+stirrade	på
+bet	mig
+varnade	dig
+delen	av
+golf	varje
+träffades	på ni
+nå	dig
+middagen	är
+spara	det
+bjöd	in
+anlände	till
+översättning	är
+armarna	över
+rösta	på
+vänster	sida
+duktig	på
+tjejen	som
+ögat	kunde
+levde	ett han
+bollen	med
+lärt	sig dig mig
+tacka	dig
+människan	är
+sätter	på mig
+området	är
+kniven	är
+längtar	efter
+namnet	på
+svensk	ambassad
+byggnad	som jag
+förutom	jag
+tvättade	sig
+övertygad	om
+dumma	svar frågor
+hobby	är
+glaset	gick
+hållet	på
+ler	inte
+delar	av
+drag	av
+älska	henne sin dig
+känd	för
+kosta	vad vill
+koka	lite
+byggde	en ett
+kronor	i
+förklarade	det
+deltog	i på
+stiga	upp
+for	till
+faktum	att är
+toaletten	är
+grönt	te
+fattade	eld
+vare	sig
+drömmer	om
+falla	i
+räknar	med
+väntat	i på
+undrade	om varför
+köp	lite en
+form	av
+ombord	på
+låsa	dörren
+rita	en
+planer	misslyckades för
+mage	skriker
+värd	att
+försökt	att med
+kyssa	dig henne
+taxi	åt
+kunnat	gå
+förbjudet	att
+avslöjade	hemligheten sin inte
+glada	ut
+farmor	har
+vägrar	att
+dubbelt	så
+kärleken	är
+tanken	på
+sovit	på
+england	och
+förresten	hur
+tvungna	att
+delade	rummet upp på
+nyfiken	i
+stiger	upp
+kameran	är
+droger	hittades
+kvart	i över
+påminner	om mig
+torr	handduk
+tjuven	slog
+nyheten	om
+popcorn	är
+naturen	är
+hörnet	av
+viktigaste	i är
+antog	att
+svär	att som
+slag	i
+uttrycka	sig
+förvirrad	ut
+kostade	mig
+museet	är
+texten	är
+ansvarig	för
+fly	från
+äkta	blondin
+hamnade	i
+rök	inte
+skrämmer	mig
+hänga	med upp
+systrar	har
+pennan	är
+återvänder	till
+butiken	har
+klippa	sig håret
+fötter	är
+normalt	inte
+gömma	mig sig
+fundera	på
+fyller	år sexton
+ärligt	talat
+visar	att sig
+letade	efter
+väckte	dig
+sämre	och
+pojkarna	fick är
+vägrade	att
+värsta	du
+starkare	än
+oroar	mig sig
+varade	i
+märke	till
+leder	till
+tjejer	i
+nödvändigt	att för
+erbjudande	jag
+torsdag	fredag
+räcker	det
+räddade	mig
+amerikaner	är
+hemsk	dag
+framme	än
+höga	berget
+tisdag	kommer onsdag
+skrämde	mig
+njuter	av du ni
+kollade	upp
+begick	ett
+procent	av
+klä	på
+gömmer	sig
+lön	för
+allergisk	mot
+hjälpt	till mig
+dörr	är
+definitivt	inte
+januari	är
+byxor	är
+ved	varje
+fransk	koloni
+jämt	på
+förlåta	mig
+förälskad	i
+grannar	är
+finnas	mycket några
+önskan	blev
+hinna	med
+frukosten	är
+oavsett	hur om
+släppte	in
+kunskap	om
+krävde	en att
+vars	far
+låtsas	vara som
+avgår	om från
+planerar	att
+fyll	i
+risk	för
+flaska	vin
+modern	konst jazz
+beställa	nu
+presentera	dig mig
+vana	att
+sakta	ner så
+behov	av
+syn	på
+koncentrera	dig mig
+kontrollera	mig din
+dock	inte
+uttråkad	ut
+fyllde	på
+fixa	det
+efternamn	är
+druckit	tre två
+skugga	på
+bekant	ut
+saknat	dig er
+näsan	i
+personen	i
+leende	på
+söder	om
+lista	över ut
+lov	att
+öva	på
+förmodligen	inte
+juni	är
+nyckel	till
+rymde	från
+gamle	mannen
+bevisa	det att
+lagom	är
+smälter	i
+återvände	till
+drömde	om att
+fåglarna	flög
+klaga	på
+ångrar	att
+spring	inte
+sänka	priset rösten
+letat	efter
+flickorna	är
+gåva	till
+hot	mot
+njöt	av i
+varifrån	kommer är
+delta	i
+plocka	rosor
+uppför	sig
+ljugit	för
+samla	på
+klassisk	musik
+viktigare	än saker
+gråt	inte
+blåa	ögon
+kapten	över på
+het	gröt
+glömmer	aldrig
+krossa	ditt hjärtat glaset
+fungerade	inte
+erkänner	att inte
+passa	dig
+resultatet	var
+skäl	att
+byxorna	är
+norra	europa
+hyran	är
+titt	på
+internet	är
+lämpligt	klädd
+irland	ligger
+orsaken	till
+parkera	här
+gul	och
+blek	ut
+grattis	på
+medveten	om
+skilja	på
+föreslog	att
+hälften	av så
+fyrtio	personer
+regeringen	har
+målat	den
+högg	ner
+väcka	bebisen
+tappa	inte
+föreställa	mig dig
+vetat	om
+varsågod	och
+föreslår	att
+hotade	du
+paket	till
+anser	att
+make	är
+strax	tillbaka
+råder	inget
+förväntar	mig
+beter	sig dig
+sjutton	år
+kinesisk	mat
+hata	mig
+klär	sig
+förväntade	sig mig
+näst	på sist
+hård	mot
+fjärde	våningen
+vände	sig bort
+imponerad	av
+ingenstans	att
+mejl	till
+uppenbart	att
+vackrare	än
+råkar	inte
+lova	mig att
+mörk	och
+orsak	till
+yrke	är
+järn	är
+litade	på
+tillåtet	för
+missa	det
+volymen	på
+simmade	i
+kämpa	mot emot
+ske	din
+uppgift	att
+jesus	älskar
+avsikt	att
+klättra	i
+hammare	och
+prästen	är
+smith	har
+examen	vid
+orkar	inte
+välj	en ett
+anledningen	till
+universum	och
+hyra	en
+tillbaks	om
+söka	efter
+svor	att
+prinsessan	ligger
+betedde	sig
+gjorda	av
+övermorgon	är
+mata	inte
+nöje	i att
+antalet	fel
+gläder	mig
+drunknade	nästan
+känsla	för
+koppar	kaffe
+kjol	och
+välkomna	till
+erkänna	att
+blunda	och
+förbättra	min
+släcka	elden
+klädd	i
+skylla	på
+tände	eld
+skäms	över
+hantera	det
+älskad	av
+sänk	volymen
+tvivel	om
+fortsätter	att
+tak	över
+ytterligare	en
+givet	att
+hylla	är
+kokar	vid
+självklart	inte
+tretton	år
+snabbare	än
+förhoppningsvis	kommer
+missat	något
+risken	för
+klättrade	upp
+hemligheten	för
+varor	i
+behövs	inte
+köttet	är
+bygger	en
+påkörd	av
+halvtimme	att
+tyngre	än
+tillsagd	att
+lyfta	den
+himmel	och
+botten	av
+liter	mjölk
+skönt	att
+närmar	sig
+fritt	spelrum
+bita	dig
+fastnade	i
+varg	i
+latin	är
+samman	i
+förälskade	sig
+verket	var
+samlar	på
+respekt	för
+färger	hon
+schweiz	är
+färgen	är på
+riktiga	namn
+lunchen	är
+lätta	att
+tony	är
+kämpade	för
+lyckligt	liv
+passagerare	på
+kurs	bland
+klandrar	dig
+slappna	av
+brann	ner
+kastar	en
+bekräfta	det
+betalat	för
+stötte	på
+påminde	mig henne
+koppla	av
+pågår	här
+angår	inte
+anpassa	sig
+anta	att
+kära	barn
+låste	dörren
+lampan	på
+behandlar	mig
+vinet	är
+försvinn	från
+hoppades	att
+raka	vägen
+begå	självmord
+lekte	med
+ångra	det
+kortare	än
+onsdag	torsdag
+rygg	gör
+väster	om
+flyg	till
+lev	ditt
+återvända	till
+berättelse	låter
+medlem	i av
+avundsjuk	på
+klagade	över
+följt	med
+vågar	du inte
+räck	mig
+beror	på
+pojkar	och
+blåste	ut
+öster	om
+rekommenderar	du
+ann	har
+brist	på
+årets	första
+peter	är
+förtjust	i
+misstänkte	ljög att
+tål	inte
+sons	dotter
+mänskligt	tal
+jordbävning	i
+svårare	än
+elefanter	är
+kunskaper	i
+sparar	pengar
+tillgång	till
+möjligheten	att
+lyfte	från
+våg	efter
+svarar	inte
+leta	efter
+slösa	inte
+förneka	det
+behålla	den
+kommittén	blev
+ignorerar	dig
+bete	dig
+undra	på
+numret	av
+rädsla	är
+respekterar	dig
+fattas	en
+varenda	dag
+inställning	till
+dömdes	till
+jagar	inte
+svaren	är
+inbrott	i
+ordna	sig
+bjuder	på
+förstöra	det
+beroende	av
+rå	fisk
+badrummet	och
+ess	i
+sexton	år
+snällt	av
+fryser	om
+förenta	staterna
+grävde	en
+omöjlig	att
+samlade	på
+föremål	i
+skiljer	sig
+döma	folk
+skjut	inte
+tjuvar	bröt
+förväntat	mig
+reta	inte
+inse	att
+sköts	upp
+rymt	från
+firade	du
+lättad	ut
+foto	av
+harry	är
+svaga	för sidor
+gett	mig
+thomas	är
+ende	som
+ryckte	på
+sticker	vi
+förvänta	dig
+förlovad	med
+skulden	på
+poesi	och
+tacksam	för
+bjuda	dig
+doftar	gott
+brydde	sig
+motsatsen	till
+skyller	inte
+pyjamas	då
+lovat	att
+slogs	tillsammans
+elev	har
+njut	av
+skolans	regler
+moraliskt	fel
+lurar	du
+misstänker	att
+biter	på
+invånarna	i
+förändring	är
+hävdade	att
+värker	i
+tyckt	om
+locket	på
+däremot	inte
+växter	växer
+norr	om
+utbildning	är
+stirrar	på
+baseball	eller
+begravdes	levande
+gifter	sig
+oense	med
+noggrant	men
+bege	mig
+sysslar	du
+sydde	du
+peka	ut
+praktiskt	taget
+blont	hår
+skrivet	på
+itu	med
+hugger	ved
+byggt	ett
+höna	av
+stöter	på
+fallit	överbord
+överge	skeppet
+smartare	än
+tvinga	mig
+anklagar	du
+skriven	på
+minska	antalet
+förklarar	allt
+känn	dig
+vilar	på
+akta	dig
+flyget	till
+skräckslagen	ut
+jämfört	med
+sovrummet	har
+pojk	eller
+klädde	av
+befinner	sig
+skaka	hand
+såra	dig
+lukten	av
+såvitt	jag
+görs	av
+intresserar	mig
+luta	dig
+borsta	tänderna
+riskerar	att
+födde	ett
+ä	full
+tillverkar	ni
+därmed	basta
+innebär	inte
+drygt	en
+sjukdomar	är
+rakade	sig
+olagligt	att
+hällde	upp
+fokusera	på
+mask	i
+samarbete	är
+svävar	mellan
+djävulen	är
+brunt	hår
+träffad	av
+bränner	dig
+teorin	är
+flygande	tefat
+hållas	i
+ledde	till
+mänskliga	rättigheter
+njuta	av
+motståndaren	i
+trivas	här
+varannan	dag
+räknade	till
+hälsar	på
+nätt	och
+trycka	på
+träff	med
+filosofi	är
+sinom	tid
+blott	en
+knackade	på
+ölen	är
+uppäten	av
+generellt	sett
+cola	eller
+hink	vatten
+slöseri	med
+vinka	av
+kö	för
+tråkar	jag
+doften	av
+tillverkad	i
+villig	att
+drömma	om
+ordnar	sig
+plus	två
+smink	på
+påstår	att
+visat	att
+hänsyn	till
+anställa	en
+ropa	på
+res	dig
+påstod	att
+innehållet	i
+stavar	man
+släkting	till
+kontakten	med
+insisterade	på
+ingången	till
+slöt	sina
+maka	på
+överraska	henne
+planerade	att
+hamnar	i
+innebära	att
+sydväst	om
+jupiter	är
+önskade	att
+tjänster	som
+klättrar	upp
+expert	på
+rymden	är
+varar	för
+venus	är
+vald	till
+överkörd	av
+hota	mig
+trottoaren	är
+penis	är
+utflykt	till
+biten	av
+födda	i
+valar	är
+råkat	ut
+äga	en
+komplex	maskin
+drivs	av
+stämt	träff
+ränta	på
+spotta	på
+tryckt	på
+stolta	över
+ljug	inte
+sugen	på
+dans	på
+mödan	värt
+summa	pengar
+menat	det
+uppfattade	inte
+dussin	ägg
+ryck	upp
+svära	på
+tacksamma	för
+översta	hyllan
+osynligt	för
+skyll	inte
+förbjudna	på
+förmåga	att
+dyker	upp
+tummarna	för
+fuskade	på
+janet	köpte
+berodde	på
+hävdar	att
+leanne	har
+borstar	tänderna
+brändes	vid
+trög	i
+önskat	sig
+pommes	frites
+tu	man
+funderat	på
+behandla	mig
+länderna	och
+spökar	i
+närmade	sig
+intryck	av
+beslöt	att
+spänn	fast
+färd	med
+knacka	på
+anses	vara
+beger	mig
+besatt	av
+bokstaven	i
+hammaren	och
+narr	av
+förvånar	mig
+white	är
+förökar	sig
+omges	av
+tredjedelar	av
+utger	sig
+fördriva	tiden
+brett	leende
+bristen	på
+såna	saker
+valdes	till
+bevisat	att
+smällde	igen
+återgå	till
+oförmögen	att
+less	på
+upphov	till
+ödsla	inte
+underfund	med
+tvivla	på
+täckta	av
+utrustad	med
+benägen	att
+knackar	på
+fylla	i
+utsatt	tid
+suck	av
+åsynen	av
+inflytande	i
+vågade	inte
+lyssnat	på
+behärskar	flera
+raska	på
+harmoni	med
+stört	omöjligt
+larva	dig
+föreställt	oss
+befarar	att
+påverkas	av
+hong	kong
+anstränga	mig
+sedd	från
+mörkrets	inbrott
+försvarar	inte
+namnen	på
+hamna	i
+valp	han
+varan	är
+erika	gick
+jokern	är
+skämmer	ut
+överbord	från
+spred	sig
+lampor	i
+damma	av
