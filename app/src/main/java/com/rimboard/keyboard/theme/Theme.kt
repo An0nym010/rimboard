@@ -425,8 +425,8 @@ object Themes {
      *
      * The obvious implementation is to sample the app's launcher icon, and it
      * is the wrong one here: reading another package's icon needs
-     * `QUERY_ALL_PACKAGES`, and this keyboard's whole claim is that it ships
-     * with `VIBRATE` and nothing else. So the hue is derived from the name
+     * `QUERY_ALL_PACKAGES`, and this keyboard asks for as little as it can get
+     * away with. So the hue is derived from the name
      * instead. It is not the app's brand colour and does not pretend to be —
      * what it has to be is *distinct and constant*, so that the keyboard looks
      * settled in each app and different between them.

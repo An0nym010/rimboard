@@ -383,6 +383,21 @@ class SuggestionEngine private constructor(
 
     @Volatile
     var blockOffensive = true
+
+    /**
+     * Names from the address book, or empty when the user has not asked for
+     * them — which is the default, and stays the default until they both
+     * turn the setting on and grant the permission.
+     *
+     * Settable rather than read from here, for the same reason
+     * [blockOffensive] is: this class has no Context and no business acquiring
+     * one. Both services set it, so both stop flagging the people you write to.
+     *
+     * Empty is not a special case anywhere below; an empty set simply never
+     * matches.
+     */
+    @Volatile
+    var contactNames: Set<String> = emptySet()
     private val offensiveSets = HashMap<String, Set<String>>()
 
     /** See [predictionModelLock] for why this is not `@Synchronized`. */
@@ -641,6 +656,11 @@ class SuggestionEngine private constructor(
         // still wins — that is an explicit statement about their own spelling.
         if (!userData.isKnown(lower) && isElongation(lower, dict)) return false
         if (dict.contains(lower) || userData.isKnown(lower)) return true
+        // Before the morphology and the other language, because a name is a
+        // name in any of them: "Yilmaz" is not a Turkish stem with a suffix on
+        // it and not an English word, and both of those would be the wrong
+        // question to ask about somebody's surname.
+        if (com.rimboard.keyboard.model.ContactNames.contains(contactNames, typed)) return true
         if (accentedFormFor(lower, lang, dict) != null) return false
         if (com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) { dict.contains(it) }) {
             return true

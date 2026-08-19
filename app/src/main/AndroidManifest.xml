@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- VIBRATE, for key-press haptics, is the only permission every build of
-         RimBoard requests. It grants no access to any data.
+    <!-- VIBRATE, for key-press haptics, is requested by every build. It grants
+         no access to any data. It was for a long time the only permission here
+         and is no longer; READ_CONTACTS is declared below, off behind two
+         gates, and the comment on it explains what that changed.
 
          INTERNET is deliberately NOT here. The `online` flavor adds it from
          src/online/AndroidManifest.xml; the `offline` flavor has no manifest
@@ -14,6 +16,28 @@
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <!--
+        READ_CONTACTS, for one thing: the keyboard and the spell checker stop
+        treating the people you write to as misspellings.
+
+        Added deliberately, and it is the second permission this app has ever
+        asked for. Be clear about what that costs. The offline build declared
+        VIBRATE and nothing else, and that was checkable with one command and a
+        glance; it declares two now, and the check has to be read.
+
+        What it does not change: neither build sends anything anywhere, and the
+        offline build still holds no INTERNET permission, so nothing read here
+        can leave the device by any route at all. What is held is a set of
+        lowercase name parts — no numbers, no addresses, no contact identity
+        — in memory, never written to disk, and dropped when the setting is
+        turned off or memory is short.
+
+        Two gates, both the user's, and both shut by default: the "Names from
+        contacts" setting, and Android's own permission prompt. With either
+        shut, ContactStore reads nothing at all.
+    -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+    <!--
         From API 30 an app sees no other packages unless it declares which it
         cares about, and that filtering applies to queryIntentActivities too.
         Without this the keyboard could not tell whether a translator was
@@ -21,9 +45,11 @@
         know it was about to do nothing.
 
         The first two entries grant visibility of apps handling those actions
-        and nothing else. None of this is the QUERY_ALL_PACKAGES permission:
-        the built APK still declares only VIBRATE, which `aapt dump permissions`
-        will show.
+        and nothing else. None of this is the QUERY_ALL_PACKAGES permission, and
+        none of it appears in `aapt dump permissions` at all — which is the
+        thing to understand about it. The two permissions that command does print
+        are not the whole of what this app can see; package visibility is granted
+        by the block below and shows up nowhere in that check.
 
         The launcher entry is broader and is here for the per-app tint, which
         reads the current app's icon to take its colour. Be clear about what it

@@ -295,4 +295,6 @@
     <string name="search_no_results">Eşleşen ayar yok</string>
     <string name="pref_match_app_mode_title">Uygulamanın açık/koyu moduna uy</string>
     <string name="pref_match_app_mode_summary">Koyu bir uygulamada klavye de koyu olur, saat kaç olursa olsun. Sistem ve Material You temaları için geçerli; kendin seçtiğin tema değişmez.</string>
+    <string name="pref_contact_names_title">Kişilerden isimler</string>
+    <string name="pref_contact_names_summary">Yazıştığın kişilerin adlarının altı çizilmesin. Açılınca izin ister; isimler yalnızca belleğe okunur, hiçbir yere gönderilmez.</string>
 </resources>

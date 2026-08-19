@@ -68,6 +68,7 @@ object Prefs {
     const val KEY_CLIP_RETURN = "clip_return"
     const val KEY_CURRENCIES = "currencies"
     const val KEY_OFFENSIVE = "block_offensive"
+    const val KEY_CONTACT_NAMES = "contact_names"
     const val KEY_AS_SUGG = "autospace_suggestion"
     const val KEY_TOOLBAR = "toolbar_keys"
     const val KEY_PINNED_ORDER = "pinned_order"
@@ -299,6 +300,21 @@ object Prefs {
         return if (v.length >= 2) v.take(6) else "\u0024\u20BA\u20AC\u00A3\u00A5"
     }
     fun blockOffensive(c: Context) = get(c).getBoolean(KEY_OFFENSIVE, true)
+
+    /**
+     * Whether names from the address book count as spelled correctly.
+     *
+     * Off, unlike almost everything else here. A default that reads a
+     * permission-gated source is a decision made on the user's behalf about
+     * their address book, and the one thing an on-by-default switch cannot do
+     * is be a choice. Turning it on is what triggers the permission prompt.
+     */
+    fun contactNames(c: Context) = get(c).getBoolean(KEY_CONTACT_NAMES, false)
+
+    /** Used when the permission prompt is refused, so the switch cannot lie. */
+    fun setContactNames(c: Context, v: Boolean) {
+        get(c).edit().putBoolean(KEY_CONTACT_NAMES, v).apply()
+    }
     fun autoSpaceSuggestion(c: Context) = get(c).getBoolean(KEY_AS_SUGG, true)
     fun toolbarKeys(c: Context): Set<String> =
         get(c).getStringSet(KEY_TOOLBAR, emptySet()) ?: emptySet()

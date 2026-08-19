@@ -119,6 +119,7 @@ class RimSpellService : SpellCheckerService() {
         val keep = if (level >= TRIM_MEMORY_COMPLETE) emptySet()
         else SuggestionEngine.neededLanguages()
         SuggestionEngine.trimDictionaries(keep)
+        com.rimboard.keyboard.engine.ContactStore.forget()
     }
 
     companion object {
@@ -250,6 +251,8 @@ class RimSpellService : SpellCheckerService() {
             // changed at any moment and a spell checker service outlives a
             // great many trips to the settings screen.
             engine.blockOffensive = Prefs.blockOffensive(service)
+            com.rimboard.keyboard.engine.ContactStore.warm(service)
+            engine.contactNames = com.rimboard.keyboard.engine.ContactStore.names()
 
             rule = SpellJudge(engine, lang, loc, altLang, altLoc)
 

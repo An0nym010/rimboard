@@ -292,6 +292,10 @@ class RimBoardService : InputMethodService(),
         val keep = if (level >= TRIM_MEMORY_COMPLETE) emptySet()
         else SuggestionEngine.neededLanguages()
         SuggestionEngine.trimDictionaries(keep)
+        // Rebuilt from a query the next time a field is focused, and holding
+        // somebody's address book in a process the system is deciding whether
+        // to kill is the wrong side of that bargain.
+        com.rimboard.keyboard.engine.ContactStore.forget()
         // Second only to the dictionaries in size, and cheaper still to give
         // up: a thumbnail is one download away, and if the panel is open the
         // placeholders return rather than the grid emptying.
@@ -699,6 +703,12 @@ class RimBoardService : InputMethodService(),
                 else -> 0f
             }
             engine.blockOffensive = Prefs.blockOffensive(this)
+            // Queued on the first focus that is allowed to read them, and
+            // picked up on this and every later one. Empty until it lands,
+            // which costs one focus change of names still being underlined
+            // and no wait at all.
+            com.rimboard.keyboard.engine.ContactStore.warm(this)
+            engine.contactNames = com.rimboard.keyboard.engine.ContactStore.names()
             kv.hapticFeedback = Prefs.haptic(this)
             kv.oneHanded = (if (Prefs.floating(this)) 0 else Prefs.oneHanded(this))
             kv.keyHeightFactor = Prefs.heightFactor(this)

@@ -6,10 +6,13 @@ suggestions, and a real incognito mode. No ads, no accounts, no analytics.
 RimBoard ships as **two builds**, and which one you install is the privacy
 decision:
 
-- **`offline`** — **one permission**, `VIBRATE`, for key haptics. No
-  `INTERNET`, so Android will not give the app a network connection even if
-  its code asked for one. This is the default recommendation and the build the
-  privacy claims below are about.
+- **`offline`** — **two permissions**: `VIBRATE` for key haptics, and
+  `READ_CONTACTS`, which is inert unless you turn on **Names from contacts**
+  *and* grant it. No `INTERNET`, so Android will not give the app a network
+  connection even if its code asked for one — which is what makes the
+  contacts permission survivable: nothing read can leave the device by any
+  route. This is the default recommendation and the build the privacy claims
+  below are about.
 - **`online`** — adds `INTERNET` for translation and GIF search. Translation
   works with no key (keyless by default, an optional Anthropic key upgrades it);
   GIF search needs a key you supply. Its offline switch is enforced by
@@ -78,7 +81,8 @@ An `offline` APK can be checked for the thing it claims outright:
 aapt dump permissions RimBoard-<version>-offline.apk
 ```
 
-It should list `VIBRATE` and nothing else. See [Proving it](#proving-it).
+It should list `VIBRATE` and `READ_CONTACTS`, and nothing else. See
+[Proving it](#proving-it) for what each is for and what bounds it.
 
 **Upgrading:** Android refuses to replace an app in place if the signing key
 changed, so if you installed a build signed with the debug key you will have to
@@ -161,7 +165,13 @@ The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
 - **`VIBRATE` in every build.** Key haptics drive the vibrator directly,
   because several OEM builds ignore view-level haptics once the system touch
   feedback toggle is off. It grants no access to any data.
-- **No contacts, no microphone, no storage, no location** — in either build.
+- **`READ_CONTACTS`, off by default and behind two gates.** It exists so the
+  keyboard and the spell checker stop treating the people you write to as
+  misspellings. Nothing is read until you switch on *Names from contacts* and
+  grant the permission; what is kept is a set of lowercase name parts in
+  memory, never written to disk, dropped when the setting goes off or memory
+  runs short. No numbers, no addresses, no contact identity.
+- **No microphone, no storage, no location** — in either build.
 - **No `INTERNET` in the `offline` build**, which is what makes its guarantee
   a guarantee rather than a promise. The `online` build declares `INTERNET`
   and `ACCESS_NETWORK_STATE`. Don't take either on trust; see
@@ -344,9 +354,10 @@ Android grants that through a `<queries>` block in the manifest, and RimBoard
 declares a launcher-intent query — so **every app on your phone that has an
 icon is visible to the keyboard**, and it could in principle enumerate them.
 
-- It is **not** `QUERY_ALL_PACKAGES` and **not** a permission. The offline APK
-  still declares only `VIBRATE`, and `aapt dump permissions` will show you that
-  unchanged.
+- It is **not** `QUERY_ALL_PACKAGES` and **not** a permission. Package
+  visibility does not appear in `aapt dump permissions` at all, which is the
+  point worth knowing: the two permissions it does print are not the whole of
+  what an app can see.
 - On the **offline build this cannot go anywhere**, because that build holds no
   `INTERNET` permission by any route. Whatever it can see, it cannot tell.
 - **Settings → Theme → App colours** decides which apps are actually read, and
@@ -394,6 +405,7 @@ aapt dump permissions app-offline-release.apk
 ```
 package: com.rimboard.keyboard
 uses-permission: name='android.permission.VIBRATE'
+uses-permission: name='android.permission.READ_CONTACTS'
 permission: com.rimboard.keyboard.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 uses-permission: name='com.rimboard.keyboard.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
 ```
@@ -494,22 +506,36 @@ into your personal dictionary would be a much broader claim than "learns as you
 type". It reads your learned words so they stop being underlined, and adds
 nothing to them. And it **never touches the network**, on either build.
 
-**There is no permission to add, and that is not a limitation.** Android has no
-runtime permission for spell checking: a spell checker is a service the system
-binds to, and your selecting it in Settings is the whole of the consent step.
-The one permission-looking line in the manifest, `BIND_TEXT_SERVICE`, is a
-permission the *system* must hold in order to bind to this service — it is a
-lock on the door, not a key the app is asking you for. `aapt dump permissions`
-on the offline APK still prints `VIBRATE` and nothing else, and that check is
-the point: if a build ever needed more, the proof would stop working.
+**Spell checking itself needs no permission.** Android has no runtime
+permission for it: a spell checker is a service the system binds to, and your
+selecting it in Settings is the whole of the consent step. The one
+permission-looking line in the manifest, `BIND_TEXT_SERVICE`, is a permission
+the *system* must hold in order to bind to this service — a lock on the door,
+not a key the app is asking you for.
 
-The one permission that would genuinely change behaviour is `READ_CONTACTS`,
-which is how other keyboards stop underlining people's names. It is not here
-and is not planned. The same problem is handled without it: a capitalised word
-in mid-sentence is read as a name and left alone, in every language except
-German, which capitalises all its nouns. That costs the occasional missed typo
-that begins with a capital, and buys not having to hand your address book to a
-keyboard.
+**Names are the exception, and they are opt-in.** Your contacts are not in any
+dictionary, so without help the spell checker underlines the people you write
+to, in every app, and offers to "correct" them to some real word a letter
+away. Two things address that, and the first one costs nothing:
+
+- **A capitalised word in mid-sentence is read as a name and left alone.** No
+  permission, no setup, works for names that are in nobody's address book. It
+  applies in every language except German, which capitalises all its nouns,
+  and it costs the occasional real typo that happens to start with a capital.
+  This is on always.
+- **Settings — Advanced — Names from contacts** reads your address book so the
+  names in it count as spelled correctly, including lowercase ones and ones
+  the rule above cannot see. This is **off**, and turning it on is what
+  triggers Android's permission prompt. Refuse the prompt and the switch goes
+  back off rather than sitting on claiming to work.
+
+What the second one holds is a set of lowercase name parts, in memory, never
+written to disk and dropped the moment the setting is turned off or the system
+asks for memory back. No numbers, no addresses, nothing that identifies a
+contact. And on the `offline` build there is no `INTERNET` permission by any
+route, so what it reads cannot leave the device even in principle — which is
+the reason this permission is survivable here and would not be in an app that
+could talk to a server.
 
 ## Extending the dictionaries
 

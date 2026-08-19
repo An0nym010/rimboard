@@ -42,6 +42,12 @@
         app:useSimpleSummaryProvider="false" />
 
     <SwitchPreferenceCompat
+        android:key="contact_names"
+        android:title="@string/pref_contact_names_title"
+        android:summary="@string/pref_contact_names_summary"
+        android:defaultValue="false" />
+
+    <SwitchPreferenceCompat
         android:key="block_offensive"
         android:title="@string/pref_offensive_title"
         android:summary="@string/pref_offensive_summary"

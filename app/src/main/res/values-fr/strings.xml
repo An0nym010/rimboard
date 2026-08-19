@@ -285,4 +285,6 @@
     <string name="search_no_results">Aucun réglage correspondant</string>
     <string name="pref_match_app_mode_title">Suivre le mode clair ou sombre de l&#8217;appli</string>
     <string name="pref_match_app_mode_summary">Une appli sombre obtient un clavier sombre, quelle que soit l&#8217;heure. S&#8217;applique aux thèmes Système et Material You ; un thème choisi explicitement reste inchangé.</string>
+    <string name="pref_contact_names_title">Noms des contacts</string>
+    <string name="pref_contact_names_summary">Ne plus souligner les personnes à qui tu écris. Demande l\'autorisation à l\'activation ; les noms restent en mémoire et ne sont envoyés nulle part.</string>
 </resources>

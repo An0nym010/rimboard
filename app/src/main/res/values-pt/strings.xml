@@ -285,4 +285,6 @@
     <string name="search_no_results">Nenhuma configuração correspondente</string>
     <string name="pref_match_app_mode_title">Seguir o modo claro ou escuro do aplicativo</string>
     <string name="pref_match_app_mode_summary">Um aplicativo escuro recebe um teclado escuro, a qualquer hora. Vale para os temas Sistema e Material You; um tema escolhido por você não é alterado.</string>
+    <string name="pref_contact_names_title">Nomes dos contatos</string>
+    <string name="pref_contact_names_summary">Parar de sublinhar as pessoas para quem você escreve. Pede permissão ao ativar; os nomes ficam só na memória e não são enviados a lugar nenhum.</string>
 </resources>

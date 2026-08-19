@@ -285,4 +285,6 @@
     <string name="search_no_results">Nessuna impostazione corrispondente</string>
     <string name="pref_match_app_mode_title">Segui la modalità chiara o scura dell&#8217;app</string>
     <string name="pref_match_app_mode_summary">Un&#8217;app scura riceve una tastiera scura, a qualsiasi ora. Vale per i temi Sistema e Material You; un tema scelto esplicitamente resta invariato.</string>
+    <string name="pref_contact_names_title">Nomi dai contatti</string>
+    <string name="pref_contact_names_summary">Non sottolineare più le persone a cui scrivi. Chiede il permesso quando lo attivi; i nomi restano in memoria e non vengono inviati da nessuna parte.</string>
 </resources>

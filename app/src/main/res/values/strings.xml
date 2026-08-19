@@ -458,4 +458,6 @@ Your search words or selected text go to the service that answers them. Nothing 
     <string name="search_no_results">No matching setting</string>
     <string name="pref_match_app_mode_title">Match the app&#8217;s light or dark mode</string>
     <string name="pref_match_app_mode_summary">A dark app gets a dark keyboard, whatever the time of day. Applies to the System and Material You themes; a theme you picked outright is left alone.</string>
+    <string name="pref_contact_names_title">Names from contacts</string>
+    <string name="pref_contact_names_summary">Stop underlining the people you write to. Asks permission when turned on; names are read into memory only, never sent anywhere.</string>
 </resources>

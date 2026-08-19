@@ -378,6 +378,28 @@ class SettingsActivity : LocalisedActivity() {
 
     class SettingsFragment : PreferenceFragmentCompat() {
 
+        /**
+         * The permission behind "Names from contacts".
+         *
+         * Asked for when the switch is turned on and never before, so the
+         * prompt arrives attached to the thing that wants it rather than at
+         * some unrelated moment. Refusing it turns the switch back off: a
+         * switch that stays on while the permission is denied says the feature
+         * is working when nothing is being read, and the user would have no
+         * way to tell which of the two gates was shut.
+         */
+        private val contactsLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            if (!granted) {
+                Prefs.setContactNames(requireContext(), false)
+                findPreference<androidx.preference.SwitchPreferenceCompat>("contact_names")
+                    ?.isChecked = false
+            } else {
+                com.rimboard.keyboard.engine.ContactStore.warm(requireContext())
+            }
+        }
+
         private val exportLauncher = registerForActivityResult(
             ActivityResultContracts.CreateDocument("application/json")
         ) { uri -> if (uri != null) runExport(uri) }
@@ -506,6 +528,22 @@ class SettingsActivity : LocalisedActivity() {
                 if (!com.rimboard.keyboard.Haptics.systemTouchFeedbackOn(requireContext())) {
                     pref.summary = getString(R.string.pref_haptic_summary_system_off)
                 }
+            }
+            findPreference<Preference>("contact_names")?.setOnPreferenceChangeListener { _, v ->
+                if (v == true) {
+                    // Granted already, or the prompt. Either way the read is
+                    // queued by the store rather than done here.
+                    if (com.rimboard.keyboard.engine.ContactStore.granted(requireContext())) {
+                        com.rimboard.keyboard.engine.ContactStore.warm(requireContext())
+                    } else {
+                        contactsLauncher.launch(android.Manifest.permission.READ_CONTACTS)
+                    }
+                } else {
+                    // Turned off means forgotten, not merely unused. The names
+                    // are in memory in a process that outlives this screen.
+                    com.rimboard.keyboard.engine.ContactStore.forget()
+                }
+                true
             }
             findPreference<Preference>("haptic_strength")?.setOnPreferenceChangeListener { _, _ ->
                 view?.post { view?.let { com.rimboard.keyboard.Haptics.test(it) } }
