@@ -1,5 +1,6 @@
 package com.rimboard.keyboard.assets
 
+import com.rimboard.keyboard.engine.UserData
 import com.rimboard.keyboard.model.Languages
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -87,6 +88,37 @@ class AssetsTest {
             }
             val dupes = words.groupingBy { it }.eachCount().filterValues { it > 1 }.keys
             if (dupes.isNotEmpty()) problems.add("${f.name}: duplicates $dupes")
+        }
+        assertTrue(problems.joinToString("\n"), problems.isEmpty())
+    }
+
+    @Test
+    fun `every language has a row of sentence openers`() {
+        // The empty context is a context. predictions() keys the start of a
+        // sentence under UserData.START, and both the strip and the spell
+        // checker rank the first word of a sentence against that row — so
+        // without one, the word most likely to be capitalised, and the one a
+        // reader sees first, is ranked on raw frequency alone.
+        //
+        // Five languages had a row and seventeen did not, and nothing said so:
+        // a missing row is not an error, it is a ranking quietly falling back.
+        // Keyed off UserData.START rather than a copy of the sentinel, so this
+        // cannot pass while the loader looks somewhere else.
+        val prefix = UserData.START + tab
+        val problems = ArrayList<String>()
+        for (code in Languages.codes) {
+            val f = File(assets(), "predictions/$code.txt")
+            if (!f.isFile) continue // the missing-file case has its own test
+            val row = f.readLines().firstOrNull { it.startsWith(prefix) }
+            if (row == null) {
+                problems.add("$code.txt: no sentence-opener row")
+                continue
+            }
+            val words = row.removePrefix(prefix).trim()
+                .split(' ').filter { it.isNotEmpty() }
+            if (words.size < 10) problems.add("$code.txt: only ${words.size} openers")
+            val dupes = words.groupingBy { it }.eachCount().filterValues { it > 1 }.keys
+            if (dupes.isNotEmpty()) problems.add("$code.txt: repeats $dupes")
         }
         assertTrue(problems.joinToString("\n"), problems.isEmpty())
     }
