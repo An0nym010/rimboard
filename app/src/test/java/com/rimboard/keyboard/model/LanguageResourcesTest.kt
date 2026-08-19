@@ -92,6 +92,58 @@ class LanguageResourcesTest {
     }
 
     @Test
+    fun `every language has a spell-checker subtype, and no language lacks one`() {
+        // Six files have to agree when a language is added, and five of them
+        // were guarded. This is the sixth, and it fails the most quietly of
+        // any of them: the app knows the language, types it, corrects it in
+        // its own strip — and the system never offers RimBoard as the spell
+        // checker for it, because the declaration the framework reads never
+        // mentioned it. Nothing errors, nothing logs, and the red underlines
+        // simply come from somewhere else.
+        //
+        // The reverse is the worse direction and is checked too. A subtype is
+        // a claim that this app can judge that language; making it without a
+        // word list behind it means every word in it comes back underlined,
+        // in every app on the phone, for anyone whose phone is set to it.
+        val doc = parse("xml/spellchecker.xml")
+        val subtypes = doc.getElementsByTagName("subtype")
+        val declared = (0 until subtypes.length).map {
+            (subtypes.item(it) as org.w3c.dom.Element).getAttribute("android:subtypeLocale")
+        }
+
+        val missing = Languages.codes.filter { it !in declared }
+        assertTrue("no spell-checker subtype for: $missing", missing.isEmpty())
+        val extra = declared.filter { it !in Languages.codes }
+        assertTrue("spell-checker claims a language with no dictionary: $extra", extra.isEmpty())
+
+        val unlabelled = (0 until subtypes.length).map {
+            subtypes.item(it) as org.w3c.dom.Element
+        }.filter { it.getAttribute("android:label").isBlank() }
+            .map { it.getAttribute("android:subtypeLocale") }
+        // An unlabelled subtype is a blank row in the system's own settings.
+        assertTrue("subtype with no label: $unlabelled", unlabelled.isEmpty())
+
+        val dupes = declared.groupingBy { it }.eachCount().filterValues { it > 1 }.keys
+        assertTrue("declared twice: $dupes", dupes.isEmpty())
+    }
+
+    @Test
+    fun `the spell checker points at a settings screen that exists`() {
+        // The system's spell-checker screen shows a settings button built from
+        // this attribute. A stale class name here is a button that goes
+        // nowhere, and it is the kind of string nothing else in the build ever
+        // resolves.
+        val root = parse("xml/spellchecker.xml").documentElement
+        val activity = root.getAttribute("android:settingsActivity")
+        assertTrue("no settingsActivity declared", activity.isNotBlank())
+        val src = listOf(File("src/main/java"), File("app/src/main/java"))
+            .first { it.isDirectory }
+        val asPath = File(src, activity.replace('.', '/') + ".kt")
+        assertTrue("settingsActivity points at a class that does not exist: $activity",
+            asPath.isFile)
+    }
+
+    @Test
     fun `every interface language actually has translations`() {
         // ui_lang_values drives the in-app language picker. A value with no
         // values-xx folder behind it silently renders in English, which reads
