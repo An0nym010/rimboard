@@ -86,7 +86,7 @@ class SuggestionEngineTest {
      * job and used to happen by accident here.
      *
      * `suggestionsFor` runs on the UI thread once per keystroke, so it no
-     * longer loads the model itself {EM} it ranks without context until the
+     * longer loads the model itself — it ranks without context until the
      * warm thread has one. A test that wants to assert what context does must
      * therefore say that there is some, and this is the synchronous door to
      * it. Without the call these tests do not fail loudly: two of them assert

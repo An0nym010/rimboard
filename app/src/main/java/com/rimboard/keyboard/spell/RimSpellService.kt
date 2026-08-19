@@ -78,8 +78,8 @@ class RimSpellService : SpellCheckerService() {
         // A guess, and the only one available this early: no field has been
         // bound yet, so the user's first keyboard language is the best
         // available stand-in for the language of the first thing they will
-        // type in. Each session warms its own locale as well {EM} see
-        // [RimSession.onCreate] {EM} because this guess is wrong whenever the
+        // type in. Each session warms its own locale as well — see
+        // [RimSession.onCreate] — because this guess is wrong whenever the
         // field is in the other language, and being wrong here used to mean
         // the parse this call exists to avoid happened anyway, on a binder
         // thread, inside the first check.
@@ -225,7 +225,7 @@ class RimSpellService : SpellCheckerService() {
             // warmed its best guess at creation, and a guess is what it was:
             // someone whose first keyboard language is Turkish, typing into a
             // German field, got a cold dictionary parse on a binder thread
-            // with the framework waiting {EM} several hundred milliseconds on a
+            // with the framework waiting — several hundred milliseconds on a
             // phone, inside the first onGetSuggestions, which is precisely the
             // stall warming exists to prevent.
             //
@@ -358,8 +358,8 @@ class RimSpellService : SpellCheckerService() {
             /**
              * Whether the prediction model was loaded when this was answered.
              *
-             * The verdict depends on it {EM} without the model there is no
-             * curated context to rank by {EM} so leaving it out of the key
+             * The verdict depends on it — without the model there is no
+             * curated context to rank by — so leaving it out of the key
              * meant a verdict reached during the seconds before warm() lands
              * was served for the rest of the session, unranked, long after the
              * evidence for ranking it had arrived. That is the same fault, in
@@ -516,7 +516,7 @@ class RimSpellService : SpellCheckerService() {
             // candidate usually come before it". A stable sort on a yes/no, so
             // a candidate that fits the following word rises above one that
             // does not while the engine's own ordering survives inside each
-            // group {EM} the same restraint the left-hand context is held to,
+            // group — the same restraint the left-hand context is held to,
             // which is that evidence breaks ties rather than overruling the
             // channel model.
             val corrections =
@@ -566,8 +566,8 @@ class RimSpellService : SpellCheckerService() {
             /**
              * How many words in one sentence may have corrections worked out.
              *
-             * Far above any real sentence {EM} twenty-four misspellings in one
-             * is not writing, it is a paste {EM} so this never fires on the
+             * Far above any real sentence — twenty-four misspellings in one
+             * is not writing, it is a paste — so this never fires on the
              * case it is not for. What it bounds is the case where every word
              * is unknown, which is a paragraph in a language the user has not
              * enabled, and which without a bound is hundreds of full-dictionary

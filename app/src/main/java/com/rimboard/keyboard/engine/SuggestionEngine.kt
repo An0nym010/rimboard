@@ -307,7 +307,7 @@ class SuggestionEngine private constructor(
      * [predictionModel] parses an asset on the calling thread when the answer
      * is no, and blocks behind [warm]'s parse when one is already running.
      * That is fine on the warm thread and not fine on a binder thread with the
-     * framework waiting {EM} it is the same stall the spell checker's warm fix
+     * framework waiting — it is the same stall the spell checker's warm fix
      * removed, and the context ranking would have walked straight back into it
      * by asking for predictions before anything had loaded them.
      *
@@ -968,7 +968,7 @@ class SuggestionEngine private constructor(
      * Locking is still required, though for one reason rather than two now
      * that [predictionModels] is concurrent: without it, two threads that both
      * find a model missing would both parse the asset. What it no longer
-     * guards is the read {EM} see [predictionsReady], which has to be
+     * guards is the read — see [predictionsReady], which has to be
      * answerable without waiting behind a parse, since the whole point of
      * asking is to avoid starting one.
      *

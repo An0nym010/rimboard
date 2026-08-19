@@ -1106,7 +1106,7 @@ class RimBoardService : InputMethodService(),
      * different order, for three questions that are the same question: may a
      * space be inserted after it, does one get armed when it is typed, and
      * should it hop back over a space already there. Nothing was wrong with
-     * any of the three {EM} they were the same six characters {EM} which is
+     * any of the three — they were the same six characters — which is
      * the state a duplicated list is always in until the day one of them is
      * edited. This project has shipped that twice.
      *
