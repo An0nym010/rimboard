@@ -27,6 +27,7 @@ import com.rimboard.keyboard.model.Codes
 import com.rimboard.keyboard.model.Key
 import com.rimboard.keyboard.model.KeyboardLayout
 import com.rimboard.keyboard.model.GraphemeDelete
+import com.rimboard.keyboard.model.SentenceContext
 import com.rimboard.keyboard.model.Languages
 import com.rimboard.keyboard.model.LayoutKind
 import com.rimboard.keyboard.model.Layouts
@@ -1098,6 +1099,22 @@ class RimBoardService : InputMethodService(),
 
     private fun composeWords(): Boolean = suggestionsActive || autocorrectActive
 
+    /**
+     * Punctuation that leans on the word before it and takes the space after.
+     *
+     * Written out three times before this, once with the characters in a
+     * different order, for three questions that are the same question: may a
+     * space be inserted after it, does one get armed when it is typed, and
+     * should it hop back over a space already there. Nothing was wrong with
+     * any of the three {EM} they were the same six characters {EM} which is
+     * the state a duplicated list is always in until the day one of them is
+     * edited. This project has shipped that twice.
+     *
+     * Not [SentenceContext.ENDERS]: a comma takes a space after it and does
+     * not end a sentence. Related sets, different questions.
+     */
+    private val AUTO_SPACE_PUNCT = ".,!?;:"
+
     private fun isSeparator(c: Char): Boolean = c == ' ' || c in ".,;:!?)]}\u2026"
 
     /**
@@ -1118,7 +1135,7 @@ class RimBoardService : InputMethodService(),
      */
     private fun cursorFollowsPunctuation(): Boolean {
         val before = currentInputConnection?.getTextBeforeCursor(1, 0) ?: return false
-        return before.length == 1 && before[0] in ".,!?;:"
+        return before.length == 1 && before[0] in AUTO_SPACE_PUNCT
     }
 
     private fun typeText(raw: String) {
@@ -1127,7 +1144,7 @@ class RimBoardService : InputMethodService(),
             if (pendingPunctSpace && ch.isLetter() && cursorFollowsPunctuation()) {
                 currentInputConnection?.commitText(" ", 1)
             }
-            pendingPunctSpace = Prefs.autoSpacePunct(this) && ch in ".,!?;:"
+            pendingPunctSpace = Prefs.autoSpacePunct(this) && ch in AUTO_SPACE_PUNCT
         } else {
             pendingPunctSpace = false
         }
@@ -1180,7 +1197,7 @@ class RimBoardService : InputMethodService(),
         if (composing.isNotEmpty()) {
             commitComposedWord(ic, allowAutocorrect = autocorrectActive, separator = sep)
         } else {
-            val swap = autoSpace && sep.length == 1 && sep[0] in ".,;:!?" &&
+            val swap = autoSpace && sep.length == 1 && sep[0] in AUTO_SPACE_PUNCT &&
                 ic.getTextBeforeCursor(1, 0)?.toString() == " "
             if (swap) {
                 // "word " + "." becomes "word. " (GBoard-style punctuation swap)
@@ -1198,7 +1215,11 @@ class RimBoardService : InputMethodService(),
             prevWordForBigram = ""
             // A comma or a colon ends a word, not a sentence, so it must not
             // start offering message openers.
-            if (sep.any { it in ".!?\n" }) atSentenceStart = true
+            // SentenceContext owns this set and SpellTokens reads it, so the
+            // keyboard and the spell checker agree about where a sentence
+            // begins. This was a third copy of the same four characters, in
+            // the one place that decides whether openers get offered.
+            if (sep.any { it in SentenceContext.ENDERS }) atSentenceStart = true
         }
         afterEdit()
     }
