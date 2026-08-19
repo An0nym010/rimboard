@@ -242,12 +242,14 @@ class RimSpellService : SpellCheckerService() {
          * context to offer.
          */
         override fun onGetSuggestions(textInfo: TextInfo?, suggestionsLimit: Int): SuggestionsInfo =
-            // sentenceInitial = true because this path cannot know: it is
-            // handed one word with no neighbours. That is the lenient answer
-            // — it keeps judging capitalised words rather than silently
-            // declining them — so a caller using the word-level API gets
-            // exactly the behaviour it got before the sentence path existed.
-            judge(textInfo?.text.orEmpty(), "", "", "", suggestionsLimit, sentenceInitial = true)
+            // null, not false and not true: this path is handed one word with
+            // no neighbours and genuinely does not know where it sits. The two
+            // questions that depend on position want opposite answers when it
+            // is unknown — the capital gets the lenient reading, so
+            // capitalised words are still judged rather than silently declined,
+            // while the ranking gets no sentence-opener context, because
+            // "might be the first word" is not evidence that it is.
+            judge(textInfo?.text.orEmpty(), "", "", "", suggestionsLimit, sentenceInitial = null)
 
         /**
          * The question a verdict answers. Everything that can change the
@@ -258,7 +260,7 @@ class RimSpellService : SpellCheckerService() {
             val prev: String,
             val prev2: String,
             val next: String,
-            val sentenceInitial: Boolean,
+            val sentenceInitial: Boolean?,
             val limit: Int
         )
 
@@ -286,7 +288,7 @@ class RimSpellService : SpellCheckerService() {
             prev: String,
             next: String,
             suggestionsLimit: Int,
-            sentenceInitial: Boolean
+            sentenceInitial: Boolean?
         ): SuggestionsInfo {
             val ask = Ask(word, prev, prev2, next, sentenceInitial, suggestionsLimit)
             var v = verdicts.get(ask)
@@ -311,9 +313,12 @@ class RimSpellService : SpellCheckerService() {
             prev: String,
             next: String,
             suggestionsLimit: Int,
-            sentenceInitial: Boolean
+            sentenceInitial: Boolean?
         ): Verdict {
-            if (!SpellCandidacy.worthChecking(word, sentenceInitial, lang, loc)) {
+            // Unknown position reads as a sentence start here: that is the
+            // lenient direction, and declining every capitalised word on a
+            // guess would be worse than judging one name too many.
+            if (!SpellCandidacy.worthChecking(word, sentenceInitial ?: true, lang, loc)) {
                 return Verdict(0, emptyList())
             }
 
@@ -338,8 +343,18 @@ class RimSpellService : SpellCheckerService() {
             // it once, in the place that cannot afford it, and still gets the
             // learned bigrams — which a readiness check would have thrown
             // away along with the model.
+            // An empty preceding word is two different situations and only
+            // one of them is "nothing to go on". A word that *opens* a sentence
+            // has a context of its own: the engine keys that under
+            // UserData.START, and en, tr, de, es and ru each ship twenty
+            // curated openers for it. The keyboard has always used them —
+            // predictions() says so in as many words, having once returned
+            // nothing there and left the strip blank — and the spell checker
+            // was throwing them away, so the first word of every sentence was
+            // ranked on frequency alone. Where the position is unknown there is
+            // still nothing to go on, and this asks for nothing.
             val contextRank =
-                if (prev.isEmpty()) emptyMap()
+                if (prev.isEmpty() && sentenceInitial != true) emptyMap()
                 else engine.predictions(prev2, prev, lang, loc, CONTEXT_DEPTH, mayLoad = false)
                     .withIndex().associate { (i, w) -> w.lowercase(loc) to i }
             val cap = suggestionsLimit.coerceIn(1, MAX_SUGGESTIONS)
