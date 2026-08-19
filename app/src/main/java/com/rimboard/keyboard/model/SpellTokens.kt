@@ -63,7 +63,26 @@ object SpellTokens {
      */
     fun followerOf(tokens: List<Token>, index: Int): String {
         val next = tokens.getOrNull(index + 1) ?: return ""
-        return if (next.startsSentence) "" else next.text
+        if (next.startsSentence) return ""
+        // Never the last token. It is the one under the cursor, so it is a
+        // word in progress rather than a word: ranking "stroe" against "wa"
+        // asks what usually follows a fragment, which is nothing, and the
+        // answer changes on every keypress.
+        //
+        // That second part is what makes this a bug rather than a nicety. The
+        // follower is part of the verdict cache key, so a follower that grows
+        // by a letter at a time is a fresh key at a time — and the whole
+        // point of that cache was to stop re-running a full dictionary scan
+        // for a misspelled word while the user carries on typing past it.
+        // Right-context ranking had quietly undone the memoising it was built
+        // on, two commits after it was built.
+        //
+        // Costs one word of context at the end of a sentence the user has
+        // finished with, and buys back a bounded number of scans: a word is
+        // now judged once with no follower and at most once more when its
+        // follower settles.
+        if (index + 1 == tokens.size - 1) return ""
+        return next.text
     }
 
     /**

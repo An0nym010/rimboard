@@ -245,6 +245,13 @@ class RimBoardService : InputMethodService(),
 
     override fun onDestroy() {
         dismissPopups()
+        // The spell checker withdraws on its way out and this did not, so a
+        // keyboard that had been switched away from went on pinning its two
+        // dictionaries for the life of the process — about thirty megabytes
+        // held for a service that no longer exists, and held against the only
+        // component still running. That is the leak the shared registry was
+        // added to fix, left in place for the component that added it.
+        SuggestionEngine.declareNeeded(SuggestionEngine.NEEDED_KEYBOARD, emptySet())
         clipChangedListener?.let {
             (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
                 .removePrimaryClipChangedListener(it)

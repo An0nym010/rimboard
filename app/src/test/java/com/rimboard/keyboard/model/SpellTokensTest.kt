@@ -122,7 +122,32 @@ class SpellTokensTest {
         val t = SpellTokens.of("the stroe was shut")
         assertEquals("stroe", SpellTokens.followerOf(t, 0))
         assertEquals("was", SpellTokens.followerOf(t, 1))
+        // "shut" is the last token, so it is treated as still being typed.
+        assertEquals("", SpellTokens.followerOf(t, 2))
         assertEquals("", SpellTokens.followerOf(t, 3))
+    }
+
+    @Test
+    fun `the word being typed is nobody's follower`() {
+        // The last token is under the cursor, so it is a word in progress. It
+        // is not evidence about the word before it — "wa" tells you nothing
+        // — and because the follower is part of the verdict cache key, one
+        // that grows by a letter at a time is a fresh key at a time. The scan
+        // the cache exists to avoid was being run on every keypress.
+        assertEquals("", SpellTokens.followerOf(SpellTokens.of("the stroe wa"), 1))
+        assertEquals("", SpellTokens.followerOf(SpellTokens.of("the stroe was"), 1))
+
+        // Once something follows it, it has settled and counts again.
+        assertEquals("was", SpellTokens.followerOf(SpellTokens.of("the stroe was s"), 1))
+    }
+
+    @Test
+    fun `the key stops changing once the follower has settled`() {
+        // The property that matters, stated as itself: the answer for "stroe"
+        // must stop moving while the user types on past it.
+        val settled = listOf("was s", "was sh", "was shu", "was shut", "was shut t")
+            .map { SpellTokens.followerOf(SpellTokens.of("the stroe $it"), 1) }
+        assertEquals(listOf("was", "was", "was", "was", "was"), settled)
     }
 
     @Test
