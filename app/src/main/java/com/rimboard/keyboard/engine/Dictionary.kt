@@ -623,7 +623,25 @@ class Dictionary(
     private fun spatialCost(a: String, b: String, prox: KeyProximity?): Double {
         val m = a.length
         val n = b.length
-        val ins = 0.9
+        // Missing a key, or striking one too many. Measured rather than
+        // chosen: AutocorrectAccuracyTest was swept across this value with
+        // everything else held still, and the four slip kinds in two languages
+        // said 0.7 and said it clearly.
+        //
+        //   0.9  en dropped 92%  tr dropped 84%
+        //   0.8  en dropped 92%  tr dropped 88%
+        //   0.7  en dropped 96%  tr dropped 88%   <- nothing else moves
+        //   0.6  same, and tr transposed falls to 98%
+        //   0.5  same, and four of the eight figures fall
+        //
+        // It began at 0.9, which said a typist is two and a half times likelier
+        // to hit the wrong key than to miss one — and dropped letters were
+        // the worst category in both languages because of it. Below 0.7 the
+        // insertion gets cheap enough to start explaining words it should not,
+        // and transpositions and neighbour slips pay for it. The cliff is
+        // immediately under the answer, which is worth knowing before anyone
+        // rounds this down.
+        val ins = 0.7
         val transp = 0.35
         var prevPrev: DoubleArray? = null
         var prev = DoubleArray(n + 1) { it * ins }

@@ -129,25 +129,26 @@ class AutocorrectAccuracyTest {
 
         val lines = results.joinToString("\n") { (lang, s) -> report(lang, s) }
 
+        println(lines)
+
         // A floor, not a target, and set from what the engine measures
         // rather than from a wish. On the day it was written:
         //
-        //   en: neighbour 100%, doubled 100%, dropped 94%, swapped 100%
-        //   tr: neighbour  98%, doubled  95%, dropped 83%, swapped 100%
+        //   en: neighbour 100%, doubled 100%, dropped 96%, swapped 100%
+        //   tr: neighbour  96%, doubled  91%, dropped 88%, swapped 100%
         //
-        // 0.75 sits eight points under the worst of those, which leaves room
+        // 0.80 sits eight points under the worst of those, which leaves room
         // for ordinary tuning to move things about and still catches anything
         // falling off a cliff. Raise it when the engine earns it. Lowering it
         // to make a change pass is the one use this must never be put to.
         val worst = results.flatMap { it.second.values }.min()
         assertTrue(
             "autocorrect accuracy has fallen below the floor.\n$lines",
-            worst >= 0.75
+            worst >= 0.80
         )
         // Guards the guard: a corpus that generated nothing would score a
         // perfect zero-of-zero and pass every assertion above.
         assertTrue("the corpus generated nothing:\n$lines",
             results.all { r -> r.second.values.all { it > 0.0 } })
-        println(lines)
     }
 }
