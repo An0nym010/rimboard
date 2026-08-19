@@ -342,4 +342,24 @@ class SuggestionEngineTest {
         ).items.drop(1).first()
         assertNotEquals(neutral, contextual)
     }
+
+    @Test
+    fun `a doubled letter is not corrected into a commoner word that starts differently`() {
+        // Reported from a phone: typing "naberr" offered "haber" (news) rather
+        // than "naber" (what's up). Both are real Turkish words and these are
+        // their real frequencies from the shipped list — "haber" is fourteen
+        // times commoner, which is enough to outweigh being a whole extra edit
+        // away when nothing counts against starting with a different letter.
+        //
+        // The doubled r is not an elongation: that needs a run of three, and
+        // deliberately so, or "brrr" and "shhh" stop being words. So this falls
+        // to ordinary edit distance, and ordinary edit distance has to get it
+        // right on its own.
+        val tr = Locale.forLanguageTag("tr")
+        val eng = engine(mapOf("dictionaries/tr.txt" to "haber 76328\nnaber 5533"))
+        assertEquals(
+            listOf("naber", "haber"),
+            eng.correctionCandidates("naberr", "tr", tr, limit = 5)
+        )
+    }
 }

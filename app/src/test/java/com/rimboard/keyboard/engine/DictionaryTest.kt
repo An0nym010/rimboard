@@ -321,4 +321,37 @@ class DictionaryTest {
         assertEquals(1, Dictionary.maxEditDistance(5))
         assertEquals(2, Dictionary.maxEditDistance(6))
     }
+
+    // ---- which first-letter differences count against a candidate ----
+
+    @Test
+    fun `a swapped first letter counts, however the lengths compare`() {
+        // The bug this replaced approximated "substituted" as "same length",
+        // which is true of a substitution and of nothing else being wrong.
+        // Turkish "naberr" is a first-letter substitution away from "haber"
+        // *and* a doubled r away from its own spelling, so the lengths differ
+        // and the penalty was skipped entirely.
+        assertTrue(Dictionary.firstLetterSubstituted("naberr", "haber"))
+        assertTrue(Dictionary.firstLetterSubstituted("hello", "cello"))
+        assertTrue(Dictionary.firstLetterSubstituted("naber", "haber"))
+    }
+
+    @Test
+    fun `a missing or spare letter at the front does not count`() {
+        // These are ordinary slips and should be fixed without hesitation.
+        assertFalse("a letter missing from the front",
+            Dictionary.firstLetterSubstituted("ello", "hello"))
+        assertFalse("a letter struck before the word",
+            Dictionary.firstLetterSubstituted("ghello", "hello"))
+        assertFalse("the same first letter is not a substitution",
+            Dictionary.firstLetterSubstituted("hhello", "hello"))
+        assertFalse("nor is an identical word",
+            Dictionary.firstLetterSubstituted("hello", "hello"))
+    }
+
+    @Test
+    fun `an empty word substitutes nothing`() {
+        assertFalse(Dictionary.firstLetterSubstituted("", "hello"))
+        assertFalse(Dictionary.firstLetterSubstituted("hello", ""))
+    }
 }

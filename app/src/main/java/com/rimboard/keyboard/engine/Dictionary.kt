@@ -35,6 +35,41 @@ class Dictionary(
         fun maxEditDistance(n: Int): Int = if (n >= 6) 2 else 1
 
         /**
+         * Whether [cand] differs from [typed] by having a *different* first
+         * letter, rather than by one being missing or spare at the front.
+         *
+         * The distinction earns its keep. The first key of a word is aimed at
+         * from rest rather than in the middle of a run, and it is the letter
+         * read back first, so swapping it is both the least likely slip and
+         * the most jarring correction {EM} "cello" for "hello". A letter
+         * dropped from the front ("ello") or struck by accident before the
+         * word ("ghello") is an ordinary slip and should be fixed without
+         * hesitation.
+         *
+         * This used to be approximated by "the lengths are equal", which is
+         * true of a substitution and also of nothing else being wrong. A word
+         * with a first-letter substitution *and* an unrelated slip elsewhere
+         * has unequal lengths, and escaped the penalty entirely: Turkish
+         * "naberr" scored "haber" over "naber", because "haber" is fourteen
+         * times commoner and the one thing that should have counted against it
+         * {EM} that it starts with a different letter {EM} was not counted at
+         * all.
+         */
+        internal fun firstLetterSubstituted(typed: String, cand: String): Boolean {
+            if (typed.isEmpty() || cand.isEmpty()) return false
+            if (cand[0] == typed[0]) return false
+            // Missing from the front: "ello" -> "hello".
+            if (cand.length == typed.length + 1 &&
+                cand.regionMatches(1, typed, 0, typed.length)
+            ) return false
+            // Spare on the front: "ghello" -> "hello".
+            if (typed.length == cand.length + 1 &&
+                typed.regionMatches(1, cand, 0, cand.length)
+            ) return false
+            return true
+        }
+
+        /**
          * How many words, at most, are eligible to be corrected *toward*.
          *
          * "Very rare words make bad corrections" is true, but rarity is
@@ -566,18 +601,10 @@ class Dictionary(
                 var score = ln((freqs[i] + 1).toDouble()) -
                     3.5 * spatialCost(typedLower, cand, prox)
                 // A word whose first letter was swapped for another is a
-                // different kind of guess. The first key of a word is the one
-                // aimed at from rest rather than in the middle of a run, and
-                // the letter that gets looked at when reading back — so it is
-                // both the least likely to be wrong and the most jarring to
-                // have rewritten. "cello" for "hello" is a worse answer than
-                // its edit distance suggests.
-                //
-                // Only for a same-length word, which is what makes it a
-                // substitution: a dropped or doubled first letter ("ello",
-                // "hhello") also differs in the first character and is an
-                // ordinary slip that should still be fixed.
-                if (cand.length == n && cand[0] != first) score -= FIRST_LETTER_PENALTY
+                // different kind of guess, and worth less than its edit
+                // distance suggests. See [firstLetterSubstituted] for which
+                // differences count as that and which are ordinary slips.
+                if (firstLetterSubstituted(typedLower, cand)) score -= FIRST_LETTER_PENALTY
                 scored.add(cand to score)
             }
         }
