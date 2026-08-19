@@ -125,6 +125,54 @@ class Dictionary(
          */
         private const val FIRST_LETTER_PENALTY = 1.2
 
+        /**
+         * How much keyboard distance a repair may carry, per character of the
+         * word, and still be applied without a tap.
+         *
+         * The gate this belongs to is the one thing AOSP LatinIME has here
+         * that this engine did not. There, no correction is committed unless
+         * a *normalized* score clears `config_default_auto_correction_threshold`
+         * — normalized meaning divided by the length of the word, so the same
+         * absolute slip counts for more in a short word than a long one. Here
+         * there was no threshold at all: whatever [correctionsScored] ranked
+         * first was committed on the space bar, however far it sat from what
+         * was typed.
+         *
+         * What that cost, measured before the gate existed: **56% of English
+         * and 61% of Turkish correctly-typed unknown words were destroyed** —
+         * real words of the other language standing in for the names, brands
+         * and jargon no 200k-word list contains. "olacak" became "black",
+         * "buraya" became "bury", "asking" became "sakin", "worked" became
+         * "world". Every one of those is two edits on a six-letter word, which
+         * an absolute cost lets a much commoner candidate buy its way past and
+         * a per-character cost does not.
+         *
+         * 0.14 is the edge of a free lunch, and that is the whole reason it
+         * is the number. Swept against both arms of `AutocorrectAccuracyTest`
+         * (en/tr, what it still fixes against what it still destroys):
+         *
+         *     none   97/96   59/63     as shipped before this existed
+         *     0.20   97/96   38/42
+         *     0.17   97/96   20/21
+         *     0.15   97/96   18/18
+         *     0.14   97/96   15/16     <- here
+         *     0.13   94/93    9/10     repair starts being paid for
+         *     0.10   79/82    7/ 5     well past the knee
+         *
+         * Everything from "none" down to 0.14 is bought with nothing: the
+         * repair rate does not move at all while silent destruction falls
+         * four-fold. 0.13 is the first value that costs a real fix, and below
+         * it the trade gets steadily worse. Tightening further is defensible
+         * — 0.13 buys six more points of destruction for three of repair, and
+         * the two failures are not equally bad, since a fix declined is
+         * visible on the strip and a word silently overwritten is found later
+         * by whoever reads the message — but that is a judgement, and 0.14
+         * needs none.
+         *
+         * See [autoCommitConfident] for what the number does.
+         */
+        private const val AUTO_MAX_COST_PER_CHAR = 0.14
+
         /** Neither half of a split may be rarer than this. */
         private const val SPLIT_MIN_FREQ = 500
 
@@ -661,6 +709,70 @@ class Dictionary(
         if (scored.isEmpty()) return emptyList()
         scored.sortByDescending { it.second }
         return if (scored.size > limit) ArrayList(scored.subList(0, limit)) else scored
+    }
+
+    /**
+     * Whether [candidate] is a confident enough repair of [typedLower] to be
+     * committed on a space rather than merely offered on the strip.
+     *
+     * This decides *auto*-correction only. Everything [correctionsScored]
+     * ranked is still shown and still one tap away; the question here is the
+     * narrower and much more damaging one of what gets applied silently.
+     *
+     * Two words that are the same word written differently are not a guess and
+     * do not face the bar. Accents are the first case — someone typing
+     * "gunaydin" for "günaydın" on bare keys has not made a mistake anyone
+     * needs protecting from, and the substitutions involved are between keys
+     * that sit nowhere near each other, so a spatial cost reads them as a wild
+     * repair. Repeated letters are the second: "naberr" for "naber" and
+     * "hellooo" for "hello" are the word itself with a key held down.
+     *
+     * Everything else pays [AUTO_MAX_COST_PER_CHAR] per character. Dividing by
+     * the length is the whole point — it is what makes two edits acceptable in
+     * a long word and refused in a short one, which is exactly the difference
+     * between "accomodation" and turning somebody's name into a different word.
+     */
+    fun autoCommitConfident(
+        typedLower: String, candidate: String, prox: KeyProximity?
+    ): Boolean {
+        if (typedLower.isEmpty() || candidate.isEmpty()) return false
+        if (sameWordDifferentlyWritten(typedLower, candidate)) return true
+        val len = maxOf(typedLower.length, candidate.length)
+        return spatialCost(typedLower, candidate, prox) / len <= AUTO_MAX_COST_PER_CHAR
+    }
+
+    /**
+     * Whether the two differ only in accents, or only in a held-down key.
+     *
+     * The elongation half demands a run of **three**, and the first draft of
+     * this demanded two, which was measurably wrong: it read "sell" as an
+     * elongation of "sel" and "tabii" as one of "tabi", and waved both through
+     * the bar to be committed silently. A doubled letter is ordinary spelling
+     * in most languages and carries real information; three in a row is
+     * somebody leaning on a key. "naberr" does not need the exemption and does
+     * not get it — one deletion in a six-letter word clears the bar on cost.
+     */
+    private fun sameWordDifferentlyWritten(a: String, b: String): Boolean {
+        val fa = foldDiacritics(a)
+        val fb = foldDiacritics(b)
+        if (fa == fb) return true
+        if (!hasRunOfThree(fa) && !hasRunOfThree(fb)) return false
+        return collapseRuns(fa) == collapseRuns(fb)
+    }
+
+    private fun hasRunOfThree(s: String): Boolean {
+        var run = 1
+        for (i in 1 until s.length) {
+            run = if (s[i] == s[i - 1]) run + 1 else 1
+            if (run >= 3) return true
+        }
+        return false
+    }
+
+    private fun collapseRuns(s: String): String {
+        val sb = StringBuilder(s.length)
+        for (ch in s) if (sb.isEmpty() || sb.last() != ch) sb.append(ch)
+        return sb.toString()
     }
 
     /**

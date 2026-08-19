@@ -739,6 +739,26 @@ class SuggestionEngine private constructor(
         return CONTEXT_CORRECTION_WEIGHT / (r + 1.0)
     }
 
+    /**
+     * Whether [candidate] is a confident enough repair of [typed] to be acted
+     * on without the user choosing it.
+     *
+     * Two callers, and they are asking the same question about two different
+     * kinds of "without choosing it": the keyboard means committing on the
+     * space bar, and the spell checker means telling the platform its first
+     * suggestion is the *recommended* one, which is a claim an editor may act
+     * on by itself. Both were previously answered by "is there a candidate at
+     * all".
+     *
+     * Case-folded first, because the strip carries a correction cased to match
+     * what was typed and the cost model works in lower case.
+     */
+    fun autoCommitConfident(
+        typed: String, candidate: String, lang: String, locale: Locale
+    ): Boolean = dictionary(lang, locale).autoCommitConfident(
+        typed.lowercase(locale), candidate.lowercase(locale), KeyProximity.forLang(lang)
+    )
+
     /** Correction the keyboard would apply on a separator, or null. */
     fun correctionFor(
         typed: String,
@@ -751,7 +771,13 @@ class SuggestionEngine private constructor(
         // (wrongly) in the dictionary, and takes priority over any edit-
         // distance fix: "dont" is a missing apostrophe, not a mistyped word.
         contractionFor(typed, lang, locale)?.let { if (it.second) return it.first }
-        return correctionCandidates(typed, lang, locale, altLang, altLocale, 1).firstOrNull()
+        val best = correctionCandidates(typed, lang, locale, altLang, altLocale, 1)
+            .firstOrNull() ?: return null
+        // Offered is not the same as applied. See [Dictionary.autoCommitConfident]:
+        // without this the strip's best guess was committed on the space bar
+        // however far it sat from what was actually typed, which destroyed most
+        // correctly-typed words the dictionary happens not to contain.
+        return if (autoCommitConfident(typed, best, lang, locale)) best else null
     }
 
     /**
@@ -928,7 +954,11 @@ class SuggestionEngine private constructor(
         val correction = when {
             contraction != null && contraction.second -> contractionWord
             crossLanguage -> null
+            // Same gate as [correctionFor], and it has to be applied here too:
+            // this is the other route to committing on space, and a threshold
+            // enforced on one of two paths is not a threshold.
             else -> corrs.firstOrNull()
+                ?.takeIf { autoCommitConfident(composing, it, lang, locale) }
         }
 
         val display = mutableListOf(composing) // slot 0: verbatim

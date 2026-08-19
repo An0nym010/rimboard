@@ -72,6 +72,9 @@ class SpellJudgeTest {
     private fun inDictionary(v: Verdict) =
         (v.attrs and SuggestionsInfo.RESULT_ATTR_IN_THE_DICTIONARY) != 0
 
+    private fun recommended(v: Verdict) =
+        (v.attrs and SuggestionsInfo.RESULT_ATTR_HAS_RECOMMENDED_SUGGESTIONS) != 0
+
     @Test
     fun `a known word is reported as known and offers nothing`() {
         val j = judge(mapOf(dict("store" to 9000, "stone" to 4000)))
@@ -299,5 +302,32 @@ class SpellJudgeTest {
             "and offered once it is off",
             "shite" in j.verdictFor("shime", "", "", "", 5, true, budget()).words
         )
+    }
+
+    @Test
+    fun `an adjacent-key repair is recommended`() {
+        // The case the flag exists for: k sits next to l, so "hello" is not a
+        // guess about what was meant, it is where the thumb landed.
+        val j = judge(mapOf(dict("hello" to 9000)))
+        val v = verdict(j, "helko")
+        assertTrue("underlined", typo(v))
+        assertEquals("hello", v.words.first())
+        assertTrue("and worth recommending", recommended(v))
+    }
+
+    @Test
+    fun `a distant repair is offered but never recommended`() {
+        // Two deletions out of a six-letter word. The platform documents the
+        // recommended flag as the text service saying these are *the*
+        // suggestions, and an editor may act on it without asking, so it has to
+        // mean something more than "the search returned a row". Before the
+        // confidence gate it was set whenever the list came back non-empty,
+        // which is how a keyboard ends up replacing somebody's name.
+        val j = judge(mapOf(dict("bury" to 9000)))
+        val v = verdict(j, "buraya")
+        assertTrue("still underlined", typo(v))
+        assertTrue("still offered, since choosing it is the user's call",
+            v.words.contains("bury"))
+        assertFalse("but not recommended", recommended(v))
     }
 }

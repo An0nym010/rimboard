@@ -482,4 +482,145 @@ class AutocorrectAccuracyTest {
             )
         }
     }
+
+    // ---- what is *applied*, not merely offered -----------------------------
+
+    /**
+     * The auto-correction gate, from both sides at once.
+     *
+     * Everything above measures [SuggestionEngine.correctionCandidates] — the
+     * list on the strip. This measures [SuggestionEngine.correctionFor], which
+     * is the narrower and far more damaging question of what gets committed on
+     * the space bar without anyone tapping anything. The two were the same
+     * decision until a threshold was added: whatever ranked first was applied,
+     * however far it sat from what was typed.
+     *
+     * A gate like that has two costs and they pull opposite ways, so measuring
+     * one of them alone would say nothing:
+     *
+     *  - **fixed** — damaged words the keyboard still repairs on its own. Every
+     *    point lost here is a typo the user now has to tap to fix.
+     *  - **destroyed** — correctly-typed words the keyboard overwrites. The
+     *    corpus is real words of the *other* language, typed into a field whose
+     *    dictionary does not contain them, standing in for the names, brands,
+     *    slang and jargon that no 200k-word list holds. Every point here is the
+     *    keyboard silently replacing something that was already right, which is
+     *    the failure people actually complain about.
+     *
+     * The second number was 56% in English and 61% in Turkish before the gate
+     * existed. That is the measurement that justified building this at all, and
+     * it is why the floor below is on both arms: a threshold tuned to make one
+     * of them look good is trivially achievable by wrecking the other.
+     */
+    private data class CommitScore(
+        val asked: Int, val fixed: Int, val alien: Int, val destroyed: Int
+    ) {
+        val fixRate get() = if (asked == 0) 0.0 else fixed.toDouble() / asked
+        val destroyRate get() = if (alien == 0) 0.0 else destroyed.toDouble() / alien
+    }
+
+    /**
+     * Real words of [foreign] that the [lang] dictionary does not know.
+     *
+     * Skipping the very top of the foreign list on purpose: its commonest words
+     * are short function words that genuinely collide across languages, and
+     * "is" or "bir" being read as a typo of something is not the case this is
+     * about.
+     */
+    private fun alienWords(
+        engine: SuggestionEngine, lang: String, locale: Locale,
+        foreign: String, count: Int
+    ): List<String> =
+        File(assets(), "dictionaries/$foreign.txt").useLines { lines ->
+            lines.drop(80)
+                .mapNotNull { it.split(' ').firstOrNull() }
+                .filter { it.length in 4..10 && it.all { c -> c.isLetter() } }
+                .filter { !engine.acceptedWord(it, lang, locale) }
+                .take(count)
+                .toList()
+        }
+
+    private fun measureCommit(
+        lang: String, locale: Locale, foreign: String, words: Int
+    ): CommitScore {
+        val engine = realEngine(lang)
+        val prox = KeyProximity.forLang(lang)
+        val sample = sample(lang, words)
+
+        var asked = 0
+        var fixed = 0
+        for (slip in Slip.values()) {
+            val rnd = Random(seed = 20260820 + slip.ordinal)
+            for (w in sample) {
+                val typo = damage(w, slip, prox, rnd) ?: continue
+                if (engine.acceptedWord(typo, lang, locale)) continue
+                asked++
+                if (engine.correctionFor(typo, lang, locale) == w) fixed++
+            }
+        }
+
+        val alien = alienWords(engine, lang, locale, foreign, 200)
+        var destroyed = 0
+        for (w in alien) {
+            val fix = engine.correctionFor(w, lang, locale)
+            if (fix != null && fix.lowercase(locale) != w) destroyed++
+        }
+        return CommitScore(asked, fixed, alien.size, destroyed)
+    }
+
+    private fun commitReport(lang: String, s: CommitScore): String =
+        ("%s commit: fixes %.0f%% of typos (%d/%d), destroys %.0f%% of real " +
+            "unknown words (%d/%d)").format(
+            lang, s.fixRate * 100, s.fixed, s.asked,
+            s.destroyRate * 100, s.destroyed, s.alien
+        )
+
+    @Test
+    fun `autocorrect applies its fixes without overwriting words that were right`() {
+        val results = listOf(
+            Triple("en", Locale.ENGLISH, "tr"),
+            Triple("tr", Locale.forLanguageTag("tr"), "en")
+        ).map { (lang, locale, foreign) ->
+            lang to measureCommit(lang, locale, foreign, 60)
+        }
+
+        val lines = results.joinToString("\n") { (lang, s) -> commitReport(lang, s) }
+        println(lines)
+
+        // Measured 2026-08-20, the day the gate was added, sweeping
+        // Dictionary.AUTO_MAX_COST_PER_CHAR with everything else held still.
+        // Left column is what the keyboard still fixes on its own, right is
+        // what it overwrites that was already correct (en/tr):
+        //
+        //   none   97/96   59/63     no gate, which is how this shipped
+        //   0.20   97/96   38/42
+        //   0.17   97/96   20/21
+        //   0.15   97/96   18/18
+        //   0.14   97/96   15/16     <- the constant
+        //   0.13   94/93    9/10
+        //   0.10   79/82    7/ 5
+        //
+        // The striking part is the top half: from no gate down to 0.14 the
+        // repair rate never moves while destruction falls four-fold. The
+        // corrections being refused in that range were not fixing anything —
+        // they were two edits on a six-letter word, reaching a commoner word
+        // that happened to be nearby.
+        //
+        // Both floors matter and they have to be read together. A threshold
+        // tuned to make either column look good is trivially reachable by
+        // wrecking the other: turn the gate off and the left column is
+        // perfect, close it to nothing and the right column is.
+        results.forEach { (lang, s) ->
+            assertTrue(
+                "autocorrect has stopped fixing typos in $lang.\n" + lines,
+                s.fixRate >= 0.90
+            )
+            assertTrue(
+                "autocorrect is overwriting correctly-typed words in $lang " +
+                    "again — this was 56%/61% before the gate existed.\n" + lines,
+                s.destroyRate <= 0.25
+            )
+            assertTrue("the corpus generated nothing:\n" + lines, s.asked > 20 && s.alien > 20)
+        }
+    }
 }

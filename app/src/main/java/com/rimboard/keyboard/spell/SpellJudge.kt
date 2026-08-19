@@ -182,8 +182,28 @@ internal class SpellJudge(
             // entries in a popup documented to hold five.
             .take(cap)
 
+        // "Recommended" is a claim about the first suggestion, not a report
+        // that one was produced — and this used to be the latter, raising the
+        // flag whenever the list came back non-empty. The distinction is not
+        // decorative: the platform documents this as the text service saying
+        // these are *the* suggestions, and an editor may act on it without
+        // asking, so a distant guess carried the same authority as an
+        // adjacent-key fix. AOSP's own spell checker gates it on a normalized
+        // score clearing `config_spellchecker_recommended_threshold`; this is
+        // the same gate the keyboard commits on, which keeps one answer to one
+        // question rather than two that can drift apart.
+        //
+        // Everything found is still in the popup either way. The gate decides
+        // what is claimed about the first entry, never what is offered — a
+        // suggestion the user chooses is their decision and needs no bar.
+        val top = out.firstOrNull()
+        val recommended = top != null &&
+            // A contraction is a missing apostrophe rather than a guess at a
+            // different word, and it is the one repair here that a spatial
+            // cost reads as expensive while being nearly certain.
+            (top == contraction || engine.autoCommitConfident(word, top, lang, loc))
         var attrs = SuggestionsInfo.RESULT_ATTR_LOOKS_LIKE_TYPO
-        if (out.isNotEmpty()) {
+        if (recommended) {
             attrs = attrs or SuggestionsInfo.RESULT_ATTR_HAS_RECOMMENDED_SUGGESTIONS
         }
         return Verdict(attrs, out)
