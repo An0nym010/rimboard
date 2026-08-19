@@ -91,34 +91,65 @@ class AutocorrectAccuracyTest {
         }?.takeIf { it != word }
     }
 
-    private fun measure(lang: String, locale: Locale, words: List<String>): Map<Slip, Double> {
+    /**
+     * Accuracy over all the damage, and over the damage that was contested.
+     *
+     * The second number is the one worth watching. A typo with a single
+     * plausible repair is answered correctly by any ranking at all, so a corpus
+     * made of those measures whether the candidate *generator* works and says
+     * nothing about the ranking sitting on top of it.
+     *
+     * That is not a guess about the instrument, it is how the blind spot was
+     * found: sweeping the weight that balances key geometry against word
+     * frequency across 2.5 to 5.0 moved every overall figure by exactly
+     * nothing. A benchmark that cannot tell 2.5 from 5.0 is not measuring what
+     * they control.
+     *
+     * Contested means the engine offered more than one repair — the case
+     * the reported "naberr" fault lived in, and the only case a ranking exists
+     * for.
+     */
+    private data class Score(val overall: Double, val contested: Double, val contestedN: Int)
+
+    private fun measure(lang: String, locale: Locale, words: List<String>): Map<Slip, Score> {
         val engine = realEngine(lang)
         val prox = KeyProximity.forLang(lang)
-        val out = LinkedHashMap<Slip, Double>()
+        val out = LinkedHashMap<Slip, Score>()
         for (slip in Slip.values()) {
             // Seeded per kind, so the corpus is the same on every run and on
             // every machine. A benchmark that moves on its own measures noise.
             val rnd = Random(seed = 20260819 + slip.ordinal)
             var asked = 0
             var right = 0
+            var contested = 0
+            var contestedRight = 0
             for (w in words) {
                 val typo = damage(w, slip, prox, rnd) ?: continue
                 // Skip damage that lands on another real word: "hat" from
                 // "hate" is not a typo the engine should be scored on.
                 if (engine.acceptedWord(typo, lang, locale)) continue
                 asked++
-                if (engine.correctionCandidates(typo, lang, locale, limit = 1)
-                        .firstOrNull() == w
-                ) right++
+                val offered = engine.correctionCandidates(typo, lang, locale, limit = 3)
+                val hit = offered.firstOrNull() == w
+                if (hit) right++
+                if (offered.size > 1) {
+                    contested++
+                    if (hit) contestedRight++
+                }
             }
-            out[slip] = if (asked == 0) 0.0 else right.toDouble() / asked
+            out[slip] = Score(
+                overall = if (asked == 0) 0.0 else right.toDouble() / asked,
+                contested = if (contested == 0) 0.0 else contestedRight.toDouble() / contested,
+                contestedN = contested
+            )
         }
         return out
     }
 
-    private fun report(lang: String, scores: Map<Slip, Double>): String =
-        scores.entries.joinToString(", ") { (k, v) -> "$k ${"%.0f".format(v * 100)}%" }
-            .let { "$lang: $it" }
+    private fun report(lang: String, scores: Map<Slip, Score>): String =
+        scores.entries.joinToString(", ") { (k, v) ->
+            "$k ${"%.0f".format(v.overall * 100)}%/${"%.0f".format(v.contested * 100)}%"
+        }.let { "$lang (all/contested): $it" }
 
     @Test
     fun `the autocorrect is right often enough, and says where it is not`() {
@@ -132,23 +163,37 @@ class AutocorrectAccuracyTest {
         println(lines)
 
         // A floor, not a target, and set from what the engine measures
-        // rather than from a wish. On the day it was written:
+        // rather than from a wish. Measured the day the contested figures
+        // were added, as all/contested:
         //
-        //   en: neighbour 100%, doubled 100%, dropped 96%, swapped 100%
-        //   tr: neighbour  96%, doubled  91%, dropped 88%, swapped 100%
+        //   en: neighbour 100/100, doubled 100/100, dropped  96/96, swapped 100/100
+        //   tr: neighbour  96/96,  doubled  91/95,  dropped  88/86, swapped 100/100
         //
-        // 0.80 sits eight points under the worst of those, which leaves room
-        // for ordinary tuning to move things about and still catches anything
-        // falling off a cliff. Raise it when the engine earns it. Lowering it
-        // to make a change pass is the one use this must never be put to.
-        val worst = results.flatMap { it.second.values }.min()
+        // The two columns turned out to sit almost on top of each other, which
+        // says something worth keeping: nearly every generated typo is
+        // contested, so the engine is being asked to choose, not merely to
+        // find. That in turn means the flat result from sweeping the
+        // geometry-against-frequency weight across 2.5 to 5.0 was not the
+        // corpus being too easy. Within one edit the right answer is almost
+        // always the cheapest answer as well, so scaling every cost by the
+        // same factor reorders nothing. The weight matters in a narrow band --
+        // where a commoner word is also a worse fit, which is exactly the
+        // reported "naberr" case -- and is not worth agonising over outside it.
+        //
+        // The floor is on the contested figures, since those are the ones a
+        // ranking change can move. Lowering it to make a change pass is the
+        // one use this must never be put to.
+        val worst = results.flatMap { r -> r.second.values.map { it.contested } }.min()
         assertTrue(
-            "autocorrect accuracy has fallen below the floor.\n$lines",
-            worst >= 0.80
+            "contested autocorrect accuracy has fallen below the floor.\n" + lines,
+            worst >= 0.78
         )
-        // Guards the guard: a corpus that generated nothing would score a
-        // perfect zero-of-zero and pass every assertion above.
-        assertTrue("the corpus generated nothing:\n$lines",
-            results.all { r -> r.second.values.all { it > 0.0 } })
+        // Guards the guard twice over: a corpus that generated nothing would
+        // score a perfect zero-of-zero, and a contested set that never fills
+        // would make the floor above meaningless.
+        assertTrue("the corpus generated nothing:\n" + lines,
+            results.all { r -> r.second.values.all { it.overall > 0.0 } })
+        assertTrue("nothing was contested, so nothing measured the ranking:\n" + lines,
+            results.all { r -> r.second.values.all { it.contestedN >= 5 } })
     }
 }
