@@ -264,4 +264,40 @@ class SpellJudgeTest {
         val j = judge(mapOf(dict("hello" to 9000)))
         assertTrue("hello is the fix", "hello" in verdict(j, "helol").words)
     }
+
+    // ---- what comes back, and what does not ----
+
+    @Test
+    fun `the fix arrives in the case the typo was typed in`() {
+        // The popup writes its answer straight into the field, so a lowercase
+        // fix for a capitalised word would put a lowercase word at the front
+        // of the sentence.
+        val j = judge(mapOf(dict("hello" to 9000)))
+        assertEquals(listOf("Hello"), verdict(j, "Helol").words)
+        assertEquals(listOf("hello"), verdict(j, "helol").words)
+    }
+
+    @Test
+    fun `an offensive word is not offered as a fix, unless the filter is off`() {
+        // The setting reached the keyboard and not this service until it was
+        // wired up, and that was a change with no test attached because the
+        // missing piece was an assignment. This is the effect it was missing.
+        val assets = mapOf(dict("shine" to 8000, "shite" to 3000),
+            "offensive/en.txt" to "shite")
+        val engine = SuggestionEngine.forTesting(userData) { path ->
+            assets[path]?.byteInputStream()
+        }
+        val j = SpellJudge(engine, "en", en)
+
+        assertEquals(
+            "filtered while the setting is on",
+            listOf("shine"), j.verdictFor("shime", "", "", "", 5, true, budget()).words
+        )
+
+        engine.blockOffensive = false
+        assertTrue(
+            "and offered once it is off",
+            "shite" in j.verdictFor("shime", "", "", "", 5, true, budget()).words
+        )
+    }
 }
