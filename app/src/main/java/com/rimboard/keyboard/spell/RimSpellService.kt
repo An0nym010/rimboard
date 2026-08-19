@@ -90,6 +90,17 @@ class RimSpellService : SpellCheckerService() {
     override fun createSession(): Session = RimSession(engine, this)
 
     /**
+     * Pick up anything written to the learned data since this service started.
+     *
+     * Guarded on the store existing: a service not yet asked about a word has
+     * nothing to refresh, and building one here purely to refresh it would
+     * undo the point of the lazy.
+     */
+    internal fun refreshLearned() {
+        if (userDataLazy.isInitialized()) userData.reloadIfChanged()
+    }
+
+    /**
      * The platform asking for memory back.
      *
      * The keyboard has answered this for as long as the cache has been shared,
@@ -222,6 +233,11 @@ class RimSpellService : SpellCheckerService() {
             // its own executor and the dictionary cache returns immediately for
             // a language already loaded. Sessions are created per text field,
             // so this runs often and must stay that way.
+            // A new field is the natural moment to notice that the personal
+            // dictionary has changed since this service started. Four stats,
+            // and a queued re-read only when something actually moved.
+            service.refreshLearned()
+
             SuggestionEngine.declareNeeded(
                 SuggestionEngine.NEEDED_SPELL, setOfNotNull(lang, altLang)
             )

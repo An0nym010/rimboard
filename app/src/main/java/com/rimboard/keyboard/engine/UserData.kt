@@ -150,6 +150,70 @@ class UserData private constructor(dir: File) {
         }
     }
 
+    /**
+     * What the files looked like when they were last read.
+     *
+     * Cheap enough to ask on every text field: four stats and no open.
+     */
+    private fun diskStamp(): Long {
+        var h = 17L
+        for (f in listOf(learnedFile, blockedFile, bigramFile, trigramFile)) {
+            h = h * 31 + f.lastModified()
+            h = h * 31 + f.length()
+        }
+        return h
+    }
+
+    @Volatile
+    private var loadedStamp = 0L
+
+    /**
+     * Re-read the files if something has written to them since the last read.
+     *
+     * A no-op for the process doing the writing — its memory is already
+     * ahead of its disk. It is for the *other* reader. The spell checker builds
+     * its own [UserData] and held whatever was on disk when it started for as
+     * long as it ran, so a word added in the personal dictionary stopped being
+     * underlined in the keyboard's own strip and went on being underlined by
+     * the spell checker in every other app. That is the reverse of what its
+     * class comment promises.
+     *
+     * Not routed through the `pendingReload` preference the keyboard uses: that
+     * flag is one-shot and the keyboard clears it, so a second consumer would
+     * win or lose the race depending on which service saw it first. The files
+     * carry their own answer and nothing can consume it.
+     *
+     * Fully queued, including the blocked list that [reload] reads inline,
+     * because the caller here is a binder thread with no business touching a
+     * file.
+     */
+    /**
+     * Test seam: block until everything queued on the store's thread has run.
+     *
+     * The store answers reads from memory and does its file work on one
+     * ordered executor, so anything queued behind a reload runs after it. A
+     * test that asserts on a reload has no other way to know it has landed,
+     * and sleeping for a guess is how a suite starts failing on a slow machine
+     * for reasons that have nothing to do with the code.
+     */
+    internal fun awaitIdle(): Boolean {
+        val done = java.util.concurrent.CountDownLatch(1)
+        io.execute { done.countDown() }
+        return done.await(5, java.util.concurrent.TimeUnit.SECONDS)
+    }
+
+    fun reloadIfChanged() {
+        if (diskStamp() == loadedStamp) return
+        io.execute {
+            blocked.clear()
+            learned.clear()
+            bigrams.clear()
+            trigrams.clear()
+            dirty = false
+            load()
+        }
+    }
+
     private fun load() {
         loadBlocked()
         try {
@@ -171,6 +235,10 @@ class UserData private constructor(dir: File) {
             }
         } catch (_: Exception) {
         }
+        // Taken after the read and not before it: a stamp read first could be
+        // older than the data now in memory, and the next check would re-read
+        // for nothing.
+        loadedStamp = diskStamp()
     }
 
     fun learnWord(word: String) {
