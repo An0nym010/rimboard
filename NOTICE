@@ -48,6 +48,27 @@ The "Night sky" live background (ui/Starfield.kt) is original to RimBoard.
 Third-party data
 ----------------
 
+Part of the bundled next-word prediction models
+(app/src/main/assets/predictions/tr.txt and en.txt) is derived from:
+
+  Tatoeba sentence exports
+  https://tatoeba.org
+
+  Licensed under Creative Commons Attribution 2.0 France
+  (CC BY 2.0 FR): https://creativecommons.org/licenses/by/2.0/fr/
+
+Modifications made for RimBoard: counted into word pairs, filtered to words
+already present in the bundled dictionary for that language, and filtered
+again to remove tokens over-represented in that corpus relative to the
+dictionary — Tatoeba is a language-teaching collection whose sentences are
+largely about two people named Tom and Mary, and without that filter "tom"
+would be the commonest prediction in the language. See tools/build_ngrams.py.
+
+CC BY 2.0 FR requires attribution and does not impose share-alike, so unlike
+the dictionaries below these files carry no licence onward. The remaining
+entries in those two files, and the whole of the other twenty prediction
+models, are hand-written for RimBoard and are covered by its own licence.
+
 The bundled word-frequency dictionaries
 (all files under app/src/main/assets/dictionaries/) are derived from:
 
