@@ -93,6 +93,34 @@ class SuggestionEngine private constructor(
          * dictionary costs one asset parse on the warm thread; being killed
          * costs the user their keyboard mid-sentence.
          */
+        /**
+         * Languages a live component still needs, by component.
+         *
+         * The cache is one map for the whole process, and the two components
+         * that fill it want different languages: the keyboard wants the two the
+         * user selected, the spell checker wants whatever locale the field it
+         * was bound to declares, which is frequently neither. Trimming to "what
+         * I need" therefore meant evicting what the other one was using, and
+         * the eviction is invisible until the next word arrives and the
+         * dictionary is parsed again to answer it — on a binder thread, in
+         * the spell checker's case, with the framework waiting.
+         *
+         * So the question a trim asks is not "what do I need" but "what does
+         * anything still need", and each component answers for itself.
+         */
+        private val needed = java.util.concurrent.ConcurrentHashMap<String, Set<String>>()
+
+        const val NEEDED_KEYBOARD = "keyboard"
+        const val NEEDED_SPELL = "spell"
+
+        /** Declare what [owner] still needs; an empty set means "nothing". */
+        fun declareNeeded(owner: String, langs: Set<String>) {
+            if (langs.isEmpty()) needed.remove(owner) else needed[owner] = langs
+        }
+
+        /** Every language some live component still needs. */
+        fun neededLanguages(): Set<String> = needed.values.flatMapTo(HashSet()) { it }
+
         fun trimDictionaries(keep: Set<String>) {
             val live = keep.map { it + "#" + DictVersion.v }.toSet()
             sharedDictionaries.keys.removeAll { it !in live }

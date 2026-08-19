@@ -89,6 +89,28 @@ class RimSpellService : SpellCheckerService() {
 
     override fun createSession(): Session = RimSession(engine, this)
 
+    /**
+     * The platform asking for memory back.
+     *
+     * The keyboard has answered this for as long as the cache has been shared,
+     * and it was the only thing that ever did — so the languages this
+     * service loads were reclaimed only while an IME, which may not even be
+     * RimBoard, was alive to hear the callback. A spell checker is selected
+     * separately from a keyboard and its sessions outlive the keyboard being
+     * dismissed, so the process could hold a dictionary for every locale it had
+     * ever been bound to, with nothing left running that would let one go.
+     *
+     * Same policy as the keyboard's, including keeping what any live component
+     * still wants rather than only what this one does.
+     */
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (level < TRIM_MEMORY_RUNNING_LOW) return
+        val keep = if (level >= TRIM_MEMORY_COMPLETE) emptySet()
+        else SuggestionEngine.neededLanguages()
+        SuggestionEngine.trimDictionaries(keep)
+    }
+
     companion object {
         /**
          * "No opinion": neither in the dictionary nor a typo, so the framework
@@ -136,6 +158,9 @@ class RimSpellService : SpellCheckerService() {
     override fun onDestroy() {
         // Guarded, so unbinding a service that never checked a word does not
         // build the store purely in order to tear it down.
+        // Nothing here needs a dictionary any more, and saying so is what
+        // lets the next trim from anywhere actually reclaim them.
+        SuggestionEngine.declareNeeded(SuggestionEngine.NEEDED_SPELL, emptySet())
         if (engineLazy.isInitialized()) engine.shutdown()
         if (userDataLazy.isInitialized()) userData.shutdown()
         super.onDestroy()
@@ -197,6 +222,9 @@ class RimSpellService : SpellCheckerService() {
             // its own executor and the dictionary cache returns immediately for
             // a language already loaded. Sessions are created per text field,
             // so this runs often and must stay that way.
+            SuggestionEngine.declareNeeded(
+                SuggestionEngine.NEEDED_SPELL, setOfNotNull(lang, altLang)
+            )
             engine.warm(lang, loc, altLang, altLoc)
         }
 

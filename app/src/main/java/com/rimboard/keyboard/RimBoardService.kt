@@ -277,8 +277,12 @@ class RimBoardService : InputMethodService(),
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
         if (level < TRIM_MEMORY_RUNNING_LOW) return
+        // Everything still wanted, not everything *this* wants: the spell
+        // checker shares this cache and is frequently on a different language,
+        // and dropping the one it is using buys a few megabytes in exchange for
+        // an asset parse on a binder thread the moment the next word arrives.
         val keep = if (level >= TRIM_MEMORY_COMPLETE) emptySet()
-        else setOfNotNull(effLang(), effAlt())
+        else SuggestionEngine.neededLanguages()
         SuggestionEngine.trimDictionaries(keep)
         // Second only to the dictionaries in size, and cheaper still to give
         // up: a thumbnail is one download away, and if the panel is open the
@@ -528,6 +532,9 @@ class RimBoardService : InputMethodService(),
                 }
             }
         }
+        SuggestionEngine.declareNeeded(
+            SuggestionEngine.NEEDED_KEYBOARD, setOfNotNull(effLang(), effAlt())
+        )
         engine.warm(effLang(), effLocale(), effAlt(), effAltLocale())
         kind = initialKindFor(info)
         applyLayout()
