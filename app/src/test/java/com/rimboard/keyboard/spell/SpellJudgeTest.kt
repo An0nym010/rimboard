@@ -220,4 +220,48 @@ class SpellJudgeTest {
         val j = judge(mapOf(dict("an" to 9000)))
         assertFalse("two letters correct too easily into something else", typo(verdict(j, "na")))
     }
+
+    // ---- the other language the user writes in ----
+
+    private fun bilingual(assets: Map<String, String>): SpellJudge {
+        val engine = SuggestionEngine.forTesting(userData) { path -> assets[path]?.byteInputStream() }
+        return SpellJudge(engine, "tr", Locale.forLanguageTag("tr"), "en", en)
+    }
+
+    private val twoLanguages = mapOf(
+        "dictionaries/tr.txt" to "araba 9000\nevet 8000",
+        "dictionaries/en.txt" to "hello 9000\nworld 8000"
+    )
+
+    @Test
+    fun `a word from the other enabled language is not underlined`() {
+        val j = bilingual(twoLanguages)
+        assertTrue("turkish is known", inDictionary(verdict(j, "araba")))
+        assertTrue("and so is english", inDictionary(verdict(j, "hello")))
+    }
+
+    @Test
+    fun `a typo in the other enabled language is offered its fix`() {
+        // It was underlined and offered nothing. Candidates only ever came
+        // from the field's own dictionary, and the alternate was consulted
+        // solely to decide not to correct — so the bilingual writer got the
+        // underline and no way to act on it.
+        val v = verdict(bilingual(twoLanguages), "helol")
+        assertTrue("should still be a typo", typo(v))
+        assertTrue("and should offer hello, got ${v.words}", "hello" in v.words)
+    }
+
+    @Test
+    fun `the other language is only asked when the first has nothing`() {
+        // What keeps the second scan free in the ordinary case, and stops it
+        // ever displacing a fix in the language actually being written.
+        val v = verdict(bilingual(twoLanguages), "arabz")
+        assertEquals("only the turkish fix", listOf("araba"), v.words)
+    }
+
+    @Test
+    fun `with no second language nothing changes`() {
+        val j = judge(mapOf(dict("hello" to 9000)))
+        assertTrue("hello is the fix", "hello" in verdict(j, "helol").words)
+    }
 }

@@ -134,6 +134,31 @@ internal class SpellJudge(
             contextRank = contextRank
         )
 
+        // Nothing in the language of the field, and the user has another one
+        // enabled. Ask again with the two swapped.
+        //
+        // The alternate language is already half in scope: a word that is
+        // correct in it is not underlined, which is what stops a Turkish
+        // message flagging every English word in it. Only half, though. A
+        // *mis*typed English word was underlined and then offered nothing,
+        // because candidates only ever came from the field's own dictionary
+        // {EM} correctionCandidates takes the alternate and uses it solely to
+        // decide not to correct. So the bilingual writer this exists for got
+        // the underline and no way to act on it.
+        //
+        // Only when the first pass found nothing, which is what keeps this
+        // free in the ordinary case and stops it ever displacing a fix in the
+        // language actually being written. The budget was taken once for this
+        // word and now covers two scans of it; that is a doubling of a bounded
+        // number, not an unbounded one.
+        val candidates =
+            if (pool.isNotEmpty() || altLang == null || altLoc == null) pool
+            else engine.correctionCandidates(
+                word, altLang, altLoc, lang, loc,
+                limit = cap + RIGHT_CONTEXT_POOL,
+                contextRank = contextRank
+            )
+
         // The word after the typo, which the n-grams can only be asked about
         // one way round: not "what precedes this" but "does this candidate
         // usually come before it". A stable sort on a yes/no, so a candidate
@@ -142,8 +167,8 @@ internal class SpellJudge(
         // the left-hand context is held to, which is that evidence breaks ties
         // rather than overruling the channel model.
         val corrections =
-            if (next.isEmpty()) pool
-            else pool.sortedByDescending { engine.continues(it, next, lang, loc) }
+            if (next.isEmpty()) candidates
+            else candidates.sortedByDescending { engine.continues(it, next, lang, loc) }
 
         // A run-together pair. Last, because it is the largest change: the
         // others fix a word, this one adds a boundary between two.
