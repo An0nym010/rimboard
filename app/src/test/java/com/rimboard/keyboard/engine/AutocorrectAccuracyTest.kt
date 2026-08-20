@@ -83,6 +83,12 @@ class AutocorrectAccuracyTest {
 
     private enum class Slip { NEIGHBOUR, DOUBLED, DROPPED, SWAPPED, FIRST }
 
+    /** Frequency ranks the repair rate is measured at. */
+    private val BANDS = listOf(80, 2_000, 10_000, 30_000, 80_000)
+
+    /** Bands at or above this rank carry a floor; deeper ones are reported only. */
+    private val FLOORED_TO = 30_000
+
     /** One word, damaged one way, or null when this word cannot take that damage. */
     private fun damage(word: String, slip: Slip, prox: KeyProximity, rnd: Random): String? {
         val i = 1 + rnd.nextInt(word.length - 2)   // never the first or last letter
@@ -623,4 +629,118 @@ class AutocorrectAccuracyTest {
             assertTrue("the corpus generated nothing:\n" + lines, s.asked > 20 && s.alien > 20)
         }
     }
+
+    // ---- can a word that is not one of the commonest still be repaired? ----
+
+    /**
+     * Repair rate by how common the target word is.
+     *
+     * This exists because the arms above cannot see the thing it measures, and
+     * that blind spot very nearly produced a bad change. [sample] draws from
+     * ranks 80 upward and takes the first seventy that fit, so every target in
+     * every other measurement here is among the most common words in the
+     * language. Any constant that limits corrections *by word frequency* is
+     * therefore invisible to them — the words they ask about are inside any
+     * plausible limit.
+     *
+     * What that looked like in practice: tightening [CORRECTION_TARGET_CAP]
+     * from 60,000 to 15,000 read as a straight halving of the destruction rate
+     * at no cost to repair whatsoever, which is exactly the shape of a free
+     * lunch worth taking. It was not one. Measured by rank, the same change
+     * took words around rank 30,000 from 62% repaired and 89% offered to zero
+     * and zero: an entire band of ordinary vocabulary becomes uncorrectable and
+     * is not even shown, and nothing in the suite would have said so.
+     *
+     * The floor here is on the **offer** rate rather than the fix rate. A
+     * frequency cap decides whether a word may be a correction target at all,
+     * so what it destroys is candidacy, and offering is where that shows up
+     * first and most sharply. The fix rate is reported alongside because it is
+     * the thing anyone reading this actually wants to know, but it moves for
+     * ranking reasons too and makes a noisier ratchet.
+     *
+     * Words past the cap are meant to be uncorrectable — that is what it is
+     * for — so the deepest band is reported and deliberately not floored.
+     */
+    private data class BandScore(
+        val rank: Int, val asked: Int, val fixed: Int, val offered: Int
+    ) {
+        val fixRate get() = if (asked == 0) 0.0 else fixed.toDouble() / asked
+        val offerRate get() = if (asked == 0) 0.0 else offered.toDouble() / asked
+    }
+
+    /** Words starting [rank] entries down the frequency list. */
+    private fun bandAt(lang: String, rank: Int, count: Int): List<String> =
+        File(assets(), "dictionaries/$lang.txt").useLines { lines ->
+            lines.drop(rank)
+                .mapNotNull { it.split(' ').firstOrNull() }
+                .filter { it.length in 5..9 && it.all { c -> c.isLetter() } }
+                .take(count)
+                .toList()
+        }
+
+    private fun measureBands(lang: String, locale: Locale, per: Int): List<BandScore> {
+        val engine = realEngine(lang)
+        val prox = KeyProximity.forLang(lang)
+        // One slip kind, because the question is which words are reachable
+        // rather than which damage is survivable, and the neighbour slip is the
+        // one the whole engine is built around.
+        return BANDS.map { rank ->
+            val rnd = Random(seed = 20260820 + rank)
+            var asked = 0
+            var fixed = 0
+            var offered = 0
+            for (w in bandAt(lang, rank, per)) {
+                val typo = damage(w, Slip.NEIGHBOUR, prox, rnd) ?: continue
+                if (engine.acceptedWord(typo, lang, locale)) continue
+                asked++
+                if (engine.correctionFor(typo, lang, locale) == w) fixed++
+                if (engine.correctionCandidates(typo, lang, locale, limit = 3).contains(w)) {
+                    offered++
+                }
+            }
+            BandScore(rank, asked, fixed, offered)
+        }
+    }
+
+    private fun bandReport(lang: String, scores: List<BandScore>): String =
+        "$lang by rank: " + scores.joinToString("  ") {
+            "~${it.rank}: offered ${"%.0f".format(it.offerRate * 100)}%" +
+                ", fixed ${"%.0f".format(it.fixRate * 100)}% (n=${it.asked})"
+        }
+
+    @Test
+    fun `a word outside the commonest few thousand can still be corrected`() {
+        val results = listOf(
+            "en" to Locale.ENGLISH,
+            "tr" to Locale.forLanguageTag("tr")
+        ).map { (lang, locale) -> lang to measureBands(lang, locale, 40) }
+
+        val lines = results.joinToString("\n") { (lang, s) -> bandReport(lang, s) }
+        println(lines)
+
+        // Measured 2026-08-20 at CORRECTION_TARGET_CAP = 60000, offered/fixed:
+        //
+        //   rank      en             tr
+        //   ~80       100 / 100      100 / 100
+        //   ~2000     100 /  97      100 /  97
+        //   ~10000    100 /  78      100 /  88
+        //   ~30000     90 /  68      100 /  87
+        //   ~80000      0 /   0        0 /   0   past the cap, by design
+        //
+        // The fix rate falling away with rank is not a fault: a rarer target
+        // is genuinely a less likely thing to have meant, and the ranking is
+        // supposed to say so. What matters is that the word stays *reachable*,
+        // and it does right down to the cap.
+        results.forEach { (lang, s) ->
+            s.filter { it.rank <= FLOORED_TO }.forEach { b ->
+                assertTrue(
+                    "words around rank ${b.rank} in $lang are no longer offered " +
+                        "as corrections at all.\n" + lines,
+                    b.offerRate >= 0.75
+                )
+            }
+            assertTrue("the bands generated nothing:\n" + lines, s.all { it.asked >= 15 })
+        }
+    }
+
 }

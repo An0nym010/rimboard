@@ -29,9 +29,33 @@ class Dictionary(
         const val WORD_START = ' '
         private const val LN_UNSEEN = -6.0
 
-        /** Longest edit distance a typo may be corrected across: 1, or 2 for
-         *  words of 6+ characters. One rule, shared so the personal-vocabulary
-         *  scan in UserData cannot drift from the dictionary scan here. */
+        /**
+         * Longest edit distance a typo may be corrected across: 1, or 2 for
+         * words of 6+ characters. One rule, shared so the personal-vocabulary
+         * scan in UserData cannot drift from the dictionary scan here.
+         *
+         * **Swept 2026-08-20 and kept** (fixes en/tr, then what it overwrites
+         * that was already correct):
+         *
+         *     n>=6 ? 2 : 1   97/96   15/16   <- here
+         *     n>=8 ? 2 : 1   97/96   16/19
+         *     always 1       97/96   16/18
+         *     n>=5 ? 2 : 1   95/96    8/13
+         *     always 2       94/96    6/13
+         *
+         * Tightening is strictly worse: both narrower rules repair exactly as
+         * much and destroy more, because the candidate that wins is then a
+         * near one the confidence gate waves through rather than a distant one
+         * it stops.
+         *
+         * Loosening does cut destruction, and the reason is worth knowing
+         * before anyone reads it as an improvement. A wider budget lets a
+         * distance-2 candidate outrank the distance-1 one, and that candidate
+         * then fails [autoCommitConfident] — so the keyboard destroys less by
+         * *doing nothing* more often, which is also why the repair rate falls
+         * with it. That is a blunt version of what the threshold already does
+         * precisely. Tune the threshold, not this.
+         */
         fun maxEditDistance(n: Int): Int = if (n >= 6) 2 else 1
 
         /**
@@ -81,6 +105,29 @@ class Dictionary(
          * instead gives every language a correction vocabulary of the same
          * size, so spell-check is not quietly worse for the languages with
          * smaller corpora.
+         */
+        /**
+         * **Swept 2026-08-20 and kept**, and the sweep is a cautionary tale.
+         * Fixes en/tr, then what gets overwritten that was already correct:
+         *
+         *     15000   97/96    8/ 6
+         *     30000   97/96   11/12
+         *     60000   97/96   15/16   <- here
+         *     120000  97/95   19/21
+         *     250000  97/95   24/32
+         *
+         * Read alone that table says tighten to 15,000: half the destruction,
+         * no cost to repair at all. It is wrong, and the reason is that the
+         * corpus behind those columns draws its targets from the top of the
+         * frequency list, so a limit on *which words may be corrected to* is
+         * invisible to it — every word it asks about is inside any cap worth
+         * considering.
+         *
+         * Measured by rank instead, 15,000 takes words around rank 30,000 from
+         * 90% offered and 68% repaired to zero and zero. A whole band of
+         * ordinary vocabulary stops being correctable and stops being shown.
+         * `AutocorrectAccuracyTest` now has an arm that measures by rank and
+         * fails on exactly that, so the trap is closed rather than remembered.
          */
         private const val CORRECTION_TARGET_CAP = 60000
 
@@ -804,6 +851,13 @@ class Dictionary(
         // immediately under the answer, which is worth knowing before anyone
         // rounds this down.
         val ins = 0.7
+        // Transposition. **Swept 2026-08-20 and kept**: flat from 0.20 to
+        // 0.50 on every figure, with the cliff immediately above — at 0.70 the
+        // swapped-letter accuracy falls to 95% in English and 96% in Turkish,
+        // and at 0.50 Turkish has already started to slip (100 -> 98). 0.35
+        // sits in the middle of the flat band rather than on its edge, which is
+        // where a constant wants to be. Neither end moved what the keyboard
+        // overwrites, so this one trades against nothing.
         val transp = 0.35
         var prevPrev: DoubleArray? = null
         var prev = DoubleArray(n + 1) { it * ins }
