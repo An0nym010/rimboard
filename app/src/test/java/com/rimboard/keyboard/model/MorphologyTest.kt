@@ -21,6 +21,50 @@ class MorphologyTest {
     private fun accepts(word: String) = Morphology.stemIsKnown("tr", word, known)
 
     @Test
+    fun `the derivational suffixes build words a list cannot hold`() {
+        // These five make new words rather than inflecting old ones, and they
+        // are as productive as the inflections: a frequency list cannot hold
+        // everything they produce, and what it does not hold was being
+        // corrected away.
+        assertTrue("without", accepts("gözsüz"))
+        assertTrue("with", accepts("gözlü"))
+        assertTrue("the quality of", accepts("gözlük"))
+        assertTrue("the one who", accepts("kitapçı"))
+        assertTrue("the one at", accepts("evdeki"))
+    }
+
+    @Test
+    fun `the derivational suffixes still have to harmonise`() {
+        // Adding them did not buy an exemption. After ö the four-way vowel is
+        // ü, so these spellings are as impossible as any other disagreement.
+        assertFalse(accepts("gözsiz"))
+        assertFalse(accepts("gözsız"))
+        assertFalse(accepts("gözli"))
+        assertFalse(accepts("gözlik"))
+    }
+
+    @Test
+    fun `the agent suffix hardens after a voiceless stem`() {
+        // kitapçı, not kitapcı: p is voiceless, so the c becomes ç. The stem
+        // ending in a vowel keeps the soft form.
+        assertTrue(accepts("kitapçı"))
+        assertFalse(accepts("kitapcı"))
+        assertTrue(accepts("arabacı"))
+        assertFalse(accepts("arabaçı"))
+    }
+
+    @Test
+    fun `the one suffix that does not harmonise is not made to`() {
+        // "-ki" is a Persian loan and keeps its vowel whatever precedes it:
+        // masadaki, never masadakı. Checking it against the four-way vowel
+        // would reject exactly the words it was added for.
+        assertTrue("back vowel, front suffix, still correct", accepts("arabadaki"))
+        assertTrue(accepts("evdeki"))
+        // And the spelling harmony *would* have produced is not a word.
+        assertFalse(accepts("arabadakı"))
+    }
+
+    @Test
     fun `a suffix has to agree with the word in front of it`() {
         // Turkish suffixes harmonise, so most strings that look like a stem
         // plus a suffix are not words. Peeling by spelling alone took "bunın"

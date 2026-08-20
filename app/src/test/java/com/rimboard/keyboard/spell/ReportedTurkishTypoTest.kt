@@ -89,6 +89,21 @@ class ReportedTurkishTypoTest {
     }
 
     @Test
+    fun `a word built with a derivational suffix is left alone`() {
+        // Ordinary Turkish that the shipped list happens not to contain. Every
+        // one of these was being corrected away before the five derivational
+        // suffixes were added, which with autocorrect on means being silently
+        // replaced with something else.
+        val eng = engine()
+        for (w in listOf("gözsüz", "gözlükçü", "simitçi", "evlerimizdekiler")) {
+            assertTrue(
+                "'$w' is ordinary Turkish and must not be corrected",
+                eng.acceptedWord(w, "tr", tr)
+            )
+        }
+    }
+
+    @Test
     fun `a typo is not excused by peeling onto corpus noise`() {
         // A 200k-word list built from subtitles holds a great deal that is not
         // a Turkish root, and the guard used to accept any stem present in it
