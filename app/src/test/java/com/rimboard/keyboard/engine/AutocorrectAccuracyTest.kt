@@ -191,8 +191,14 @@ class AutocorrectAccuracyTest {
         //
         //   en: neighbour 100/100, doubled 100/100, dropped 96/96,
         //       swapped 100/100, first 93/93
-        //   tr: neighbour  96/96,  doubled  96/96,  dropped 88/86,
-        //       swapped 100/100, first 95/95   (dropped contested was 86)
+        //   tr: neighbour  97/96,  doubled  97/97,  dropped 90/88,
+        //       swapped 100/100, first 96/96
+        //
+        // The Turkish column moved up once, and the reason is worth keeping:
+        // nothing about the ranking changed. The morphology guard learned
+        // vowel harmony and stopped peeling onto corpus noise, so seventy more
+        // Turkish typos reached the corrector at all -- before that the guard
+        // had pronounced them correct and this arm never saw them.
         //
         // The two columns turned out to sit almost on top of each other, which
         // says something worth keeping: nearly every generated typo is
@@ -624,7 +630,7 @@ class AutocorrectAccuracyTest {
         // somebody wants is not a thing a benchmark can settle for them.
         //
         //   balanced (default)   fixes 97/96   destroys 15/16
-        //   cautious             fixes 94/93   destroys  9/10
+        //   cautious             fixes 94/91   destroys  9/ 9
         val cautious = listOf(
             Triple("en", Locale.ENGLISH, "tr"),
             Triple("tr", Locale.forLanguageTag("tr"), "en")

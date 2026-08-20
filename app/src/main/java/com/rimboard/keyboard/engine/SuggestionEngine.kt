@@ -583,7 +583,9 @@ class SuggestionEngine private constructor(
         // its last "i" and lands on "tabii", which is a real word, so the
         // engine concluded the typo was fine and stayed silent.
         if (accented == null && elongated == null &&
-            com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) { dict.contains(it) }
+            com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) {
+                dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
+            }
         ) {
             return emptyList()
         }
@@ -718,7 +720,9 @@ class SuggestionEngine private constructor(
             return true
         }
         if (accentedFormFor(lower, lang, dict) != null) return false
-        if (com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) { dict.contains(it) }) {
+        if (com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) {
+                dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
+            }) {
             return true
         }
         return altLang != null && altLocale != null &&

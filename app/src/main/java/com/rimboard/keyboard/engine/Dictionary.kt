@@ -247,6 +247,26 @@ class Dictionary(
          */
         private const val AUTO_MAX_COST_PER_CHAR_CAUTIOUS = 0.12
 
+        /**
+         * How common a stem must be before a suffix may be peeled onto it.
+         *
+         * The morphology guard used to accept any stem the dictionary held at
+         * all, and a 200k-word list built from subtitles holds a great deal
+         * that is not a Turkish root: fragments, foreign scraps, and other
+         * people's typos, all sitting at the bottom of the frequency table.
+         * That is how "srlam" came apart onto "sr", "bsyan" onto "bs" and
+         * "heken" onto "hek" — stems with 37 to 68 occurrences in a corpus of
+         * millions — and each of those typos was then pronounced correct.
+         *
+         * The gap between noise and root is wide enough to sit in comfortably:
+         * the junk above ran 37-98, while the genuine stems in the same sample
+         * ran 1,261 for "ola", 14,056 for "sor" and three and a half million
+         * for "bu". 500 is the same number [SPLIT_MIN_FREQ] uses for the halves
+         * of a split, and for the same reason — it is asking whether this is a
+         * word people actually write, not merely a string that occurs.
+         */
+        internal const val STEM_MIN_FREQ = 500
+
         /** Neither half of a split may be rarer than this. */
         private const val SPLIT_MIN_FREQ = 500
 

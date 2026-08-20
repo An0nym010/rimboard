@@ -53,6 +53,7 @@ object Morphology {
             if (word.length - suf.length >= MIN_STEM && word.endsWith(suf)) {
                 val stem = word.substring(0, word.length - suf.length)
                 if (doubledLetter(stem, suf)) continue
+                if (!harmonises(stem, suf)) continue
                 if (peel(stem, depth - 1, known)) return true
             }
         }
@@ -84,6 +85,81 @@ object Morphology {
      */
     private fun doubledLetter(stem: String, suf: String): Boolean =
         suf.length == 1 && stem.isNotEmpty() && stem.last() == suf[0]
+
+    // ---- vowel harmony -------------------------------------------------
+
+    private const val BACK = "aıou"
+    private const val FRONT = "eiöü"
+
+    /** After one of these, a suffix-initial d hardens to t and c to ç. */
+    private const val VOICELESS = "pçtkfhsş"
+
+    private fun lastVowel(w: String): Char? = w.lastOrNull { it in BACK || it in FRONT }
+
+    /**
+     * The four-way high vowel a suffix must take after [stem].
+     *
+     * Frontness *and* rounding both carry over, which is what makes this four
+     * ways rather than two: after a/ı it is ı, after e/i it is i, after o/u it
+     * is u, after ö/ü it is ü.
+     */
+    private fun high(stem: String): Char = when (lastVowel(stem)) {
+        'a', 'ı' -> 'ı'
+        'e', 'i' -> 'i'
+        'o', 'u' -> 'u'
+        'ö', 'ü' -> 'ü'
+        else -> ' '
+    }
+
+    /** The two-way low vowel: frontness only, never rounding. e or a. */
+    private fun low(stem: String): Char = when (lastVowel(stem)) {
+        in FRONT.toList() -> 'e'
+        in BACK.toList() -> 'a'
+        else -> ' '
+    }
+
+    /**
+     * Whether [suf] is a form Turkish can actually produce after [stem].
+     *
+     * Turkish suffixes agree with the word in front of them, so most of the
+     * strings that *look* like a stem plus a suffix are not words at all. The
+     * guard had no idea: it peeled by spelling alone, so "bunın" came apart as
+     * "bu" plus the genitive and was pronounced correct — while the real word
+     * is "bunun", because after u the four-way vowel is u. Measured on a corpus
+     * of realistic typos, that blindness was swallowing 28% of them, and
+     * 46% of dropped letters: never underlined, never corrected, and with
+     * autocorrect on, never noticed.
+     *
+     * Only the suffix's **first** vowel is checked, which is where the
+     * agreement lives; the rest of a multi-syllable suffix is fixed by the
+     * inventory that lists it. A suffix with no vowel at all ("n", "m") has
+     * nothing to agree with and is left alone.
+     *
+     * The buffer consonants are skipped rather than special-cased: "nın" and
+     * "yla" begin with a consonant that exists to keep two vowels apart, and
+     * the vowel after it is the one that harmonises.
+     *
+     * Consonant agreement too, in the other direction: after a voiceless
+     * consonant a suffix-initial d hardens to t and c to ç, which is why it is
+     * "kitapta" and not "kitapda". A stem ending in a vowel or a voiced
+     * consonant takes the soft form.
+     */
+    private fun harmonises(stem: String, suf: String): Boolean {
+        if (stem.isEmpty()) return false
+        val head = suf.firstOrNull() ?: return true
+        val hardened = stem.last() in VOICELESS.toList()
+        if (head == 'd' || head == 't') {
+            if (hardened != (head == 't')) return false
+        }
+        if (head == 'c' || head == 'ç') {
+            if (hardened != (head == 'ç')) return false
+        }
+        val v = suf.firstOrNull { it in BACK || it in FRONT } ?: return true
+        return when (v) {
+            'e', 'a' -> v == low(stem)
+            else -> v == high(stem)
+        }
+    }
 
     /** Turkish roots as short as two letters are common: ev, su, el, göz. */
     private const val MIN_STEM = 2
@@ -125,7 +201,12 @@ object Morphology {
         "le", "la", "ye", "ya",
         // past / person / possessive singular / accusative-dative vowels
         "di", "dı", "du", "dü", "ti", "tı", "tu", "tü",
-        "sin", "siniz", "sun", "sunuz",
+        // All four variants, not the two that were here. With harmony
+        // checked, a missing variant is no longer merely incomplete -- it
+        // makes the legitimate form fail, because the spelling that would
+        // have matched is the one that is absent.
+        "sin", "sın", "sun", "sün",
+        "siniz", "sınız", "sunuz", "sünüz",
         "im", "ım", "um", "üm", "si", "sı", "su", "sü",
         "i", "ı", "u", "ü", "e", "a", "n", "m"
     ).sortedByDescending { it.length }

@@ -89,6 +89,40 @@ class ReportedTurkishTypoTest {
     }
 
     @Test
+    fun `a typo is not excused by peeling onto corpus noise`() {
+        // A 200k-word list built from subtitles holds a great deal that is not
+        // a Turkish root, and the guard used to accept any stem present in it
+        // at all. These came apart onto "sr" (68 occurrences), "bs" (39) and
+        // "hek" (37) and were pronounced correct -- never underlined, never
+        // corrected, and with autocorrect on, never noticed.
+        val eng = engine()
+        for (w in listOf("srlam", "bsyan", "heken", "oeada")) {
+            assertFalse(
+                "'$w' peels onto corpus noise and is not a word",
+                eng.acceptedWord(w, "tr", tr)
+            )
+        }
+    }
+
+    @Test
+    fun `a typo is not excused by a suffix that could not follow that stem`() {
+        // Each of these peels cleanly by spelling and is impossible by
+        // harmony: after u the four-way vowel is u, so "bunın" cannot be
+        // "bu" plus the genitive however much it looks like it.
+        val eng = engine()
+        for (w in listOf("bunın", "sorın", "olaun", "kimae")) {
+            assertFalse(
+                "'$w' violates vowel harmony and cannot be Turkish",
+                eng.acceptedWord(w, "tr", tr)
+            )
+        }
+        // The forms they were typos of are still accepted.
+        for (w in listOf("bunun", "sorun")) {
+            assertTrue("'$w' is the real word", eng.acceptedWord(w, "tr", tr))
+        }
+    }
+
+    @Test
     fun `a real Turkish inflection the dictionary lacks is still left alone`() {
         // The other half of the same rule, and the reason it is narrow. The
         // morphology guard exists because Turkish stacks suffixes without limit

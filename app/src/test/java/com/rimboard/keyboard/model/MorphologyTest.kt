@@ -21,6 +21,46 @@ class MorphologyTest {
     private fun accepts(word: String) = Morphology.stemIsKnown("tr", word, known)
 
     @Test
+    fun `a suffix has to agree with the word in front of it`() {
+        // Turkish suffixes harmonise, so most strings that look like a stem
+        // plus a suffix are not words. Peeling by spelling alone took "bunın"
+        // apart as "bu" plus the genitive and pronounced it correct, when the
+        // word is "bunun" -- after u the four-way vowel is u.
+        assertTrue("front stem takes the front form", accepts("evde"))
+        assertFalse("and not the back one", accepts("evda"))
+        assertTrue("back stem takes the back form", accepts("arabada"))
+        assertFalse(accepts("arabade"))
+    }
+
+    @Test
+    fun `the four-way vowel carries rounding as well as frontness`() {
+        // This is what makes it four ways rather than two: after ö or ü the
+        // high vowel is ü, not the unrounded i that frontness alone would give.
+        assertTrue(accepts("gözü"))
+        assertFalse("rounding is not optional", accepts("gözi"))
+        assertFalse(accepts("gözu"))
+        assertFalse(accepts("gözı"))
+    }
+
+    @Test
+    fun `a suffix consonant hardens after a voiceless stem`() {
+        // kitapta, not kitapda -- p is voiceless, so the suffix d becomes t.
+        assertTrue(accepts("kitapta"))
+        assertFalse(accepts("kitapda"))
+        // And the reverse: a voiced stem keeps the soft form.
+        assertTrue(accepts("evde"))
+        assertFalse(accepts("evte"))
+    }
+
+    @Test
+    fun `a suffix with no vowel has nothing to agree with`() {
+        // "n" and "m" carry no vowel, so harmony has no opinion about them and
+        // they must keep working -- otherwise every possessive would fail.
+        assertTrue(accepts("evim"))
+        assertTrue(accepts("araban"))
+    }
+
+    @Test
     fun `a held final key is a typo, not a suffix`() {
         // Reported from the first real use of this keyboard. "nasılsınn" peels
         // its doubled "n" -- a genuine Turkish suffix -- onto "nasılsın", which
