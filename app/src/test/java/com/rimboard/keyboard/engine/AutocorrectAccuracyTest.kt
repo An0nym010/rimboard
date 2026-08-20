@@ -743,4 +743,148 @@ class AutocorrectAccuracyTest {
         }
     }
 
+    // ---- does knowing where the finger landed help? ------------------------
+
+    /**
+     * Repair with and without the touch trail, over the same damaged words.
+     *
+     * Every other arm here damages a word by *character*: replace `k` with `l`
+     * and ask what comes back. That throws away the thing a keyboard actually
+     * has, which is a position. This one damages by *touch*: it puts the finger
+     * at a point between two key centres, works out which key that fires, and
+     * hands the corrector the same word twice — once as bare characters, once
+     * with the measurement that says how marginal the tap was.
+     *
+     * The tap fraction is what makes it a real test rather than a
+     * demonstration. At 0.50 the finger is exactly on the boundary and the
+     * wrong key won by nothing, which is the case the measurement exists for.
+     * Near 1.00 it is dead on the wrong key and there is genuinely nothing to
+     * recover — a model that "helped" there would be inventing evidence. Both
+     * bands are measured, and the gain being larger in the first is the shape
+     * that says the mechanism works rather than merely moves numbers.
+     *
+     * Common words are measured too, and are the reason this is not oversold:
+     * the channel model already repairs them at 98% from characters alone, so
+     * there is nothing for a second signal to add. The value is in the tail,
+     * where the ranking is genuinely unsure.
+     */
+    private data class TouchScore(
+        val rank: Int, val near: Boolean,
+        val asked: Int, val blind: Int, val touched: Int
+    ) {
+        val blindRate get() = if (asked == 0) 0.0 else blind.toDouble() / asked
+        val touchRate get() = if (asked == 0) 0.0 else touched.toDouble() / asked
+    }
+
+    private fun measureTouch(lang: String, locale: Locale, per: Int): List<TouchScore> {
+        val engine = realEngine(lang)
+        val dict = engine.dictionary(lang, locale)
+        val prox = KeyProximity.forLang(lang)
+        val out = ArrayList<TouchScore>()
+        for (rank in listOf(80, 10_000, 30_000)) {
+            for (near in listOf(true, false)) {
+                val lo = if (near) 0.50f else 0.65f
+                val hi = if (near) 0.65f else 1.00f
+                val rnd = Random(seed = 20260820 + rank + if (near) 1 else 0)
+                var asked = 0
+                var blind = 0
+                var touched = 0
+                for (w in bandAt(lang, rank, per)) {
+                    val i = 1 + rnd.nextInt(w.length - 2)
+                    val meant = w[i]
+                    val hit = prox.neighbours(meant).firstOrNull() ?: continue
+                    val mx = prox.gridX(meant) ?: continue
+                    val my = prox.gridY(meant) ?: continue
+                    val hx = prox.gridX(hit) ?: continue
+                    val hy = prox.gridY(hit) ?: continue
+                    // Where the finger was, and therefore which key fired: past
+                    // the halfway point the wrong key wins, by less and less as
+                    // the fraction approaches a half.
+                    val t = lo + rnd.nextFloat() * (hi - lo)
+                    val px = mx + t * (hx - mx)
+                    val py = my + t * (hy - my)
+                    val typed = w.substring(0, i) + hit + w.substring(i + 1)
+                    if (typed == w || engine.acceptedWord(typed, lang, locale)) continue
+                    asked++
+                    val trail = FloatArray(typed.length * 2)
+                    trail[i * 2] = px - hx
+                    trail[i * 2 + 1] = py - hy
+                    if (dict.correctionsScored(typed, prox, 1).firstOrNull()?.first == w) {
+                        blind++
+                    }
+                    if (dict.correctionsScored(typed, prox, 1, trail)
+                            .firstOrNull()?.first == w
+                    ) {
+                        touched++
+                    }
+                }
+                out.add(TouchScore(rank, near, asked, blind, touched))
+            }
+        }
+        return out
+    }
+
+    private fun touchReport(lang: String, s: List<TouchScore>): String =
+        s.joinToString("\n") {
+            "  %s rank ~%-6d tap %s: blind %.0f%%  with touch %.0f%%  (n=%d)".format(
+                lang, it.rank, if (it.near) "on the line" else "well over ",
+                it.blindRate * 100, it.touchRate * 100, it.asked
+            )
+        }
+
+    @Test
+    fun `knowing where the finger landed repairs words characters alone cannot`() {
+        val results = listOf(
+            "en" to Locale.ENGLISH,
+            "tr" to Locale.forLanguageTag("tr")
+        ).map { (lang, locale) -> lang to measureTouch(lang, locale, 120) }
+
+        val lines = results.joinToString("\n") { (lang, s) -> touchReport(lang, s) }
+        println(lines)
+
+        // Measured 2026-08-20, blind -> with the touch trail:
+        //
+        //                      tap on the line     tap well over
+        //   en  rank ~80         100 -> 100          100 -> 100
+        //   en  rank ~10000       80 ->  83           79 ->  81
+        //   en  rank ~30000       63 ->  69           62 ->  64
+        //   tr  rank ~80           99 -> 100           99 -> 100
+        //   tr  rank ~10000        90 ->  94           90 ->  91
+        //   tr  rank ~30000        83 ->  89           87 ->  88
+        //
+        // Two things to read off that, and the second matters more than the
+        // first. The gain lives in the tail: common words are already repaired
+        // at 99-100% from characters alone, so there is nothing for a second
+        // signal to add and it does not pretend otherwise. And the gain is two
+        // to three times larger for a tap on the line than for one well over
+        // it — three to six points against one to two. That separation is the
+        // evidence the mechanism is real rather than a reshuffle: the
+        // measurement is worth most exactly where the key that fired won by
+        // least, and worth almost nothing where the finger was squarely on the
+        // wrong key and there is genuinely nothing to recover.
+        //
+
+        // The floor is that touch never *loses*. It is deliberately not a floor
+        // on the size of the gain — this is a few points in the tail, honestly,
+        // and pinning a number that small would be pinning noise. What must
+        // never happen is that carrying the measurement makes the answer worse,
+        // because that would mean the cost model and the tap arbiter have come
+        // to disagree about the same geometry.
+        results.forEach { (lang, s) ->
+            s.forEach { b ->
+                assertTrue(
+                    "touch data made $lang rank ~${b.rank} worse, not better.\n" + lines,
+                    b.touchRate >= b.blindRate - 0.005
+                )
+                assertTrue("no corpus at $lang rank ~${b.rank}:\n" + lines, b.asked >= 40)
+            }
+            val nearGain = s.filter { it.near && it.rank >= 10_000 }
+                .sumOf { it.touched - it.blind }
+            assertTrue(
+                "touch data stopped helping in the tail of $lang, which is the " +
+                    "whole reason the trail is plumbed through at all.\n" + lines,
+                nearGain >= 3
+            )
+        }
+    }
 }

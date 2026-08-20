@@ -51,6 +51,38 @@ class KeyProximity private constructor(rows: List<String>) {
     }
 
     /**
+     * Where [ch] sits on the grid, in key widths and rows, or null.
+     *
+     * Exposed so a caller holding a real touch point can express it in these
+     * same units: the key's own position plus however far the finger was from
+     * its centre.
+     */
+    fun gridX(ch: Char): Float? = xs[ch]
+    fun gridY(ch: Char): Float? = ys[ch]
+
+    /**
+     * Substitution cost from a point on the grid to key [b].
+     *
+     * [cost] asks how wrong it is to have hit `a` when `b` was meant, which is
+     * the best anyone can do knowing only which key was reported. This asks the
+     * same question of the place the finger actually landed, which is strictly
+     * more information: a tap on the very edge of `k` is nearly free to read as
+     * `l`, and a tap dead in the middle of `k` is not, and the two are the same
+     * keystroke as far as [cost] can tell.
+     *
+     * Deliberately the same formula and the same 0.35 scale as [cost], so a
+     * touch exactly at a key's centre gives an identical answer. That makes
+     * this a strict generalisation rather than a second model to keep in step
+     * — there is no calibration here that can drift away from the one above.
+     */
+    fun costFromPoint(px: Float, py: Float, b: Char): Double {
+        val bx = xs[b] ?: return 1.0
+        val by = ys[b] ?: return 1.0
+        val d = hypot((px - bx).toDouble(), (py - by).toDouble())
+        return minOf(1.0, 0.35 * d)
+    }
+
+    /**
      * The keys close enough to [ch] to be plausible slips for it, nearest first.
      *
      * The cost function above answers "how wrong is this substitution" for a

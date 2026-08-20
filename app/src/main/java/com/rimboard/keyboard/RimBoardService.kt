@@ -491,7 +491,7 @@ class RimBoardService : InputMethodService(),
         pinnedCache = null
         lastTools = null
         strip?.setDrawerOpen(false)
-        composing.setLength(0)
+        composing.setLength(0); touchTrail.clear()
         prevWordForBigram = ""
         atSentenceStart = true
         clearWordState()
@@ -565,7 +565,7 @@ class RimBoardService : InputMethodService(),
         // Before anything else: the popup is anchored to the input view that is
         // now going away, and outliving its window token is what leaks it.
         dismissPopups()
-        composing.setLength(0)
+        composing.setLength(0); touchTrail.clear()
         userData.saveIfDirty()
         Stats.flush(this)
     }
@@ -847,7 +847,35 @@ class RimBoardService : InputMethodService(),
 
     // ---------------------------------------------------------------- keyboard callbacks
 
-    override fun onKeyPressed(key: Key) {
+    /**
+     * Where the finger landed for each letter of the word being composed.
+     *
+     * Kept strictly in step with [composing]: one entry appended where a
+     * character is, one dropped where a character is, cleared where the buffer
+     * is. It is never trusted on length alone — see
+     * [com.rimboard.keyboard.model.TouchTrail.offsetsFor], which refuses to
+     * answer unless the two agree, so any path that clears one and forgets the
+     * other degrades to ranking without touch data rather than to ranking with
+     * somebody else's.
+     */
+    private val touchTrail = com.rimboard.keyboard.model.TouchTrail()
+
+    /**
+     * The tap being handled, carried from [onKeyPressed] to wherever the
+     * character is actually appended.
+     *
+     * A field rather than a parameter because the character travels through
+     * shift handling, separator handling and text shortcuts before it lands,
+     * and threading two floats through all of that would touch far more code
+     * than the one place that consumes them. Safe because every one of those
+     * paths is synchronous on the UI thread within a single key press.
+     */
+    private var pendingTapDx = Float.NaN
+    private var pendingTapDy = Float.NaN
+
+    override fun onKeyPressed(key: Key, tapDx: Float, tapDy: Float) {
+        pendingTapDx = tapDx
+        pendingTapDy = tapDy
         if (consumedBySearch(key, Source.TAP)) return
         wordUndo.clear()
         Stats.key(this)
@@ -913,7 +941,7 @@ class RimBoardService : InputMethodService(),
         val ic = currentInputConnection ?: return
         clearWordState()
         if (composing.isNotEmpty()) {
-            composing.setLength(0)
+            composing.setLength(0); touchTrail.clear()
             ic.commitText("", 1)
             afterEdit()
             return
@@ -1173,6 +1201,7 @@ class RimBoardService : InputMethodService(),
         val isWordChar = c.isLetter() || (c == '\'' && composing.isNotEmpty())
         if (composeWords() && isWordChar && text.length == 1) {
             composing.append(text)
+            touchTrail.add(pendingTapDx, pendingTapDy)
             currentInputConnection?.setComposingText(composing, 1)
             afterEdit()
         } else if (text.length == 1 && isSeparator(c)) {
@@ -1275,7 +1304,7 @@ class RimBoardService : InputMethodService(),
         }
         prevWordForBigram = if (wordish) fw else ""
         atSentenceStart = false
-        composing.setLength(0)
+        composing.setLength(0); touchTrail.clear()
     }
 
     private fun handleSpace() {
@@ -1342,6 +1371,7 @@ class RimBoardService : InputMethodService(),
         clearWordState()
         if (composing.isNotEmpty()) {
             composing.deleteCharAt(composing.length - 1)
+            touchTrail.removeLast()
             if (composing.isEmpty()) {
                 ic.commitText("", 1)
             } else {
@@ -1413,7 +1443,7 @@ class RimBoardService : InputMethodService(),
     private fun finishComposingSilently() {
         if (composing.isNotEmpty()) {
             currentInputConnection?.finishComposingText()
-            composing.setLength(0)
+            composing.setLength(0); touchTrail.clear()
             updateStrip()
         }
     }
@@ -1535,7 +1565,11 @@ class RimBoardService : InputMethodService(),
             // corrections can be ranked in context rather than by raw
             // frequency alone.
             prevWord2 = prevWord2,
-            prevWord = prevWordForBigram
+            prevWord = prevWordForBigram,
+            // Null unless the trail is exactly as long as the word, which is
+            // what makes every way this can go out of step degrade to the
+            // behaviour it had before touch data existed.
+            touch = touchTrail.offsetsFor(composing.length)
         )
         val shortcutExp = Shortcuts.expansionFor(this, composing.toString(), effLocale())
         var shownWords = res.items
@@ -1788,7 +1822,7 @@ class RimBoardService : InputMethodService(),
         ic.beginBatchEdit()
         ic.commitText(if (Prefs.autoSpaceSuggestion(this)) "$word " else word, 1) // replaces the composing region if present
         ic.endBatchEdit()
-        composing.setLength(0)
+        composing.setLength(0); touchTrail.clear()
         autoSpace = true
         noteCommittedWord(word)
         val wordish = word.all { it.isLetter() || it == '\'' }
@@ -1888,7 +1922,7 @@ class RimBoardService : InputMethodService(),
             val intact = candidatesStart >= 0 &&
                 newSelStart == candidatesEnd && newSelEnd == candidatesEnd
             if (!intact) {
-                composing.setLength(0)
+                composing.setLength(0); touchTrail.clear()
                 currentInputConnection?.finishComposingText()
                 updateStrip()
             }
@@ -2406,7 +2440,7 @@ class RimBoardService : InputMethodService(),
         // Replaces the word being typed, the way picking a suggestion does —
         // the emoji is an alternative to that word, not an addition to it.
         ic.beginBatchEdit()
-        composing.setLength(0)
+        composing.setLength(0); touchTrail.clear()
         ic.commitText(emoji, 1)
         ic.endBatchEdit()
         prevWordForBigram = ""

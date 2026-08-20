@@ -732,7 +732,7 @@ class Dictionary(
      * Scores are comparable within one call, not across calls.
      */
     fun correctionsScored(
-        typedLower: String, prox: KeyProximity?, limit: Int
+        typedLower: String, prox: KeyProximity?, limit: Int, touch: FloatArray? = null
     ): List<Pair<String, Double>> {
         val n = typedLower.length
         if (n < 2 || words.isEmpty()) return emptyList()
@@ -744,7 +744,7 @@ class Dictionary(
             val d = editDistance(typedLower, cand, maxDist)
             if (d in 1..maxDist) {
                 var score = ln((freqs[i] + 1).toDouble()) -
-                    3.5 * spatialCost(typedLower, cand, prox)
+                    3.5 * spatialCost(typedLower, cand, prox, touch)
                 // A word whose first letter was swapped for another is a
                 // different kind of guess, and worth less than its edit
                 // distance suggests. See [firstLetterSubstituted] for which
@@ -784,6 +784,14 @@ class Dictionary(
     ): Boolean {
         if (typedLower.isEmpty() || candidate.isEmpty()) return false
         if (sameWordDifferentlyWritten(typedLower, candidate)) return true
+        // Deliberately blind to the touch trail, where [correctionsScored] is
+        // not. A marginal tap makes its neighbour a cheaper *reading*, which is
+        // evidence about what was meant and belongs in the ranking; letting it
+        // also lower this bar would loosen the one safety bound the keyboard
+        // has, on the strength of a signal whose downside nothing here can yet
+        // measure — the destruction corpus is typed text and carries no taps.
+        // The result is that a marginal tap improves what is offered without
+        // widening what is committed, which is the conservative half.
         val len = maxOf(typedLower.length, candidate.length)
         return spatialCost(typedLower, candidate, prox) / len <= AUTO_MAX_COST_PER_CHAR
     }
@@ -829,7 +837,9 @@ class Dictionary(
      * deletion costs 0.9, and a transposition costs 0.35. Lower means a more
      * plausible typo. With no proximity data it degrades to plain edit distance.
      */
-    private fun spatialCost(a: String, b: String, prox: KeyProximity?): Double {
+    private fun spatialCost(
+        a: String, b: String, prox: KeyProximity?, touch: FloatArray? = null
+    ): Double {
         val m = a.length
         val n = b.length
         // Missing a key, or striking one too many. Measured rather than
@@ -865,8 +875,7 @@ class Dictionary(
         for (i in 1..m) {
             curr[0] = i * ins
             for (j in 1..n) {
-                val subCost = prox?.cost(a[i - 1], b[j - 1])
-                    ?: if (a[i - 1] == b[j - 1]) 0.0 else 1.0
+                val subCost = subCostAt(a, b, i - 1, j - 1, prox, touch)
                 var v = minOf(prev[j] + ins, curr[j - 1] + ins, prev[j - 1] + subCost)
                 if (i > 1 && j > 1 && a[i - 1] == b[j - 2] && a[i - 2] == b[j - 1]) {
                     val pp = prevPrev
@@ -880,6 +889,42 @@ class Dictionary(
             curr = recycled
         }
         return prev[n]
+    }
+
+    /**
+     * What one substitution costs, using where the finger actually landed when
+     * that is known.
+     *
+     * [touch] holds two floats per typed character — how far the tap sat from
+     * its key's centre, in key widths and rows — or NaN where there is no
+     * measurement. Only the keyboard can ever supply it: the spell checker is
+     * handed finished text by other apps and has no touch to report, so it
+     * passes null and gets exactly the behaviour it had before this existed.
+     *
+     * **An identical letter always costs zero, measurement or not.** Charging
+     * a marginal tap for the letter it actually produced would give every
+     * correctly-typed word a nonzero spatial cost, which feeds the per-character
+     * confidence bar and would quietly make the keyboard less willing to commit
+     * the more precisely it was measured. The touch point exists here to make
+     * the *alternative* cheap, never to make the literal reading expensive.
+     */
+    private fun subCostAt(
+        a: String, b: String, ai: Int, bj: Int, prox: KeyProximity?, touch: FloatArray?
+    ): Double {
+        if (a[ai] == b[bj]) return 0.0
+        if (prox == null) return 1.0
+        if (touch != null && ai * 2 + 1 < touch.size) {
+            val dx = touch[ai * 2]
+            val dy = touch[ai * 2 + 1]
+            if (!dx.isNaN() && !dy.isNaN()) {
+                val gx = prox.gridX(a[ai])
+                val gy = prox.gridY(a[ai])
+                if (gx != null && gy != null) {
+                    return prox.costFromPoint(gx + dx, gy + dy, b[bj])
+                }
+            }
+        }
+        return prox.cost(a[ai], b[bj])
     }
 
     /**

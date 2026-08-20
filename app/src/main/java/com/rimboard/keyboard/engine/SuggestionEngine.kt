@@ -509,7 +509,8 @@ class SuggestionEngine private constructor(
         altLang: String? = null,
         altLocale: Locale? = null,
         limit: Int = 1,
-        contextRank: Map<String, Int> = emptyMap()
+        contextRank: Map<String, Int> = emptyMap(),
+        touch: FloatArray? = null
     ): List<String> {
         if (typed.length < 3) return emptyList()
         if (typed.any { it.isDigit() }) return emptyList()
@@ -585,8 +586,14 @@ class SuggestionEngine private constructor(
         // high here. Costs nothing: the scan and the sort behind this run over
         // every candidate regardless, and the count only decides where the list
         // is cut.
+        // Touch offsets are indexed by position in the typed word, so they
+        // only apply if lowercasing did not move the positions. It normally
+        // cannot, but "İ" outside a Turkish locale lowercases to two characters
+        // (i plus a combining dot), and a trail read one place out would argue
+        // confidently for the wrong word — the one failure mode this data has.
+        val fitted = if (touch != null && lower.length == typed.length) touch else null
         val scored = dict.correctionsScored(
-            lower, KeyProximity.forLang(lang), limit + CORRECTION_POOL)
+            lower, KeyProximity.forLang(lang), limit + CORRECTION_POOL, fitted)
         // Context re-ranks the dictionary's own candidates but never invents
         // one: only words that were already valid edit-distance corrections can
         // move. The bonus is bounded below the spatial term's reach, so context
@@ -828,7 +835,9 @@ class SuggestionEngine private constructor(
         altLang: String? = null,
         altLocale: Locale? = null,
         prevWord2: String = "",
-        prevWord: String = ""
+        prevWord: String = "",
+        /** Where each letter was tapped; see [com.rimboard.keyboard.model.TouchTrail]. */
+        touch: FloatArray? = null
     ): SuggestionsResult {
         if (composing.isEmpty()) return SuggestionsResult(emptyList(), -1)
         val dict = dictionary(lang, locale)
@@ -926,7 +935,7 @@ class SuggestionEngine private constructor(
 
         // Up to two corrections, best first, promoted to the front of the strip.
         var corrs = correctionCandidates(
-            composing, lang, locale, altLang, altLocale, 2, contextRank)
+            composing, lang, locale, altLang, altLocale, 2, contextRank, touch)
         var crossLanguage = false
         if (corrs.isEmpty() && altLang != null && altLocale != null) {
             // The current language has nothing to offer for this word. Before

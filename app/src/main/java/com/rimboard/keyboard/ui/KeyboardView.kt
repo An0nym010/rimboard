@@ -37,7 +37,13 @@ import kotlin.math.max
 class KeyboardView(context: Context) : View(context) {
 
     interface Listener {
-        fun onKeyPressed(key: Key)
+        /**
+         * [tapDx] and [tapDy] are how far the touch sat from the centre of the
+         * key it fired, in key widths and rows, or NaN where the character did
+         * not come from a tap on a key (a popup pick, a glide, a repeat). See
+         * [com.rimboard.keyboard.model.TouchTrail] for what is done with them.
+         */
+        fun onKeyPressed(key: Key, tapDx: Float, tapDy: Float)
         fun onKeyRepeated(key: Key)
         fun onPopupKeySelected(key: Key)
         fun onCursorMove(steps: Int)
@@ -928,7 +934,7 @@ class KeyboardView(context: Context) : View(context) {
                 cancelTimers(held)
                 held.handledOnDown = true
                 if (previewKb === held.kb) previewKb = null
-                listener?.onKeyPressed(held.kb.key)
+                listener?.onKeyPressed(held.kb.key, tapDx(held), tapDy(held))
             }
         }
         pointers.get(pid)?.let { cancelTimers(it) } // safety: recycled pointer id
@@ -939,7 +945,8 @@ class KeyboardView(context: Context) : View(context) {
         if (previewEnabled && kb.key.type == KeyType.CHARACTER) previewKb = kb
 
         if (kb.key.repeatable) {
-            listener?.onKeyPressed(kb.key)
+            // Never a letter, so there is nothing for a trail to hold.
+            listener?.onKeyPressed(kb.key, Float.NaN, Float.NaN)
             ps.handledOnDown = true
             val r = object : Runnable {
                 override fun run() {
@@ -1099,7 +1106,7 @@ class KeyboardView(context: Context) : View(context) {
             ps.popupOpen -> commitPopup(ps)
             ps.cursorMode -> {}
             ps.handledOnDown -> {}
-            else -> listener?.onKeyPressed(ps.kb.key)
+            else -> listener?.onKeyPressed(ps.kb.key, tapDx(ps), tapDy(ps))
         }
         if (popupOwner === ps) {
             snapshotPopupOut()
@@ -1148,7 +1155,7 @@ class KeyboardView(context: Context) : View(context) {
                 // simply lost, and glide is on by default. [onGlideComplete]
                 // already has the matching fallback for a flick that matched no
                 // word, but it is never reached from here.
-                listener?.onKeyPressed(ps.kb.key)
+                listener?.onKeyPressed(ps.kb.key, tapDx(ps), tapDy(ps))
             }
         }
         ps.glide = false
@@ -1190,7 +1197,9 @@ class KeyboardView(context: Context) : View(context) {
         if (numpadOnSymbolsLongPress && ps.kb.key.code == Codes.MODE_SYM) {
             ps.cancelled = true
             if (previewKb === ps.kb) previewKb = null
-            listener?.onKeyPressed(Key(Codes.NUMPAD, "123#", type = KeyType.FUNCTION))
+            listener?.onKeyPressed(
+                Key(Codes.NUMPAD, "123#", type = KeyType.FUNCTION), Float.NaN, Float.NaN
+            )
             invalidate()
             return
         }
@@ -1244,6 +1253,21 @@ class KeyboardView(context: Context) : View(context) {
         previewKb = null
         invalidate()
     }
+
+    /**
+     * How far this pointer's touch sat inside the key it fired, in key widths
+     * and rows, or NaN before the key has been measured.
+     *
+     * Relative to the key that actually fired, which after [arbitrate] may not
+     * be the geometrically nearest one — and that is the point. A tap the
+     * arbiter moved to a neighbour on the strength of the language prior is
+     * precisely a tap worth recording as marginal.
+     */
+    private fun tapDx(ps: PointerState): Float =
+        if (ps.kb.w <= 0f) Float.NaN else (ps.downX - (ps.kb.x + ps.kb.w / 2f)) / ps.kb.w
+
+    private fun tapDy(ps: PointerState): Float =
+        if (ps.kb.h <= 0f) Float.NaN else (ps.downY - (ps.kb.y + ps.kb.h / 2f)) / ps.kb.h
 
     private fun isLetterKey(k: Key): Boolean =
         k.type == KeyType.CHARACTER && k.label.length == 1 && k.label[0].isLetter()
@@ -1383,7 +1407,9 @@ class KeyboardView(context: Context) : View(context) {
             val kb = bounds.getOrNull(id) ?: return false
             return when (action) {
                 AccessibilityNodeInfoCompat.ACTION_CLICK -> {
-                    listener?.onKeyPressed(kb.key)
+                    // A screen reader activating a key is not a touch anywhere
+                    // in particular, so there is no offset to report.
+                    listener?.onKeyPressed(kb.key, Float.NaN, Float.NaN)
                     true
                 }
                 // Advertised on every key that has alternatives, and until now
