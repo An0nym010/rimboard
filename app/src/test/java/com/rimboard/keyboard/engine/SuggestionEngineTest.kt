@@ -158,6 +158,48 @@ class SuggestionEngineTest {
     }
 
     @Test
+    fun `the word committed on a separator is the word the strip put in bold`() {
+        // Two functions answering one question from different evidence.
+        // suggestionsFor ranked with the preceding word; correctionFor had no
+        // way to be told about it at all, so the strip bolded what context
+        // preferred and the space bar committed what raw frequency preferred.
+        // The bold is a promise about what the separator is going to do.
+        //
+        // The fixture has to be one the channel model genuinely cannot
+        // separate, or the spatial term settles it before context is
+        // consulted: "g" sits between "f" and "h", so "gate" is exactly one
+        // adjacent-key slip from both "fate" and "hate" and they cost the
+        // same. Frequency then favours "fate"; after "the", the model predicts
+        // "hate".
+        val assets = mapOf(
+            "dictionaries/en.txt" to "fate 5000\nhate 4000",
+            "predictions/en.txt" to "the\thate other things"
+        )
+        val eng = engine(assets).apply { primeModel("en", en) }
+
+        val res = eng.suggestionsFor(
+            "gate", "en", en, allowAutocorrect = true, personalized = false,
+            prevWord = "the"
+        )
+        val bolded = res.items.getOrNull(res.autocorrectIndex)
+        val committed = eng.correctionFor("gate", "en", en, prevWord = "the")
+
+        assertEquals("context should have chosen this", "hate", committed)
+        assertEquals("and the strip should be showing the same word", bolded, committed)
+
+        // Without a preceding word both fall back to frequency, and still
+        // agree with each other.
+        val noCtxRes = eng.suggestionsFor(
+            "gate", "en", en, allowAutocorrect = true, personalized = false
+        )
+        assertEquals("fate", eng.correctionFor("gate", "en", en))
+        assertEquals(
+            noCtxRes.items.getOrNull(noCtxRes.autocorrectIndex),
+            eng.correctionFor("gate", "en", en)
+        )
+    }
+
+    @Test
     fun `a strong adjacent-key fix is not overturned by weak context`() {
         // "helko" is an adjacent-key slip for "hello" (l/k neighbours). Even
         // if context nudges "hells", the spatial evidence must win — the bonus

@@ -783,19 +783,53 @@ class SuggestionEngine private constructor(
     )
 
     /** Correction the keyboard would apply on a separator, or null. */
+    /**
+     * The rank map [suggestionsFor] ranks completions and corrections by.
+     *
+     * Extracted so [correctionFor] can be handed the same one. The two used to
+     * build their answers from different evidence — this was inline here and
+     * `correctionFor` simply had none — which meant the strip bolded the word
+     * context preferred and the space bar committed the word it did not. The
+     * bold on the strip is a promise about what the separator will do, so
+     * anything that moves one has to move the other.
+     *
+     * mayLoad = false: this runs per keystroke on the UI thread, and
+     * predictionModel parses an asset when the model is missing.
+     */
+    private fun contextRankFor(
+        prevWord2: String, prevWord: String, lang: String, locale: Locale
+    ): Map<String, Int> =
+        if (prevWord.isEmpty()) emptyMap()
+        else predictions(
+            prevWord2, prevWord, lang, locale, CONTEXT_COMPLETION_DEPTH, mayLoad = false
+        ).withIndex().associate { (i, w) -> w.lowercase(locale) to i }
+
+    /**
+     * The correction the keyboard would apply on a separator, or null.
+     *
+     * [prevWord2], [prevWord] and [touch] exist so this answers with the same
+     * evidence [suggestionsFor] used to decide what to put in bold. They
+     * default to nothing, which is what the tests and any caller with no
+     * context to offer get, and is what this had for all callers before.
+     */
     fun correctionFor(
         typed: String,
         lang: String,
         locale: Locale,
         altLang: String? = null,
-        altLocale: Locale? = null
+        altLocale: Locale? = null,
+        prevWord2: String = "",
+        prevWord: String = "",
+        touch: FloatArray? = null
     ): String? {
         // An unambiguous contraction fires even though its bare form is
         // (wrongly) in the dictionary, and takes priority over any edit-
         // distance fix: "dont" is a missing apostrophe, not a mistyped word.
         contractionFor(typed, lang, locale)?.let { if (it.second) return it.first }
-        val best = correctionCandidates(typed, lang, locale, altLang, altLocale, 1)
-            .firstOrNull() ?: return null
+        val best = correctionCandidates(
+            typed, lang, locale, altLang, altLocale, 1,
+            contextRankFor(prevWord2, prevWord, lang, locale), touch
+        ).firstOrNull() ?: return null
         // Offered is not the same as applied. See [Dictionary.autoCommitConfident]:
         // without this the strip's best guess was committed on the space bar
         // however far it sat from what was actually typed, which destroyed most
@@ -865,13 +899,7 @@ class SuggestionEngine private constructor(
         // contextually-right completion sat below a common irrelevant one. This
         // is the same signal the strip already shows once a word is committed;
         // here it reorders the completions of the word being typed.
-        val contextRank = if (prevWord.isEmpty()) emptyMap()
-        // mayLoad = false: this runs per keystroke on the UI thread, and
-        // predictionModel parses an asset when the model is missing.
-        else predictions(
-            prevWord2, prevWord, lang, locale, CONTEXT_COMPLETION_DEPTH, mayLoad = false
-        )
-            .withIndex().associate { (i, w) -> w.lowercase(locale) to i }
+        val contextRank = contextRankFor(prevWord2, prevWord, lang, locale)
 
         val merged = LinkedHashMap<String, Long>() // lowercase word -> score
         if (personalized) {

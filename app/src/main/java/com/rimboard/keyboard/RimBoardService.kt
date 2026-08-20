@@ -875,6 +875,25 @@ class RimBoardService : InputMethodService(),
     private var pendingTapDx = Float.NaN
     private var pendingTapDy = Float.NaN
 
+    /**
+     * Records the tap for the character being appended, and forgets it.
+     *
+     * Taken once, because two of the three ways a character reaches [typeText]
+     * are not taps at all: a long-press popup pick and the one-letter glide
+     * fallback both go straight there without passing through [onKeyPressed].
+     * Left uncleared, those inherited whatever offset the *previous* keystroke
+     * had measured and filed it against a letter that was never tapped — a
+     * measurement attached to the wrong character, which is the one failure
+     * mode this data has, and the one the length check in
+     * [com.rimboard.keyboard.model.TouchTrail] cannot see because the length
+     * still agrees.
+     */
+    private fun recordTapFor() {
+        touchTrail.add(pendingTapDx, pendingTapDy)
+        pendingTapDx = Float.NaN
+        pendingTapDy = Float.NaN
+    }
+
     override fun onKeyPressed(key: Key, tapDx: Float, tapDy: Float) {
         pendingTapDx = tapDx
         pendingTapDy = tapDy
@@ -1228,7 +1247,7 @@ class RimBoardService : InputMethodService(),
                 )
             }
             composing.append(text)
-            touchTrail.add(pendingTapDx, pendingTapDy)
+            recordTapFor()
             currentInputConnection?.setComposingText(composing, 1)
             afterEdit()
         } else if (text.length == 1 && isSeparator(c)) {
@@ -1306,7 +1325,17 @@ class RimBoardService : InputMethodService(),
         if (shortcutExp != null) {
             finalWord = shortcutExp
         } else {
-            engine.correctionFor(typed, effLang(), effLocale(), effAlt(), effAltLocale())?.let {
+            // The same evidence the strip used to decide what to put in
+            // bold. Without it this answered from the channel model alone
+            // while the strip answered with context, so the word shown and the
+            // word committed could differ — and the bold is a promise about
+            // what the separator is going to do.
+            engine.correctionFor(
+                typed, effLang(), effLocale(), effAlt(), effAltLocale(),
+                prevWord2 = prevWord2,
+                prevWord = prevWordForBigram,
+                touch = touchTrail.offsetsFor(typed.length)
+            )?.let {
                 finalWord = it
                 Stats.autocorrect(this)
             }
