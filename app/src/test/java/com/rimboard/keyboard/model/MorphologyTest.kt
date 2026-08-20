@@ -21,6 +21,41 @@ class MorphologyTest {
     private fun accepts(word: String) = Morphology.stemIsKnown("tr", word, known)
 
     @Test
+    fun `a held final key is a typo, not a suffix`() {
+        // Reported from the first real use of this keyboard. "nasılsınn" peels
+        // its doubled "n" -- a genuine Turkish suffix -- onto "nasılsın", which
+        // is a real word, so the guard declared the typo *correct*. It was
+        // never underlined and the fix was never offered, which is worse than
+        // a wrong suggestion because nothing tells the user anything happened.
+        //
+        // The suffix list ends in single letters because every one of them is
+        // real, and those letters are exactly the ones people double.
+        assertTrue("the stem itself is fine", accepts("evim"))
+        assertFalse("but not with the last letter held", accepts("evimm"))
+        assertFalse(accepts("gözlerimm"))
+        assertFalse(accepts("kitaba"))   // no root "kitab"
+        assertFalse(accepts("arabaa"))
+    }
+
+    @Test
+    fun `doubling inside a stem is untouched`() {
+        // The rule is about the boundary, not about repeated letters anywhere.
+        // A stem that genuinely ends doubled still takes its suffixes.
+        val doubled: (String) -> Boolean = { it in setOf("hakk", "anne") }
+        assertTrue(Morphology.stemIsKnown("tr", "hakkı", doubled))
+        assertTrue(Morphology.stemIsKnown("tr", "annem", doubled))
+    }
+
+    @Test
+    fun `a multi-letter suffix after the same letter is still a suffix`() {
+        // Only single-character suffixes are refused on a repeat. "ler" after a
+        // stem ending in "r" is ordinary Turkish and must keep working.
+        val r: (String) -> Boolean = { it in setOf("şeker", "kar") }
+        assertTrue(Morphology.stemIsKnown("tr", "şekerler", r))
+        assertTrue(Morphology.stemIsKnown("tr", "karlar", r))
+    }
+
+    @Test
     fun `a bare root is trivially known`() {
         assertTrue(accepts("ev"))
         assertTrue(accepts("kitap"))

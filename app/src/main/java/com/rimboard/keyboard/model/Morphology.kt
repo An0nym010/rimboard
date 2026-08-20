@@ -52,11 +52,38 @@ object Morphology {
         for (suf in TR_SUFFIXES) {
             if (word.length - suf.length >= MIN_STEM && word.endsWith(suf)) {
                 val stem = word.substring(0, word.length - suf.length)
+                if (doubledLetter(stem, suf)) continue
                 if (peel(stem, depth - 1, known)) return true
             }
         }
         return false
     }
+
+    /**
+     * Whether stripping [suf] from [stem] is undoing a repeated keystroke
+     * rather than a suffix.
+     *
+     * The list ends in single letters — "i", "ı", "u", "ü", "e", "a", "n", "m"
+     * — because every one of them really is a Turkish suffix. The cost of that
+     * showed up the first time this keyboard was used in anger: "nasılsınn",
+     * a held final key, peels its second "n" and lands on "nasılsın", which is
+     * a real word, so the guard declared the typo **correct**. It was never
+     * underlined and the fix was never offered. Doubling the last letter is one
+     * of the commonest typos there is, and the suffix inventory happens to
+     * contain the letters people double.
+     *
+     * Only single-character suffixes are refused this way, and only when the
+     * letter repeats. Turkish does not produce that shape: a vowel suffix after
+     * a vowel takes a buffer consonant ("-ya", "-yı"), and "n" and "m" attach to
+     * stems that do not already end in them. A doubled letter inside a stem —
+     * "hakkı" — is untouched, because that doubling is not at the boundary.
+     *
+     * A run of three or more never reaches here: [Elongation] catches those
+     * first, which is why "iyiyimmm" was offered a correction on the same
+     * device where "nasılsınn" silently was not.
+     */
+    private fun doubledLetter(stem: String, suf: String): Boolean =
+        suf.length == 1 && stem.isNotEmpty() && stem.last() == suf[0]
 
     /** Turkish roots as short as two letters are common: ev, su, el, göz. */
     private const val MIN_STEM = 2
