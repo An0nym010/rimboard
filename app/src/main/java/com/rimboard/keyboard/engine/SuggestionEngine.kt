@@ -548,18 +548,20 @@ class SuggestionEngine private constructor(
         val elongated = elongationBase(lower, dict)?.takeIf {
             !isOffensive(it, lang, locale) && !userData.isBlocked(it)
         }
+        // The accented word this spells, where the corpus actually holds one.
+        // Asked once and carried, because three places below want the same
+        // answer and each of them was asking again.
+        val attested = dict.accentedFormOf(lower)
         // Being in the dictionary is no longer the end of it: a bare-key
         // spelling of a far commoner accented word is in there too, and is not
         // what the user meant. See [Dictionary.accentedFormOf].
-        if (dict.contains(lower) && elongated == null &&
-            dict.accentedFormOf(lower) == null
-        ) return emptyList()
+        if (dict.contains(lower) && elongated == null && attested == null) return emptyList()
         // Bare-letter spelling of an accented word: "cafe" -> "café",
         // "gunaydin" -> "günaydın". High confidence, because the query is not
         // itself a word and folds exactly onto a dictionary entry — so it leads
         // the list rather than competing as an edit-distance guess. It still
         // passes through the filters and case-matching below.
-        val accented = accentedFormFor(lower, lang, dict)?.takeIf {
+        val accented = accentedFormFor(lower, lang, dict, attested)?.takeIf {
             // Never the word that was typed. This exists to turn a bare-letter
             // spelling into its accented one, so a result identical to the
             // query means there was nothing to accent and no correction to
@@ -591,7 +593,7 @@ class SuggestionEngine private constructor(
         // the same precedence [acceptedWord] uses, because the doc on that
         // function promises the two agree about what counts as a word and a
         // split here would make it a liar.
-        if (dict.accentedFormOf(lower) == null && elongated == null &&
+        if (attested == null && elongated == null &&
             com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) {
                 dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
             }
@@ -668,9 +670,15 @@ class SuggestionEngine private constructor(
      *
      * Only asked when the query carries no accents of its own, so a correctly
      * accented word is never second-guessed.
+     *
+     * [attested] is the first route's answer, passed in rather than fetched
+     * because the caller has already had to ask: the same lookup decides
+     * whether a word in the dictionary is a word at all, and doing it twice
+     * meant a Unicode normalisation twice for every accented query.
      */
-    private fun accentedFormFor(lower: String, lang: String, dict: Dictionary): String? =
-        dict.accentedFormOf(lower) ?: accentedBuilt(lower, lang, dict)
+    private fun accentedFormFor(
+        lower: String, lang: String, dict: Dictionary, attested: String?
+    ): String? = attested ?: accentedBuilt(lower, lang, dict)
 
     /**
      * The second route on its own: an accented form *constructed* rather than
@@ -746,7 +754,8 @@ class SuggestionEngine private constructor(
         // that this is the word meant. Same order as [correctionCandidates],
         // so the underlines and the keyboard cannot disagree.
         if (userData.isKnown(lower)) return true
-        if (dict.contains(lower) && dict.accentedFormOf(lower) == null) return true
+        val attested = dict.accentedFormOf(lower)
+        if (dict.contains(lower) && attested == null) return true
         // Before the morphology and the other language, because a name is a
         // name in any of them: "Yilmaz" is not a Turkish stem with a suffix on
         // it and not an English word, and both of those would be the wrong
@@ -759,7 +768,7 @@ class SuggestionEngine private constructor(
         }
         // An *attested* accented word still wins: the corpus holds it, so the
         // bare spelling in front of us is a spelling of it.
-        if (dict.accentedFormOf(lower) != null) return false
+        if (attested != null) return false
         if (com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) {
                 dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
             }) {

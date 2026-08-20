@@ -535,8 +535,20 @@ class Dictionary(
      * survive are the ones nobody writes on purpose.
      */
     fun accentedFormOf(bareLower: String): String? {
-        if (foldDiacritics(bareLower) != bareLower) return null // already accented
+        // Cheapest question first, and it is the one that answers almost every
+        // call. The index holds only accented words, keyed by their bare form,
+        // so an ordinary word misses it outright -- and a correctly accented
+        // one misses it too, because a key is a folded form and folding is
+        // what removes the accents. Everything below allocates: foldDiacritics
+        // runs a Unicode normalisation and builds a string, and this sits on
+        // the per-keystroke path and on the spell checker's binder thread.
+        //
+        // It used to be second, behind an `exact.contains` that short-circuited
+        // the common case. Asking about frequency instead of presence removed
+        // that early exit without replacing it, and left a normalisation on
+        // every lookup of every word that is in the dictionary.
         val i = foldedIndex[bareLower] ?: return null
+        if (foldDiacritics(bareLower) != bareLower) return null // already accented
         if (exact.contains(bareLower) &&
             freqs[i].toLong() < BARE_KEY_RATIO * maxOf(1, freqOf(bareLower)).toLong()
         ) {
