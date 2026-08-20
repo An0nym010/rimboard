@@ -121,6 +121,49 @@ class TargetSdkInsetsTest {
     }
 
     @Test
+    fun `targeting Android 15 or later means tinting the bar a different way`() {
+        // Unlike the system-UI flag field, this one has no replacement call and
+        // is *not* deprecated at the SDK this app compiles against — which is
+        // why the compiler says nothing about it and why it must not simply be
+        // deleted. Confirmed against the Android 15 behaviour-changes page:
+        //
+        //   - The deprecation applies only to apps targeting 35 or above.
+        //   - Under gesture navigation it is deprecated *and disabled*.
+        //   - Under 3-button navigation it is deprecated but **still works**,
+        //     at 80% alpha, defaulting to the window background.
+        //
+        // So at the bump the keyboard keeps its tinted bar for 3-button users
+        // and silently loses it for everyone on gestures, which is most people
+        // and is the sort of half-loss nobody files a bug about. The migration:
+        //
+        //   - give the window a *colour drawable* background matching the
+        //     theme, which is what the 3-button default reads;
+        //   - for gesture navigation, draw the background behind the bar
+        //     yourself, sized from WindowInsets.Type.tappableElement(), which
+        //     reports the 3-button bar height and zero under gestures — the
+        //     one inset type that distinguishes the two at runtime.
+        //
+        // isNavigationBarContrastEnforced(false) is already set and stays.
+        val target = targetSdk()
+        if (target < 35) return
+        val tints = kotlinSources().any { codeOf(it).contains("navigationBarColor") }
+        if (!tints) return
+        val protects = kotlinSources().any { codeOf(it).contains("tappableElement") }
+        assertTrue(
+            "targetSdk is now $target and navigationBarColor is still what tints\n" +
+                "the bar. That API is disabled under gesture navigation from 35 and\n" +
+                "keeps working only for 3-button, so the tint quietly disappears for\n" +
+                "most users.\n" +
+                "\n" +
+                "Nothing here reads WindowInsets.Type.tappableElement(), which is the\n" +
+                "inset that tells the two navigation modes apart at runtime. Give the\n" +
+                "window a colour-drawable background for the 3-button default, and\n" +
+                "draw your own background behind the bar for gestures.",
+            protects
+        )
+    }
+
+    @Test
     fun `the system bars are driven through the controller, not the flag field`() {
         // decorView.systemUiVisibility was deprecated at API 30 in favour of
         // WindowInsetsController, and the reason this is worth a scan rather
