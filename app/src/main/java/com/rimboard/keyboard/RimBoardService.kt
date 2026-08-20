@@ -33,6 +33,7 @@ import android.view.inputmethod.InlineSuggestionsRequest
 import android.view.inputmethod.InlineSuggestionsResponse
 import android.widget.inline.InlinePresentationSpec
 import androidx.annotation.RequiresApi
+import androidx.core.view.WindowCompat
 import androidx.autofill.inline.UiVersions
 import androidx.autofill.inline.v1.InlineSuggestionUi
 import com.rimboard.keyboard.model.InlineAutofill
@@ -770,10 +771,22 @@ class RimBoardService : InputMethodService(),
             w.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
             w.navigationBarColor = t.background
             if (Build.VERSION.SDK_INT >= 29) w.isNavigationBarContrastEnforced = false
-            w.decorView.systemUiVisibility = if (t.isDark)
-                w.decorView.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
-            else
-                w.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+            // "Light navigation bar" describes the *bar*, not the icons: it
+            // says the background behind them is pale, so the system should
+            // draw them dark. A light keyboard theme therefore sets it and a
+            // dark one clears it, which reads backwards until you know that.
+            //
+            // Through the compat controller rather than decorView's
+            // systemUiVisibility, which has been deprecated since API 30 in
+            // favour of WindowInsetsController. This is not a cosmetic swap:
+            // the flag field is what Android 15 stops honouring, so the old
+            // spelling is one of the things that quietly does nothing after
+            // the target-SDK bump TargetSdkInsetsTest is holding the door on.
+            // The compat class picks setSystemBarsAppearance where it exists
+            // and sets the same flag below that, so behaviour on every level
+            // this app supports is what it was.
+            WindowCompat.getInsetsController(w, w.decorView)
+                .isAppearanceLightNavigationBars = !t.isDark
         }
     }
 

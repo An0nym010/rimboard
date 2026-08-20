@@ -55,6 +55,25 @@ class TargetSdkInsetsTest {
             .filter { it.isFile && it.extension == "kt" }
             .toList()
 
+    /**
+     * A file's code with its comments removed.
+     *
+     * The scan below looks for an identifier by name, and the first version of
+     * it read the whole file — so it flagged the very comment explaining why
+     * the identifier is not used any more. A check that reports prose as a
+     * violation is the kind that gets deleted for crying wolf, and then guards
+     * nothing at all.
+     *
+     * Block comments and line comments, and nothing cleverer. A `//` inside a
+     * string literal would take the rest of that line with it, which can only
+     * ever hide an offender rather than invent one — the safe direction for a
+     * scan to be wrong in.
+     */
+    private fun codeOf(f: File): String =
+        f.readText()
+            .replace(Regex("""/\*.*?\*/""", RegexOption.DOT_MATCHES_ALL), " ")
+            .replace(Regex("""//[^\n]*"""), " ")
+
     private fun targetSdk(): Int {
         val text = moduleFile("build.gradle.kts").readText()
         val m = Regex("""targetSdk\s*=\s*(\d+)""").find(text)
@@ -98,6 +117,34 @@ class TargetSdkInsetsTest {
                 "This is the largest cluster of bug reports against comparable\n" +
                 "keyboards and it arrives with the target bump, not before it.",
             handlesInsets()
+        )
+    }
+
+    @Test
+    fun `the system bars are driven through the controller, not the flag field`() {
+        // decorView.systemUiVisibility was deprecated at API 30 in favour of
+        // WindowInsetsController, and the reason this is worth a scan rather
+        // than a comment is that the old spelling keeps working for years
+        // before it stops. It compiles, it does the right thing on every
+        // device below 30, and it quietly does nothing after the target-SDK
+        // bump the test above is holding the door on — so a reintroduction
+        // would look correct in review, behave correctly in testing, and be
+        // discovered by a user on a new phone.
+        //
+        // WindowCompat.getInsetsController picks setSystemBarsAppearance where
+        // it exists and sets the same flag below it, so there is never a reason
+        // to reach for the field directly.
+        val offenders = kotlinSources()
+            .filter { f ->
+                val t = codeOf(f)
+                t.contains("systemUiVisibility") || t.contains("SYSTEM_UI_FLAG_")
+            }
+            .map { it.name }
+        assertTrue(
+            "these reach for the deprecated system-UI flag field instead of\n" +
+                "WindowCompat.getInsetsController(window, view):\n  " +
+                offenders.joinToString("\n  "),
+            offenders.isEmpty()
         )
     }
 
