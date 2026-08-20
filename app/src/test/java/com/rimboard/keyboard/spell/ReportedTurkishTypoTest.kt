@@ -95,10 +95,33 @@ class ReportedTurkishTypoTest {
         // suffixes were added, which with autocorrect on means being silently
         // replaced with something else.
         val eng = engine()
-        for (w in listOf("gözsüz", "gözlükçü", "simitçi", "evlerimizdekiler")) {
+        for (w in listOf("gözsüz", "gözlükçü", "simitçi", "evlerimizdekiler", "tuzcu")) {
             assertTrue(
                 "'$w' is ordinary Turkish and must not be corrected",
                 eng.acceptedWord(w, "tr", tr)
+            )
+        }
+    }
+
+    @Test
+    fun `a built accent form does not outrank a word that is already Turkish`() {
+        // "tuzcu" peels to "tuz", which the corpus holds 3,273 times, and the
+        // agent suffix agrees with it in vowel and consonant both. It was
+        // refused anyway, because acceptedWord asked for an accented form
+        // first and the second route *builds* one from a stem rather than
+        // looking it up -- a hypothesis outranking a fact.
+        //
+        // An accented form the corpus actually holds still wins, which is the
+        // half that matters: those are real bare-key spellings.
+        val eng = engine()
+        assertTrue("morphologically sound Turkish", eng.acceptedWord("tuzcu", "tr", tr))
+        assertTrue(eng.correctionCandidates("tuzcu", "tr", tr, limit = 3).isEmpty())
+        // Bare-key spellings whose accented form is not in the corpus are
+        // still restored -- the built route is asked, just asked last.
+        for ((bare, want) in listOf("gozluk" to "gözlük", "sutlu" to "sütlü")) {
+            assertFalse("'$bare' is a bare-key spelling", eng.acceptedWord(bare, "tr", tr))
+            assertEquals(
+                want, eng.correctionCandidates(bare, "tr", tr, limit = 3).firstOrNull()
             )
         }
     }

@@ -582,7 +582,11 @@ class SuggestionEngine private constructor(
         // agglutinated form and offered nothing at all. Turkish "tabiii" peels
         // its last "i" and lands on "tabii", which is a real word, so the
         // engine concluded the typo was fine and stayed silent.
-        if (accented == null && elongated == null &&
+        // The attested accent form suppresses this, a built one does not --
+        // the same precedence [acceptedWord] uses, because the doc on that
+        // function promises the two agree about what counts as a word and a
+        // split here would make it a liar.
+        if (dict.accentedFormOf(lower) == null && elongated == null &&
             com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) {
                 dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
             }
@@ -660,8 +664,31 @@ class SuggestionEngine private constructor(
      * Only asked when the query carries no accents of its own, so a correctly
      * accented word is never second-guessed.
      */
-    private fun accentedFormFor(lower: String, lang: String, dict: Dictionary): String? {
-        dict.accentedFormOf(lower)?.let { return it }
+    private fun accentedFormFor(lower: String, lang: String, dict: Dictionary): String? =
+        dict.accentedFormOf(lower) ?: accentedBuilt(lower, lang, dict)
+
+    /**
+     * The second route on its own: an accented form *constructed* rather than
+     * found.
+     *
+     * Kept separate because the two routes are not equally strong evidence,
+     * and one place cared about the difference. A lookup means the accented
+     * word is attested — the corpus contains it, and the bare spelling in front
+     * of us is a bare spelling of something real. A built form means only that
+     * a known stem plus deterministic rules *could* produce one, which is a
+     * hypothesis, and a hypothesis should not outrank a fact.
+     *
+     * The fact it was outranking is morphology. "tuzcu" is ordinary Turkish —
+     * "tuz" is in the dictionary 3,273 times, and the agent suffix agrees with
+     * it in both vowel and consonant — but [acceptedWord] asked for an accented
+     * form first, this route built one, and the word was declared a bare-key
+     * spelling and corrected away. Only this route can do that: the lookup
+     * route is only reached for words a corpus actually holds.
+     *
+     * Turkish only, since it is gated on agglutination, so no other language's
+     * accent restoration is touched by where this sits.
+     */
+    private fun accentedBuilt(lower: String, lang: String, dict: Dictionary): String? {
         if (!com.rimboard.keyboard.model.Morphology.isAgglutinative(lang)) return null
         if (Dictionary.foldDiacritics(lower) != lower) return null
         return com.rimboard.keyboard.model.TurkishMorph.accentedInflection(
@@ -719,12 +746,19 @@ class SuggestionEngine private constructor(
         if (com.rimboard.keyboard.model.PersonalWords.contains(userDictionaryWords, typed)) {
             return true
         }
-        if (accentedFormFor(lower, lang, dict) != null) return false
+        // An *attested* accented word still wins: the corpus holds it, so the
+        // bare spelling in front of us is a spelling of it.
+        if (dict.accentedFormOf(lower) != null) return false
         if (com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) {
                 dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
             }) {
             return true
         }
+        // A *built* one does not, and is asked last. See [accentedBuilt]: it
+        // says an accented form could be constructed, not that anybody has
+        // ever written one, and that is weaker than the word in hand being
+        // well-formed Turkish over a stem the corpus knows.
+        if (accentedBuilt(lower, lang, dict) != null) return false
         return altLang != null && altLocale != null &&
             dictionary(altLang, altLocale).contains(typed.lowercase(altLocale))
     }
