@@ -146,6 +146,12 @@ android {
 tasks.withType<Test>().configureEach {
     inputs.dir("src/main/res").withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.dir("src/main/assets").withPathSensitivity(PathSensitivity.RELATIVE)
+    // This file too, because TargetSdkInsetsTest reads targetSdk out of it.
+    // Without the declaration the test is up-to-date across the one edit it
+    // exists to catch -- a target-SDK bump changes no Kotlin, so the task
+    // never re-runs and the ratchet is decoration. Found by making the bump
+    // and watching nothing happen.
+    inputs.file("build.gradle.kts").withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
 dependencies {
