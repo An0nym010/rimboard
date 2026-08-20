@@ -119,7 +119,19 @@ object SpellTokens {
             while (s < e && !text[s].isLetterOrDigit()) s++
             while (e > s && !text[e - 1].isLetterOrDigit()) e--
             if (e > s) {
-                out.add(Token(s, text.subSequence(s, e).toString(), opens))
+                // A word inside a URL, an email or a path is not a word this
+                // service has an opinion about. It is dropped rather than
+                // judged-and-accepted, because the API's way of saying nothing
+                // is to return nothing — see [SpellCandidacy], which refuses
+                // the same class of token on the marks it can see *inside* a
+                // word. This catches the ones where the marks are beside it.
+                //
+                // opens is still consumed: a link is content, so the word after
+                // one is mid-sentence and must not get the lenient reading of a
+                // capital that a sentence opener gets.
+                if (!ProseContext.insideIdentifier(text, s, e)) {
+                    out.add(Token(s, text.subSequence(s, e).toString(), opens))
+                }
                 opens = false
             }
             i = end

@@ -382,7 +382,27 @@ class RimSpellService : SpellCheckerService() {
              * to true: a model is never unloaded, so a key claiming context
              * cannot outlive it.
              */
-            val contextual: Boolean
+            val contextual: Boolean,
+
+            /**
+             * Whether the cautious bar was in force when this was answered.
+             *
+             * The verdict depends on it: the setting decides how confident a
+             * repair must be before the first suggestion may be flagged as the
+             * *recommended* one, so the same word can be answered two ways.
+             * Unlike [contextual] this can go back and forth, and the engine
+             * holding it is shared by every session while this cache belongs
+             * to one — so a session that outlives a trip to the settings screen
+             * would otherwise keep serving the flag it decided under the old
+             * setting.
+             *
+             * Third instance of this fault in the same component, and the
+             * second in this cache: [contextual] was correct on the day it was
+             * written and became incomplete two commits later when context
+             * ranking arrived. This entry became necessary the same way. **When
+             * a verdict gains an input, come back here.**
+             */
+            val cautious: Boolean
         )
 
 
@@ -404,7 +424,8 @@ class RimSpellService : SpellCheckerService() {
         ): SuggestionsInfo {
             val ask = Ask(
                 word, prev, prev2, next, sentenceInitial, suggestionsLimit,
-                contextual = engine.predictionsReady(lang)
+                contextual = engine.predictionsReady(lang),
+                cautious = engine.cautiousAutocorrect
             )
             var v = verdicts.get(ask)
             if (v == null) {

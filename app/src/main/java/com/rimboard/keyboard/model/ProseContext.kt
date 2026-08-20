@@ -39,6 +39,22 @@ object ProseContext {
      */
     private const val MARKS = "./:@#?&=%~\\_"
 
+    /**
+     * The subset that is never ordinary sentence punctuation.
+     *
+     * [MARKS] is the right set when the question is "does what I have already
+     * seen look like an address", because there the full stop is surrounded by
+     * context that has not arrived yet. It is the wrong set for a finished
+     * sentence, where a full stop is far more often the end of one.
+     *
+     * Derived from [SentenceContext.ENDERS] rather than written out, because
+     * the two lists have to agree and this project has shipped a stale
+     * duplicate of a list before. "?" is the one that is easy to miss by hand:
+     * it opens a query string and it also ends a question.
+     */
+    private val UNAMBIGUOUS_MARKS: String =
+        MARKS.filter { it !in SentenceContext.ENDERS }
+
     /** How far back to read. A domain or path prefix is well inside this. */
     const val LOOKBACK = 48
 
@@ -85,4 +101,52 @@ object ProseContext {
      */
     fun separatorEndsIdentifier(separator: String): Boolean =
         separator.length == 1 && separator[0] in "@/:"
+
+    /**
+     * Whether the word at [start], [end) sits inside an address rather than a
+     * sentence.
+     *
+     * The keyboard's question and the spell checker's are the same question
+     * asked at different moments. The keyboard only ever has the text *before*
+     * the word, because the word is still being typed; the spell checker is
+     * handed the finished sentence and can see both sides. They share this
+     * file so the two halves of the app cannot come to disagree about what an
+     * address looks like — the keyboard declining to autocorrect inside a URL
+     * while the spell checker went on underlining the same words is exactly
+     * the split this is here to prevent.
+     *
+     * A mark counts only when it has a letter or digit on **both** sides
+     * within the whitespace-delimited run, and only when it is one of
+     * [UNAMBIGUOUS_MARKS] — which excludes the full stop.
+     *
+     * The full stop is left out because "a.b" and "gogle.com" are the same
+     * shape, and so is "end.Begin". A dot between two letters is either an
+     * address or a missing space, and nothing here can tell which. The project
+     * has already decided that question the other way: `SpellTokens` treats a
+     * full stop between two words as a sentence boundary, deliberately and
+     * with a test naming it, so that a typo after one is still caught. Reading
+     * it as an address instead would stop the spell checker judging either
+     * word, and losing a real typo is the worse of the two mistakes.
+     *
+     * That leaves the known hole, and it is the same one
+     * [separatorEndsIdentifier] has from the other side: a bare two-label
+     * domain written with no scheme and no path — "gogle.com" — is not
+     * recognised. Anything with a slash, an at-sign, a colon or a query in it
+     * is, which is most of what people paste.
+     */
+    fun insideIdentifier(text: CharSequence, start: Int, end: Int): Boolean {
+        var lo = start
+        while (lo > 0 && !text[lo - 1].isWhitespace()) lo--
+        var hi = end
+        while (hi < text.length && !text[hi].isWhitespace()) hi++
+        for (k in lo until hi) {
+            if (text[k] !in UNAMBIGUOUS_MARKS) continue
+            if (k > lo && text[k - 1].isLetterOrDigit() &&
+                k + 1 < hi && text[k + 1].isLetterOrDigit()
+            ) {
+                return true
+            }
+        }
+        return false
+    }
 }

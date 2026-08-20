@@ -69,6 +69,52 @@ class ProseContextTest {
         assertTrue(ProseContext.separatorEndsIdentifier(":"))
     }
 
+    // ---- the finished-sentence question, which the spell checker asks ----
+
+    private fun inside(text: String, word: String): Boolean {
+        val i = text.indexOf(word)
+        require(i >= 0) { "fixture does not contain the word" }
+        return ProseContext.insideIdentifier(text, i, i + word.length)
+    }
+
+    @Test
+    fun `a word inside a link is not the spell checker's business`() {
+        assertTrue(inside("docs.gogle.com/teh", "teh"))
+        assertTrue(inside("see docs.gogle.com/teh now", "teh"))
+        assertTrue(inside("https://x.com/teh", "teh"))
+        assertTrue(inside("user@gogle.com", "gogle"))
+        assertTrue(inside("path/to/teh", "teh"))
+    }
+
+    @Test
+    fun `an ordinary sentence is still checked`() {
+        assertFalse(inside("i went to teh shop", "teh"))
+        assertFalse(inside("teh", "teh"))
+        assertFalse(inside("hello. teh", "teh"))
+    }
+
+    @Test
+    fun `a full stop between two words is a sentence boundary, not an address`() {
+        // "a.b", "gogle.com" and "end.Begin" are the same shape, and nothing
+        // here can tell which is which. SpellTokens has already decided that
+        // question -- a full stop between two words opens a sentence -- so a
+        // typo written after one is still caught. Losing a real typo is the
+        // worse of the two mistakes, so the dot is left out of the rule.
+        assertFalse(inside("end.Begin", "Begin"))
+        assertFalse(inside("a.b", "b"))
+        // The known hole this leaves, stated so nobody reports it as new: a
+        // bare two-label domain with no scheme and no path is not recognised.
+        assertFalse(inside("gogle.com", "gogle"))
+    }
+
+    @Test
+    fun `a question mark is a sentence ender before it is a query string`() {
+        // The mark set is derived from SentenceContext.ENDERS precisely so
+        // this one cannot be got wrong by hand.
+        assertFalse(inside("why?because", "because"))
+        assertTrue(inside("x.com/a?q=teh", "teh"))
+    }
+
     @Test
     fun `a full stop is deliberately not evidence`() {
         // It ends sentences. Treating it as a URL signal would switch

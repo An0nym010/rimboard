@@ -104,6 +104,32 @@ class SpellTokensTest {
     }
 
     @Test
+    fun `the words inside a link are not offered for judgement`() {
+        // The keyboard stopped autocorrecting inside an address; without this
+        // the spell checker went on underlining the same words and offering to
+        // rewrite somebody's domain. The two halves have to agree, and they
+        // agree by sharing ProseContext rather than by both being careful.
+        assertEquals(listOf("i", "sent"), words("i sent docs.gogle.com/teh"))
+        assertEquals(emptyList<String>(), words("user@gogle.com"))
+        assertEquals(listOf("see", "this"), words("see path/to/teh this"))
+    }
+
+    @Test
+    fun `an ordinary sentence still yields all of its words`() {
+        assertEquals(listOf("i", "went", "to", "teh", "shop"), words("i went to teh shop"))
+    }
+
+    @Test
+    fun `a link does not leave the word after it looking like a sentence opener`() {
+        // The dropped tokens still consume the opener, because a link is
+        // content: the word after one is mid-sentence, and a capital there is
+        // a name rather than the start of anything.
+        val t = SpellTokens.of("x.com/teh Smith")
+        assertEquals(listOf("Smith"), t.map { it.text })
+        assertEquals(false, t.first().startsSentence)
+    }
+
+    @Test
     fun `the enders are the ones SentenceContext already defined`() {
         // Not a second copy of ".!?" -- the keyboard side owns that list and
         // this reads it, because the project has shipped a stale duplicate of
