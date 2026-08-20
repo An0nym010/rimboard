@@ -267,6 +267,26 @@ class Dictionary(
          */
         internal const val STEM_MIN_FREQ = 500
 
+        /**
+         * How much commoner an accented word must be before a bare spelling
+         * of it that is *also* in the corpus stops counting as a word.
+         *
+         * Measured rather than picked, over every bare/accented pair in all 22
+         * shipped dictionaries. The band below thirty holds genuine distinct
+         * words — Turkish "cop" and "çöp" at 28x, "cami" and "camı" at 3x,
+         * "ucu" and "üçü" at 1x — and above fifty there is nothing but
+         * accents somebody did not type: "nasilsa", "kalir", "uzaklas",
+         * Spanish "expresion", French "poete", Polish "reki". A sample of the
+         * 50-110x band in Turkish, the language this affects most, contained
+         * not one word that stands on its own.
+         *
+         * The cases most at risk of being caught wrongly are the ones where
+         * both spellings are real and common, and they are safe for the reason
+         * that makes them risky: "si"/"sí", "ou"/"où", "schon"/"schön" all have
+         * the *bare* form as the commoner, so this never fires on them at all.
+         */
+        private const val BARE_KEY_RATIO = 50
+
         /** Neither half of a split may be rarer than this. */
         private const val SPLIT_MIN_FREQ = 500
 
@@ -488,15 +508,40 @@ class Dictionary(
     /**
      * The accented dictionary word a bare-letter query spells, or null.
      *
-     * Only fires when the query is not itself a word: "cam" is valid Turkish
-     * and stays "cam", but "gunaydin" is not a word and spells "günaydın". Null
-     * when the query already contains the accents (it would just fold to
-     * itself) so this never second-guesses a correctly-accented word.
+     * Null when the query already contains accents (it would just fold to
+     * itself), so a correctly-accented word is never second-guessed.
+     *
+     * The interesting case is a query that is *itself* in the dictionary. This
+     * used to stop there — being a word was taken as proof of being the word
+     * meant — and the instinct is right for "cam", which is valid Turkish and
+     * must stay "cam". It is wrong for "gunaydin", and the difference is not
+     * presence but plausibility. A corpus built from subtitles contains what
+     * people type, and people type Turkish without accents, so the bare
+     * spellings are all in there at a rounding error of the real word:
+     *
+     *     gunaydin     88 : günaydın    41,743        cocuklar 353 : çocuklar 107,130
+     *     tesekkurler 530 : teşekkürler 224,510       uzgunum  461 : üzgünüm  182,876
+     *
+     * Each of those was a word as far as this function was concerned, so accent
+     * restoration never fired for any of them — it worked only for bare forms
+     * the corpus happened *not* to contain. It was dead for exactly the words
+     * it is for.
+     *
+     * So the query has to hold its own against its accented counterpart, by
+     * [BARE_KEY_RATIO]. The pairs that must survive protect themselves, because
+     * what the test measures is precisely what makes them safe: "si" and "sí",
+     * "ou" and "où", "schon" and "schön" are distinct words and the bare one is
+     * the *commoner*, so the ratio never comes near. The ones that do not
+     * survive are the ones nobody writes on purpose.
      */
     fun accentedFormOf(bareLower: String): String? {
-        if (exact.contains(bareLower)) return null
         if (foldDiacritics(bareLower) != bareLower) return null // already accented
         val i = foldedIndex[bareLower] ?: return null
+        if (exact.contains(bareLower) &&
+            freqs[i].toLong() < BARE_KEY_RATIO * maxOf(1, freqOf(bareLower)).toLong()
+        ) {
+            return null
+        }
         return words[i]
     }
 

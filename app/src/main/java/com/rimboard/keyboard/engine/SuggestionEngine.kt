@@ -548,7 +548,12 @@ class SuggestionEngine private constructor(
         val elongated = elongationBase(lower, dict)?.takeIf {
             !isOffensive(it, lang, locale) && !userData.isBlocked(it)
         }
-        if (dict.contains(lower) && elongated == null) return emptyList()
+        // Being in the dictionary is no longer the end of it: a bare-key
+        // spelling of a far commoner accented word is in there too, and is not
+        // what the user meant. See [Dictionary.accentedFormOf].
+        if (dict.contains(lower) && elongated == null &&
+            dict.accentedFormOf(lower) == null
+        ) return emptyList()
         // Bare-letter spelling of an accented word: "cafe" -> "café",
         // "gunaydin" -> "günaydın". High confidence, because the query is not
         // itself a word and folds exactly onto a dictionary entry — so it leads
@@ -735,7 +740,13 @@ class SuggestionEngine private constructor(
         // "hellooooo" all clear the cutoff. A word the user has added by hand
         // still wins — that is an explicit statement about their own spelling.
         if (!userData.isKnown(lower) && isElongation(lower, dict)) return false
-        if (dict.contains(lower) || userData.isKnown(lower)) return true
+        // The user's own word list is an explicit statement and outranks
+        // everything; the corpus is not, and a bare-key spelling sitting in it
+        // at a few hundredths of the real word's frequency is not evidence
+        // that this is the word meant. Same order as [correctionCandidates],
+        // so the underlines and the keyboard cannot disagree.
+        if (userData.isKnown(lower)) return true
+        if (dict.contains(lower) && dict.accentedFormOf(lower) == null) return true
         // Before the morphology and the other language, because a name is a
         // name in any of them: "Yilmaz" is not a Turkish stem with a suffix on
         // it and not an English word, and both of those would be the wrong
