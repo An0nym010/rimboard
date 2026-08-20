@@ -765,7 +765,6 @@ class Dictionary(
         if (n < 2 || words.isEmpty()) return emptyList()
         val maxDist = maxEditDistance(n)
         val scored = ArrayList<Pair<String, Double>>()
-        val first = typedLower[0]
         for (bl in maxOf(1, n - maxDist)..minOf(24, n + maxDist)) for (i in byLen[bl]) {
             val cand = words[i]
             val d = editDistance(typedLower, cand, maxDist)

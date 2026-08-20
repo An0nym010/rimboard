@@ -422,32 +422,51 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     /**
      * Shows the autofill chips, or clears them when [views] is empty.
      *
-     * The views are detached before being re-added rather than rebuilt: they
-     * are surfaces owned by the autofill provider, and inflating a second copy
-     * of one that is still attached is not something to try. An empty list is
-     * the ordinary way to take the row down.
+     * **Re-attaching is avoided rather than merely cheap.** These views are
+     * surfaces owned by the autofill provider's process, and taking one out of
+     * the hierarchy and putting it back tears its surface down and builds a new
+     * one. This is called from `updateStrip`, which runs on every keystroke and
+     * every selection change, so a version that detached and re-added
+     * unconditionally re-created every chip's surface several times a second
+     * while they sat there apparently doing nothing — flicker at best, and
+     * blank rectangles where a provider was slower to redraw than the strip was
+     * to rebuild.
+     *
+     * So the children are only touched when they actually change. The
+     * visibility flags are re-asserted either way, because [hideAll] runs
+     * between calls and turns the row off without disturbing what is in it.
+     * Scroll position survives an unchanged call too, which is the small
+     * visible benefit of the same rule.
      */
     fun showAutofill(views: List<View>) {
         if (drawerOpen) return showDrawer()
-        autofillRow.removeAllViews()
         if (views.isEmpty()) {
+            autofillRow.removeAllViews()
             autofillScroll.visibility = GONE
             return
         }
+        val unchanged = attachedAre(views)
+        if (!unchanged) autofillRow.removeAllViews()
         hideAll()
         expandBtn.visibility = VISIBLE
         centerBox.visibility = VISIBLE
         setCenterWidth(0)
-        for (v in views) {
-            (v.parent as? ViewGroup)?.removeView(v)
-            autofillRow.addView(v)
+        if (!unchanged) {
+            for (v in views) {
+                (v.parent as? ViewGroup)?.removeView(v)
+                autofillRow.addView(v)
+            }
         }
         autofillScroll.visibility = VISIBLE
-        autofillScroll.scrollTo(0, 0)
+        if (!unchanged) autofillScroll.scrollTo(0, 0)
     }
 
-    /** Whether the strip is currently given over to the password manager. */
-    val showingAutofill: Boolean get() = autofillRow.childCount > 0
+    /** Whether exactly [views], in that order, are already the row's children. */
+    private fun attachedAre(views: List<View>): Boolean {
+        if (autofillRow.childCount != views.size) return false
+        for (i in views.indices) if (autofillRow.getChildAt(i) !== views[i]) return false
+        return true
+    }
 
     fun showEmpty() {
         if (drawerOpen) return showDrawer()

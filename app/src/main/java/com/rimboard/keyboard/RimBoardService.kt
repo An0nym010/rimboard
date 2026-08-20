@@ -529,6 +529,13 @@ class RimBoardService : InputMethodService(),
         // panel, which has no exit of its own.
         closeAnyPanel()
         clearAutofill()
+        // Belongs to the word being composed, and there is not one yet. It is
+        // recomputed at the first letter of every word, so a stale value can
+        // never actually be acted on -- both readers require a composing word
+        // -- but a per-field flag left holding the last field's answer is the
+        // shape of fault this service keeps finding, so it is reset with the
+        // rest of them rather than argued about.
+        identifierContext = false
         captureClip()
         // A clip is retired by being pasted, but only for the field it was
         // pasted into. Filling two fields of a form from the same clipboard is
@@ -1555,6 +1562,9 @@ class RimBoardService : InputMethodService(),
 
     private fun updateStrip() {
         val s = strip ?: return
+        // Set before anything can return early: it marks the state the whole
+        // strip is in, not one of the things the strip might be showing.
+        s.incognitoMark = isIncognito()
         // The password manager first, and only while the field is untouched.
         // Somebody who has started typing has answered the question the chips
         // were asking, and the suggestions for what they are typing matter
@@ -1575,7 +1585,6 @@ class RimBoardService : InputMethodService(),
         // neither. They still answer, the learned data stays out (see
         // `personalized` below), and the mark rides along so the state is never
         // in doubt.
-        s.incognitoMark = isIncognito()
         if (!suggestionsActive) {
             maybeClipboardOrEmpty(s)
             return
