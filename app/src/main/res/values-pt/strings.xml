@@ -126,6 +126,7 @@
     <string name="st_words">Palavras digitadas</string>
     <string name="st_keys">Teclas pressionadas</string>
     <string name="st_backspace">Taxa de apagamento</string>
+    <string name="st_autocorrect_off">0 — a correção automática está desativada</string>
     <string name="st_autocorrect">Autocorreções</string>
     <string name="st_time">Tempo ativo de digitação</string>
     <string name="st_wpm">Palavras por minuto (média)</string>

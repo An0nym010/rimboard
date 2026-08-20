@@ -143,6 +143,7 @@
     <string name="st_words">Yazılan kelimeler</string>
     <string name="st_keys">Basılan tuşlar</string>
     <string name="st_backspace">Geri silme oranı</string>
+    <string name="st_autocorrect_off">0 — otomatik düzeltme kapalı</string>
     <string name="st_autocorrect">Otomatik düzeltmeler</string>
     <string name="st_time">Aktif yazma süresi</string>
     <string name="st_wpm">Dakikadaki ortalama kelime</string>

@@ -163,6 +163,7 @@
     <string name="st_words">Words typed</string>
     <string name="st_keys">Keys pressed</string>
     <string name="st_backspace">Backspace rate</string>
+    <string name="st_autocorrect_off">0 — autocorrect is off</string>
     <string name="st_autocorrect">Autocorrections</string>
     <string name="st_time">Active typing time</string>
     <string name="st_wpm">Average words per minute</string>
@@ -407,6 +408,7 @@ Your search words or selected text go to the service that answers them. Nothing 
     <string name="net_log_header" tools:ignore="MissingTranslation">Requests this install has made</string>
     <string name="net_log_none" tools:ignore="MissingTranslation">None. RimBoard has not sent a single network request since you installed it.</string>
     <string name="net_log_count" tools:ignore="MissingTranslation">%1$d sent since install</string>
+    <string name="net_log_session_only" tools:ignore="MissingTranslation">The list below covers this session only; the total above is kept across restarts.</string>
     <string name="net_log_entry" tools:ignore="MissingTranslation">%1$s → %2$s</string>
 
     <string name="ai_needs_selection" tools:ignore="MissingTranslation">Select the text you want translated first</string>

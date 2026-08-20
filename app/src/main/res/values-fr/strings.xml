@@ -126,6 +126,7 @@
     <string name="st_words">Mots saisis</string>
     <string name="st_keys">Touches pressées</string>
     <string name="st_backspace">Taux d\'effacement</string>
+    <string name="st_autocorrect_off">0 — la correction automatique est désactivée</string>
     <string name="st_autocorrect">Corrections automatiques</string>
     <string name="st_time">Temps de frappe actif</string>
     <string name="st_wpm">Mots par minute (moyenne)</string>

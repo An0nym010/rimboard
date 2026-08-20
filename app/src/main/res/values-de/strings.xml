@@ -126,6 +126,7 @@
     <string name="st_words">Getippte Wörter</string>
     <string name="st_keys">Tastendrücke</string>
     <string name="st_backspace">Löschrate</string>
+    <string name="st_autocorrect_off">0 — Autokorrektur ist aus</string>
     <string name="st_autocorrect">Autokorrekturen</string>
     <string name="st_time">Aktive Tippzeit</string>
     <string name="st_wpm">Wörter pro Minute (Durchschnitt)</string>

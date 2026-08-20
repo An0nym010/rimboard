@@ -69,6 +69,23 @@ object Net {
         return ALLOWED_SUFFIXES.any { host == it || host.endsWith(".$it") }
     }
 
+    /**
+     * Whether this build holds the INTERNET permission at all.
+     *
+     * Asked of the package manager rather than of the flavor, because that is
+     * the thing Android itself enforces and the thing the network screen is
+     * claiming. A build without it cannot send, whatever any counter that
+     * survived an upgrade says.
+     */
+    fun allowedByPermission(c: Context): Boolean = try {
+        c.packageManager
+            .getPackageInfo(c.packageName, android.content.pm.PackageManager.GET_PERMISSIONS)
+            .requestedPermissions
+            ?.contains(android.Manifest.permission.INTERNET) == true
+    } catch (_: Exception) {
+        false
+    }
+
     /** True only on the `online` flavor, whose manifest carries INTERNET. */
     val capable: Boolean get() = NetBackend.CAPABLE
 

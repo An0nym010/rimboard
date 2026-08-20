@@ -126,6 +126,7 @@
     <string name="st_words">Parole digitate</string>
     <string name="st_keys">Tasti premuti</string>
     <string name="st_backspace">Tasso di cancellazione</string>
+    <string name="st_autocorrect_off">0 — la correzione automatica è disattivata</string>
     <string name="st_autocorrect">Correzioni automatiche</string>
     <string name="st_time">Tempo di digitazione attivo</string>
     <string name="st_wpm">Parole al minuto (media)</string>

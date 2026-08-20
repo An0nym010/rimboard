@@ -232,7 +232,16 @@ class NetworkActivity : LocalisedActivity() {
 
         section(d, getString(R.string.net_log_header))
         val log = NetLog.recent()
-        val sent = NetLog.sentCount(this)
+        // A build with no INTERNET permission cannot have sent anything, so it
+        // must not display a number that says it did. This screen exists to be
+        // proof, and a count is the one thing on it that can be inherited: the
+        // counter is a preference, preferences survive an upgrade, and an
+        // install that once carried the permission leaves its total behind for
+        // a build that does not. Reported from a device showing "15 sent since
+        // install" above an empty list, on an offline build whose own live
+        // probe on the same screen was refused by the kernel.
+        val canSend = Net.allowedByPermission(this)
+        val sent = if (canSend) NetLog.sentCount(this) else 0
         if (sent == 0 && log.isEmpty()) {
             container.addView(TextView(this).apply {
                 text = getString(R.string.net_log_none)
@@ -244,6 +253,17 @@ class NetworkActivity : LocalisedActivity() {
                 textSize = 14f
                 setTypeface(typeface, Typeface.BOLD)
             })
+            // The count is kept across restarts and the list is not, so a
+            // number standing over an empty box is the ordinary state after a
+            // reboot rather than something being withheld. On a screen whose
+            // whole job is to be believed, an unexplained gap is worse than a
+            // longer sentence.
+            if (log.isEmpty()) {
+                container.addView(TextView(this).apply {
+                    text = getString(R.string.net_log_session_only)
+                    textSize = 13f
+                })
+            }
             val fmt = DateFormat.getTimeInstance(DateFormat.MEDIUM, uiLocale)
             container.addView(mono(d, log.joinToString("\n") { e ->
                 "${fmt.format(Date(e.at))}  ${e.outcome}  " +

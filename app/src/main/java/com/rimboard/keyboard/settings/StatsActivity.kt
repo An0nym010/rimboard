@@ -100,7 +100,17 @@ class StatsActivity : LocalisedActivity() {
         row(getString(R.string.st_words), "%,d".format(uiLocale, Stats.words))
         row(getString(R.string.st_keys), "%,d".format(uiLocale, Stats.keys))
         row(getString(R.string.st_backspace), "%.1f%%".format(uiLocale, backRate))
-        row(getString(R.string.st_autocorrect), "%,d".format(uiLocale, Stats.autocorrects))
+        // A zero that means "switched off" and a zero that means "not working"
+        // read identically, and working out which took reading the counter, the
+        // field's input type and the gate behind it. The keypress-vibration
+        // setting already answers its own version of this question in its
+        // summary; this is the same courtesy for the one number on this screen
+        // that can be zero for two entirely different reasons.
+        row(
+            getString(R.string.st_autocorrect),
+            if (Prefs.autocorrect(this)) "%,d".format(uiLocale, Stats.autocorrects)
+            else getString(R.string.st_autocorrect_off)
+        )
         row(getString(R.string.st_time), "%dh %02dm".format(uiLocale,
             Stats.activeMs / 3600000, (Stats.activeMs / 60000) % 60))
         row(getString(R.string.st_wpm), if (wpm > 0) "%.0f".format(uiLocale, wpm) else "\u2014")

@@ -126,6 +126,7 @@
     <string name="st_words">Набрано слов</string>
     <string name="st_keys">Нажатий клавиш</string>
     <string name="st_backspace">Доля стираний</string>
+    <string name="st_autocorrect_off">0 — автозамена отключена</string>
     <string name="st_autocorrect">Автоисправлений</string>
     <string name="st_time">Активное время набора</string>
     <string name="st_wpm">Слов в минуту (среднее)</string>
