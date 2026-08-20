@@ -48,6 +48,8 @@
     <string name="pref_autocorrect_summary">Corriger les fautes simples à l\'appui sur espace</string>
     <string name="pref_suggestions_title">Afficher les suggestions</string>
     <string name="pref_suggestions_summary">Suggestions de mots pendant la saisie</string>
+    <string name="pref_autocorrect_cautious_title">Correction prudente</string>
+    <string name="pref_autocorrect_cautious_summary">Modifie moins de mots correctement tapés, au prix de quelques fautes non corrigées</string>
     <string name="pref_predictions_title">Prédiction du mot suivant</string>
     <string name="pref_predictions_summary">Suggérer le mot suivant selon votre propre historique</string>
     <string name="pref_double_space_title">Point par double espace</string>

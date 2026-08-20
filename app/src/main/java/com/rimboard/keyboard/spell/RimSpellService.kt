@@ -252,6 +252,10 @@ class RimSpellService : SpellCheckerService() {
             // changed at any moment and a spell checker service outlives a
             // great many trips to the settings screen.
             engine.blockOffensive = Prefs.blockOffensive(service)
+            // The spell checker uses the same bar to decide whether its first
+            // suggestion may be called *recommended*, so the setting has to
+            // reach here too or it would govern half the app.
+            engine.cautiousAutocorrect = Prefs.cautiousAutocorrect(service)
             com.rimboard.keyboard.engine.ContactStore.warm(service)
             engine.contactNames = com.rimboard.keyboard.engine.ContactStore.names()
             com.rimboard.keyboard.engine.UserDictionaryStore.warm(service)

@@ -48,6 +48,8 @@
     <string name="pref_autocorrect_summary">Einfache Tippfehler beim Drücken der Leertaste korrigieren</string>
     <string name="pref_suggestions_title">Vorschläge anzeigen</string>
     <string name="pref_suggestions_summary">Wortvorschläge während der Eingabe</string>
+    <string name="pref_autocorrect_cautious_title">Vorsichtige Autokorrektur</string>
+    <string name="pref_autocorrect_cautious_summary">Ändert weniger richtig getippte Wörter, korrigiert dafür etwas weniger Tippfehler</string>
     <string name="pref_predictions_title">Nächstes-Wort-Vorhersage</string>
     <string name="pref_predictions_summary">Nächstes Wort anhand deines eigenen Schreibverlaufs vorschlagen</string>
     <string name="pref_double_space_title">Punkt bei Doppel-Leertaste</string>

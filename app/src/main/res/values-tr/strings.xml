@@ -52,6 +52,8 @@
     <string name="pref_autocorrect_summary">Boşluğa basınca basit yazım hatalarını düzelt</string>
     <string name="pref_suggestions_title">Önerileri göster</string>
     <string name="pref_suggestions_summary">Yazarken kelime önerileri</string>
+    <string name="pref_autocorrect_cautious_title">Temkinli otomatik düzeltme</string>
+    <string name="pref_autocorrect_cautious_summary">Doğru yazdığınız kelimeleri daha az değiştirir, biraz daha az yazım hatası düzeltir</string>
     <string name="pref_predictions_title">Sonraki kelime tahmini</string>
     <string name="pref_predictions_summary">Kendi yazma geçmişinden sonraki kelimeyi öner</string>
     <string name="pref_double_space_title">Çift boşlukla nokta</string>

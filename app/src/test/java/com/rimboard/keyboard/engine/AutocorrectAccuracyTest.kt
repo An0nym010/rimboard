@@ -547,9 +547,11 @@ class AutocorrectAccuracyTest {
         }
 
     private fun measureCommit(
-        lang: String, locale: Locale, foreign: String, words: Int
+        lang: String, locale: Locale, foreign: String, words: Int,
+        cautious: Boolean = false
     ): CommitScore {
         val engine = realEngine(lang)
+        engine.cautiousAutocorrect = cautious
         val prox = KeyProximity.forLang(lang)
         val sample = sample(lang, words)
 
@@ -616,6 +618,40 @@ class AutocorrectAccuracyTest {
         // tuned to make either column look good is trivially reachable by
         // wrecking the other: turn the gate off and the left column is
         // perfect, close it to nothing and the right column is.
+        // The setting, measured rather than described. "Cautious" is the one
+        // point on the curve that is a judgement instead of a measurement:
+        // three points of repair for six of protection, and which side of that
+        // somebody wants is not a thing a benchmark can settle for them.
+        //
+        //   balanced (default)   fixes 97/96   destroys 15/16
+        //   cautious             fixes 94/93   destroys  9/10
+        val cautious = listOf(
+            Triple("en", Locale.ENGLISH, "tr"),
+            Triple("tr", Locale.forLanguageTag("tr"), "en")
+        ).map { (lang, locale, foreign) ->
+            lang to measureCommit(lang, locale, foreign, 60, cautious = true)
+        }
+        val cautiousLines = cautious.joinToString("\n") { (lang, s) ->
+            "cautious " + commitReport(lang, s)
+        }
+        println(cautiousLines)
+
+        cautious.forEach { (lang, c) ->
+            val balanced = results.first { it.first == lang }.second
+            assertTrue(
+                "the cautious setting no longer protects anything in $lang. It " +
+                    "is supposed to overwrite fewer correctly-typed words than " +
+                    "the default, which is the entire reason it exists.\n" +
+                    lines + "\n" + cautiousLines,
+                c.destroyRate < balanced.destroyRate
+            )
+            assertTrue(
+                "the cautious setting has stopped fixing typos in $lang. It is " +
+                    "meant to be a trade, not an off switch.\n" + cautiousLines,
+                c.fixRate >= 0.88
+            )
+        }
+
         results.forEach { (lang, s) ->
             assertTrue(
                 "autocorrect has stopped fixing typos in $lang.\n" + lines,

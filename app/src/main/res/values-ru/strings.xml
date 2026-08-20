@@ -48,6 +48,8 @@
     <string name="pref_autocorrect_summary">Исправлять простые опечатки при нажатии пробела</string>
     <string name="pref_suggestions_title">Показывать подсказки</string>
     <string name="pref_suggestions_summary">Подсказки слов во время ввода</string>
+    <string name="pref_autocorrect_cautious_title">Осторожное автоисправление</string>
+    <string name="pref_autocorrect_cautious_summary">Реже меняет правильно набранные слова, но исправляет чуть меньше опечаток</string>
     <string name="pref_predictions_title">Предсказание следующего слова</string>
     <string name="pref_predictions_summary">Предлагать следующее слово на основе вашей истории ввода</string>
     <string name="pref_double_space_title">Точка двойным пробелом</string>

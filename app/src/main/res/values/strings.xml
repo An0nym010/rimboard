@@ -70,6 +70,8 @@
     <string name="pref_autocorrect_summary">Fix simple typos when you press space</string>
     <string name="pref_suggestions_title">Show suggestions</string>
     <string name="pref_suggestions_summary">Word suggestions while you type</string>
+    <string name="pref_autocorrect_cautious_title">Cautious autocorrect</string>
+    <string name="pref_autocorrect_cautious_summary">Change fewer words you typed correctly, at the cost of fixing slightly fewer typos</string>
     <string name="pref_predictions_title">Next-word prediction</string>
     <string name="pref_predictions_summary">Suggest the next word from your own typing history</string>
     <string name="pref_double_space_title">Double-space period</string>

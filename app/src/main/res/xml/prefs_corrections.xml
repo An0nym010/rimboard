@@ -15,6 +15,13 @@
             android:defaultValue="true" />
 
     <SwitchPreferenceCompat
+            android:key="autocorrect_cautious"
+            android:title="@string/pref_autocorrect_cautious_title"
+            android:summary="@string/pref_autocorrect_cautious_summary"
+            android:dependency="autocorrect"
+            android:defaultValue="false" />
+
+    <SwitchPreferenceCompat
             android:key="predictions"
             android:title="@string/pref_predictions_title"
             android:summary="@string/pref_predictions_summary"

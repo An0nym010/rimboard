@@ -14,6 +14,7 @@ object Prefs {
     const val KEY_HAPTIC = "haptic"
     const val KEY_AUTOCAPS = "autocaps"
     const val KEY_AUTOCORRECT = "autocorrect"
+    const val KEY_AUTOCORRECT_CAUTIOUS = "autocorrect_cautious"
     const val KEY_SUGGESTIONS = "suggestions"
     const val KEY_PREDICTIONS = "predictions"
     const val KEY_DOUBLE_SPACE = "double_space"
@@ -139,6 +140,13 @@ object Prefs {
     fun haptic(c: Context) = get(c).getBoolean(KEY_HAPTIC, true)
     fun autocaps(c: Context) = get(c).getBoolean(KEY_AUTOCAPS, true)
     fun autocorrect(c: Context) = get(c).getBoolean(KEY_AUTOCORRECT, true)
+
+    /**
+     * Whether autocorrect holds to the stricter bar. Off by default, because
+     * the default is the measured point where the gate costs nothing.
+     */
+    fun cautiousAutocorrect(c: Context) =
+        get(c).getBoolean(KEY_AUTOCORRECT_CAUTIOUS, false)
     fun suggestions(c: Context) = get(c).getBoolean(KEY_SUGGESTIONS, true)
     fun predictions(c: Context) = get(c).getBoolean(KEY_PREDICTIONS, true)
     fun doubleSpace(c: Context) = get(c).getBoolean(KEY_DOUBLE_SPACE, true)

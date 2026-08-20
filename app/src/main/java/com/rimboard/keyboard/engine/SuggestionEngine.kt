@@ -385,6 +385,21 @@ class SuggestionEngine private constructor(
     var blockOffensive = true
 
     /**
+     * Whether autocorrect should hold to the stricter bar. User setting.
+     *
+     * The second settable property on this class, and it carries the same
+     * obligation as the first: **both services have to set it.** The keyboard
+     * and the system spell checker each build their own engine, and a
+     * preference wired into one of them governs half the app — which has
+     * already happened once here, with `blockOffensive`. Set from
+     * `RimBoardService` on focus change and from `RimSpellService` per
+     * session, for the same reason: a service outlives many trips to the
+     * settings screen.
+     */
+    @Volatile
+    var cautiousAutocorrect = false
+
+    /**
      * Names from the address book, or empty when the user has not asked for
      * them — which is the default, and stays the default until they both
      * turn the setting on and grant the permission.
@@ -763,7 +778,8 @@ class SuggestionEngine private constructor(
     fun autoCommitConfident(
         typed: String, candidate: String, lang: String, locale: Locale
     ): Boolean = dictionary(lang, locale).autoCommitConfident(
-        typed.lowercase(locale), candidate.lowercase(locale), KeyProximity.forLang(lang)
+        typed.lowercase(locale), candidate.lowercase(locale), KeyProximity.forLang(lang),
+        cautiousAutocorrect
     )
 
     /** Correction the keyboard would apply on a separator, or null. */

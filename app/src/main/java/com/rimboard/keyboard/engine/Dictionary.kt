@@ -220,6 +220,33 @@ class Dictionary(
          */
         private const val AUTO_MAX_COST_PER_CHAR = 0.14
 
+        /**
+         * The same bar for someone who would rather it left their words alone.
+         *
+         * Offered as a setting because it is the one point on the curve that is
+         * a genuine judgement rather than a measurement. Everything from no
+         * gate at all down to 0.14 was free — repair never moved while
+         * destruction fell four-fold — and below 0.14 it stops being free:
+         *
+         *     0.14   fixes 97/96   destroys 15/16   (balanced, the default)
+         *     0.12   fixes 94/93   destroys  9/10   (cautious)
+         *     0.11   fixes 79/82   destroys  7/ 6   (too steep, not offered)
+         *
+         * Three points of repair for six of protection is a real trade and
+         * people will not all want the same side of it: a refused fix is
+         * visible on the strip one tap away, a silently overwritten word is
+         * found later by whoever reads the message. 0.11 is not offered
+         * because the repair rate falls off a cliff there and nobody choosing
+         * "cautious" is asking for a keyboard that has stopped working.
+         *
+         * **There is deliberately no setting in the other direction.** Above
+         * 0.14 the repair rate is flat all the way to 0.30 while destruction
+         * climbs to 38-42%, and the by-rank arm says the same for uncommon
+         * words as for common ones. A "more eager" option would be a strictly
+         * worse keyboard behind a friendly label.
+         */
+        private const val AUTO_MAX_COST_PER_CHAR_CAUTIOUS = 0.12
+
         /** Neither half of a split may be rarer than this. */
         private const val SPLIT_MIN_FREQ = 500
 
@@ -780,7 +807,7 @@ class Dictionary(
      * between "accomodation" and turning somebody's name into a different word.
      */
     fun autoCommitConfident(
-        typedLower: String, candidate: String, prox: KeyProximity?
+        typedLower: String, candidate: String, prox: KeyProximity?, cautious: Boolean = false
     ): Boolean {
         if (typedLower.isEmpty() || candidate.isEmpty()) return false
         if (sameWordDifferentlyWritten(typedLower, candidate)) return true
@@ -793,7 +820,9 @@ class Dictionary(
         // The result is that a marginal tap improves what is offered without
         // widening what is committed, which is the conservative half.
         val len = maxOf(typedLower.length, candidate.length)
-        return spatialCost(typedLower, candidate, prox) / len <= AUTO_MAX_COST_PER_CHAR
+        val bar =
+            if (cautious) AUTO_MAX_COST_PER_CHAR_CAUTIOUS else AUTO_MAX_COST_PER_CHAR
+        return spatialCost(typedLower, candidate, prox) / len <= bar
     }
 
     /**

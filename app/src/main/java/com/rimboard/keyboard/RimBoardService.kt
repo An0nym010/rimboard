@@ -27,6 +27,7 @@ import com.rimboard.keyboard.model.Codes
 import com.rimboard.keyboard.model.Key
 import com.rimboard.keyboard.model.KeyboardLayout
 import com.rimboard.keyboard.model.GraphemeDelete
+import com.rimboard.keyboard.model.ProseContext
 import com.rimboard.keyboard.model.SentenceContext
 import com.rimboard.keyboard.model.Languages
 import com.rimboard.keyboard.model.LayoutKind
@@ -709,6 +710,7 @@ class RimBoardService : InputMethodService(),
                 else -> 0f
             }
             engine.blockOffensive = Prefs.blockOffensive(this)
+            engine.cautiousAutocorrect = Prefs.cautiousAutocorrect(this)
             // Queued on the first focus that is allowed to read them, and
             // picked up on this and every later one. Empty until it lands,
             // which costs one focus change of names still being underlined
@@ -1053,7 +1055,7 @@ class RimBoardService : InputMethodService(),
         val ic = currentInputConnection ?: return
         ic.beginBatchEdit()
         if (composing.isNotEmpty()) {
-            commitComposedWord(ic, allowAutocorrect = autocorrectActive, separator = " ")
+            commitComposedWord(ic, allowAutocorrect = autocorrectMayCommit(" "), separator = " ")
         }
         val before = ic.getTextBeforeCursor(1, 0)
         val lead = if (!before.isNullOrEmpty() && before[0].isLetterOrDigit()) " " else ""
@@ -1143,6 +1145,22 @@ class RimBoardService : InputMethodService(),
 
     // ---------------------------------------------------------------- typing
 
+    /** Whether the word being composed sits inside a URL, path or address. */
+    private var identifierContext = false
+
+    /**
+     * Whether autocorrect may *commit* here.
+     *
+     * Separate from [autocorrectActive], which answers whether the field wants
+     * autocorrect at all. This answers whether the word does — see
+     * [ProseContext]. Composition itself is left alone, so corrections are
+     * still offered on the strip inside a URL; only applying one without a tap
+     * is withdrawn.
+     */
+    private fun autocorrectMayCommit(separator: String = ""): Boolean =
+        autocorrectActive && !identifierContext &&
+            !ProseContext.separatorEndsIdentifier(separator)
+
     private fun composeWords(): Boolean = suggestionsActive || autocorrectActive
 
     /**
@@ -1200,6 +1218,15 @@ class RimBoardService : InputMethodService(),
         val c = text.firstOrNull() ?: return
         val isWordChar = c.isLetter() || (c == '\'' && composing.isNotEmpty())
         if (composeWords() && isWordChar && text.length == 1) {
+            // Read once, as the word begins: what sits before it cannot change
+            // while it is being typed, and asking the editor on every keystroke
+            // would put a binder round trip on the typing path for an answer
+            // that is already known.
+            if (composing.isEmpty()) {
+                identifierContext = ProseContext.isIdentifierPrefix(
+                    currentInputConnection?.getTextBeforeCursor(ProseContext.LOOKBACK, 0)
+                )
+            }
             composing.append(text)
             touchTrail.add(pendingTapDx, pendingTapDy)
             currentInputConnection?.setComposingText(composing, 1)
@@ -1242,7 +1269,7 @@ class RimBoardService : InputMethodService(),
         val ic = currentInputConnection ?: return
         ic.beginBatchEdit()
         if (composing.isNotEmpty()) {
-            commitComposedWord(ic, allowAutocorrect = autocorrectActive, separator = sep)
+            commitComposedWord(ic, allowAutocorrect = autocorrectMayCommit(sep), separator = sep)
         } else {
             val swap = autoSpace && sep.length == 1 && sep[0] in AUTO_SPACE_PUNCT &&
                 ic.getTextBeforeCursor(1, 0)?.toString() == " "
@@ -1420,7 +1447,7 @@ class RimBoardService : InputMethodService(),
         val ic = currentInputConnection ?: return
         if (composing.isNotEmpty()) {
             ic.beginBatchEdit()
-            commitComposedWord(ic, allowAutocorrect = autocorrectActive, separator = "")
+            commitComposedWord(ic, allowAutocorrect = autocorrectMayCommit(), separator = "")
             ic.endBatchEdit()
         }
         clearWordState()
@@ -1555,7 +1582,7 @@ class RimBoardService : InputMethodService(),
         }
         val res = engine.suggestionsFor(
             composing.toString(), effLang(), effLocale(),
-            allowAutocorrect = autocorrectActive,
+            allowAutocorrect = autocorrectMayCommit(),
             // The learned vocabulary is history; in incognito the dictionary
             // answers on its own.
             personalized = !isIncognito(),

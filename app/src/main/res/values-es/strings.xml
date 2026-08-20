@@ -48,6 +48,8 @@
     <string name="pref_autocorrect_summary">Corregir errores sencillos al pulsar espacio</string>
     <string name="pref_suggestions_title">Mostrar sugerencias</string>
     <string name="pref_suggestions_summary">Sugerencias de palabras mientras escribes</string>
+    <string name="pref_autocorrect_cautious_title">Autocorrección prudente</string>
+    <string name="pref_autocorrect_cautious_summary">Cambia menos palabras que escribiste bien, a costa de corregir algo menos erratas</string>
     <string name="pref_predictions_title">Predicción de la siguiente palabra</string>
     <string name="pref_predictions_summary">Sugerir la siguiente palabra según tu propio historial</string>
     <string name="pref_double_space_title">Punto con doble espacio</string>
