@@ -65,6 +65,8 @@
     <string name="pref_clipboard_summary">Mostrar um chip de colar num campo vazio durante um minuto após copiar</string>
     <string name="pref_incognito_title">Sempre anônimo</string>
     <string name="pref_incognito_summary">Nunca aprender nem sugerir do histórico. Por sessão: segure a vírgula → 🕶</string>
+    <string name="pref_inline_autofill_title">Sugestões do gestor de palavras-passe</string>
+    <string name="pref_inline_autofill_summary">Mostra na barra de sugestões o que o gestor de palavras-passe pode preencher</string>
     <string name="pref_clear_learned_title">Apagar palavras aprendidas</string>
     <string name="pref_clear_learned_summary">Remover deste dispositivo todas as palavras aprendidas e previsões</string>
     <string name="clear_confirm_title">Apagar dados aprendidos?</string>

@@ -65,6 +65,8 @@
     <string name="pref_clipboard_summary">Mostrar un chip de pegar en un campo vacío durante un minuto tras copiar</string>
     <string name="pref_incognito_title">Siempre en incógnito</string>
     <string name="pref_incognito_summary">No aprender ni sugerir del historial. Por sesión: mantén la coma → 🕶</string>
+    <string name="pref_inline_autofill_title">Sugerencias del gestor de contraseñas</string>
+    <string name="pref_inline_autofill_summary">Muestra en la barra de sugerencias lo que tu gestor de contraseñas puede rellenar</string>
     <string name="pref_clear_learned_title">Borrar palabras aprendidas</string>
     <string name="pref_clear_learned_summary">Eliminar de este dispositivo todas las palabras aprendidas y predicciones</string>
     <string name="clear_confirm_title">¿Borrar datos aprendidos?</string>

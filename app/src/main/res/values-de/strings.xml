@@ -65,6 +65,8 @@
     <string name="pref_clipboard_summary">Einfügen-Chip in einem leeren Feld anzeigen, eine Minute lang nach dem Kopieren</string>
     <string name="pref_incognito_title">Immer inkognito</string>
     <string name="pref_incognito_summary">Nie lernen oder aus dem Verlauf vorschlagen. Pro Sitzung: Komma halten → 🕶</string>
+    <string name="pref_inline_autofill_title">Passwort-Manager-Vorschläge</string>
+    <string name="pref_inline_autofill_summary">Zeigt auf der Vorschlagsleiste an, was dein Passwort-Manager ausfüllen möchte</string>
     <string name="pref_clear_learned_title">Gelernte Wörter löschen</string>
     <string name="pref_clear_learned_summary">Alle gelernten Wörter und Vorhersagen von diesem Gerät entfernen</string>
     <string name="clear_confirm_title">Gelernte Daten löschen?</string>

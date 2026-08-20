@@ -9,6 +9,7 @@ import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -54,6 +55,8 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     private val centerBox: LinearLayout
     private val toolRow: LinearLayout
     private val emojiScroll: HorizontalScrollView
+    private val autofillScroll: HorizontalScrollView
+    private val autofillRow: LinearLayout
     private val incogIcon: IconView
     private val emojiChip: TextView
     private var boldIndex = -1
@@ -149,6 +152,24 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             visibility = GONE
             addView(rowHolder)
         }
+        // The password manager's chips. Their own row, because the views in
+        // it belong to another process and are placed by it — nothing here may
+        // restyle, measure around or reach inside them, so they get a
+        // container of their own rather than sharing one.
+        autofillRow = LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        autofillScroll = HorizontalScrollView(context).apply {
+            isHorizontalScrollBarEnabled = false
+            visibility = GONE
+            addView(
+                autofillRow,
+                LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
+            )
+        }
+        centerBox.addView(autofillScroll,
+            LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
         centerBox.addView(emojiScroll,
             LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
         centerBox.addView(clipChip,
@@ -398,6 +419,36 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         if (w != oldw && pinnedItems.isNotEmpty()) rebuildToolRow()
     }
 
+    /**
+     * Shows the autofill chips, or clears them when [views] is empty.
+     *
+     * The views are detached before being re-added rather than rebuilt: they
+     * are surfaces owned by the autofill provider, and inflating a second copy
+     * of one that is still attached is not something to try. An empty list is
+     * the ordinary way to take the row down.
+     */
+    fun showAutofill(views: List<View>) {
+        if (drawerOpen) return showDrawer()
+        autofillRow.removeAllViews()
+        if (views.isEmpty()) {
+            autofillScroll.visibility = GONE
+            return
+        }
+        hideAll()
+        expandBtn.visibility = VISIBLE
+        centerBox.visibility = VISIBLE
+        setCenterWidth(0)
+        for (v in views) {
+            (v.parent as? ViewGroup)?.removeView(v)
+            autofillRow.addView(v)
+        }
+        autofillScroll.visibility = VISIBLE
+        autofillScroll.scrollTo(0, 0)
+    }
+
+    /** Whether the strip is currently given over to the password manager. */
+    val showingAutofill: Boolean get() = autofillRow.childCount > 0
+
     fun showEmpty() {
         if (drawerOpen) return showDrawer()
         hideAll()
@@ -424,6 +475,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     }
 
     private fun hideAll() {
+        autofillScroll.visibility = GONE
         expandBtn.visibility = GONE
         toolRow.visibility = GONE
         for (s in slots) { s.text = ""; s.visibility = GONE }

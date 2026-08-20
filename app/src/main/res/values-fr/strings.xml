@@ -65,6 +65,8 @@
     <string name="pref_clipboard_summary">Proposer une puce Coller dans un champ vide, pendant une minute après la copie</string>
     <string name="pref_incognito_title">Toujours incognito</string>
     <string name="pref_incognito_summary">Ne jamais apprendre ni suggérer. Par session : appui long sur la virgule → 🕶</string>
+    <string name="pref_inline_autofill_title">Suggestions du gestionnaire de mots de passe</string>
+    <string name="pref_inline_autofill_summary">Affiche dans la barre de suggestions ce que votre gestionnaire propose de remplir</string>
     <string name="pref_clear_learned_title">Supprimer les mots appris</string>
     <string name="pref_clear_learned_summary">Supprimer de cet appareil tous les mots appris et les prédictions</string>
     <string name="clear_confirm_title">Supprimer les données apprises ?</string>

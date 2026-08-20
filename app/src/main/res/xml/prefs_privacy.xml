@@ -14,4 +14,10 @@
             android:title="@string/pref_clear_learned_title"
             android:summary="@string/pref_clear_learned_summary" />
 
+    <SwitchPreferenceCompat
+            android:key="inline_autofill"
+            android:title="@string/pref_inline_autofill_title"
+            android:summary="@string/pref_inline_autofill_summary"
+            android:defaultValue="true" />
+
 </PreferenceScreen>

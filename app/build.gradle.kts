@@ -173,5 +173,10 @@ dependencies {
     // Already arrives transitively via material, but the toolbar picker depends
     // on it directly (ItemTouchHelper), so pin it rather than inherit it.
     implementation("androidx.recyclerview:recyclerview:1.3.2")
+    // Builds the style bundle an inline autofill request carries, so the
+    // password manager's chips are drawn in this keyboard's colours rather
+    // than the platform default. Nothing else in the library is used, and it
+    // adds no permission: inline suggestions are handed over by the system.
+    implementation("androidx.autofill:autofill:1.1.0")
     implementation("com.google.android.material:material:1.12.0")
 }

@@ -7,6 +7,7 @@ import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import android.media.AudioManager
 import android.os.Build
+import android.os.Bundle
 import android.os.SystemClock
 import android.text.InputType
 import android.view.HapticFeedbackConstants
@@ -27,6 +28,14 @@ import com.rimboard.keyboard.model.Codes
 import com.rimboard.keyboard.model.Key
 import com.rimboard.keyboard.model.KeyboardLayout
 import com.rimboard.keyboard.model.GraphemeDelete
+import android.util.Size
+import android.view.inputmethod.InlineSuggestionsRequest
+import android.view.inputmethod.InlineSuggestionsResponse
+import android.widget.inline.InlinePresentationSpec
+import androidx.annotation.RequiresApi
+import androidx.autofill.inline.UiVersions
+import androidx.autofill.inline.v1.InlineSuggestionUi
+import com.rimboard.keyboard.model.InlineAutofill
 import com.rimboard.keyboard.model.ProseContext
 import com.rimboard.keyboard.model.SentenceContext
 import com.rimboard.keyboard.model.Languages
@@ -519,6 +528,7 @@ class RimBoardService : InputMethodService(),
         // whatever panel was open when it went away — including the tools
         // panel, which has no exit of its own.
         closeAnyPanel()
+        clearAutofill()
         captureClip()
         // A clip is retired by being pasted, but only for the field it was
         // pasted into. Filling two fields of a form from the same clipboard is
@@ -567,6 +577,12 @@ class RimBoardService : InputMethodService(),
         // now going away, and outliving its window token is what leaks it.
         dismissPopups()
         composing.setLength(0); touchTrail.clear()
+        // Only when the session is genuinely over, not on an ordinary hide.
+        // These views are surfaces owned by the autofill provider and there is
+        // no reason to keep them once the field they were offered for is done
+        // with; on a plain hide-and-show they are still wanted, and nothing
+        // would send them again.
+        if (finishingInput) clearAutofill()
         userData.saveIfDirty()
         Stats.flush(this)
     }
@@ -1539,6 +1555,17 @@ class RimBoardService : InputMethodService(),
 
     private fun updateStrip() {
         val s = strip ?: return
+        // The password manager first, and only while the field is untouched.
+        // Somebody who has started typing has answered the question the chips
+        // were asking, and the suggestions for what they are typing matter
+        // more than an offer to replace it.
+        if (autofillViews.isNotEmpty()) {
+            if (composing.isEmpty()) {
+                s.showAutofill(autofillViews)
+                return
+            }
+            clearAutofill()
+        }
         feedTools(s)
         // Incognito used to end here, replacing the strip with a label — so
         // the keyboard stopped helping at all the moment it was switched on,
@@ -1962,6 +1989,122 @@ class RimBoardService : InputMethodService(),
         finishComposingSilently()
         currentInputConnection?.commitText(text, 1)
         afterEdit()
+    }
+
+
+    // ------------------------------------------------------------ inline autofill
+
+    /**
+     * The chips a password manager is currently offering, and which field they
+     * were offered for.
+     *
+     * The generation is the whole defence against a late arrival. Inflation is
+     * asynchronous and per suggestion, so a callback can come back after the
+     * user has moved to another field — and a chip that fills one form's
+     * credentials appearing over another form is the one failure here worth
+     * designing against. Every field change bumps it, and a callback carrying
+     * a stale number is dropped.
+     */
+    private var autofillViews: List<View> = emptyList()
+    private var autofillGeneration = 0
+
+    private fun clearAutofill() {
+        autofillGeneration++
+        if (autofillViews.isNotEmpty()) {
+            autofillViews = emptyList()
+            strip?.showAutofill(emptyList())
+        }
+    }
+
+    /**
+     * Whether this keyboard wants inline suggestions, and how they should look.
+     *
+     * Returning null is how an IME says it does not handle them, which is what
+     * the preference switches to. Nothing here reads the suggestions: an
+     * inflated one is a surface drawn by the autofill provider's own process,
+     * so the style below decides the frame and the provider decides everything
+     * inside it.
+     */
+    @RequiresApi(Build.VERSION_CODES.R)
+    override fun onCreateInlineSuggestionsRequest(uiExtras: Bundle): InlineSuggestionsRequest? {
+        if (!Prefs.inlineAutofill(this)) return null
+        // A default style, and deliberately only that.
+        //
+        // The library exposes setters for the chip background and padding, but
+        // they are restricted to the library's own group and lint refuses them
+        // — which is the API telling the truth, because a keyboard cannot
+        // safely dress a view it does not own. The trap in trying is that the
+        // *text* setters are public while the *background* ones are not, so the
+        // reachable half of the styling is exactly the half that can make a
+        // chip unreadable: this app's light strip text on the platform's light
+        // default background is invisible, and nothing here could see that
+        // happen. The platform default is designed to be legible in both
+        // polarities, so it is what gets used.
+        //
+        // The style is still built and attached rather than omitted, because
+        // that is what declares which rendering version this keyboard
+        // understands. A spec with no style at all leaves the provider
+        // guessing.
+        val styles = UiVersions.newStylesBuilder()
+        styles.addStyle(InlineSuggestionUi.newStyleBuilder().build())
+        val bundle = styles.build()
+        val h = dp(InlineAutofill.CHIP_HEIGHT)
+        val spec = InlinePresentationSpec
+            .Builder(
+                Size(dp(InlineAutofill.CHIP_MIN_WIDTH), h),
+                Size(dp(InlineAutofill.CHIP_MAX_WIDTH), h)
+            )
+            .setStyle(bundle)
+            .build()
+        return InlineSuggestionsRequest.Builder(List(InlineAutofill.MAX) { spec }).build()
+    }
+
+    /**
+     * The password manager has something to offer for this field.
+     *
+     * Returning true claims the response: the system then leaves the
+     * suggestions to this keyboard rather than putting up its own affordance,
+     * so it is only claimed when there is something to show and somewhere to
+     * show it.
+     */
+    @RequiresApi(Build.VERSION_CODES.R)
+    override fun onInlineSuggestionsResponse(response: InlineSuggestionsResponse): Boolean {
+        if (!Prefs.inlineAutofill(this)) return false
+        val suggestions = response.inlineSuggestions
+        if (strip == null) return false
+        if (suggestions.isEmpty()) {
+            clearAutofill()
+            return false
+        }
+        // A new response supersedes whatever was in flight for the old one.
+        autofillGeneration++
+        val generation = autofillGeneration
+        val batch = InlineAutofill.Batch<View>(generation, suggestions.size)
+        val size = Size(dp(InlineAutofill.CHIP_MAX_WIDTH), dp(InlineAutofill.CHIP_HEIGHT))
+        for ((i, suggestion) in suggestions.withIndex()) {
+            try {
+                suggestion.inflate(this, size, mainExecutor) { view ->
+                    // Late, for a field this keyboard has already left.
+                    if (generation != autofillGeneration) return@inflate
+                    batch.accept(i, view)
+                    if (batch.complete) {
+                        autofillViews = batch.views()
+                        // Read the strip now rather than holding the one that
+                        // existed when the response arrived: a rotation between
+                        // the two rebuilds the input view, and the captured
+                        // reference would be to a strip nobody can see.
+                        if (autofillViews.isEmpty()) strip?.showAutofill(emptyList())
+                        else updateStrip()
+                    }
+                }
+            } catch (e: Exception) {
+                // One provider misbehaving must not take the row with it, and
+                // must not leave the batch permanently one short of complete.
+                android.util.Log.w("RimBoard", "inline suggestion $i did not inflate", e)
+                batch.accept(i, null)
+            }
+        }
+        return true
     }
 
     // ---------------------------------------------------------------- selection tracking

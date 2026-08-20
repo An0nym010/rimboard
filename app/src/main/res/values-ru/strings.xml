@@ -65,6 +65,8 @@
     <string name="pref_clipboard_summary">Показывать кнопку «Вставить» в пустом поле в течение минуты после копирования</string>
     <string name="pref_incognito_title">Всегда инкогнито</string>
     <string name="pref_incognito_summary">Никогда не запоминать и не подсказывать из истории. На сеанс: удерживайте запятую → 🕶</string>
+    <string name="pref_inline_autofill_title">Подсказки менеджера паролей</string>
+    <string name="pref_inline_autofill_summary">Показывать на панели подсказок то, что менеджер паролей предлагает заполнить</string>
     <string name="pref_clear_learned_title">Очистить выученные слова</string>
     <string name="pref_clear_learned_summary">Удалить с устройства все выученные слова и предсказания</string>
     <string name="clear_confirm_title">Очистить выученные данные?</string>

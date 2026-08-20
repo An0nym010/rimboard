@@ -87,6 +87,8 @@
     <string name="pref_clipboard_summary">Offer a Paste chip in an empty field, for a minute after you copy</string>
     <string name="pref_incognito_title">Always incognito</string>
     <string name="pref_incognito_summary">Never learn or suggest from history. Also toggle per-session via long-press comma → 🕶</string>
+    <string name="pref_inline_autofill_title">Password manager suggestions</string>
+    <string name="pref_inline_autofill_summary">Show what your password manager offers to fill, on the suggestion strip</string>
     <string name="pref_clear_learned_title">Delete learned words</string>
     <string name="pref_clear_learned_summary">Remove all learned words and predictions from this device</string>
     <string name="clear_confirm_title">Delete learned data?</string>

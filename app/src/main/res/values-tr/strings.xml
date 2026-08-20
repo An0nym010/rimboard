@@ -69,6 +69,8 @@
     <string name="pref_clipboard_summary">Kopyaladıktan sonra bir dakika boyunca boş alanda Yapıştır çipi göster</string>
     <string name="pref_incognito_title">Her zaman gizli mod</string>
     <string name="pref_incognito_summary">Asla öğrenme ve geçmişten önerme. Oturumluk açmak için virgüle uzun bas → 🕶</string>
+    <string name="pref_inline_autofill_title">Parola yöneticisi önerileri</string>
+    <string name="pref_inline_autofill_summary">Parola yöneticinizin doldurmayı önerdiklerini öneri çubuğunda gösterir</string>
     <string name="pref_clear_learned_title">Öğrenilen kelimeleri sil</string>
     <string name="pref_clear_learned_summary">Bu cihazdaki tüm öğrenilmiş kelimeleri ve tahminleri kaldır</string>
     <string name="clear_confirm_title">Öğrenilen veriler silinsin mi?</string>

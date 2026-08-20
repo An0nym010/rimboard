@@ -15,6 +15,7 @@ object Prefs {
     const val KEY_AUTOCAPS = "autocaps"
     const val KEY_AUTOCORRECT = "autocorrect"
     const val KEY_AUTOCORRECT_CAUTIOUS = "autocorrect_cautious"
+    const val KEY_INLINE_AUTOFILL = "inline_autofill"
     const val KEY_SUGGESTIONS = "suggestions"
     const val KEY_PREDICTIONS = "predictions"
     const val KEY_DOUBLE_SPACE = "double_space"
@@ -147,6 +148,17 @@ object Prefs {
      */
     fun cautiousAutocorrect(c: Context) =
         get(c).getBoolean(KEY_AUTOCORRECT_CAUTIOUS, false)
+
+    /**
+     * Whether the strip offers what a password manager wants to fill.
+     *
+     * On by default. It costs nothing when no autofill service is configured —
+     * the system simply never sends a response — and turning it off is for
+     * people who would rather the keyboard never carried anything from another
+     * app, which is a reasonable thing to want from this keyboard in
+     * particular.
+     */
+    fun inlineAutofill(c: Context) = get(c).getBoolean(KEY_INLINE_AUTOFILL, true)
     fun suggestions(c: Context) = get(c).getBoolean(KEY_SUGGESTIONS, true)
     fun predictions(c: Context) = get(c).getBoolean(KEY_PREDICTIONS, true)
     fun doubleSpace(c: Context) = get(c).getBoolean(KEY_DOUBLE_SPACE, true)
