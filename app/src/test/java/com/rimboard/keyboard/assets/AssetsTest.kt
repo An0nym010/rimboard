@@ -87,6 +87,52 @@ class AssetsTest {
         assertTrue("no prediction model for: $missing", missing.isEmpty())
     }
 
+    /**
+     * The catalogue of downloadable dictionaries agrees with what ships.
+     *
+     * This file is what the app trusts: it names a language, a size and a
+     * SHA-256, and nothing is installed that does not match an entry in it. So
+     * the ways it can be wrong are worth failing a build over. An entry for a
+     * language the app does not support is a download nobody can use; an entry
+     * no larger than the bundled dictionary is megabytes of transfer for
+     * nothing; and a hash that is not a hash means a file that can never be
+     * accepted, which surfaces to the user as a download that always fails.
+     */
+    @Test
+    fun `the extended-dictionary manifest matches the bundled ones`() {
+        val f = File(assets(), com.rimboard.keyboard.model.ExtendedDicts.ASSET)
+        assertTrue("no ${f.name} in assets", f.isFile)
+        val cat = com.rimboard.keyboard.model.ExtendedDicts.parse(f.readText())
+        assertTrue(
+            "the manifest did not parse; a bad base URL or a malformed entry " +
+                "silently empties it",
+            cat.entries.isNotEmpty()
+        )
+        val problems = ArrayList<String>()
+        if (cat.minCount <= 0) problems.add("minCount is ${cat.minCount}")
+        for (e in cat.entries) {
+            if (e.lang !in Languages.codes) {
+                problems.add("${e.lang}: not a language this app supports")
+                continue
+            }
+            val bundled = File(assets(), "dictionaries/${e.lang}.txt")
+            val have = lines(bundled).size
+            // A tenth larger at the very least. Below that the download costs
+            // more than it adds, and the likeliest cause is a regeneration
+            // where the extended depth and the bundled cap came out the same.
+            if (e.bytes > com.rimboard.keyboard.net.Net.MAX_RESPONSE_BYTES) {
+                problems.add(
+                    "${e.lang}: ${e.bytes} bytes is over the transport's own " +
+                        "response cap, so this download can never succeed"
+                )
+            }
+            if (e.words < have * 11 / 10) {
+                problems.add("${e.lang}: ${e.words} extended vs $have bundled, not worth a download")
+            }
+        }
+        assertTrue(problems.joinToString("\n"), problems.isEmpty())
+    }
+
     @Test
     fun `no data file belongs to a language the app does not support`() {
         // The other direction, which nothing checked. tools/fetch_dictionaries.py

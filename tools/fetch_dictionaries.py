@@ -1,16 +1,51 @@
 #!/usr/bin/env python3
-"""Regenerate the bundled word-frequency dictionaries.
+"""Regenerate the word-frequency dictionaries, bundled and downloadable.
+
+    python tools/fetch_dictionaries.py            # the bundled assets
+    python tools/fetch_dictionaries.py --extended # the downloadable set
 
 Downloads frequency lists from Hermit Dave's FrequencyWords project
 (OpenSubtitles corpus, CC BY-SA 4.0), filters to alphabetic words per
-language, and writes the top N entries to
-app/src/main/assets/dictionaries/<lang>.txt in "word count" format.
+language, and writes "word count" lines ordered by frequency.
 
-Streams and stops early once N words are collected, so even the _full
-lists cost only a few MB of transfer each.
+Two depths, and the difference is the whole design
+--------------------------------------------------
+**Bundled** is the top TOP words, which every language gets, and which the
+APK carries. **Extended** is every word the corpus saw at least MIN_COUNT
+times -- about 300,000 words in English and 490,000 in Finnish, because
+morphology decides how many distinct forms a language has and a fixed count
+cannot. Those are gzipped into dist/ for the app to download, with a manifest
+of sizes and SHA-256 hashes that ships inside the APK.
+
+Why not simply ship everything
+------------------------------
+Because "everything" makes the keyboard worse, and it was measured rather than
+guessed. Against the shipped engine, English at each depth -- typos still
+recognised as typos, typos actually repaired, and correctly-typed rare words
+destroyed by autocorrect:
+
+    top 200,000    94%   91%   30%
+    count >= 10    94%   91%   25%
+    count >= 5     91%   88%    1%     <- MIN_COUNT
+    count >= 3     86%   84%    1%
+    count >= 2     83%   80%    1%
+    everything     71%   69%    1%
+
+A hapax in a subtitle corpus is usually a misspelling, a name, or an OCR
+artifact. Include them all and the spell checker starts accepting nearly a
+third of real typos as words -- it stops underlining them and autocorrect
+stops fixing them. MIN_COUNT is where the destroy-a-correct-word failure has
+already collapsed and typo repair has barely moved.
+
+English is bundled at the extended depth (see BUNDLE_EXTENDED): it is the
+default keyboard language for most installs and the one people type without
+choosing it.
 """
 
+import gzip
+import hashlib
 import io
+import json
 import re
 import sys
 import urllib.request
@@ -42,6 +77,27 @@ BASES = [
 #
 # The price is 6.8 MB of APK, and that is the whole of the trade.
 TOP = 200_000
+
+# The extended depth: every word the corpus saw at least this many times.
+# Chosen by measurement -- see the table above. One number, and moving it
+# moves both the downloadable set and English's bundled dictionary.
+MIN_COUNT = 5
+
+# Languages bundled at the extended depth instead of at TOP, so they need no
+# download at all. English, because it is what most installs type by default.
+BUNDLE_EXTENDED = {"en"}
+
+# Where the app fetches the extended dictionaries from. A raw.githubusercontent
+# URL rather than a release asset on purpose: release downloads answer with a
+# redirect to objects.githubusercontent.com, and the online build's transport
+# refuses redirects deliberately. Serving from a branch keeps that hardening
+# untouched at the cost of the files living in git.
+DIST_BASE = "https://raw.githubusercontent.com/An0nym010/rimboard/dictionaries/"
+
+# Downloaded corpora, so the two modes cost one transfer rather than two.
+CACHE = Path(__file__).resolve().parent.parent / "build/freqwords"
+DIST = Path(__file__).resolve().parent.parent / "dist/dictionaries"
+MANIFEST = Path(__file__).resolve().parent.parent / "app/src/main/assets/extended.json"
 
 PATTERNS = {
     "en": r"^[a-z']+$",
@@ -98,82 +154,193 @@ FOLD = {
 OUT_DIR = Path(__file__).resolve().parent.parent / "app/src/main/assets/dictionaries"
 
 
-def fetch(lang: str, top: int) -> str:
-    pat = re.compile(PATTERNS[lang])
-    fold = FOLD.get(lang)
-    last = "no source had enough usable words"
+def corpus(lang: str) -> Path:
+    """The full frequency list for [lang], downloaded once and kept.
+
+    Both modes read the same file, so a rerun of either costs nothing. The
+    English list is 19 MB and the Finnish one 37; fetching them twice because
+    the tool was invoked twice is the kind of waste that stops people
+    regenerating data at all.
+    """
+    CACHE.mkdir(parents=True, exist_ok=True)
+    p = CACHE / (lang + "_full.txt")
+    if p.exists() and p.stat().st_size > 0:
+        return p
+    last = "no source answered"
     for base in BASES:
         url = base.format(lang=lang)
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "rimboard-dict"})
-            counts = {}
-            with urllib.request.urlopen(req, timeout=60) as resp:
-                buf = b""
-                while len(counts) < top:
-                    chunk = resp.read(65536)
-                    if not chunk:
-                        break
-                    buf += chunk
-                    *lines, buf = buf.split(b"\n")
-                    for raw in lines:
-                        line = raw.decode("utf-8", "ignore").strip()
-                        sp = line.find(" ")
-                        if sp <= 0:
-                            continue
-                        w = line[:sp]
-                        if fold:
-                            w = w.translate(fold)
-                        if len(w) > 24 or not pat.match(w):
-                            continue
-                        try:
-                            n = int(line[sp + 1:])
-                        except ValueError:
-                            continue
-                        # Folded spellings have to sum rather than one being
-                        # dropped: the surviving form must carry the frequency
-                        # of both, or it ranks far below where the language
-                        # actually uses it.
-                        if w in counts:
-                            counts[w] += n
-                        elif len(counts) < top:
-                            counts[w] = n
-                        if len(counts) >= top:
+            tmp = p.with_name(p.name + ".part")
+            with urllib.request.urlopen(req, timeout=300) as resp:
+                with io.open(tmp, "wb") as fh:
+                    while True:
+                        chunk = resp.read(1 << 20)
+                        if not chunk:
                             break
-            # Frequency descending, ties broken alphabetically so a rerun over
-            # the same corpus produces the same file. Folding can move an entry
-            # up, so the source order can no longer be relied on.
-            out = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
-            if len(out) >= min(top, 20000) or (out and "50k" in url):
-                OUT_DIR.mkdir(parents=True, exist_ok=True)
-                # newline="" so this writes the same bytes on every
-                # platform. Without it Python translates on Windows and
-                # the file lands with CRLF, which the dictionary loader
-                # happens to tolerate -- it trims before parsing the
-                # count -- and which nothing else notices: a silent
-                # 200 KB per language, and a file that differs from
-                # every other asset in the tree for no reason.
-                with io.open(OUT_DIR / f"{lang}.txt", "w",
-                             encoding="utf-8", newline="") as fh:
-                    fh.write("\n".join(f"{w} {n}" for w, n in out) + "\n")
-                src = url.rsplit("/", 1)[-1]
-                return f"{lang}: {len(out):>7} words  <- {src}"
-        except Exception as e:
-            last = f"{type(e).__name__}: {e}"
-            continue
-    return f"{lang}: FAILED ({last})"
+                        fh.write(chunk)
+            tmp.replace(p)
+            return p
+        except Exception as e:  # noqa: BLE001 - any one source may be missing
+            last = "%s: %s" % (type(e).__name__, e)
+    raise RuntimeError("%s: no usable source (%s)" % (lang, last))
+
+
+def collect(lang: str):
+    """Every qualifying word in the corpus, frequency descending.
+
+    One filter pipeline for both depths, so the bundled dictionary and the
+    downloadable one cannot come to disagree about what counts as a word.
+    """
+    pat = re.compile(PATTERNS[lang])
+    fold = FOLD.get(lang)
+    counts = {}
+    with io.open(corpus(lang), encoding="utf-8", errors="ignore") as fh:
+        for line in fh:
+            sp = line.find(" ")
+            if sp <= 0:
+                continue
+            w = line[:sp]
+            if fold:
+                w = w.translate(fold)
+            if len(w) > 24 or not pat.match(w):
+                continue
+            try:
+                n = int(line[sp + 1:])
+            except ValueError:
+                continue
+            # Folded spellings sum rather than one being dropped: the surviving
+            # form must carry the frequency of both, or it ranks far below
+            # where the language actually uses it.
+            counts[w] = counts.get(w, 0) + n
+    # Frequency descending, ties alphabetical, so a rerun over the same corpus
+    # produces the same bytes. Folding can move an entry up, so the source
+    # order can no longer be relied on.
+    return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+
+
+def write_rows(path: Path, rows) -> int:
+    # newline="" so this writes the same bytes on every platform. Without it
+    # Python translates on Windows and the file lands with CRLF, which the
+    # dictionary loader tolerates -- it trims before parsing the count -- and
+    # which nothing else notices: a silent 200 KB per language.
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with io.open(path, "w", encoding="utf-8", newline="") as fh:
+        fh.write("\n".join("%s %d" % (w, n) for w, n in rows) + "\n")
+    return path.stat().st_size
+
+
+def bundled(lang: str) -> str:
+    """The dictionary that ships inside the APK."""
+    rows = collect(lang)
+    if lang in BUNDLE_EXTENDED:
+        rows = [r for r in rows if r[1] >= MIN_COUNT]
+        depth = "count >= %d" % MIN_COUNT
+    else:
+        rows = rows[:TOP]
+        depth = "top %d" % TOP
+    if len(rows) < 20000:
+        return "%s: FAILED (only %d words -- corpus too small, or the filter is wrong)" % (
+            lang, len(rows))
+    size = write_rows(OUT_DIR / (lang + ".txt"), rows)
+    return "%s: %7d words bundled (%s), %.1f MB" % (lang, len(rows), depth, size / 1048576)
+
+
+def extended(lang: str):
+    """The dictionary the app can download, and its manifest entry.
+
+    Gzipped, because these are three to seven megabytes of sorted text and
+    deflate takes about two thirds off. The hash is over the *compressed*
+    bytes -- what a download actually transfers, and what an import off a
+    memory stick actually is -- so verifying never means decompressing
+    something unverified first.
+    """
+    rows = [r for r in collect(lang) if r[1] >= MIN_COUNT]
+    if len(rows) < 20000:
+        return None, "%s: skipped (only %d words at count >= %d)" % (
+            lang, len(rows), MIN_COUNT)
+    # A download has to be worth the transfer, and for a small corpus it is
+    # not: TOP ranks by frequency and so adapts to whatever the corpus holds,
+    # while MIN_COUNT is absolute. Where the corpus is thin the bundled list
+    # already reaches *past* this depth -- Ukrainian has 56,869 words seen five
+    # times and ships 200,000 -- so the extended file would be a downgrade
+    # wearing the word "extended". Eight of the twenty-two are in that
+    # position; they get no entry and the screen does not list them.
+    bundled_path = OUT_DIR / (lang + ".txt")
+    have = 0
+    if bundled_path.exists():
+        with io.open(bundled_path, encoding="utf-8") as fh:
+            have = sum(1 for _ in fh)
+    if len(rows) < have * 11 // 10:
+        return None, "%s: skipped (%d at count >= %d vs %d bundled -- not worth a download)" % (
+            lang, len(rows), MIN_COUNT, have)
+    text = ("\n".join("%s %d" % (w, n) for w, n in rows) + "\n").encode("utf-8")
+    # mtime=0 so identical input produces identical bytes, and therefore an
+    # identical hash, on every run. Otherwise gzip stamps the current time into
+    # the header and every rebuild looks like new data to anyone diffing.
+    buf = io.BytesIO()
+    with gzip.GzipFile(fileobj=buf, mode="wb", compresslevel=9, mtime=0) as gz:
+        gz.write(text)
+    blob = buf.getvalue()
+    DIST.mkdir(parents=True, exist_ok=True)
+    with io.open(DIST / (lang + ".txt.gz"), "wb") as fh:
+        fh.write(blob)
+    entry = {
+        "lang": lang,
+        "words": len(rows),
+        "bytes": len(blob),
+        "sha256": hashlib.sha256(blob).hexdigest(),
+    }
+    return entry, "%s: %7d words, %.1f MB gzipped" % (lang, len(rows), len(blob) / 1048576)
+
+
+def write_manifest(entries) -> str:
+    doc = {
+        "version": 1,
+        "minCount": MIN_COUNT,
+        "base": DIST_BASE,
+        "entries": sorted(entries, key=lambda e: e["lang"]),
+    }
+    MANIFEST.parent.mkdir(parents=True, exist_ok=True)
+    with io.open(MANIFEST, "w", encoding="utf-8", newline="") as fh:
+        json.dump(doc, fh, indent=2, sort_keys=True)
+        fh.write("\n")
+    total = sum(e["bytes"] for e in entries)
+    return "manifest: %d languages, %.1f MB to host" % (len(entries), total / 1048576)
 
 
 if __name__ == "__main__":
-    langs = sys.argv[1:] or list(PATTERNS.keys())
+    args = list(sys.argv[1:])
+    want_extended = "--extended" in args
+    langs = [a for a in args if not a.startswith("--")] or list(PATTERNS.keys())
     # A mistyped code (or a stray flag copied from stale docs) reached
-    # PATTERNS[lang] inside fetch and came out as a bare KeyError traceback.
-    # Name the problem instead, and list what is valid.
+    # PATTERNS[lang] and came out as a bare KeyError traceback. Name the
+    # problem instead, and list what is valid.
     unknown = [lg for lg in langs if lg not in PATTERNS]
     if unknown:
         sys.exit(
             "unknown language code(s): %s\nknown: %s\n"
-            "usage: fetch_dictionaries.py [LANG ...]   (no flags; omit to do all)"
+            "usage: fetch_dictionaries.py [--extended] [LANG ...]"
             % (" ".join(unknown), " ".join(sorted(PATTERNS)))
         )
-    for lg in langs:
-        print(fetch(lg, TOP), flush=True)
+    if want_extended:
+        entries = []
+        for lg in langs:
+            # A language bundled at the extended depth has nothing to download.
+            if lg in BUNDLE_EXTENDED:
+                print("%s: bundled at this depth already, skipping" % lg, flush=True)
+                continue
+            try:
+                entry, note = extended(lg)
+            except Exception as e:  # noqa: BLE001 - one language must not sink the run
+                entry, note = None, "%s: FAILED (%s: %s)" % (lg, type(e).__name__, e)
+            print(note, flush=True)
+            if entry:
+                entries.append(entry)
+        print(write_manifest(entries), flush=True)
+    else:
+        for lg in langs:
+            try:
+                print(bundled(lg), flush=True)
+            except Exception as e:  # noqa: BLE001
+                print("%s: FAILED (%s: %s)" % (lg, type(e).__name__, e), flush=True)

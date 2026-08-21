@@ -130,6 +130,10 @@ The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
   one-tap "↩ original" revert chip that also teaches the keyboard your word
 - Suggestion strip: verbatim | best match | alternative, with the word that
   will be auto-committed shown in bold/accent
+- 200,000 words per language built in, 298,946 for English, and a deeper list
+  per language you can add later — downloaded on the `online` build, imported
+  from a file you fetched yourself on the `offline` one, checksum-checked
+  either way
 - Next-word predictions from a bundled corpus model (282,000 one- and
   two-word contexts across 22 languages) merged with what you have typed
   yourself, which is weighed as trigrams
@@ -562,20 +566,93 @@ route, so what it reads cannot leave the device even in principle — which is
 the reason this permission is survivable here and would not be in an app that
 could talk to a server.
 
-## Extending the dictionaries
+## Dictionaries, bundled and extended
 
-The bundled lists hold up to 200,000 words for the eight core languages and
-100,000 for the rest (from the OpenSubtitles frequency corpus). To regenerate
-them — the script takes bare language codes, no flags, and writes every
-language when given none:
+Every language ships with **200,000 words** in the APK, and English with
+**298,946** — the two are different rules, not different numbers. 200,000 is a
+cap; English's is every word the source corpus saw at least five times, which
+is the depth the download below offers for the other twenty-one.
+
+**The cap costs something measurable.** Tested against the shipped engine on
+words drawn from the band a 100,000-word list omits, autocorrect silently
+overwrites 35% of correctly-typed English words and 20% of Turkish ones, while
+repairing ordinary typos at exactly the same rate. That is why nothing ships at
+100,000 any more, and why the deeper list is worth fetching for a language you
+actually type.
+
+**And going deeper than five stops helping.** English at every depth — typos
+still recognised as typos, typos actually repaired, correctly-typed rare words
+destroyed:
+
+| dictionary | typos kept | typos repaired | rare words destroyed |
+|---|---|---|---|
+| top 200,000 | 94% | 91% | 30% |
+| count ≥ 5 (**shipped**) | 91% | 88% | 1% |
+| count ≥ 3 | 86% | 84% | 1% |
+| every word | **71%** | **69%** | 1% |
+
+A word seen once in a subtitle corpus is usually a misspelling, a name, or an
+OCR artifact. Take them all and the keyboard accepts nearly a third of real
+typos as words — it stops underlining them and autocorrect stops fixing them.
+There is deliberately no "everything" tier for the same reason there is no
+"more eager autocorrect" one.
+
+### Getting one onto the phone
+
+**Settings → Corrections → Extended dictionaries.** The screen lists every
+language with a deeper list, the languages you type first, with the size in
+front of the button.
+
+- On the **online** build the button downloads it.
+- On the **offline** build there is no download and cannot be one: that APK
+  holds no `INTERNET` permission, so the kernel refuses it a socket. The button
+  opens the system file picker instead, and you feed it a file you fetched
+  yourself — on a computer, over Bluetooth, off a memory stick. Picking a file
+  grants access to that one file and needs no permission at all.
+
+Both doors end at the same check. Every file's SHA-256 is in a manifest
+compiled into the APK (`app/src/main/assets/extended.json`), and nothing is
+installed that does not match one, so an imported file is trusted exactly as
+much as a downloaded one: not at all until it matches. Installed dictionaries
+live in the app's device-protected storage, are never backed up, and Remove
+puts the bundled list back.
+
+### Regenerating and hosting them
 
 ```
-python3 tools/fetch_dictionaries.py            # regenerate all 22
-python3 tools/fetch_dictionaries.py en tr de   # only the ones you name
+python3 tools/fetch_dictionaries.py              # the bundled assets, all 22
+python3 tools/fetch_dictionaries.py en tr de     # only the ones you name
+python3 tools/fetch_dictionaries.py --extended   # the downloadable set + manifest
 ```
 
-The per-language size limits live in the `TOP` table at the top of that
-script; change them there.
+The first form writes `app/src/main/assets/dictionaries/`. The second writes
+`dist/dictionaries/<lang>.txt.gz` and regenerates the manifest. Corpora are
+cached under `build/freqwords/`, so the two modes cost one download rather than
+two.
+
+`TOP`, `MIN_COUNT` and `BUNDLE_EXTENDED` at the top of that script are the
+three knobs: the bundled cap, the extended depth, and which languages are
+bundled at the extended depth instead of downloading it.
+
+To host the result, push `dist/dictionaries/` to the branch named in
+`DIST_BASE` (a `dictionaries` branch of this repository by default):
+
+```
+git switch --orphan dictionaries
+cp dist/dictionaries/*.txt.gz .
+git add *.txt.gz && git commit -m "Extended dictionaries"
+git push -u origin dictionaries
+```
+
+An orphan branch keeps 25 MB of data out of the main history, and force-pushing
+it on a regeneration keeps one copy rather than a pile. **Release assets would
+be the tidier home and are not usable here**: a release download answers with a
+redirect to `objects.githubusercontent.com`, and the online build's transport
+refuses redirects on purpose.
+
+Until that branch exists the screen still lists the languages and the download
+fails with a message. The manifest ships regardless, so a build that cannot
+reach the files is a feature that does nothing rather than a build that breaks.
 
 Dictionary format is one `word count` pair per line, ordered by frequency.
 Adding a whole new language also needs a layout in

@@ -52,6 +52,12 @@
             android:summary="@string/pref_personal_dict_summary" />
 
     <Preference
+            android:key="extended_dicts"
+            android:icon="@drawable/ic_pref_import"
+            android:title="@string/pref_dicts_title"
+            android:summary="@string/pref_dicts_summary" />
+
+    <Preference
             android:key="text_shortcuts"
             android:icon="@drawable/ic_pref_bolt"
             android:title="@string/pref_shortcuts_title"

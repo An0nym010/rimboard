@@ -27,11 +27,16 @@ internal object NetBackend {
     private const val READ_TIMEOUT_MS = 20_000
 
     /**
-     * 8 MB. Sized for the largest thing this app legitimately fetches — a GIF —
-     * rather than for text; a page of search metadata or a rewritten sentence
-     * is orders of magnitude under it either way.
+     * 8 MB. Sized for the largest things this app legitimately fetches — a GIF,
+     * and an extended dictionary — rather than for text; a page of search
+     * metadata or a rewritten sentence is orders of magnitude under it either
+     * way.
+     *
+     * Declared in [Net] so the data can be checked against it: the shipped
+     * dictionary manifest is verified to fit, and it is the only flavour-shared
+     * code that could do that.
      */
-    private const val MAX_RESPONSE_BYTES = 8 shl 20
+    private const val MAX_RESPONSE_BYTES = Net.MAX_RESPONSE_BYTES
 
     /**
      * Bytes are the transport; [fetch] is a decode on top of it. Written this

@@ -176,6 +176,11 @@
             android:label="@string/pref_personal_dict_title" />
 
         <activity
+            android:name=".settings.DictionariesActivity"
+            android:exported="false"
+            android:label="@string/pref_dicts_title" />
+
+        <activity
             android:name=".settings.ShortcutsActivity"
             android:exported="false"
             android:label="@string/pref_shortcuts_title" />

@@ -43,7 +43,13 @@ class SuggestionEngine private constructor(
 
     /** App path: read bundled assets, and the learned words from the context. */
     constructor(context: Context, userData: UserData) : this(
-        Assets { path -> try { context.assets.open(path) } catch (_: Exception) { null } },
+        Assets { path ->
+            // A downloaded dictionary shadows the bundled one. The store
+            // answers for `dictionaries/<lang>.txt` and nothing else, so every
+            // other asset here is still the APK's own -- see [DictionaryStore].
+            DictionaryStore.open(context, path)
+                ?: try { context.assets.open(path) } catch (_: Exception) { null }
+        },
         UserData.dataDir(context),
         userData,
         shared = true

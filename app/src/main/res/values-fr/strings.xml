@@ -294,4 +294,22 @@
     <string name="pref_contact_names_summary">Ne plus souligner les personnes à qui tu écris. Demande l\'autorisation à l\'activation ; les noms restent en mémoire et ne sont envoyés nulle part.</string>
     <string name="pref_system_dict_title">Mots du dictionnaire personnel</string>
     <string name="pref_system_dict_summary">Accepter aussi les mots enregistrés dans Paramètres → Dictionnaire personnel, partagés avec tes autres applis. En lecture seule, jamais complété. Demande l\'autorisation à l\'activation.</string>
+
+    <string name="pref_dicts_title">Dictionnaires étendus</string>
+    <string name="pref_dicts_summary">Ajouter la liste de mots plus complète d’une langue</string>
+    <string name="dicts_intro">Chaque langue est livrée avec 200 000 mots. La liste étendue contient tous les mots vus au moins %1$d fois dans le corpus source — deux à trois fois plus — ce qui évite surtout que le clavier corrige des mots inhabituels tapés exprès. Les téléchargements restent sur cet appareil.</string>
+    <string name="dicts_intro_offline">Cette version n’a pas la permission internet et ne peut rien télécharger. Récupère le fichier toi-même sur %2$s, puis choisis Importer. Chacun contient tous les mots vus au moins %1$d fois dans le corpus source. RimBoard le vérifie avec une somme de contrôle intégrée à l’application avant de l’installer.</string>
+    <string name="dicts_none">Cette version ne liste aucun dictionnaire étendu.</string>
+    <string name="dicts_working">En cours…</string>
+    <string name="dicts_installed">%1$s mots installés</string>
+    <string name="dicts_available">%1$s mots · %2$s</string>
+    <string name="dicts_download">Télécharger</string>
+    <string name="dicts_import">Importer</string>
+    <string name="dicts_remove">Retirer</string>
+    <string name="dicts_ready">%1$s : %2$s mots prêts</string>
+    <string name="dicts_wrong_file">Ce n’est pas le dictionnaire %1$s attendu par cette version</string>
+    <string name="dicts_corrupt">Ce fichier n’a pas pu être lu comme dictionnaire</string>
+    <string name="dicts_no_space">Enregistrement impossible — vérifie l’espace libre</string>
+    <string name="dicts_failed">Échec du téléchargement</string>
+    <string name="dicts_net_reason">Dictionnaire (%1$s)</string>
 </resources>

@@ -1,0 +1,178 @@
+package com.rimboard.keyboard.engine
+
+import android.content.Context
+import com.rimboard.keyboard.model.ExtendedDicts
+import java.io.File
+import java.io.InputStream
+
+/**
+ * Dictionaries that arrived after the install: where they live, how one is
+ * accepted, and how the engine comes to read it instead of the bundled one.
+ *
+ * # The seam
+ *
+ * [open] is consulted by the app's [SuggestionEngine.Assets] before
+ * `context.assets`, and answers only for `dictionaries/<lang>.txt`. Everything
+ * else in the engine -- the offensive lists, the prediction models, the emoji
+ * table -- goes on reading the APK, because nothing else is downloadable and a
+ * store that could shadow *any* asset is a much larger thing to have to trust.
+ *
+ * # Device-protected storage
+ *
+ * Same reasoning as [UserData]: the keyboard has to work on a lock screen after
+ * a reboot, and a dictionary sitting in credential-protected storage would be
+ * unreadable exactly then -- the keyboard would silently drop back to the
+ * bundled words at the one moment the user cannot investigate why.
+ *
+ * # What "accepted" means
+ *
+ * The manifest inside the APK names a SHA-256 for every file, and nothing is
+ * installed that does not match one. Both flavours install through here: the
+ * online build hands over bytes it downloaded, the offline build hands over
+ * bytes the user picked out of a file manager, and neither is trusted more
+ * than the other.
+ */
+object DictionaryStore {
+
+    /**
+     * Ceiling on what a verified file may expand to, as insurance rather than
+     * as policy: the hash already pins the content exactly, so this can only
+     * fire on a file nobody built. Sized well above the largest real one
+     * (Finnish, 6.4 MB) and well below anything that would trouble the disk.
+     */
+    private const val MAX_UNPACKED_BYTES = 64L shl 20
+
+    /**
+     * The floor the packaging tool applies too. A dictionary this small is not
+     * a small language, it is a truncated file.
+     */
+    private const val MIN_WORDS = 20_000
+
+    /**
+     * Every function here comes in two: one taking the directory, which is
+     * where the thinking is and what the tests drive, and one taking a Context
+     * to find that directory and to move [DictVersion] afterwards. The split
+     * is not decoration -- verifying, unpacking and refusing a file is the part
+     * that can be wrong, and a unit test cannot hold a Context.
+     */
+    fun dir(c: Context): File = File(UserData.dataDir(c), "extdict")
+
+    fun file(c: Context, lang: String): File = File(dir(c), "$lang.txt")
+
+    /** Languages with an installed dictionary, cheapest form of the question. */
+    fun installed(dir: File): Set<String> =
+        dir.listFiles().orEmpty()
+            .filter { it.isFile && it.name.endsWith(".txt") && it.length() > 0 }
+            .mapTo(HashSet()) { it.name.removeSuffix(".txt") }
+
+    fun installed(c: Context): Set<String> = installed(dir(c))
+
+    fun isInstalled(c: Context, lang: String): Boolean = file(c, lang).length() > 0
+
+    /**
+     * The override stream for [path], or null to fall through to the APK.
+     *
+     * Deliberately narrow: only the dictionary of a language, only when a file
+     * is actually there, and never an exception -- a store that throws here
+     * would take out the engine's whole asset path.
+     */
+    fun open(dir: File, path: String): InputStream? {
+        if (!path.startsWith("dictionaries/") || !path.endsWith(".txt")) return null
+        val lang = path.removePrefix("dictionaries/").removeSuffix(".txt")
+        if (lang.isEmpty() || lang.any { it !in 'a'..'z' }) return null
+        return try {
+            val f = File(dir, "$lang.txt")
+            if (f.length() > 0) f.inputStream() else null
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    fun open(c: Context, path: String): InputStream? = open(dir(c), path)
+
+    /** Why an install did not happen, for a message the user can act on. */
+    enum class Refusal { NOT_OFFERED, WRONG_FILE, CORRUPT, NO_SPACE }
+
+    /**
+     * Installs [gz] as the dictionary for [entry], or says why not.
+     *
+     * The verify happens before anything is decompressed, and the decompressed
+     * result lands under a temporary name until it has been looked at, so a
+     * failure at any point leaves whatever was already installed untouched
+     * rather than half-replaced.
+     */
+    fun install(c: Context, entry: ExtendedDicts.Entry, gz: ByteArray): Refusal? {
+        val refusal = install(dir(c), entry, gz)
+        // Every cached dictionary in the process is now stale. The counter is
+        // in the cache key, so this is the whole of the invalidation -- and it
+        // happens here rather than inside the file work so that the tests
+        // exercise the refusals without reaching into a global.
+        if (refusal == null) DictVersion.v++
+        return refusal
+    }
+
+    fun install(dir: File, entry: ExtendedDicts.Entry, gz: ByteArray): Refusal? {
+        if (!ExtendedDicts.accepts(entry, gz)) return Refusal.WRONG_FILE
+        val tmp = File(dir, entry.lang + ".part")
+        return try {
+            dir.mkdirs()
+            var words = 0
+            var first: String? = null
+            tmp.outputStream().buffered().use { out ->
+                java.util.zip.GZIPInputStream(gz.inputStream()).use { gzin ->
+                    val buf = ByteArray(1 shl 16)
+                    var total = 0L
+                    while (true) {
+                        val n = gzin.read(buf)
+                        if (n <= 0) break
+                        total += n
+                        if (total > MAX_UNPACKED_BYTES) return Refusal.CORRUPT
+                        out.write(buf, 0, n)
+                    }
+                }
+            }
+            tmp.bufferedReader().use { r ->
+                first = r.readLine()
+                if (first != null) {
+                    words = 1
+                    while (r.readLine() != null) words++
+                }
+            }
+            // "word count", the format the loader parses. A gzip of the wrong
+            // thing that happens to hash correctly is not possible; a gzip of
+            // the right thing built by a future tool that changed the format
+            // silently is, and this is what would catch it.
+            val head = first
+            if (head == null || !head.contains(' ') ||
+                head.substringAfterLast(' ').toIntOrNull() == null
+            ) {
+                return Refusal.CORRUPT
+            }
+            if (words < MIN_WORDS) return Refusal.CORRUPT
+            val dest = File(dir, entry.lang + ".txt")
+            dest.delete()
+            if (!tmp.renameTo(dest)) return Refusal.NO_SPACE
+            null
+        } catch (e: Exception) {
+            android.util.Log.w("RimBoard", "extended dictionary install failed", e)
+            Refusal.CORRUPT
+        } finally {
+            tmp.delete()
+        }
+    }
+
+    /** Removes the installed dictionary for [lang]; the APK's own takes over. */
+    fun remove(c: Context, lang: String): Boolean {
+        val f = file(c, lang)
+        val gone = !f.exists() || f.delete()
+        if (gone) DictVersion.v++
+        return gone
+    }
+
+    /** Bytes on disk under [dir]. */
+    fun bytesUsed(dir: File): Long =
+        dir.listFiles().orEmpty().filter { it.isFile }.sumOf { it.length() }
+
+    /** Bytes currently held on disk, for the settings screen to show. */
+    fun bytesUsed(c: Context): Long = bytesUsed(dir(c))
+}

@@ -294,4 +294,22 @@
     <string name="pref_contact_names_summary">Deja de subrayar a las personas a las que escribes. Pide permiso al activarlo; los nombres solo se leen en memoria y no se envían a ninguna parte.</string>
     <string name="pref_system_dict_title">Palabras del diccionario personal</string>
     <string name="pref_system_dict_summary">Aceptar también las palabras guardadas en Ajustes → Diccionario personal, que comparten tus otras apps. Solo lectura, nunca se añade nada. Pide permiso al activarlo.</string>
+
+    <string name="pref_dicts_title">Diccionarios ampliados</string>
+    <string name="pref_dicts_summary">Añadir la lista de palabras más amplia de un idioma</string>
+    <string name="dicts_intro">Cada idioma incluye 200.000 palabras. La lista ampliada contiene todas las palabras que el corpus de origen vio al menos %1$d veces — dos o tres veces más — y sobre todo evita que el teclado corrija palabras poco comunes que escribiste a propósito. Las descargas se quedan en este dispositivo.</string>
+    <string name="dicts_intro_offline">Esta versión no tiene permiso de internet, así que no puede descargar nada. Consigue el archivo tú mismo en %2$s y elige Importar. Cada uno contiene todas las palabras que el corpus de origen vio al menos %1$d veces. RimBoard lo comprueba contra una suma de verificación incluida en la app antes de instalarlo.</string>
+    <string name="dicts_none">Esta versión no lista diccionarios ampliados.</string>
+    <string name="dicts_working">Trabajando…</string>
+    <string name="dicts_installed">%1$s palabras instaladas</string>
+    <string name="dicts_available">%1$s palabras · %2$s</string>
+    <string name="dicts_download">Descargar</string>
+    <string name="dicts_import">Importar</string>
+    <string name="dicts_remove">Quitar</string>
+    <string name="dicts_ready">%1$s: %2$s palabras listas</string>
+    <string name="dicts_wrong_file">Ese no es el diccionario de %1$s que espera esta versión</string>
+    <string name="dicts_corrupt">No se pudo leer ese archivo como diccionario</string>
+    <string name="dicts_no_space">No se pudo guardar — comprueba el espacio libre</string>
+    <string name="dicts_failed">Error al descargar</string>
+    <string name="dicts_net_reason">Diccionario (%1$s)</string>
 </resources>

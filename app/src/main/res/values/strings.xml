@@ -468,4 +468,23 @@ Your search words or selected text go to the service that answers them. Nothing 
     <string name="pref_contact_names_summary">Stop underlining the people you write to. Asks permission when turned on; names are read into memory only, never sent anywhere.</string>
     <string name="pref_system_dict_title">Words from the personal dictionary</string>
     <string name="pref_system_dict_summary">Also accept the words saved under Settings → Personal dictionary, which your other apps share. Read only, never added to. Asks permission when turned on.</string>
+
+    <!-- Extended dictionaries -->
+    <string name="pref_dicts_title">Extended dictionaries</string>
+    <string name="pref_dicts_summary">Add the deeper word list for a language</string>
+    <string name="dicts_intro">Every language ships with 200,000 words. The extended list holds every word the source corpus saw at least %1$d times — two to three times as many — which mostly stops the keyboard correcting away unusual words you typed on purpose. Downloads stay on this device.</string>
+    <string name="dicts_intro_offline">This build holds no internet permission, so it cannot download. Fetch a file yourself from %2$s, then use Import to pick it. Each holds every word the source corpus saw at least %1$d times. RimBoard checks it against a checksum built into the app before installing it.</string>
+    <string name="dicts_none">This build lists no extended dictionaries.</string>
+    <string name="dicts_working">Working…</string>
+    <string name="dicts_installed">%1$s words installed</string>
+    <string name="dicts_available">%1$s words · %2$s</string>
+    <string name="dicts_download">Download</string>
+    <string name="dicts_import">Import</string>
+    <string name="dicts_remove">Remove</string>
+    <string name="dicts_ready">%1$s: %2$s words ready</string>
+    <string name="dicts_wrong_file">That is not the %1$s dictionary this build expects</string>
+    <string name="dicts_corrupt">That file could not be read as a dictionary</string>
+    <string name="dicts_no_space">Could not save it — check free space</string>
+    <string name="dicts_failed">Download failed</string>
+    <string name="dicts_net_reason">Dictionary (%1$s)</string>
 </resources>

@@ -38,7 +38,14 @@ object Net {
         "api.klipy.com",                    // GIF search metadata
         "api.anthropic.com",                // AI translation and proofreading
         "lingva.ml",                        // keyless translation
-        "libretranslate.com"                // translation, self-hostable
+        "libretranslate.com",               // translation, self-hostable
+        // The extended dictionaries. raw.githubusercontent.com rather than a
+        // release asset because release downloads answer with a redirect to
+        // objects.githubusercontent.com, and NetBackend refuses redirects on
+        // purpose; adding a second host here would be cheaper than loosening
+        // that. Nothing is typed at this endpoint -- it is a GET of a file
+        // whose SHA-256 is already in the APK.
+        "raw.githubusercontent.com"
     )
 
     /**
@@ -88,6 +95,19 @@ object Net {
 
     /** True only on the `online` flavor, whose manifest carries INTERNET. */
     val capable: Boolean get() = NetBackend.CAPABLE
+
+    /**
+     * The most any single response may be, in bytes.
+     *
+     * Sized for the largest thing this app legitimately fetches and enforced in
+     * the transport, which is the only place that can enforce it. It lives here
+     * rather than there because the *data* has to fit under it too: an extended
+     * dictionary larger than this would be a download that fails every time,
+     * for a reason nobody would find by reading the download code. AssetsTest
+     * checks the manifest against this number, and the offline flavour has no
+     * transport to read it from.
+     */
+    const val MAX_RESPONSE_BYTES = 8 shl 20
 
     /**
      * Whether the first-run network dialog has been dealt with yet. Absence of

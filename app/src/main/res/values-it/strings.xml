@@ -294,4 +294,22 @@
     <string name="pref_contact_names_summary">Non sottolineare più le persone a cui scrivi. Chiede il permesso quando lo attivi; i nomi restano in memoria e non vengono inviati da nessuna parte.</string>
     <string name="pref_system_dict_title">Parole dal dizionario personale</string>
     <string name="pref_system_dict_summary">Accetta anche le parole salvate in Impostazioni → Dizionario personale, condivise con le altre app. Solo lettura, non viene mai aggiunto nulla. Chiede il permesso quando lo attivi.</string>
+
+    <string name="pref_dicts_title">Dizionari estesi</string>
+    <string name="pref_dicts_summary">Aggiungi l’elenco di parole più ampio di una lingua</string>
+    <string name="dicts_intro">Ogni lingua include 200.000 parole. L’elenco esteso contiene tutte le parole viste almeno %1$d volte nel corpus di origine — due o tre volte tante — ed evita soprattutto che la tastiera corregga parole insolite scritte di proposito. I download restano su questo dispositivo.</string>
+    <string name="dicts_intro_offline">Questa build non ha il permesso internet, quindi non può scaricare nulla. Scarica il file da %2$s e poi scegli Importa. Ognuno contiene tutte le parole viste almeno %1$d volte nel corpus di origine. RimBoard lo verifica con un checksum incluso nell’app prima di installarlo.</string>
+    <string name="dicts_none">Questa build non elenca dizionari estesi.</string>
+    <string name="dicts_working">In corso…</string>
+    <string name="dicts_installed">%1$s parole installate</string>
+    <string name="dicts_available">%1$s parole · %2$s</string>
+    <string name="dicts_download">Scarica</string>
+    <string name="dicts_import">Importa</string>
+    <string name="dicts_remove">Rimuovi</string>
+    <string name="dicts_ready">%1$s: %2$s parole pronte</string>
+    <string name="dicts_wrong_file">Questo non è il dizionario %1$s che questa build si aspetta</string>
+    <string name="dicts_corrupt">Impossibile leggere quel file come dizionario</string>
+    <string name="dicts_no_space">Impossibile salvarlo — controlla lo spazio libero</string>
+    <string name="dicts_failed">Download non riuscito</string>
+    <string name="dicts_net_reason">Dizionario (%1$s)</string>
 </resources>

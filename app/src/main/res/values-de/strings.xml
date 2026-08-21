@@ -294,4 +294,22 @@
     <string name="pref_contact_names_summary">Namen von Personen, denen du schreibst, nicht mehr unterstreichen. Fragt beim Einschalten nach der Berechtigung; Namen bleiben im Speicher und werden nirgendwohin gesendet.</string>
     <string name="pref_system_dict_title">Wörter aus dem persönlichen Wörterbuch</string>
     <string name="pref_system_dict_summary">Auch die Wörter aus Einstellungen → Persönliches Wörterbuch akzeptieren, die deine anderen Apps teilen. Nur gelesen, nie ergänzt. Fragt beim Einschalten nach der Berechtigung.</string>
+
+    <string name="pref_dicts_title">Erweiterte Wörterbücher</string>
+    <string name="pref_dicts_summary">Die größere Wortliste einer Sprache hinzufügen</string>
+    <string name="dicts_intro">Jede Sprache bringt 200.000 Wörter mit. Die erweiterte Liste enthält jedes Wort, das im Quellkorpus mindestens %1$d Mal vorkommt — zwei- bis dreimal so viele — und verhindert vor allem, dass die Tastatur ungewöhnliche Wörter wegkorrigiert, die du absichtlich getippt hast. Downloads bleiben auf diesem Gerät.</string>
+    <string name="dicts_intro_offline">Dieser Build hat keine Internetberechtigung und kann nichts herunterladen. Hole die Datei selbst von %2$s und wähle sie mit „Importieren“ aus. Jede enthält jedes Wort, das im Quellkorpus mindestens %1$d Mal vorkommt. RimBoard prüft sie vor der Installation gegen eine in der App hinterlegte Prüfsumme.</string>
+    <string name="dicts_none">Dieser Build listet keine erweiterten Wörterbücher.</string>
+    <string name="dicts_working">Läuft…</string>
+    <string name="dicts_installed">%1$s Wörter installiert</string>
+    <string name="dicts_available">%1$s Wörter · %2$s</string>
+    <string name="dicts_download">Herunterladen</string>
+    <string name="dicts_import">Importieren</string>
+    <string name="dicts_remove">Entfernen</string>
+    <string name="dicts_ready">%1$s: %2$s Wörter bereit</string>
+    <string name="dicts_wrong_file">Das ist nicht das %1$s-Wörterbuch, das dieser Build erwartet</string>
+    <string name="dicts_corrupt">Diese Datei ließ sich nicht als Wörterbuch lesen</string>
+    <string name="dicts_no_space">Speichern fehlgeschlagen — prüfe den freien Speicher</string>
+    <string name="dicts_failed">Download fehlgeschlagen</string>
+    <string name="dicts_net_reason">Wörterbuch (%1$s)</string>
 </resources>

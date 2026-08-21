@@ -30,3 +30,4 @@ Thumbs.db
 # Python (tools/ scripts)
 __pycache__/
 *.pyc
+dist/

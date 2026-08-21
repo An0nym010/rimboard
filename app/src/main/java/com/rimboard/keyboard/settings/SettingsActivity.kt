@@ -502,6 +502,10 @@ class SettingsActivity : LocalisedActivity() {
                 startActivity(Intent(requireContext(), PersonalDictActivity::class.java))
                 true
             }
+            findPreference<Preference>("extended_dicts")?.setOnPreferenceClickListener {
+                startActivity(Intent(requireContext(), DictionariesActivity::class.java))
+                true
+            }
             findPreference<Preference>("text_shortcuts")?.setOnPreferenceClickListener {
                 startActivity(Intent(requireContext(), ShortcutsActivity::class.java))
                 true

@@ -1,0 +1,85 @@
+{
+  "base": "https://raw.githubusercontent.com/An0nym010/rimboard/dictionaries/",
+  "entries": [
+    {
+      "bytes": 2211315,
+      "lang": "cs",
+      "sha256": "395d6df4be64abd81b63f8016c2c2b92e7937c159e3b023b50cb299ba3490556",
+      "words": 469068
+    },
+    {
+      "bytes": 1156727,
+      "lang": "de",
+      "sha256": "d978c1871cd5101f7ca88e3df356775f42d1649ae7813956c75c1656b7d6db7c",
+      "words": 232384
+    },
+    {
+      "bytes": 1837970,
+      "lang": "el",
+      "sha256": "ddd49cd26bd3c641a52e381c42fa1dc854f2f0514014cc34ff21a29a93c825bc",
+      "words": 330722
+    },
+    {
+      "bytes": 1513731,
+      "lang": "es",
+      "sha256": "9b8652406abc4275eef42d2804d672d515754550a763fd10cf8a9a2257378277",
+      "words": 330480
+    },
+    {
+      "bytes": 2342428,
+      "lang": "fi",
+      "sha256": "710b9f077203f59c132c048e22618562bb9028246811c08408ab7ba87715bc0e",
+      "words": 488508
+    },
+    {
+      "bytes": 1777803,
+      "lang": "hr",
+      "sha256": "958dec8d895f1ff267279e63305bd8c3b8bd5cc1f2e89fcfa35de42cd88c6fd2",
+      "words": 399891
+    },
+    {
+      "bytes": 3175306,
+      "lang": "hu",
+      "sha256": "55de42963ef18f9ad03f091478d60d684f97e8ce424b76cdc3f48b9251ad74a7",
+      "words": 645346
+    },
+    {
+      "bytes": 1085673,
+      "lang": "it",
+      "sha256": "b7cf66c07e0343985af3c6b0f21d895e92c36ff6b8957ea47edec15dbf2232bc",
+      "words": 237278
+    },
+    {
+      "bytes": 1169913,
+      "lang": "nl",
+      "sha256": "b4fdfd748d29ae0d2579a05359e50376a3fcc14a5feed6d63b5174f849f9ec1c",
+      "words": 237002
+    },
+    {
+      "bytes": 2127361,
+      "lang": "pl",
+      "sha256": "03c968a599b0e8a7de7f513f477ac68c16c9c2975dca96928f871bf3fae06143",
+      "words": 450433
+    },
+    {
+      "bytes": 1371443,
+      "lang": "ro",
+      "sha256": "05d9c1ebff4e3c0e5f1a65ac413bd26012c95776702426470950d2a0988cb248",
+      "words": 295430
+    },
+    {
+      "bytes": 1842833,
+      "lang": "ru",
+      "sha256": "5768577ae9fec19521d2aebf0514d79c04f42e232f4e85e624b1029cafed45b7",
+      "words": 347482
+    },
+    {
+      "bytes": 2523054,
+      "lang": "tr",
+      "sha256": "bbf5d57736f8be4b15a7bc2253fc4900ccf07ff47167fbbc0e6b859bdb00f4c7",
+      "words": 548863
+    }
+  ],
+  "minCount": 5,
+  "version": 1
+}
