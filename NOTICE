@@ -69,8 +69,10 @@ the dictionaries below these files carry no licence onward. The entries at the
 head of each row are hand-written for RimBoard and are covered by its own
 licence; the corpus-derived entries follow them.
 
-The bundled word-frequency dictionaries
-(all files under app/src/main/assets/dictionaries/) are derived from:
+The word-frequency dictionaries — both the bundled ones (all files
+under app/src/main/assets/dictionaries/) and the extended ones the app
+can download or import (the `dictionaries` branch of this repository,
+built by tools/fetch_dictionaries.py --extended) — are derived from:
 
   FrequencyWords by Hermit Dave
   https://github.com/hermitdave/FrequencyWords
@@ -82,11 +84,19 @@ The bundled word-frequency dictionaries
   (CC BY-SA 4.0): https://creativecommons.org/licenses/by-sa/4.0/
 
 Modifications made for RimBoard: filtered to the alphabetic words of each
-language, deduplicated, and truncated by frequency rank to at most —
+language, deduplicated, and cut to —
 
-  200,000 entries for en, tr, de, es, fr, it, pt and ru
-  100,000 entries for cs, da, el, fi, hr, hu, id, nl, no, pl, ro, sk, sv
-  and uk
+  200,000 entries by frequency rank, for every language except English
+
+  English, and the extended dictionaries for the thirteen languages that
+  have one, instead keep every word the corpus recorded at least five
+  times: 298,946 entries for English, and between 232,384 (German) and
+  645,346 (Hungarian) for the rest
+
+The two rules cross over. A rank cut adapts to whatever the corpus
+holds; a count threshold does not, so where a corpus is thin the
+200,000-entry list already reaches past five occurrences and there is no
+extended list to offer. That is why eight languages have none.
 
 Three lists have further per-language corrections, which leave them below
 the figures above:
