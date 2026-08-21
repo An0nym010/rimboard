@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    "OFFLINE", set under the symbol, in the offline build's launcher icon.
+
+    Deliberately *not* defined in src/main: the two builds install side by side
+    with the same symbol, so an unmarked icon is a wrong icon rather than a
+    missing one. With no fallback in main, a flavour that fails to supply this
+    fails to link, which is what LauncherIconTest pins.
+
+    Letters are drawn as rectangles at 1.3 units thick, the same idiom as the
+    keys above them, because a stroked outline at this size renders as a
+    hairline on a low-density screen. Legible down to a 48px icon; below that
+    the word is a shape rather than a label, which is all it needs to be.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#FFFFFF" android:pathData="M34.75,67.5h4.5v1.3h-4.5zM34.75,74.2h4.5v1.3h-4.5zM34.75,67.5h1.3v8h-1.3zM37.95,67.5h1.3v8h-1.3z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M40.75,67.5h1.3v8h-1.3zM40.75,67.5h4.5v1.3h-4.5zM40.75,71h3.5v1.3h-3.5z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M46.75,67.5h1.3v8h-1.3zM46.75,67.5h4.5v1.3h-4.5zM46.75,71h3.5v1.3h-3.5z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M52.75,67.5h1.3v8h-1.3zM52.75,74.2h4.5v1.3h-4.5z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M59.35,67.5h1.3v8h-1.3z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M62.75,67.5h1.3v8h-1.3zM65.95,67.5h1.3v8h-1.3zM62.75,67.5L64.05,67.5L67.25,75.5L65.95,75.5z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M68.75,67.5h1.3v8h-1.3zM68.75,67.5h4.5v1.3h-4.5zM68.75,71h3.5v1.3h-3.5zM68.75,74.2h4.5v1.3h-4.5z" />
+</vector>

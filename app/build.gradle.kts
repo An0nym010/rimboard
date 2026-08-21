@@ -152,6 +152,12 @@ tasks.withType<Test>().configureEach {
     // never re-runs and the ratchet is decoration. Found by making the bump
     // and watching nothing happen.
     inputs.file("build.gradle.kts").withPathSensitivity(PathSensitivity.RELATIVE)
+    // The flavour resource dirs, because LauncherIconTest reads the per-build
+    // launcher wordmarks out of them. Same reason as the line above: an icon
+    // edit changes no Kotlin, so without this the ratchet is up to date across
+    // exactly the change it exists to catch.
+    inputs.dir("src/offline/res").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir("src/online/res").withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
 dependencies {

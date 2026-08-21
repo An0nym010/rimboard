@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The keyboard symbol, shared by both flavours.
+
+    It lives on its own so there is exactly one copy of it: the two builds are
+    two apps with two launcher icons, and the only thing that differs is the
+    word underneath (ic_launcher_wordmark). Composed in
+    ic_launcher_foreground.xml.
+
+    Everything is inside a circle of radius 33 about (54, 54) — the adaptive
+    icon safe zone, the most a launcher's mask is guaranteed to show. The
+    furthest authored corner sits at 28.3, which leaves room for the wordmark
+    below without either being clipped.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#FFFFFF" android:pathData="M35,33h8v7.5h-8z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M45,33h8v7.5h-8z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M55,33h8v7.5h-8z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M65,33h8v7.5h-8z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M35,43h8v7.5h-8z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M45,43h8v7.5h-8z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M55,43h8v7.5h-8z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M65,43h8v7.5h-8z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M35,53h8v7.5h-8z" />
+    <path android:fillColor="#BFDBFE" android:pathData="M45,53h18v7.5h-18z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M65,53h8v7.5h-8z" />
+</vector>

@@ -19,6 +19,11 @@ decision:
   RimBoard's own code rather than by the system, and any key you do set is your
   own — there is no RimBoard server and no shared key.
 
+The two are separate apps and install side by side under the same name, so
+each launcher icon carries its build written under the keyboard symbol —
+`OFFLINE` or `ONLINE`. Settings → About → Version says the same thing
+(`2.8.0-offline`), which is the one to quote in a bug report.
+
 The split exists because `INTERNET` is a normal, install-time Android
 permission: once an APK declares it, it is granted at install and neither you
 nor the app can revoke it. An "offline mode" inside a build that holds the
