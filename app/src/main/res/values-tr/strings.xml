@@ -306,20 +306,20 @@
     <string name="pref_system_dict_summary">Ayarlar → Kişisel sözlük altına kaydedilen ve diğer uygulamaların da paylaştığı kelimeleri de kabul et. Yalnızca okunur, hiçbir şey eklenmez. Açılınca izin ister.</string>
 
     <string name="pref_dicts_title">Genişletilmiş sözlükler</string>
-    <string name="pref_dicts_summary">Bir dil için daha derin kelime listesini ekle</string>
-    <string name="dicts_intro">Her dil 200.000 kelimeyle gelir. Genişletilmiş liste, kaynak derlemde en az %1$d kez geçen her kelimeyi tutar — iki ila üç katı — ve asıl olarak bilerek yazdığın alışılmadık kelimelerin düzeltilip bozulmasını önler. İndirilenler bu cihazda kalır.</string>
-    <string name="dicts_intro_offline">Bu sürümde internet izni yok, bu yüzden indirme yapamaz. Dosyayı %2$s adresinden kendin indir, sonra İçe aktar ile seç. Her biri, kaynak derlemde en az %1$d kez geçen tüm kelimeleri içerir. RimBoard, kurmadan önce dosyayı uygulamaya gömülü bir sağlama toplamıyla doğrular.</string>
-    <string name="dicts_none">Bu sürümde genişletilmiş sözlük listelenmiyor.</string>
-    <string name="dicts_working">Çalışıyor…</string>
+    <string name="pref_dicts_summary">Bir dil için daha kapsamlı kelime listesi ekle</string>
+    <string name="dicts_intro">Her dil 200.000 kelimeyle geliyor. Genişletilmiş listede, kaynak derlemde en az %1$d kez geçen bütün kelimeler var — iki ila üç katı. Asıl faydası, bilerek yazdığın alışılmadık kelimelerin otomatik düzeltmeyle değiştirilmesini önlemesi. İndirilen dosyalar bu cihazda kalır.</string>
+    <string name="dicts_intro_offline">Bu sürümde internet izni yok, bu yüzden indirme yapamaz. Dosyayı %2$s adresinden kendin indir, sonra İçe aktar ile seç. Her dosyada, kaynak derlemde en az %1$d kez geçen bütün kelimeler bulunur. RimBoard, kurmadan önce dosyayı uygulamaya gömülü sağlama toplamıyla doğrular.</string>
+    <string name="dicts_none">Bu sürümde genişletilmiş sözlük yok.</string>
+    <string name="dicts_working">Devam ediyor…</string>
     <string name="dicts_installed">%1$s kelime kurulu</string>
     <string name="dicts_available">%1$s kelime · %2$s</string>
     <string name="dicts_download">İndir</string>
     <string name="dicts_import">İçe aktar</string>
     <string name="dicts_remove">Kaldır</string>
     <string name="dicts_ready">%1$s: %2$s kelime hazır</string>
-    <string name="dicts_wrong_file">Bu, bu sürümün beklediği %1$s sözlüğü değil</string>
+    <string name="dicts_wrong_file">Bu dosya, bu sürümün beklediği %1$s sözlüğü değil</string>
     <string name="dicts_corrupt">Bu dosya sözlük olarak okunamadı</string>
     <string name="dicts_no_space">Kaydedilemedi — boş alanı kontrol et</string>
-    <string name="dicts_failed">İndirme başarısız</string>
+    <string name="dicts_failed">İndirilemedi</string>
     <string name="dicts_net_reason">Sözlük (%1$s)</string>
 </resources>
