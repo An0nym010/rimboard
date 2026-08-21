@@ -94,6 +94,30 @@ PER_CONTEXT = 6
 # supports today (Russian, the largest, reaches 25,536) and exists so that a
 # future corpus cannot silently produce a five-megabyte asset.
 MAX_ROWS = 30000
+# Two-word contexts kept per language, on top of the one-word ones.
+#
+# The engine has always taken two preceding words and, until 2026-08-21, only
+# the user's own learned n-grams were ever asked about both: the shipped model
+# was looked up by the last word alone. These rows are what the second word
+# now reaches, keyed "first second" and merged in front of the one-word row
+# rather than replacing it.
+#
+# Six thousand is the knee of the curve, not a ceiling. Measured on held-out
+# sentences, first suggestion correct / one of three / one of six, English:
+#
+#     bigram only        16.3%   27.1%   35.1%
+#     +  6,000 trigram   19.6%   31.9%   40.5%     217 KB, fires on 48% of words
+#     + 12,000 trigram   20.3%   32.8%   41.5%     425 KB, fires on 55%
+#     + 25,000 trigram   21.1%   33.8%   42.5%     768 KB, fires on 62%
+#
+# The first six thousand buy five points for 217 KB; the next nineteen
+# thousand buy two more for 551 KB. Turkish gains about a third as much at
+# every cap -- agglutination puts the informative context inside the word
+# rather than in the two before it -- and gains nothing after the first six
+# thousand. Raise this if a language's strip feels thin; it is one number and
+# the asset is regenerated from it.
+TRI_ROWS = 6000
+
 # A pair seen fewer times than this is not evidence of anything.
 MIN_PAIR = 3
 
@@ -165,6 +189,8 @@ def build(lang):
 
     unigram = collections.Counter()
     bigram = collections.defaultdict(collections.Counter)
+    trigram = collections.defaultdict(collections.Counter)
+    tri_seen = collections.Counter()
     opener = collections.Counter()
     total_tokens = 0
     for s in sentences(path):
@@ -178,6 +204,9 @@ def build(lang):
             total_tokens += 1
         for a, b in zip(words, words[1:]):
             bigram[a][b] += 1
+        for a, b, c in zip(words, words[1:], words[2:]):
+            trigram[(a, b)][c] += 1
+            tri_seen[(a, b)] += 1
 
     def ordinary(w):
         """Not a corpus artifact, and a word the app already knows."""
@@ -199,6 +228,22 @@ def build(lang):
                 if n >= MIN_PAIR and ordinary(w)][:PER_CONTEXT]
         if keep:
             rows[prev] = keep
+    # Two-word contexts, commonest first, appended behind the one-word rows.
+    # Both halves of the context have to be ordinary words, for the same
+    # reason the one-word rows do: a corpus artifact in either position makes
+    # the row a fact about Tatoeba rather than about the language.
+    tri_kept = 0
+    for (a, b), nexts in sorted(trigram.items(), key=lambda kv: -tri_seen[kv[0]]):
+        if tri_kept >= TRI_ROWS:
+            break
+        if not (ordinary(a) and ordinary(b)):
+            continue
+        keep = [w for w, n in nexts.most_common(PER_CONTEXT * 4)
+                if n >= MIN_PAIR and ordinary(w)][:PER_CONTEXT]
+        if keep:
+            rows[a + " " + b] = keep
+            tri_kept += 1
+
     starts = [w for w, n in opener.most_common(PER_CONTEXT * 8)
               if n >= MIN_PAIR and ordinary(w)][:20]
 

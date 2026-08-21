@@ -140,6 +140,15 @@ class AssetsTest {
                 if (key.isBlank()) problems.add("$at: blank key")
                 if (key != key.lowercase()) problems.add("$at: key not lowercase: $key")
                 if (targets.isBlank()) problems.add("$at: no predictions for '$key'")
+                // One word or two, and nothing else. A two-word key is a
+                // trigram context and the engine looks it up as "first second";
+                // three words would be a row nothing can ever ask for, and a
+                // trailing space makes a key that looks identical to a
+                // one-word one and is not.
+                val parts = key.split(' ')
+                if (parts.size > 2 || parts.any { it.isEmpty() }) {
+                    problems.add("$at: a key is one word or two, not '$key'")
+                }
                 keys.add(key)
             }
             val dupes = keys.groupingBy { it }.eachCount().filterValues { it > 1 }.keys

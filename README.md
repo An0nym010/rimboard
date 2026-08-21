@@ -130,7 +130,9 @@ The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
   one-tap "↩ original" revert chip that also teaches the keyboard your word
 - Suggestion strip: verbatim | best match | alternative, with the word that
   will be auto-committed shown in bold/accent
-- Next-word predictions learned from your own typing (bigrams)
+- Next-word predictions from a bundled corpus model (282,000 one- and
+  two-word contexts across 22 languages) merged with what you have typed
+  yourself, which is weighed as trigrams
 - Double-space inserts ". ", hold-and-slide the spacebar to move the cursor
 - Long-press popups for accents, digits and symbols; key preview bubbles
 - Two symbol pages, a phone/number pad for numeric fields, 1,500+ emoji with

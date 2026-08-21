@@ -3,6 +3,7 @@ package com.rimboard.keyboard.engine
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -204,5 +205,58 @@ class PredictionTest {
         userData.blockWord("zeit")
 
         assertEquals(listOf("Ahnung"), e.predictions("", "keine", "de", de, 3))
+    }
+
+    // ---- two-word contexts ------------------------------------------------
+
+    /**
+     * A model with both shapes: "the" alone, and "in the" as a pair. The pair
+     * is keyed with a space, which is why [SuggestionEngine] can hold both in
+     * one map and why the asset format needed nothing added to carry them.
+     */
+    private val twoWord = mapOf(
+        "predictions/en.txt" to "the\ttime house end\nin the\tmorning end\n"
+    )
+
+    @Test
+    fun `a two-word context answers before the one-word one`() {
+        val out = engine(twoWord).predictions("in", "the", "en", en, 3)
+        assertEquals("morning", out.first())
+    }
+
+    @Test
+    fun `the one-word row fills in behind the two-word one, not under it`() {
+        // The whole design decision, pinned: "end" is listed by both rows and
+        // appears once; "time" and "house" are only in the one-word row and
+        // still arrive. Replacing the shorter list with the more specific one
+        // measurably lost depth in Turkish.
+        val out = engine(twoWord).predictions("in", "the", "en", en, 6)
+        assertEquals(listOf("morning", "end", "time", "house"), out)
+    }
+
+    @Test
+    fun `a two-word context nobody has a row for falls back to the last word`() {
+        val out = engine(twoWord).predictions("under", "the", "en", en, 3)
+        assertEquals(listOf("time", "house", "end"), out)
+    }
+
+    @Test
+    fun `the second word is not consulted when there is no first`() {
+        val out = engine(twoWord).predictions("", "the", "en", en, 3)
+        assertEquals(listOf("time", "house", "end"), out)
+    }
+
+    @Test
+    fun `a continuation is one object however many rows list it`() {
+        // The model is mostly duplicate copies of the commonest few thousand
+        // words -- English ships 62,537 continuations drawn from 4,870 distinct
+        // ones -- so the loader pools them. Worth half the model's heap, and
+        // invisible in every other assertion here, which is why identity is
+        // asserted rather than equality.
+        val e = engine(mapOf("predictions/en.txt" to "one\tshared\ntwo\tshared\n"))
+        val first = e.predictions("", "one", "en", en, 1).single()
+        val second = e.predictions("", "two", "en", en, 1).single()
+        assertEquals("shared", first)
+        assertSame("the loader stopped pooling continuations", first, second)
     }
 }

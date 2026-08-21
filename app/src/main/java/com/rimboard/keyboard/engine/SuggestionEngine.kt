@@ -1185,6 +1185,17 @@ class SuggestionEngine private constructor(
         predictionModels.getOrPut(lang) {
             try {
                 val m = HashMap<String, List<String>>()
+                // One String per distinct continuation, not one per row it
+                // appears in. These are the commonest words in the language
+                // and they repeat enormously -- English holds 62,537
+                // continuations drawn from 4,870 distinct words -- so without
+                // a pool the model is mostly duplicate copies of "the".
+                //
+                // Measured, holding one language's model: en 5.5 MB -> 2.8,
+                // tr 4.6 -> 2.6, ru 7.1 -> 4.0. The pool itself is garbage the
+                // moment this returns. Keys are not pooled because they are
+                // distinct by construction.
+                val pool = HashMap<String, String>()
                 val stream = assets.open("predictions/$lang.txt") ?: return@getOrPut emptyMap()
                 stream.bufferedReader().useLines { lines ->
                     lines.forEach { line ->
@@ -1193,6 +1204,7 @@ class SuggestionEngine private constructor(
                             val prev = line.substring(0, tab)
                             val nexts = line.substring(tab + 1).trim()
                                 .split(' ').filter { it.isNotEmpty() }
+                                .map { w -> pool.getOrPut(w) { w } }
                             if (prev.isNotEmpty() && nexts.isNotEmpty()) m[prev] = nexts
                         }
                     }
@@ -1259,7 +1271,7 @@ class SuggestionEngine private constructor(
                 surface.putIfAbsent(k, w)
             }
         }
-        modelFor(lang, mayLoad)[key].orEmpty().forEachIndexed { i, w ->
+        curated(modelFor(lang, mayLoad), key2, key).forEachIndexed { i, w ->
             // Fades with rank, so the curated model's own ordering survives the
             // merge. At the top it is worth a few repeated user sightings; by
             // the end of the list it only breaks ties.
@@ -1279,6 +1291,41 @@ class SuggestionEngine private constructor(
             .take(limit)
             .map { surface[it.key] ?: it.key }
             .toList()
+    }
+
+    /**
+     * The bundled model's answer for a two-word context: what follows both
+     * words, then what follows the last one, with nothing listed twice.
+     *
+     * The shipped rows used to be bigrams alone. [predictions] has always
+     * taken two preceding words, but only the *learned* model was ever asked
+     * about both -- the curated one was looked up by the last word, so the
+     * second word reached nothing that shipped with the app.
+     *
+     * **Behind, not instead of.** A trigram row is the more specific evidence
+     * and goes first, but it is built from a rarer context and so is often
+     * shorter and thinner than the bigram row it sits in front of. Replacing
+     * the bigram list with it measurably lost depth in Turkish -- hit rate at
+     * six fell as trigram rows were added, because a sparse three-word row was
+     * displacing a good two-word one. Merged, it rises instead. English does
+     * not care either way, which is exactly why one language is not enough to
+     * design this against.
+     *
+     * Measured on held-out sentences, first suggestion correct: en 16.3% ->
+     * 19.6%, tr 13.7% -> 15.0%.
+     */
+    private fun curated(
+        model: Map<String, List<String>>, key2: String, key: String
+    ): List<String> {
+        val bigram = model[key].orEmpty()
+        if (key2.isEmpty()) return bigram
+        val trigram = model["$key2 $key"] ?: return bigram
+        if (bigram.isEmpty()) return trigram
+        val out = ArrayList<String>(trigram.size + bigram.size)
+        out.addAll(trigram)
+        // Both lists are at most six long, so this stays a scan of twelve.
+        for (w in bigram) if (w !in out) out.add(w)
+        return out
     }
 
     private fun matchCase(typed: String, candidate: String, locale: Locale): String {
