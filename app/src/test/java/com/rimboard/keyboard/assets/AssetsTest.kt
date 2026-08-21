@@ -31,6 +31,37 @@ class AssetsTest {
 
     private fun lines(f: File) = f.readText().split("\n").filter { it.isNotEmpty() }
 
+    /**
+     * Every asset is LF, and the reason this is a test rather than a habit is
+     * that nothing else notices.
+     *
+     * `tools/fetch_dictionaries.py` wrote its output through Python's default
+     * text mode, so on Windows fourteen dictionaries were regenerated with
+     * CRLF. Nothing failed: the dictionary loader trims before parsing a
+     * count, the format checks below split on space, git normalised the commit
+     * so the diff looked clean -- and the APK, which packages the working copy
+     * rather than the commit, carried 200 KB of carriage returns per language.
+     * A file that differs from every other asset for no reason is worth
+     * failing a build over precisely because it will not fail anything else.
+     */
+    @Test
+    fun `no asset carries a carriage return`() {
+        val offenders = ArrayList<String>()
+        for (kind in listOf("dictionaries", "offensive", "predictions", "emoji")) {
+            val dir = File(assets(), kind)
+            for (f in dir.listFiles().orEmpty().sortedBy { it.name }) {
+                if (!f.isFile) continue
+                val n = f.readText().count { it == '\r' }
+                if (n > 0) offenders.add("$kind/${f.name}: $n")
+            }
+        }
+        assertTrue(
+            "these assets are CRLF; every tool that writes one must pass " +
+                "newline=\"\":\n" + offenders.joinToString("\n"),
+            offenders.isEmpty()
+        )
+    }
+
     @Test
     fun `every registered language has a dictionary`() {
         val dir = File(assets(), "dictionaries")

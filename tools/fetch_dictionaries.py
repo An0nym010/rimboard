@@ -10,6 +10,7 @@ Streams and stops early once N words are collected, so even the _full
 lists cost only a few MB of transfer each.
 """
 
+import io
 import re
 import sys
 import urllib.request
@@ -144,8 +145,16 @@ def fetch(lang: str, top: int) -> str:
             out = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
             if len(out) >= min(top, 20000) or (out and "50k" in url):
                 OUT_DIR.mkdir(parents=True, exist_ok=True)
-                (OUT_DIR / f"{lang}.txt").write_text(
-                    "\n".join(f"{w} {n}" for w, n in out) + "\n", encoding="utf-8")
+                # newline="" so this writes the same bytes on every
+                # platform. Without it Python translates on Windows and
+                # the file lands with CRLF, which the dictionary loader
+                # happens to tolerate -- it trims before parsing the
+                # count -- and which nothing else notices: a silent
+                # 200 KB per language, and a file that differs from
+                # every other asset in the tree for no reason.
+                with io.open(OUT_DIR / f"{lang}.txt", "w",
+                             encoding="utf-8", newline="") as fh:
+                    fh.write("\n".join(f"{w} {n}" for w, n in out) + "\n")
                 src = url.rsplit("/", 1)[-1]
                 return f"{lang}: {len(out):>7} words  <- {src}"
         except Exception as e:
