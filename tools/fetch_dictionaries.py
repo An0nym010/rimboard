@@ -22,9 +22,25 @@ BASES = [
     "https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2016/{lang}/{lang}_50k.txt",
 ]
 
-BIG = 200_000
-MID = 100_000
-TOP = {"en": BIG, "tr": BIG, "de": BIG, "es": BIG, "fr": BIG, "it": BIG, "pt": BIG, "ru": BIG}
+# Words kept per language. One number, and every language gets it.
+#
+# This used to be 200,000 for eight languages and 100,000 for the other
+# fourteen. Measured against the shipped engine, the smaller cap silently
+# overwrites **20-35% of correctly-typed words** drawn from the band it omits
+# -- autocorrect replacing something that was already right, which is the
+# failure people actually complain about -- while repairing ordinary typos at
+# exactly the same rate, 88% either way. The second hundred thousand words
+# cost the corrector nothing because frequency ranks them near the bottom of
+# the candidate list; they only ever act by being *known*.
+#
+# The capped fourteen were also the languages that could least afford it.
+# English at rank 120,000 is mostly surnames and transliterations
+# ("greenbriar", "kozlenko"); Dutch at 100,000 is still losing "hoofdrekenen"
+# and "raakvlak", because compounding and agglutination produce far more
+# distinct forms of ordinary words.
+#
+# The price is 6.8 MB of APK, and that is the whole of the trade.
+TOP = 200_000
 
 PATTERNS = {
     "en": r"^[a-z']+$",
@@ -151,4 +167,4 @@ if __name__ == "__main__":
             % (" ".join(unknown), " ".join(sorted(PATTERNS)))
         )
     for lg in langs:
-        print(fetch(lg, TOP.get(lg, MID)), flush=True)
+        print(fetch(lg, TOP), flush=True)

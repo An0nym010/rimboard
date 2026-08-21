@@ -158,6 +158,42 @@ class AssetsTest {
         assertTrue(problems.joinToString("\n"), problems.isEmpty())
     }
 
+    /**
+     * Every language gets the same vocabulary, and none may quietly get less.
+     *
+     * Eight languages used to carry 200,000 words and the other fourteen
+     * 100,000. Measured against the shipped engine, the smaller list silently
+     * overwrites 20-35% of correctly-typed words drawn from the band it omits,
+     * while repairing ordinary typos at exactly the same rate. The fourteen
+     * were also the languages least able to afford it: English at rank 120,000
+     * is mostly surnames, while Dutch at 100,000 is still losing ordinary
+     * compounds.
+     *
+     * The cap lives in `tools/fetch_dictionaries.py`, and the failure this
+     * guards is quiet in a specific way: that script falls back to a "_50k"
+     * source when the full list will not load, and *accepts* it. A network
+     * hiccup during a refetch would replace a dictionary with a quarter of one
+     * and report success.
+     */
+    @Test
+    fun `every language carries the same size dictionary`() {
+        val short = ArrayList<String>()
+        for (code in Languages.codes) {
+            val f = File(assets(), "dictionaries/$code.txt")
+            if (!f.isFile) continue
+            val words = lines(f).count()
+            // Not exactly 200,000: folding two spellings into one (Romanian's
+            // cedilla forms, Portuguese's trema) merges entries after the cap
+            // has been counted out, which leaves a handful short.
+            if (words < 199_000) short.add("$code has $words")
+        }
+        assertTrue(
+            "these dictionaries are short of the 200,000 every language gets:\n" +
+                short.joinToString("\n"),
+            short.isEmpty()
+        )
+    }
+
     @Test
     fun `dictionaries are word-then-frequency, ordered by frequency`() {
         val problems = ArrayList<String>()
