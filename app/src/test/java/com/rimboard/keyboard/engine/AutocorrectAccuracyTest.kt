@@ -290,8 +290,8 @@ class AutocorrectAccuracyTest {
      * predecessors, and taking a pair from every row would weight the score by
      * how predictable a word is rather than by how well it gets corrected.
      */
-    private fun contextPairs(lang: String, locale: Locale, count: Int): List<Pair<String, String>> =
-        File(assets(), "predictions/$lang.txt").useLines { lines ->
+    private fun contextPairs(lang: String, locale: Locale, count: Int): List<Pair<String, String>> {
+        val all = File(assets(), "predictions/$lang.txt").useLines { lines ->
             lines.mapNotNull { line ->
                 val tab = line.indexOf('\t')
                 if (tab <= 0) null
@@ -307,9 +307,27 @@ class AutocorrectAccuracyTest {
                         .map { prev to it.lowercase(locale) }
                 }
                 .distinctBy { it.second }
-                .take(count)
                 .toList()
         }
+        // Spread through the model, not taken off the top.
+        //
+        // The rows are written in frequency order -- the hand-written ones
+        // first, then the corpus rows by how common the context word is -- so
+        // `take(count)` sampled the head and nothing else. Every row past
+        // roughly the first thousand was invisible here, and so was any change
+        // that only added rows: six thousand were added and all eight numbers
+        // this arm prints came back identical, which is not a result, it is an
+        // instrument that cannot see the thing being changed. Third time that
+        // shape has been caught in this file.
+        //
+        // A uniform stride over-represents rare contexts relative to real
+        // prose, where the preceding word is usually a common one. That is the
+        // right trade for what this arm is for: it asks whether context helps
+        // *where the model has an opinion*, and the head-only sample answered
+        // that question for one twentieth of the model.
+        val step = maxOf(1, all.size / count)
+        return all.filterIndexed { i, _ -> i % step == 0 }.take(count)
+    }
 
     /**
      * Two slips rather than five, and more words instead.
@@ -424,36 +442,68 @@ class AutocorrectAccuracyTest {
         val lines = results.joinToString("\n") { (lang, s) -> contextReport(lang, s) }
         println(lines)
 
-        // Measured 2026-08-20, the day the arms were added, at the shipped
+        // Measured 2026-08-21 against the shipped model, at the shipped
         // CONTEXT_CORRECTION_WEIGHT of 2.0:
         //
-        //   en (n=218): blind 94%, informed 95%, runner-up 83%
-        //               true context rescued 1, broke 0; runner-up pulled 33 off, 7 on
-        //   tr (n=186): blind 85%, informed 89%, runner-up 79%
-        //               true context rescued 7, broke 1; runner-up pulled 30 off, 18 on
+        //   en (n=250): blind 86%, informed 88%, runner-up 71%
+        //               true context rescued 6, broke 1; runner-up pulled 57 off, 18 on
+        //   tr (n=243): blind 80%, informed 83%, runner-up 72%
+        //               true context rescued 7, broke 0; runner-up pulled 43 off, 25 on
         //
-        // The honest summary of that, which is smaller than the size of the
-        // data might suggest: **the n-grams measurably help Turkish and barely
-        // touch English.** English is already right 94% of the time without
-        // them, and the words an English function word predicts are common
-        // ones the frequency term ranks first anyway, so context arrives with
-        // nothing to add. Turkish starts nine points lower and gains four.
-        // Fifty-one times the data did not buy fifty-one times anything; it
-        // bought one language a few points. That is still worth its 0.9 MB,
-        // and it is not what a reader would assume from the row count.
+        // The honest summary, which is smaller than the size of the data might
+        // suggest: **the n-grams pay for themselves in both languages and are
+        // not a large effect in either.** Both start high without them, and
+        // the words a common function word predicts are common ones the
+        // frequency term ranks first anyway, so much of the time context
+        // arrives with nothing to add. Nineteen thousand rows did not buy
+        // nineteen thousand times anything; they bought a few points and a
+        // ledger that stays positive. That is what the 4.4 MB is for, and it
+        // is not what a reader would assume from the row count.
         //
-        // Sweeping the weight, which this arm made possible for the first
-        // time (en/tr, rescued-broke, then how much a runner-up context pulls
-        // off the answer):
+        // **These numbers are not comparable with the ones this block held
+        // before 2026-08-21**, and the reason is worth more than the numbers.
+        // The sample used to be taken off the top of the model file, so the
+        // arm was measuring the head and calling it the model; see
+        // [contextPairs]. The figures it produced (en 94/95, tr 85/89) were
+        // the easy third of the question. On a sample that spans the model:
+        //
+        //   at the 6,000-row model the shipped weight of 2.0 put Turkish at
+        //   68 answers pulled off 238 -- 28.6%, over the 25% ceiling below.
+        //
+        // It passes on the model that actually ships, at 17.7%. But the
+        // margin at 2.0 was thinner than anyone had measured, and the reason
+        // it had never shown up is that the instrument was looking at the part
+        // of the model where the channel model is most confident anyway.
+        //
+        // Sweeping the weight on the fixed sample, at the shipped model
+        // (en/tr rescued-broke, then how much a runner-up context pulls off):
+        //
+        //   1.2   +3 / +4    13% /  9%    the cheapest place the ledger holds
+        //   1.5   +3 / +6    16% / 12%
+        //   2.0   +5 / +7    23% / 18%    shipped
+        //
+        // Held at 2.0: it buys the most rescues and stays inside the ceiling.
+        // Note what it does *not* do any more -- claim a margin measured on
+        // the head of the file. A future change that adds rows changes this
+        // sample, so these figures move when the data does, and a sweep is
+        // worth repeating after any data change rather than trusted from here.
+        //
+        // Earlier sweep, on the head-only sample, kept because it is what the
+        // 25% ceiling was originally set against:
         //
         //   1.0   +0 / +5    12% / 12%    context does nothing at all in en
-        //   2.0   +1 / +6    15% / 16%    shipped
+        //   2.0   +1 / +6    15% / 16%
         //   3.0   +3 / +5    24% / 27%    tr *net worse*, damage half again
         //   6.0   +6 / +9    65% / 56%    context has overruled the geometry
         //
-        // Held at 2.0. Below it the signal is inert in English; above it
-        // robustness falls away much faster than accuracy climbs, and 3.0
-        // already makes Turkish net worse while costing 60% more damage.
+        // On the head-only sample the signal read as inert in English below
+        // 2.0, which the fixed sample says was an artifact of where it was
+        // looking: English keeps three rescues at 1.2. What survives from that
+        // reading is the shape above 2.0 -- robustness falls away much faster
+        // than accuracy climbs, 3.0 already makes Turkish net worse while
+        // costing 60% more damage, and 6.0 has context overruling the geometry
+        // outright.
+        //
         // The informed column is an upper bound, so tuning to maximise it is
         // exactly the overfitting this file warns about elsewhere: real prose
         // supplies a wrong or absent context far more often than a corpus
@@ -463,9 +513,11 @@ class AutocorrectAccuracyTest {
         val rescued = total.sumOf { it.rescued }
         val broken = total.sumOf { it.broken }
 
-        // Summed across languages on purpose. English contributes a single
-        // rescue, so a per-language form of this assertion would be one word's
-        // behaviour away from failing for no reason worth investigating.
+        // Summed across languages on purpose. Either language can contribute
+        // as few as three or four rescues -- English contributed exactly one
+        // when this arm was written -- so a per-language form of this
+        // assertion would be one word's behaviour away from failing for no
+        // reason worth investigating.
         assertTrue(
             "the n-grams stopped paying for themselves: $rescued rescued, " +
                 "$broken broken.\n" + lines,

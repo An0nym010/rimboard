@@ -67,9 +67,33 @@ ISO3 = {
 # How far a token may be over-represented in the corpus before it is treated as
 # an artifact of that corpus rather than a fact about the language.
 OUTLIER = 8.0
-# Continuations kept per context word, and context words kept per language.
+# Continuations kept per context word.
+#
+# Six, and measured rather than guessed. Raising it to 12 is nearly free in
+# bytes and lifts how often the model holds the word actually typed next, on
+# held-out sentences, by a lot: en 33% -> 41%, tr 22% -> 27%. It was still not
+# taken, because nothing consumes ranks 7-12 usefully. The prediction row shows
+# three words, so the first six already cover it; the only other consumer is
+# correction re-ranking, and giving that the deeper list made it worse in the
+# accuracy benchmark (Turkish gained four points from context at six
+# continuations and one at twelve). More data that only reaches a consumer it
+# harms is not an improvement.
 PER_CONTEXT = 6
-MAX_ROWS = 6000
+
+# A runaway guard, not a tuning knob.
+#
+# This was 6000 and it bound: nine of the twenty-two languages were truncated
+# by it, discarding roughly two thirds of what their corpora supported. On
+# held-out text those rows are worth 2.4 points of context coverage in English
+# and 4.8 in Turkish -- the share of running text where the preceding word is
+# one the model has an opinion about at all. The thirteen smaller languages
+# were never near it and did not change by a byte when it was lifted.
+#
+# What actually limits a language now is MIN_PAIR: a continuation seen twice is
+# not kept, whatever the cap says. 30000 is above every language the corpus
+# supports today (Russian, the largest, reaches 25,536) and exists so that a
+# future corpus cannot silently produce a five-megabyte asset.
+MAX_ROWS = 30000
 # A pair seen fewer times than this is not evidence of anything.
 MIN_PAIR = 3
 
