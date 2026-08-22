@@ -111,7 +111,21 @@ object DictionaryStore {
         }
     }
 
-    fun open(c: Context, path: String): InputStream? = open(dir(c), path)
+    /**
+     * The path check comes first, and that is the point of writing it out
+     * rather than delegating.
+     *
+     * This is the engine's whole asset seam: every prediction model, offensive
+     * list and emoji table opens through here too, and all of them answer no
+     * at the first line. Resolving the directory before asking costs a
+     * device-protected context and [UserData.dataDir]'s three-file migration
+     * check on every one of them, for a question whose answer was already
+     * known from the string.
+     */
+    fun open(c: Context, path: String): InputStream? {
+        if (!path.startsWith("dictionaries/")) return null
+        return open(dir(c), path)
+    }
 
     /** Why an install did not happen, for a message the user can act on. */
     enum class Refusal { NOT_OFFERED, WRONG_FILE, CORRUPT, NO_SPACE }

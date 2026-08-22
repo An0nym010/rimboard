@@ -31,7 +31,8 @@ permission is a promise the app makes about itself. Leaving the permission out
 is a fact about the APK that you can check without trusting anyone — see
 [Proving it](#proving-it).
 
-- Kotlin, no heavyweight dependencies, single small APK
+- Kotlin, no heavyweight dependencies, one APK with everything in it —
+  29 MB, nearly all of it dictionaries and language models
 - 22 languages built in — English, Turkish, German, Spanish, French, Italian,
   Portuguese, Russian, Dutch, Polish, Swedish, Indonesian, Romanian, Czech,
   Danish, Norwegian, Finnish, Hungarian, Ukrainian, Greek, Croatian, Slovak —
@@ -644,7 +645,7 @@ git add *.txt.gz && git commit -m "Extended dictionaries"
 git push -u origin dictionaries
 ```
 
-An orphan branch keeps 25 MB of data out of the main history, and force-pushing
+An orphan branch keeps 23 MB of data out of the main history, and force-pushing
 it on a regeneration keeps one copy rather than a pile. **Release assets would
 be the tidier home and are not usable here**: a release download answers with a
 redirect to `objects.githubusercontent.com`, and the online build's transport

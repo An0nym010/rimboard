@@ -46,7 +46,16 @@ class DictionariesActivity : LocalisedActivity() {
     private lateinit var adapterImpl: Adapter
     private var rows: List<ExtendedDicts.Entry> = emptyList()
 
-    /** Which language an import is running for; the picker cannot carry it. */
+    /**
+     * Which language an import is running for; the picker cannot carry it.
+     *
+     * Saved and restored, because the system can destroy this activity while
+     * the document picker is in front of it -- a rotation is enough. The
+     * result still arrives, on the new instance, where a plain field would be
+     * null: the user picks a file and nothing whatsoever happens, with no
+     * message to explain it. The only stashed-target-then-launch in the app,
+     * and the only place that needs this.
+     */
     private var importing: String? = null
 
     /** Languages with a fetch in flight, so a row cannot be started twice. */
@@ -72,8 +81,14 @@ class DictionariesActivity : LocalisedActivity() {
             }
         }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(STATE_IMPORTING, importing)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        importing = savedInstanceState?.getString(STATE_IMPORTING)
         supportActionBar?.setTitle(R.string.pref_dicts_title)
         catalogue = ExtendedDicts.parse(
             try {
@@ -84,10 +99,17 @@ class DictionariesActivity : LocalisedActivity() {
         )
         // The languages this user types come first: the screen is about the two
         // or three they use, and the other nineteen are noise until they are not.
+        //
+        // Filtered to languages this build actually has, because
+        // Languages.byCode falls back to English for anything else: a manifest
+        // naming a language the app cannot type would otherwise draw a row
+        // labelled "English" that installs a file nothing will ever read.
+        // AssetsTest pins the shipped manifest; this is what happens if a
+        // future one drifts.
         val mine = Prefs.languages(this).toSet()
-        rows = catalogue.entries.sortedWith(
-            compareBy({ it.lang !in mine }, { Languages.byCode(it.lang).nativeName })
-        )
+        rows = catalogue.entries
+            .filter { it.lang in Languages.codes }
+            .sortedWith(compareBy({ it.lang !in mine }, { Languages.byCode(it.lang).nativeName }))
 
         val d = resources.displayMetrics.density
         fun dp(v: Int) = (v * d).toInt()
@@ -200,6 +222,10 @@ class DictionariesActivity : LocalisedActivity() {
     private fun refresh() {
         installedNow = DictionaryStore.installed(DictionaryStore.dir(this))
         if (::adapterImpl.isInitialized) adapterImpl.notifyDataSetChanged()
+    }
+
+    private companion object {
+        const val STATE_IMPORTING = "importing"
     }
 
     private inner class Adapter : BaseAdapter() {

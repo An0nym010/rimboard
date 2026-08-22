@@ -103,6 +103,26 @@ class ExtendedDictTest {
         }
     }
 
+    @Test
+    fun `the hash is a real SHA-256, checked against a known answer`() {
+        // Everything else here asserts that a file matching its entry is
+        // accepted and one that does not is refused -- both of which hold if
+        // the hash function is consistently wrong. A byte sign-extended, or a
+        // nibble printed without its leading zero, would reject every
+        // legitimate download and the failure would read as a bad file.
+        assertEquals(
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            ExtendedDicts.sha256(ByteArray(0))
+        )
+        assertEquals(
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+            ExtendedDicts.sha256("abc".toByteArray())
+        )
+        // A byte over 0x7F is where sign extension would show, and 0x00 is
+        // where a dropped leading zero would.
+        assertEquals(64, ExtendedDicts.sha256(byteArrayOf(0, -1, -128, 127)).length)
+    }
+
     // ---- installing -------------------------------------------------------
 
     @Test
