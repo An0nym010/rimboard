@@ -572,8 +572,28 @@ class SuggestionEngine private constructor(
         }
     }
 
-    fun knownIn(wordLower: String, lang: String, locale: Locale): Boolean =
-        dictionary(lang, locale).contains(wordLower)
+    /**
+     * Whether [lang] accounts for [wordLower] — in the list, or built by that
+     * language's own rules.
+     *
+     * This is what decides, one committed word at a time, which of two enabled
+     * languages somebody is actually typing. Asking only whether the list
+     * contains the word made every Turkish suffixed form and every German
+     * compound evidence for *neither* language: about 7% of Turkish tokens are
+     * absent from a 200,000-word list, so a Turkish typist's own words did not
+     * count as Turkish, and the streak that switches the boost back off never
+     * advanced.
+     *
+     * Deliberately not [acceptedWord], which is a wider question: it says yes
+     * to contact names and hand-added words, and those are evidence for no
+     * language in particular. The two rules used here are language-specific by
+     * construction — Turkish morphology, German compounding — so English and
+     * everything else are unaffected.
+     */
+    fun knownIn(wordLower: String, lang: String, locale: Locale): Boolean {
+        val dict = dictionary(lang, locale)
+        return dict.contains(wordLower) || wellFormedWord(wordLower, lang, dict)
+    }
 
     /**
      * Ranked corrections the keyboard would offer for [typed] (best first, case

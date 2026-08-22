@@ -207,6 +207,22 @@ class AcceptedWordTest {
     }
 
     @Test
+    fun `a language accounts for the words it builds`() {
+        // knownIn decides, one committed word at a time, which of two enabled
+        // languages somebody is typing. Asking only whether the list contains
+        // the word made a Turkish typist's own suffixed forms — about 7% of
+        // Turkish tokens — evidence for neither language, so the streak that
+        // switches the boost back off never advanced.
+        val e = realEngine()
+        assertTrue("hekimlerin is Turkish", e.knownIn("hekimlerin", "tr", java.util.Locale.forLanguageTag("tr")))
+        assertTrue("nervenzelle is German", e.knownIn("nervenzelle", "de", java.util.Locale.GERMAN))
+        // And the other side: the rules are language-specific, so neither word
+        // becomes evidence for English.
+        assertFalse(e.knownIn("hekimlerin", "en", java.util.Locale.ENGLISH))
+        assertFalse(e.knownIn("nervenzelle", "en", java.util.Locale.ENGLISH))
+    }
+
+    @Test
     fun `a German compound is not corrected away either`() {
         // The third caller of the same rule. Accepting a word and then
         // overwriting it on the space bar is the worst of the three
