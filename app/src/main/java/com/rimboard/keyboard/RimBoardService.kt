@@ -27,7 +27,9 @@ import com.rimboard.keyboard.engine.UserData
 import com.rimboard.keyboard.model.Codes
 import com.rimboard.keyboard.model.Key
 import com.rimboard.keyboard.model.KeyboardLayout
+import com.rimboard.keyboard.model.GlidePath
 import com.rimboard.keyboard.model.GraphemeDelete
+import com.rimboard.keyboard.model.KeyProximity
 import android.util.Size
 import android.view.inputmethod.InlineSuggestionsRequest
 import android.view.inputmethod.InlineSuggestionsResponse
@@ -855,7 +857,12 @@ class RimBoardService : InputMethodService(),
         }
         // Signature covers everything that changes what is written on the keys,
         // so refocusing a field rebuilds the layout without fading it.
-        kv.setLayout(lay, "$kind/${currentLangCode()}/$numberRow/$showGlobe")
+        // The letter grid goes with the layout, so a swipe can never be read
+        // against the keys of the language before last.
+        kv.setLayout(
+            lay, "$kind/${currentLangCode()}/$numberRow/$showGlobe",
+            KeyProximity.forLang(currentLangCode())
+        )
         kv.spaceLabel = spaceLabelText()
         kv.enterLabel = enterLabelText()
         kv.incognito = isIncognito()
@@ -1075,12 +1082,19 @@ class RimBoardService : InputMethodService(),
         atSentenceStart = ctx.atSentenceStart
     }
 
-    override fun onGlideComplete(sequence: String) {
+    override fun onGlideComplete(points: FloatArray, keys: String) {
         if (!Prefs.glide(this) || !isTextClass) return
         val loc = locale()
-        val cands = engine.glideFor(
-            sequence, currentLangCode(), loc,
-            personalized = !isIncognito() && Prefs.learnWords(this)
+        val lang = currentLangCode()
+        val path = GlidePath.of(points, KeyProximity.forLang(lang))
+        // The context the swipe lands in, which is the same evidence a tapped
+        // word is ranked with. Read before anything is committed, because
+        // committing is what makes it stale.
+        val cands = if (path == null) emptyList() else engine.glideFor(
+            path, lang, loc,
+            personalized = !isIncognito() && Prefs.learnWords(this),
+            prevWord2 = prevWord2,
+            prevWord = prevWordForBigram
         )
         if (cands.isEmpty()) {
             // Tiny flick that matched nothing: fall back to the starting key.
@@ -1091,7 +1105,7 @@ class RimBoardService : InputMethodService(),
             // caller cannot produce one (KeyboardView.finishGlide requires two
             // characters before it calls this), so it is the interface that is
             // being made safe rather than a live path.
-            if (sequence.length <= 2) typeText(sequence.take(1))
+            if (keys.length <= 2) typeText(keys.take(1))
             return
         }
         val kv = keyboardView

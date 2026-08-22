@@ -1,5 +1,6 @@
 package com.rimboard.keyboard.engine
 
+import com.rimboard.keyboard.model.GlidePath
 import com.rimboard.keyboard.model.KeyProximity
 import java.io.InputStream
 import java.util.Locale
@@ -25,6 +26,52 @@ class Dictionary(
 ) {
 
     companion object {
+        /**
+         * How hard the shape of a swipe argues against how common a word is,
+         * in log-frequency units per key width of average miss.
+         *
+         * The same trade [correctionsScored] makes for tapping, where the
+         * constant is 3.5 per unit of edit cost.
+         *
+         * **Swept in `GlideAccuracyTest`, top-1 over the four hands:**
+         *
+         *     w=      3    4    5    6    7    9   12
+         *     en dlb  92   97   98   99  100  100  100
+         *     en nat  75   84   88   88   88   89   89
+         *     en slp  63   67   66   70   69   66   63
+         *     en hur  66   73   74   75   73   72   68
+         *     tr dlb  95   98   99  100  100  100  100
+         *     tr nat  88   91   93   92   93   93   91
+         *     tr slp  82   79   79   78   77   73   65
+         *     tr hur  82   83   83   82   78   73   68
+         *     mean    80   84   85   86   85   83   81
+         *
+         * Six is the middle of a plateau running from four to seven, and it is
+         * both the best mean and the best *worst* arm — which is the figure
+         * worth optimising, since a decoder that only works for a careful
+         * swipe is what this replaced. The two ends of the sweep say what the
+         * constant does: too low and a common word wins on frequency whatever
+         * the finger drew, too high and a rare word wins on a hair of fit.
+         *
+         * The plateau is broad, so this is not a number to agonise over. What
+         * it is not is arbitrary: the fits it weighs run from about 0.10 key
+         * widths for a careful swipe to about 0.8 for a hurried one, so six
+         * makes the whole usable range of shape worth roughly four log-units
+         * of frequency — enough to overturn a fifty-fold difference in how
+         * common two words are, and not enough to overturn a thousand-fold one.
+         */
+        const val GLIDE_SHAPE_WEIGHT = 6.0
+
+        /**
+         * How many surviving words get a shape computed.
+         *
+         * The bit-mask filter in front of this is a recall filter, so on a
+         * short swipe across a crowded row it can pass thousands. This is the
+         * budget that keeps a swipe's cost flat instead of scaling with how
+         * unlucky its geometry was; the words outside it are the rarest ones.
+         */
+        private const val MAX_GLIDE_SCORED = 1500
+
         /** Marker for the word-initial position in the character model. */
         const val WORD_START = ' '
         private const val LN_UNSEEN = -6.0
@@ -1033,58 +1080,92 @@ class Dictionary(
     }
 
     /**
-     * Candidate words for a glide path: same first letter, last letter matching
-     * the path's last (or second-to-last, to forgive overshoot), and the word's
-     * letters (doubles collapsed) forming a subsequence of the swiped keys.
-     * Scored by frequency, sharply discounted when the word length doesn't fit
-     * the path length. A relaxed second pass runs if the strict one is empty.
+     * Candidate words for a swiped path, best fit first.
+     *
+     * ## The model
+     *
+     * A word is a claim about where the finger meant to be at each moment. Score
+     * it by making that claim explicit: cut the path into as many consecutive
+     * runs as the word has distinct letters, in order, and charge every point
+     * its distance from the letter whose run it fell in. The cheapest such
+     * cutting is the word's cost, and a dynamic program finds it in one pass.
+     *
+     * That single number answers both halves of the question at once, which is
+     * why it replaced the two rules that used to be here.
+     *
+     *  - **Are the word's letters on the path?** A letter whose key the finger
+     *    never approached has no cheap run available anywhere, so every cutting
+     *    that includes it is expensive.
+     *  - **Is the whole path accounted for?** Every point is charged to some
+     *    letter. "hell" cannot quietly ignore the tail of a swipe that carried
+     *    on to `o`: those points fall in `l`'s run and are charged the distance
+     *    from `l` to where the finger actually was. The rule this replaced --
+     *    the word's letters must be a subsequence of the keys crossed -- could
+     *    only ask the first question, and answered it with a yes or a no.
+     *
+     * Doubled letters collapse to one run, because a finger cannot stop twice in
+     * the same place. "hello" and "helo" are therefore the same shape and are
+     * separated by frequency alone, which is correct: the path genuinely does
+     * not distinguish them.
+     *
+     * ## Why it is affordable
+     *
+     * The program is O(letters x points) per word, which is far too much to run
+     * over a whole dictionary. It does not have to be: [GlidePath.nearMask]
+     * turns "could this word have been swiped here at all" into a few bit
+     * operations, and only what survives that is scored properly. The scan
+     * itself is bounded to words that start and end where the finger did.
      */
-    fun glideCandidates(seqLower: String, limit: Int): List<Pair<String, Double>> {
-        if (seqLower.length < 2 || words.isEmpty()) return emptyList()
-        val strict = glidePass(seqLower, limit, 4.5)
-        return if (strict.isNotEmpty()) strict else glidePass(seqLower, limit, 6.0)
-    }
+    fun glideScored(path: GlidePath, limit: Int): List<Pair<String, Double>> {
+        if (words.isEmpty()) return emptyList()
 
-    private fun glidePass(seq: String, limit: Int, floorDiv: Double): List<Pair<String, Double>> {
-        val firstStr = seq.first().toString()
-        val firstCh = seq.first()
-        val last = seq.last()
-        val nearLast = if (seq.length >= 3) seq[seq.length - 2] else last
-        val floor = maxOf(2, ceil(seq.length / floorDiv).toInt())
-        val ideal = seq.length / 2.6
-        var lo = 0
-        var hi = words.size
-        while (lo < hi) {
-            val mid = (lo + hi) ushr 1
-            if (words[mid] < firstStr) lo = mid + 1 else hi = mid
-        }
-        val out = ArrayList<Pair<String, Double>>()
-        var i = lo
-        while (i < words.size && words[i][0] == firstCh) {
-            val w = words[i]
-            val wl = w[w.length - 1]
-            if (w.length >= 2 && (wl == last || wl == nearLast)) {
-                val c = collapse(w)
-                if (c.length in floor..seq.length && isSubsequence(c, seq)) {
-                    out.add(w to freqs[i] * Math.pow(0.2, abs(c.length - ideal)))
-                }
+        val endKeys = path.endKeys
+        if (endKeys.isEmpty()) return emptyList()
+
+        val survivors = ArrayList<Int>(256)
+        for (firstCh in path.startKeys) {
+            var i = lowerBound(firstCh)
+            while (i < words.size && words[i][0] == firstCh) {
+                val w = words[i]
+                if (w.length >= 2 && endKeys.contains(w[w.length - 1])) survivors.add(i)
+                i++
             }
-            i++
+        }
+        if (survivors.isEmpty()) return emptyList()
+
+        // Starting and ending where the finger did leaves about 1,700 words of
+        // a 300,000-word list standing, which is scored whole. This cap is for
+        // the swipe that is unluckier than that -- a short one between two
+        // crowded rows -- and keeps the cost of reading any swipe bounded.
+        // Frequency is the only ordering available before a shape has been
+        // computed, so it is the commonest words that get looked at; a word
+        // rare enough to fall outside this was not going to beat a
+        // shape-matched common one anyway.
+        if (survivors.size > MAX_GLIDE_SCORED) {
+            survivors.sortByDescending { freqs[it] }
+            survivors.subList(MAX_GLIDE_SCORED, survivors.size).clear()
+        }
+
+        val out = ArrayList<Pair<String, Double>>(survivors.size)
+        for (idx in survivors) {
+            val fit = path.costOf(words[idx])
+            if (fit.isInfinite()) continue
+            out.add(words[idx] to ln(freqs[idx] + 1.0) - GLIDE_SHAPE_WEIGHT * fit)
         }
         out.sortByDescending { it.second }
         return if (out.size > limit) ArrayList(out.subList(0, limit)) else out
     }
 
-    private fun collapse(w: String): String {
-        val sb = StringBuilder(w.length)
-        for (ch in w) if (sb.isEmpty() || sb[sb.length - 1] != ch) sb.append(ch)
-        return sb.toString()
-    }
-
-    private fun isSubsequence(needle: String, hay: String): Boolean {
-        var i = 0
-        for (ch in hay) if (i < needle.length && needle[i] == ch) i++
-        return i == needle.length
+    /** First index whose word starts with [ch], by binary search. */
+    private fun lowerBound(ch: Char): Int {
+        val key = ch.toString()
+        var lo = 0
+        var hi = words.size
+        while (lo < hi) {
+            val mid = (lo + hi) ushr 1
+            if (words[mid] < key) lo = mid + 1 else hi = mid
+        }
+        return lo
     }
 
 }

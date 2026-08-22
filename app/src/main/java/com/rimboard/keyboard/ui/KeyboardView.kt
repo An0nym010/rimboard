@@ -26,6 +26,7 @@ import com.rimboard.keyboard.R
 import com.rimboard.keyboard.model.Codes
 import com.rimboard.keyboard.model.Key
 import com.rimboard.keyboard.model.KeyType
+import com.rimboard.keyboard.model.KeyProximity
 import com.rimboard.keyboard.model.KeyboardLayout
 import com.rimboard.keyboard.model.LayoutKind
 import com.rimboard.keyboard.theme.KeyboardTheme
@@ -53,7 +54,21 @@ class KeyboardView(context: Context) : View(context) {
         fun onLanguageSwipe(direction: Int)
         fun onHideKeyboard()
         fun onSpaceLongPress()
-        fun onGlideComplete(sequence: String)
+        /**
+         * A finished swipe.
+         *
+         * [points] is the path the finger drew, interleaved x,y, already in the
+         * key-width/row grid [com.rimboard.keyboard.model.KeyProximity] places
+         * letters on -- the view owns that conversion because only it knows how
+         * many pixels a key is wide. It is empty when the view has not been
+         * given a grid to convert against.
+         *
+         * [keys] is the letters the finger crossed, and is *not* a second
+         * decoding of the swipe: it is what to type when the path decoded to
+         * nothing at all, which for a two-key flick means the key it started
+         * on.
+         */
+        fun onGlideComplete(points: FloatArray, keys: String)
         fun onOneHandedChanged(mode: Int)
         fun onBackspaceWord()
         fun onBackspaceWordRestore()
@@ -90,7 +105,8 @@ class KeyboardView(context: Context) : View(context) {
      * flickering the labels for a layout that was identical. A plane or
      * language switch changes the signature; refocusing a field does not.
      */
-    fun setLayout(lay: KeyboardLayout, signature: String) {
+    fun setLayout(lay: KeyboardLayout, signature: String, grid: KeyProximity?) {
+        keyGrid = grid
         if (layoutSignature != null && signature != layoutSignature) {
             layoutFadeAt = SystemClock.uptimeMillis()
         }
@@ -125,6 +141,19 @@ class KeyboardView(context: Context) : View(context) {
     var previewEnabled: Boolean = true
     var glideEnabled: Boolean = true
 
+    /**
+     * Where the engine believes this layout's letters sit, used to express a
+     * swiped path in the engine's own units.
+     *
+     * Injected rather than derived, for the same reason [tapArbiter] is: the
+     * view draws keys and does not know which language it is drawing them for.
+     * It arrives through [setLayout] rather than as a setter of its own, so it
+     * cannot be left describing the language before last -- a grid out of step
+     * with the keys on screen would place a swipe on the wrong letters and be
+     * confidently wrong rather than visibly broken.
+     */
+    private var keyGrid: KeyProximity? = null
+
     /** Swipe left from backspace to delete whole words. */
     var glideDeleteEnabled: Boolean = true
     var hapticFeedback: Boolean = true
@@ -142,6 +171,16 @@ class KeyboardView(context: Context) : View(context) {
     private var spaceFlashAt = 0L
 
     private companion object {
+        /**
+         * Points a swipe is kept at before it is thinned, times two for x and
+         * y.
+         *
+         * Generous: 256 points along a path is finer than any hand draws, and
+         * the thinning is lossy, so this bounds memory rather than shaping the
+         * data.
+         */
+        private const val TRAIL_CAP = 512
+
         /** Full-strength hold before the flashed name starts to fade. */
         const val FLASH_HOLD_MS = 650L
         const val FLASH_FADE_MS = 350f
@@ -1068,10 +1107,14 @@ class KeyboardView(context: Context) : View(context) {
         if (ps.glide) {
             ps.trail.add(x)
             ps.trail.add(y)
-            while (ps.trail.size > 240) {
-                ps.trail.removeAt(0)
-                ps.trail.removeAt(0)
-            }
+            // Thin the path when it gets long, rather than dropping the front
+            // of it. Both readers need the whole gesture: the trail is drawn
+            // from end to end, and the decoder cannot recognise a word whose
+            // first letters have been discarded -- which is what the old cap
+            // did, silently, to exactly the long swipes that need decoding
+            // most. Halving keeps the shape and costs a rewrite once per
+            // doubling.
+            if (ps.trail.size > TRAIL_CAP) decimate(ps.trail)
             val kb = keyAt(x, y)
             if (kb != null && isGlideKey(kb.key)) {
                 val ch = kb.key.label[0]
@@ -1134,13 +1177,91 @@ class KeyboardView(context: Context) : View(context) {
         return if (mode == 2) x < width - contentW else x > contentW
     }
 
+    /**
+     * Every other point, in place, halving the list.
+     *
+     * The endpoints matter more than the middle -- they are where the word
+     * starts and stops -- so the last point is carried across whatever the
+     * parity works out to.
+     */
+    private fun decimate(trail: ArrayList<Float>) {
+        val n = trail.size / 2
+        var out = 0
+        var i = 0
+        while (i < n) {
+            trail[out * 2] = trail[i * 2]
+            trail[out * 2 + 1] = trail[i * 2 + 1]
+            out++
+            i += 2
+        }
+        if ((n - 1) % 2 != 0) {
+            trail[out * 2] = trail[(n - 1) * 2]
+            trail[out * 2 + 1] = trail[(n - 1) * 2 + 1]
+            out++
+        }
+        while (trail.size > out * 2) trail.removeAt(trail.size - 1)
+    }
+
+    /**
+     * A swiped trail of screen pixels as a path in the engine's letter grid.
+     *
+     * Each point is placed relative to the letter key nearest it, by the same
+     * key-widths-and-rows measure [tapDx] reports for a tap. That anchoring is
+     * what makes the result independent of key size, screen density, one-handed
+     * mode and the split keyboard, all of which move pixels around without
+     * moving a single letter relative to its neighbours.
+     *
+     * It is also very nearly continuous across a key boundary, because the grid
+     * is spaced exactly one key width apart: a point halfway between `q` and `w`
+     * lands on the same grid coordinate whichever of the two it is measured
+     * from. So which key is "nearest" barely matters, and no seam appears in
+     * the middle of a path that crosses one.
+     */
+    private fun gridPath(trail: ArrayList<Float>): FloatArray {
+        val prox = keyGrid ?: return FloatArray(0)
+        val out = FloatArray(trail.size)
+        var n = 0
+        var i = 0
+        while (i + 1 < trail.size) {
+            val x = trail[i]
+            val y = trail[i + 1]
+            val kb = nearestLetterKey(x, y)
+            if (kb != null && kb.w > 0f && kb.h > 0f) {
+                val gx = prox.gridX(kb.key.label[0])
+                val gy = prox.gridY(kb.key.label[0])
+                if (gx != null && gy != null) {
+                    out[n++] = gx + (x - (kb.x + kb.w / 2f)) / kb.w
+                    out[n++] = gy + (y - (kb.y + kb.h / 2f)) / kb.h
+                }
+            }
+            i += 2
+        }
+        return if (n == out.size) out else out.copyOf(n)
+    }
+
+    private fun nearestLetterKey(x: Float, y: Float): KeyBounds? {
+        var best: KeyBounds? = null
+        var bestD = Float.MAX_VALUE
+        for (kb in bounds) {
+            if (!isLetterKey(kb.key)) continue
+            val dx = x - (kb.x + kb.w / 2f)
+            val dy = y - (kb.y + kb.h / 2f)
+            val d = dx * dx + dy * dy
+            if (d < bestD) {
+                bestD = d
+                best = kb
+            }
+        }
+        return best
+    }
+
     private fun isGlideKey(key: Key): Boolean =
         key.type == KeyType.CHARACTER && key.label.length == 1 && key.label[0].isLetter()
 
     private fun finishGlide(ps: PointerState) {
         if (ps.glide) {
             if (ps.glideSeq.length >= 2) {
-                listener?.onGlideComplete(ps.glideSeq.toString())
+                listener?.onGlideComplete(gridPath(ps.trail), ps.glideSeq.toString())
             } else {
                 // A drag that never left the key it began on is a tap, not a
                 // glide, and it has to type its letter.

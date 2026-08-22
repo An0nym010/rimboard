@@ -1,5 +1,6 @@
 package com.rimboard.keyboard.engine
 
+import com.rimboard.keyboard.model.GlidePath
 import com.rimboard.keyboard.model.KeyProximity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -266,23 +267,89 @@ class DictionaryTest {
         assertEquals(-6.0, d.charLogP('z', 'a'), 1e-9)
     }
 
+    /**
+     * A swipe that visits each of [stops] in turn, in a straight line, sampled
+     * finely enough to be a path.
+     *
+     * Deliberately the ideal gesture and nothing like a real thumb -- the
+     * distortions a real hand adds are `GlideAccuracyTest`'s subject, and the
+     * cases below are about what the model *means*, which is easier to read
+     * when the input is exact.
+     */
+    private fun swipe(stops: String): GlidePath {
+        val pts = ArrayList<Float>()
+        for (i in 0 until stops.length - 1) {
+            val ax = en.gridX(stops[i])!!
+            val ay = en.gridY(stops[i])!!
+            val bx = en.gridX(stops[i + 1])!!
+            val by = en.gridY(stops[i + 1])!!
+            for (step in 0..11) {
+                val t = step / 11f
+                pts.add(ax + (bx - ax) * t)
+                pts.add(ay + (by - ay) * t)
+            }
+        }
+        return GlidePath.of(pts.toFloatArray(), en)!!
+    }
+
     @Test
     fun `glide collapses doubled letters along the path`() {
-        // Swiping h-e-l-o should still find "hello".
+        // A finger cannot stop twice in the same place, so h-e-l-o and
+        // h-e-l-l-o are the same gesture and frequency separates them.
         val d = dict("hello 9000", "help 5000")
-        assertEquals("hello", d.glideCandidates("helo", 3).firstOrNull()?.first)
+        assertEquals("hello", d.glideScored(swipe("helo"), 3).firstOrNull()?.first)
     }
 
     @Test
     fun `glide forgives overshooting the last key`() {
+        // Carrying on past `o` to `p` still spells "hello": the overshot points
+        // are charged to `o`, which costs something but not the word.
         val d = dict("hello 9000")
-        assertEquals("hello", d.glideCandidates("helop", 3).firstOrNull()?.first)
+        assertEquals("hello", d.glideScored(swipe("helop"), 3).firstOrNull()?.first)
     }
 
     @Test
     fun `glide will not invent a word from letters that were never crossed`() {
         val d = dict("world 9000")
-        assertTrue(d.glideCandidates("helo", 3).isEmpty())
+        assertTrue(d.glideScored(swipe("helo"), 3).isEmpty())
+    }
+
+    @Test
+    fun `a word that stops short of the path is beaten by the one that covers it`() {
+        // The distinguishing case for the shape model, and the one the rule it
+        // replaced could not see. "hell" is a subsequence of the keys crossed
+        // by a swipe to `o` and was therefore admitted on equal terms, ranked
+        // by frequency alone. Here the run of points beyond `l` has to be
+        // charged to `l`, which is where they are not.
+        val d = dict("hell 900000", "hello 9000")
+        assertEquals("hello", d.glideScored(swipe("helo"), 3).firstOrNull()?.first)
+    }
+
+    @Test
+    fun `a letter the finger rounded short of is still read`() {
+        // The fault that motivated all of this. The swipe never reaches `l`
+        // -- it turns a third of a key width early -- so `l` is absent from
+        // the keys crossed and every word needing one used to be unreachable.
+        val lx = en.gridX('l')!!
+        val ly = en.gridY('l')!!
+        val ox = en.gridX('o')!!
+        val oy = en.gridY('o')!!
+        val short = swipe("hel")
+        val pts = ArrayList<Float>()
+        for (i in 0 until short.size) { pts.add(short.x(i)); pts.add(short.y(i)) }
+        // Turn for `o` from a third of a key width short of `l`.
+        val cutX = lx + (ox - lx) * 0.33f
+        val cutY = ly + (oy - ly) * 0.33f
+        for (step in 0..11) {
+            val t = step / 11f
+            pts.add(cutX + (ox - cutX) * t)
+            pts.add(cutY + (oy - cutY) * t)
+        }
+        val d = dict("hello 9000", "help 5000")
+        assertEquals(
+            "hello",
+            d.glideScored(GlidePath.of(pts.toFloatArray(), en)!!, 3).firstOrNull()?.first
+        )
     }
 
     @Test
@@ -301,7 +368,7 @@ class DictionaryTest {
         assertFalse(d.contains("apple"))
         assertTrue(d.byPrefix("a", 5).isEmpty())
         assertTrue(d.corrections("helko", en, 3).isEmpty())
-        assertTrue(d.glideCandidates("helo", 3).isEmpty())
+        assertTrue(d.glideScored(swipe("helo"), 3).isEmpty())
     }
 
     @Test

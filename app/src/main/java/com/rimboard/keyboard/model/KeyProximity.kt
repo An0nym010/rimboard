@@ -61,6 +61,18 @@ class KeyProximity private constructor(rows: List<String>) {
     fun gridY(ch: Char): Float? = ys[ch]
 
     /**
+     * Every letter this layout actually draws.
+     *
+     * The alphabet is a property of the layout, not of the language's script:
+     * Turkish draws twenty-nine keys and German thirty. A caller that needs to
+     * ask a question of *all* the keys -- which one is nearest a point, which
+     * ones a swipe passed close to -- has otherwise no way to enumerate them
+     * and would have to guess at `'a'..'z'`, which is wrong on half the
+     * layouts this ships.
+     */
+    fun letters(): Set<Char> = xs.keys
+
+    /**
      * Substitution cost from a point on the grid to key [b].
      *
      * [cost] asks how wrong it is to have hit `a` when `b` was meant, which is

@@ -3,6 +3,7 @@ package com.rimboard.keyboard.engine
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import com.rimboard.keyboard.model.GlidePath
 import java.io.File
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
@@ -445,16 +446,24 @@ class UserData private constructor(dir: File) {
         return scores
     }
 
-    fun glideCandidates(first: Char, last: Char, nearLast: Char, limit: Int): List<Pair<String, Int>> =
+    /**
+     * Learned words that fit a swiped [path], best fit first, with their use
+     * counts.
+     *
+     * The fit is [GlidePath.costOf] and nothing else. This used to be a
+     * separate rule -- first letter equal, last letter equal or one before --
+     * which meant the keyboard held two opinions about what a swipe spells and
+     * applied the weaker one to exactly the words the user cares most about.
+     * The learned list is small enough to walk whole, so there is no reason for
+     * a cheaper approximation to exist here.
+     */
+    fun glideCandidates(path: GlidePath, limit: Int): List<Triple<String, Int, Double>> =
         learned.entries.asSequence()
-            .filter {
-                val k = it.key
-                k.length >= 2 && k[0] == first &&
-                    (k[k.length - 1] == last || k[k.length - 1] == nearLast)
-            }
-            .sortedByDescending { it.value }
+            .filter { it.key.length >= 2 }
+            .map { Triple(it.key, it.value, path.costOf(it.key)) }
+            .filter { !it.third.isInfinite() }
+            .sortedBy { it.third }
             .take(limit)
-            .map { it.key to it.value }
             .toList()
 
     /**

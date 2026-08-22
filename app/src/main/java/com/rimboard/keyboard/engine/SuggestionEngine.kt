@@ -1,8 +1,10 @@
 package com.rimboard.keyboard.engine
 
 import android.content.Context
+import com.rimboard.keyboard.model.GlidePath
 import com.rimboard.keyboard.model.KeyProximity
 import java.util.Locale
+import kotlin.math.ln
 
 class SuggestionsResult(
     val items: List<String>,
@@ -77,6 +79,43 @@ class SuggestionEngine private constructor(
     )
 
     companion object {
+
+        /**
+         * How many shape-matched words the dictionary is asked for.
+         *
+         * Deeper than the four the strip can show, because context re-ranks
+         * them afterwards and needs something to promote from. Asking for four
+         * would let context reorder only what shape already liked best, which
+         * is most of the way to not consulting it at all.
+         */
+        private const val GLIDE_DEPTH = 24
+
+        /** The learned list is small; this is a bound, not a filter. */
+        private const val GLIDE_PERSONAL_DEPTH = 12
+
+        /**
+         * Where a word the user taught the keyboard sits on the dictionary's
+         * own frequency scale, before its use count is added.
+         *
+         * A learned word arrives with a use count, usually a handful. Scoring
+         * it as `ln(count + 1)` puts it around 1.4 on a scale where an ordinary
+         * dictionary word sits at 6 and "the" sits at 17, so it would lose to
+         * everything, always. The rule this replaced dodged that by adding a
+         * billion to the score, which put every learned word above every
+         * dictionary word unconditionally — fine while the match test was exact
+         * and wrong the moment it became a fit, because a barely-fitting name
+         * would then beat the word actually swiped.
+         *
+         * Anchored against the real distribution instead. In the shipped
+         * lists, `ln(freq + 1)` is 2.8 at the median English word, 6.0 at the
+         * 90th percentile, 9.5 at the 99th and 17.2 at the top. At 7.0 a word
+         * the user has typed twice scores 8.1 — inside the top few percent, so
+         * it beats the long tail of words they have never used, and nowhere
+         * near the function words. It still has to fit the path: this moves a
+         * learned word up the frequency axis, it does not exempt it from the
+         * shape one.
+         */
+        private const val PERSONAL_GLIDE_LN_FREQ = 7.0
         /**
          * Test seam: back the engine with in-memory data and no Context.
          *
@@ -1232,38 +1271,52 @@ class SuggestionEngine private constructor(
         return SuggestionsResult(outWords, outAc)
     }
 
-    /** Ranked word candidates for a glide key sequence (lowercase results). */
-    fun glideFor(seq: String, lang: String, locale: Locale, personalized: Boolean): List<String> {
-        val s = seq.lowercase(locale)
-        if (s.length < 2) return emptyList()
+    /**
+     * Ranked words for a swiped path, best first, lowercase.
+     *
+     * Three sources of evidence, in the order they are allowed to matter:
+     *
+     *  1. **The shape**, from [Dictionary.glideScored] -- how closely the
+     *     finger tracked the letters of each candidate, traded against how
+     *     common the word is.
+     *  2. **The user's own vocabulary**, scored by the same shape model and
+     *     placed on the same frequency scale — see [PERSONAL_GLIDE_LN_FREQ],
+     *     which is where the two scales are reconciled. A learned word competes
+     *     on the shape of the swipe like any other; what it gets is a better
+     *     starting position on the axis it would otherwise always lose.
+     *  3. **What the preceding words predict**, exactly as tapping already
+     *     uses it, and capped the same way so it settles ties without
+     *     overruling geometry.
+     *
+     * That third source is new to gliding and was the odder gap of the two:
+     * the n-grams were being consulted for every tapped word and for no swiped
+     * one, so the keyboard grew less sure of itself the moment you swiped.
+     */
+    fun glideFor(
+        path: GlidePath,
+        lang: String,
+        locale: Locale,
+        personalized: Boolean,
+        prevWord2: String = "",
+        prevWord: String = ""
+    ): List<String> {
         val merged = LinkedHashMap<String, Double>()
-        for ((w, score) in dictionary(lang, locale).glideCandidates(s, 20)) {
+        for ((w, score) in dictionary(lang, locale).glideScored(path, GLIDE_DEPTH)) {
             merged[w] = score
         }
         if (personalized) {
-            val last = s.last()
-            val nearLast = if (s.length >= 3) s[s.length - 2] else last
-            val floor = maxOf(2, kotlin.math.ceil(s.length / 4.5).toInt())
-            for ((w, c) in userData.glideCandidates(s.first(), last, nearLast, 12)) {
-                val cw = collapse(w)
-                if (cw.length in floor..s.length && isSubsequence(cw, s)) {
-                    merged[w] = maxOf(merged[w] ?: 0.0, 1.5e9 + c * 1000.0)
-                }
+            for ((w, count, fit) in userData.glideCandidates(path, GLIDE_PERSONAL_DEPTH)) {
+                val score = PERSONAL_GLIDE_LN_FREQ + ln(count + 1.0) -
+                    Dictionary.GLIDE_SHAPE_WEIGHT * fit
+                merged[w] = maxOf(merged[w] ?: Double.NEGATIVE_INFINITY, score)
             }
         }
-        return merged.entries.sortedByDescending { it.value }.take(4).map { it.key }
-    }
-
-    private fun collapse(w: String): String {
-        val sb = StringBuilder(w.length)
-        for (ch in w) if (sb.isEmpty() || sb[sb.length - 1] != ch) sb.append(ch)
-        return sb.toString()
-    }
-
-    private fun isSubsequence(needle: String, hay: String): Boolean {
-        var i = 0
-        for (ch in hay) if (i < needle.length && needle[i] == ch) i++
-        return i == needle.length
+        if (merged.isEmpty()) return emptyList()
+        val contextRank = contextRankFor(prevWord2, prevWord, lang, locale)
+        return merged.entries
+            .sortedByDescending { it.value + contextBonus(it.key, contextRank) }
+            .take(4)
+            .map { it.key }
     }
 
     /**
