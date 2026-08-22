@@ -302,7 +302,7 @@ class RimBoardService : InputMethodService(),
         // an asset parse on a binder thread the moment the next word arrives.
         val keep = if (level >= TRIM_MEMORY_COMPLETE) emptySet()
         else SuggestionEngine.neededLanguages()
-        SuggestionEngine.trimDictionaries(keep)
+        SuggestionEngine.trimLanguageCaches(keep)
         // Rebuilt from a query the next time a field is focused, and holding
         // somebody's address book in a process the system is deciding whether
         // to kill is the wrong side of that bargain.
@@ -1570,7 +1570,11 @@ class RimBoardService : InputMethodService(),
     private fun calcChip(): String? {
         if (!Prefs.calcChip(this)) return null
         val before = currentInputConnection?.getTextBeforeCursor(40, 0)?.toString() ?: return null
-        return com.rimboard.keyboard.engine.Calc.chipFor(before, 40)
+        // The separator of the language being typed, not of the phone's UI
+        // language and not of the machine: this string gets inserted into what
+        // the user is writing.
+        val decimal = java.text.DecimalFormatSymbols.getInstance(locale()).decimalSeparator
+        return com.rimboard.keyboard.engine.Calc.chipFor(before, 40, decimal)
     }
 
     private fun updateStrip() {

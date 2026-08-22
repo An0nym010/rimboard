@@ -119,7 +119,7 @@ class RimSpellService : SpellCheckerService() {
         if (level < TRIM_MEMORY_RUNNING_LOW) return
         val keep = if (level >= TRIM_MEMORY_COMPLETE) emptySet()
         else SuggestionEngine.neededLanguages()
-        SuggestionEngine.trimDictionaries(keep)
+        SuggestionEngine.trimLanguageCaches(keep)
         com.rimboard.keyboard.engine.ContactStore.forget()
         com.rimboard.keyboard.engine.UserDictionaryStore.forget()
     }

@@ -2,7 +2,9 @@ package com.rimboard.keyboard.engine
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 class CalcTest {
 
@@ -167,5 +169,61 @@ class CalcTest {
     @Test
     fun `an unknown unit is ignored`() {
         assertNull(chip("5xyz="))
+    }
+
+    // ---- the separator the reader writes with -----------------------------
+
+    @Test
+    fun `a comma decimal comes back as a comma`() {
+        // The parser has always accepted "12,5" -- seven of the eight
+        // languages this app is translated into write a decimal that way --
+        // and the chip answered with a point regardless. This string is not a
+        // readout: the user taps it and it lands in German, Turkish or Russian
+        // prose.
+        assertEquals("= 37,5", Calc.chipFor("12,5*3", 40, ','))
+        assertEquals("= 37.5", Calc.chipFor("12.5*3", 40, '.'))
+    }
+
+    @Test
+    fun `a whole number carries no separator either way`() {
+        assertEquals("= 408", Calc.chipFor("12*34", 40, ','))
+    }
+
+    @Test
+    fun `a converted quantity uses it too`() {
+        // The unit chip formats through the same function, and did not get the
+        // separator when chipFor did in an earlier draft of this change.
+        assertEquals("= 3,1069 mi", Calc.chipFor("5km=", 40, ','))
+    }
+
+    @Test
+    fun `the result never carries a grouping separator`() {
+        // "1.234,5" is harder to read back and would not re-parse as the same
+        // number if it were typed into the field again.
+        val out = Calc.chipFor("1000000/8", 40, ',')!!
+        assertEquals("= 125000", out)
+    }
+
+    @Test
+    fun `the keyboard passes a separator to the chip`() {
+        // A pure-object test cannot see the call site, and the call site is
+        // where this feature actually lives: chipFor defaults to a point, so
+        // deleting the argument in the service would leave every test here
+        // green and every German user with a point again. Twice now a rule has
+        // been fully covered while the one line that calls it was not.
+        val svc = listOf(
+            File("src/main/java/com/rimboard/keyboard/RimBoardService.kt"),
+            File("app/src/main/java/com/rimboard/keyboard/RimBoardService.kt")
+        ).first { it.isFile }.readText()
+        val call = Regex("""Calc\.chipFor\([^)]*\)""").find(svc)?.value
+        assertTrue("the service no longer calls Calc.chipFor at all", call != null)
+        assertTrue(
+            "the service calls Calc.chipFor without a decimal separator: $call",
+            call!!.count { it == ',' } >= 2
+        )
+        assertTrue(
+            "the separator must come from the language being typed, not a literal",
+            "decimal" in call
+        )
     }
 }

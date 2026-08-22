@@ -25,8 +25,8 @@ object Calc {
      * "=". An expression that fills the whole window is rejected too, since the
      * real one may start further back than we can see.
      */
-    fun chipFor(before: String, window: Int = 40): String? {
-        unitChip(before, window)?.let { return it }
+    fun chipFor(before: String, window: Int = 40, decimal: Char = '.'): String? {
+        unitChip(before, window, decimal)?.let { return it }
         val m = expression.find(before) ?: return null
         if (m.range.first == 0 && before.length >= window) return null
         val expr = m.value
@@ -41,7 +41,7 @@ object Calc {
             if (slashes > 1) return null
         }
         val value = eval(expr.removeSuffix("=")) ?: return null
-        return "= " + (format(value) ?: return null)
+        return "= " + (format(value, decimal) ?: return null)
     }
 
     /**
@@ -61,12 +61,12 @@ object Calc {
      * The trailing "=" is required, so ordinary prose ("a 5km run") is left
      * alone and "3pm=" is not mistaken for a quantity.
      */
-    private fun unitChip(before: String, window: Int): String? {
+    private fun unitChip(before: String, window: Int, decimal: Char): String? {
         val m = unitExpr.find(before) ?: return null
         if (m.range.first == 0 && before.length >= window) return null
         val value = m.groupValues[1].replace(',', '.').toDoubleOrNull() ?: return null
         val (converted, unit) = convert(value, m.groupValues[2].lowercase()) ?: return null
-        return "= " + (format(converted) ?: return null) + " " + unit
+        return "= " + (format(converted, decimal) ?: return null) + " " + unit
     }
 
     private fun convert(v: Double, unit: String): Pair<Double, String>? = when (unit) {
@@ -176,12 +176,29 @@ object Calc {
         while (pos[0] < s.length && s[pos[0]] == ' ') pos[0]++
     }
 
-    /** Trims a result to something readable, or null if it is unreasonably big. */
-    fun format(v: Double): String? {
+    /**
+     * Trims a result to something readable, or null if it is unreasonably big.
+     *
+     * [decimal] is the separator the *language being typed* uses, because this
+     * string is not a readout — the user taps it and it lands in their text.
+     * The parser has always accepted a comma (`12,5*2`), which is how seven of
+     * the eight languages this app is translated into write a decimal, and
+     * this end wrote a point regardless: type a sum in German and the chip
+     * offered you `37.5` to paste into German prose.
+     *
+     * Grouping is deliberately absent. `1.234,5` is harder to read back, and
+     * re-typing it into the field would not parse as the same number.
+     *
+     * Built in [Locale.US] and swapped at the end rather than formatted in the
+     * user's locale, so the trimming below stays a search for the character
+     * this function just wrote.
+     */
+    fun format(v: Double, decimal: Char = '.'): String? {
         if (kotlin.math.abs(v) >= 1e12) return null
         val rounded = Math.round(v)
         if (v == rounded.toDouble()) return rounded.toString()
         val s = String.format(java.util.Locale.US, "%.4f", v).trimEnd('0').trimEnd('.')
-        return if (s == "-0") "0" else s
+        if (s == "-0") return "0"
+        return if (decimal == '.') s else s.replace('.', decimal)
     }
 }

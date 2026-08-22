@@ -102,6 +102,57 @@ class EngineLockTest {
      * background process and near the front of the kill list, so this is the
      * memory that decides whether it survives to the next sentence.
      */
+    /**
+     * The prediction models are the other half of what a trim is for, and they
+     * were neither shared nor released.
+     *
+     * Two engines exist in this process by design — the keyboard has one and
+     * the spell checker has another — and they are usually on the same
+     * language. Each was parsing and holding its own copy of that language's
+     * model: two loads of one asset, and two live maps of it. Cheap when a
+     * model was 200 KB of bigrams, and 2.6 to 4.9 MB each since they started
+     * carrying two-word contexts.
+     *
+     * The release half was worse: at TRIM_MEMORY_COMPLETE the process gave up
+     * every dictionary and kept every model.
+     */
+    @Test
+    fun `two engines share one prediction model, and a trim releases it`() {
+        fun engine() = SuggestionEngine.forTesting(userData, shared = true) { path ->
+            when (path) {
+                "predictions/en.txt" -> "see\tyou the\n".byteInputStream() as InputStream
+                "dictionaries/en.txt" -> "the 900".byteInputStream() as InputStream
+                else -> null
+            }
+        }
+        SuggestionEngine.trimLanguageCaches(emptySet())
+        val keyboard = engine()
+        val speller = engine()
+        keyboard.predictions("", "see", "en", java.util.Locale.ENGLISH, 1, mayLoad = true)
+        speller.predictions("", "see", "en", java.util.Locale.ENGLISH, 1, mayLoad = true)
+        assertTrue(
+            "one model for one language, not one per engine: found " +
+                "${SuggestionEngine.cachedModelCount()}",
+            SuggestionEngine.cachedModelCount() == 1
+        )
+
+        SuggestionEngine.trimLanguageCaches(emptySet())
+        assertTrue(
+            "a trim that gives up every dictionary must give up the models too, " +
+                "found ${SuggestionEngine.cachedModelCount()}",
+            SuggestionEngine.cachedModelCount() == 0
+        )
+
+        // Same bargain as the dictionaries: releasing is a memory decision and
+        // never a functional one.
+        assertTrue(
+            "a released model must come back",
+            keyboard.predictions("", "see", "en", java.util.Locale.ENGLISH, 1, mayLoad = true)
+                .isNotEmpty()
+        )
+        SuggestionEngine.trimLanguageCaches(emptySet())
+    }
+
     @Test
     fun `trimming keeps the languages in use and releases the rest`() {
         var loadsOfGerman = 0
@@ -119,14 +170,14 @@ class EngineLockTest {
                 else -> null
             }
         }
-        SuggestionEngine.trimDictionaries(emptySet())
+        SuggestionEngine.trimLanguageCaches(emptySet())
         engine.dictionary("en", java.util.Locale.ENGLISH)
         engine.dictionary("tr", java.util.Locale("tr"))
         engine.dictionary("de", java.util.Locale.GERMAN)
         assertTrue("expected three cached", SuggestionEngine.cachedCount() == 3)
         assertTrue("German loaded once", loadsOfGerman == 1)
 
-        SuggestionEngine.trimDictionaries(setOf("en"))
+        SuggestionEngine.trimLanguageCaches(setOf("en"))
         assertTrue(
             "only the language in use should survive, found ${SuggestionEngine.cachedCount()}",
             SuggestionEngine.cachedCount() == 1
@@ -140,6 +191,6 @@ class EngineLockTest {
         )
         assertTrue("returning to German should have reloaded it", loadsOfGerman == 2)
 
-        SuggestionEngine.trimDictionaries(emptySet())
+        SuggestionEngine.trimLanguageCaches(emptySet())
     }
 }

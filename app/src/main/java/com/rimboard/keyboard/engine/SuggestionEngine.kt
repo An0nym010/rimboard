@@ -84,7 +84,7 @@ class SuggestionEngine private constructor(
          * is opt-in for the one thing that cannot be tested without it — the
          * eviction of the process-wide cache, which by definition is not
          * per-instance. A case that passes true owes the next case a
-         * [trimDictionaries] with an empty set.
+         * [trimLanguageCaches] with an empty set.
          */
         internal fun forTesting(userData: UserData, shared: Boolean = false, assets: Assets) =
             SuggestionEngine(assets, null, userData, shared = shared)
@@ -148,13 +148,39 @@ class SuggestionEngine private constructor(
         /** Every language some live component still needs. */
         fun neededLanguages(): Set<String> = needed.values.flatMapTo(HashSet()) { it }
 
-        fun trimDictionaries(keep: Set<String>) {
+        /**
+         * Prediction models, shared by every engine reading the bundled
+         * assets — for the same reason the dictionaries are.
+         *
+         * They were per-instance, which meant the keyboard and the spell
+         * checker each parsed and held their own copy of the same language:
+         * two loads of the same asset and two live maps of it. That cost
+         * little when a model was 200 KB of bigrams. It is 2.6 to 4.9 MB now
+         * that they carry two-word contexts, and the two components are
+         * usually on the same language.
+         */
+        private val sharedModels =
+            java.util.concurrent.ConcurrentHashMap<String, Map<String, List<String>>>()
+
+        /**
+         * Drops every language-keyed cache except [keep].
+         *
+         * Both halves, because both are per-language, both are megabytes, and
+         * a caller that has decided it is short of memory means both. The
+         * models used to be missed here entirely: at TRIM_MEMORY_COMPLETE the
+         * process gave up every dictionary and held on to every model.
+         */
+        fun trimLanguageCaches(keep: Set<String>) {
             val live = keep.map { it + "#" + DictVersion.v }.toSet()
             sharedDictionaries.keys.removeAll { it !in live }
+            sharedModels.keys.removeAll { it !in keep }
         }
 
         /** How many dictionaries the process is holding. Test-only. */
         internal fun cachedCount() = sharedDictionaries.size
+
+        /** How many prediction models the process is holding. Test-only. */
+        internal fun cachedModelCount() = sharedModels.size
 
         private const val TAG = "RimBoard"
 
@@ -1182,7 +1208,7 @@ class SuggestionEngine private constructor(
      * it is no longer also what stops a read seeing a half-resized map.
      */
     private val predictionModels =
-        java.util.concurrent.ConcurrentHashMap<String, Map<String, List<String>>>()
+        if (shared) sharedModels else java.util.concurrent.ConcurrentHashMap()
 
     /**
      * One lock per lazily-loaded map, rather than `@Synchronized` on the engine.
