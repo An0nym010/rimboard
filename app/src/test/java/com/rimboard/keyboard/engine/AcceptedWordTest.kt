@@ -2,6 +2,8 @@ package com.rimboard.keyboard.engine
 
 import org.junit.After
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -26,6 +28,21 @@ class AcceptedWordTest {
 
     private fun engine(assets: Map<String, String>): SuggestionEngine =
         SuggestionEngine.forTesting(userData) { path -> assets[path]?.byteInputStream() }
+
+    /**
+     * An engine on the dictionaries that actually ship.
+     *
+     * The compound cases below cannot be written against a fixture: what they
+     * assert is that a word is absent from the shipped 200,000-entry list
+     * while both of its halves are in it, which is a fact about that list.
+     */
+    private fun realEngine(): SuggestionEngine {
+        val assets = listOf(File("src/main/assets"), File("app/src/main/assets"))
+            .first { it.isDirectory }
+        return SuggestionEngine.forTesting(userData) { path ->
+            File(assets, path).takeIf { it.isFile }?.inputStream()
+        }
+    }
 
     @Before
     fun setUp() {
@@ -172,5 +189,45 @@ class AcceptedWordTest {
                 accepted && corrected
             )
         }
+    }
+
+    @Test
+    fun `a German compound of two known words is not underlined`() {
+        // None of these are in the shipped 200,000-entry list and all of them
+        // are ordinary German. Compounding is productive, so a frequency list
+        // holds whichever compounds its corpus happened to contain — 24.4% of
+        // the German words the list misses are two words in the list joined.
+        val e = realEngine()
+        for (w in listOf("bananenkuchen", "nervenzelle", "flugzeugunfall", "landtiere")) {
+            assertTrue(
+                "$w is ordinary German and must not be underlined",
+                e.acceptedWord(w, "de", java.util.Locale.GERMAN)
+            )
+        }
+    }
+
+    @Test
+    fun `a German compound is not offered as two words`() {
+        // The other half of the same decision. Offering to put a space in
+        // "Bananenkuchen" is offering to misspell it, and the strip and the
+        // underline have to agree about what a compound is.
+        val e = realEngine()
+        for (w in listOf("bananenkuchen", "flugzeugunfall")) {
+            assertNull(
+                "$w should not be offered as two words",
+                e.splitFor(w, "de", java.util.Locale.GERMAN)
+            )
+        }
+    }
+
+    @Test
+    fun `an English run-together word is still offered as two words`() {
+        // The scoping, from the other side: English writes compounds open, so
+        // the same shape of word gets the opposite answer.
+        val e = realEngine()
+        assertNotNull(
+            "alot is still a missing space, not a compound",
+            e.splitFor("alot", "en", java.util.Locale.ENGLISH)
+        )
     }
 }

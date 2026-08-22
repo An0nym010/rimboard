@@ -839,6 +839,17 @@ class SuggestionEngine private constructor(
             }) {
             return true
         }
+        // Two words written closed, which in German is ordinary writing rather
+        // than a coinage: a 200,000-entry list holds whichever compounds its
+        // corpus happened to contain and underlines the rest. See [Compounds]
+        // for why this is scoped to one language and what it was measured
+        // against.
+        if (com.rimboard.keyboard.model.Compounds.splitOf(
+                lang, lower, Dictionary.STEM_MIN_FREQ
+            ) { dict.frequency(it) } != null
+        ) {
+            return true
+        }
         // A *built* one does not, and is asked last. See [accentedBuilt]: it
         // says an accented form could be constructed, not that anybody has
         // ever written one, and that is weaker than the word in hand being
@@ -980,6 +991,16 @@ class SuggestionEngine private constructor(
         if (typed.drop(1).any { it.isUpperCase() }) return null
         val lower = typed.lowercase(locale)
         if (userData.isKnown(lower)) return null
+        // In a language that writes compounds closed, a word made of two words
+        // is a word — offering to put a space in "Bananenkuchen" is offering
+        // to misspell it. This is the same test [acceptedWord] uses, so the
+        // strip and the underline cannot disagree about what a compound is.
+        if (com.rimboard.keyboard.model.Compounds.splitOf(
+                lang, lower, Dictionary.STEM_MIN_FREQ
+            ) { dictionary(lang, locale).frequency(it) } != null
+        ) {
+            return null
+        }
         val (a, b) = dictionary(lang, locale).splitInto(lower) ?: return null
         if (isOffensive(a, lang, locale) || isOffensive(b, lang, locale)) return null
         if (userData.isBlocked(a) || userData.isBlocked(b)) return null
