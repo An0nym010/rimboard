@@ -1565,16 +1565,36 @@ class RimBoardService : InputMethodService(),
 
     // ------------------------------------------------------------ calculator
 
+    private var decimalSepFor: java.util.Locale? = null
+    private var decimalSep = '.'
+
+    /**
+     * The decimal separator of the language being typed — not the phone's UI
+     * language, and not the machine's, because this character ends up in what
+     * the user is writing.
+     *
+     * Cached against the locale it was derived from.
+     * `DecimalFormatSymbols.getInstance` hands back a fresh instance every
+     * call, and this sits on [updateStrip], which runs on every keystroke; a
+     * keyboard that goes to the trouble of an allocation-free dictionary
+     * lookup should not throw that away one line later. Recomputed only when
+     * the language actually changes.
+     */
+    private fun decimalSeparator(): Char {
+        val loc = locale()
+        if (loc != decimalSepFor) {
+            decimalSepFor = loc
+            decimalSep = java.text.DecimalFormatSymbols.getInstance(loc).decimalSeparator
+        }
+        return decimalSep
+    }
+
     /** "= 408" chip for a trailing arithmetic expression before the cursor.
      *  The arithmetic itself lives in [com.rimboard.keyboard.engine.Calc]. */
     private fun calcChip(): String? {
         if (!Prefs.calcChip(this)) return null
         val before = currentInputConnection?.getTextBeforeCursor(40, 0)?.toString() ?: return null
-        // The separator of the language being typed, not of the phone's UI
-        // language and not of the machine: this string gets inserted into what
-        // the user is writing.
-        val decimal = java.text.DecimalFormatSymbols.getInstance(locale()).decimalSeparator
-        return com.rimboard.keyboard.engine.Calc.chipFor(before, 40, decimal)
+        return com.rimboard.keyboard.engine.Calc.chipFor(before, 40, decimalSeparator())
     }
 
     private fun updateStrip() {

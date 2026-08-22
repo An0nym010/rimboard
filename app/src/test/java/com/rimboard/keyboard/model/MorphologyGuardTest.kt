@@ -108,10 +108,15 @@ class MorphologyGuardTest {
             )
         println(report)
 
-        // Measured 2026-08-22: 4.5% and 30.5%. Both bounds carry a point or
-        // two of margin, because the numbers move a little when a dictionary
-        // or the suffix list changes and a ratchet that trips on noise gets
-        // edited rather than read.
+        // Measured 2026-08-22: 4.5% typos, 33.6% ordinary.
+        //
+        // The typo ceiling is 5% and that is deliberately tight — seven more
+        // accepted typos trip it. It has to sit between the measured 4.5% and
+        // the 5.5% this guard scored before TR_SHORT_ROOTS existed, or
+        // deleting that list would leave the test green. The ordinary floor
+        // has the loose end of the trade instead, at 28% against 33.6%,
+        // because that column moves with the dictionary and the corpus while
+        // the typo column mostly moves with this file.
         assertTrue(
             "the guard is waving typos through: $report",
             typosAccepted * 100 <= slips * 5

@@ -158,6 +158,13 @@ tasks.withType<Test>().configureEach {
     // exactly the change it exists to catch.
     inputs.dir("src/offline/res").withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.dir("src/online/res").withPathSensitivity(PathSensitivity.RELATIVE)
+    // MorphologyGuardTest's corpus of ordinary Turkish. `src/test/fixtures` is
+    // not a source-set directory, so without this Gradle does not know the
+    // file exists: it was replaced with two junk words and the task reported
+    // UP-TO-DATE with the suite green. Third time this trap has been walked
+    // into here, and the first where the file the test depends on was added in
+    // the same commit as the test.
+    inputs.dir("src/test/fixtures").withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
 dependencies {
