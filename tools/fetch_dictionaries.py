@@ -37,6 +37,30 @@ third of real typos as words -- it stops underlining them and autocorrect
 stops fixing them. MIN_COUNT is where the destroy-a-correct-word failure has
 already collapsed and typo repair has barely moved.
 
+What that table is really about is *size*, not the threshold
+--------------------------------------------------------------
+Six languages ship a TOP-capped list that reaches into count 1 or 2, because
+their corpora are too thin to fill 200,000 entries any other way -- Ukrainian
+bottoms out at count 1 with only 56,869 words seen five times. That looks like
+the bottom row of the table above, and it is not. Measured per language, on
+their own shipped lists, typos still recognised as typos / typos repaired:
+
+    uk  count>=1  200,000   99% / 98%      cutting to >=5 loses 49% of
+    id  count>=1  200,000   93% / 92%      correctly-typed rare words and
+    no  count>=1  200,000   95% / 91%      buys at most four points
+    da  count>=1  200,000   97% / 94%
+    sv  count>=1  200,000   96% / 94%
+    pt  count>=1  199,872   94% / 92%
+    tr  count>=28 200,000   93% / 91%      <- the deepest-cut list is the worst
+    de  count>=6  200,000   98% / 96%
+
+English's collapse came from a *million*-word list, five times the size of
+these: the junk is in the extra 800,000, not in "count 1" as a property. A
+200,000-entry list built from a thin corpus is most of what that language
+attests, not a tail of noise. **So TOP stays a rank cap and MIN_COUNT is not
+applied to it.** Do not "fix" the six by cutting them; it was measured, and it
+makes them worse.
+
 English is bundled at the extended depth (see BUNDLE_EXTENDED): it is the
 default keyboard language for most installs and the one people type without
 choosing it.

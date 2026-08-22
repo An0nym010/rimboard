@@ -196,7 +196,8 @@ class SuggestionEngine private constructor(
         const val CONTEXT_COMPLETION_WEIGHT = 6.0
 
         /** Additive tie-break for corrections; see [contextBonus]. */
-        const val CONTEXT_CORRECTION_WEIGHT = 2.0
+        const val CONTEXT_CORRECTION_WEIGHT = 1.5
+
 
         /**
          * How thin the completion list has to get before near-miss prefixes are

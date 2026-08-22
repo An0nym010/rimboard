@@ -347,7 +347,50 @@ class AutocorrectAccuracyTest {
      */
     private val contextSlips = listOf(Slip.NEIGHBOUR, Slip.DROPPED)
 
-    private fun measureContext(lang: String, locale: Locale, words: Int): ContextScore {
+    /**
+     * The same sampling, over the rows a *two-word* context keys.
+     *
+     * These are the rows [contextPairs] deliberately skips -- its key filter
+     * drops anything with a space in it -- and they are half the model now.
+     * Sampling them is what lets this file measure the path production
+     * actually takes: the keyboard and the spell checker both pass two
+     * preceding words, and where a trigram row exists the ranked list handed
+     * to the corrector is up to twelve words rather than six.
+     */
+    private fun trigramTriples(
+        lang: String, locale: Locale, count: Int
+    ): List<Triple<String, String, String>> {
+        val all = File(assets(), "predictions/$lang.txt").useLines { lines ->
+            lines.mapNotNull { line ->
+                val tab = line.indexOf('\t')
+                if (tab <= 0) null
+                else line.substring(0, tab) to line.substring(tab + 1).trim()
+            }
+                .filter { (key, _) -> key.count { it == ' ' } == 1 }
+                .filter { (key, _) -> key.all { it.isLetter() || it == ' ' } }
+                .flatMap { (key, nexts) ->
+                    val (a, b) = key.split(' ')
+                    nexts.split(' ').asSequence()
+                        .filter { w -> w.length in 5..9 && w.all { c -> c.isLetter() } }
+                        .map { Triple(a, b, it.lowercase(locale)) }
+                }
+                .distinctBy { it.third }
+                .toList()
+        }
+        val step = maxOf(1, all.size / count)
+        return all.filterIndexed { i, _ -> i % step == 0 }.take(count)
+    }
+
+    /**
+     * [twoWord] chooses which half of the model is sampled, and how much
+     * context the engine is given -- one function rather than two so the
+     * scoring, the slips and the seeds cannot drift between the arms. That
+     * matters more than usual here: the whole output is a comparison between
+     * them.
+     */
+    private fun measureContext(
+        lang: String, locale: Locale, words: Int, twoWord: Boolean = false
+    ): ContextScore {
         val engine = realEngine(lang)
         val prox = KeyProximity.forLang(lang)
 
@@ -364,15 +407,31 @@ class AutocorrectAccuracyTest {
             engine.predictionsReady(lang)
         )
 
-        val pairs = contextPairs(lang, locale, words * 4)
-            .filter { engine.acceptedWord(it.second, lang, locale) }
-            .take(words)
-
-        val rankCache = HashMap<String, Map<String, Int>>()
-        fun ranks(prev: String): Map<String, Int> = rankCache.getOrPut(prev) {
-            engine.predictions("", prev, lang, locale, SpellJudge.CONTEXT_DEPTH, mayLoad = false)
-                .withIndex().associate { (i, w) -> w.lowercase(locale) to i }
+        val pairs =
+            if (twoWord) {
+                trigramTriples(lang, locale, words * 4)
+                    .filter { engine.acceptedWord(it.third, lang, locale) }
+                    .take(words)
+            } else {
+                contextPairs(lang, locale, words * 4)
+                    .filter { engine.acceptedWord(it.second, lang, locale) }
+                    .take(words)
+                    .map { Triple("", it.first, it.second) }
+            }
+        if (twoWord) {
+            assertTrue(
+                "no two-word rows in the $lang model, so this arm measures nothing",
+                pairs.isNotEmpty()
+            )
         }
+
+        val rankCache = HashMap<Pair<String, String>, Map<String, Int>>()
+        fun ranks(prev2: String, prev: String): Map<String, Int> =
+            rankCache.getOrPut(prev2 to prev) {
+                engine.predictions(
+                    prev2, prev, lang, locale, SpellJudge.CONTEXT_DEPTH, mayLoad = false
+                ).withIndex().associate { (i, w) -> w.lowercase(locale) to i }
+            }
 
         fun offered(typo: String, ctx: Map<String, Int>) =
             engine.correctionCandidates(typo, lang, locale, limit = 3, contextRank = ctx)
@@ -387,14 +446,14 @@ class AutocorrectAccuracyTest {
         var pulledOn = 0
         for (slip in contextSlips) {
             val rnd = Random(seed = 20260820 + slip.ordinal)
-            for ((prev, target) in pairs) {
+            for ((prev2, prev, target) in pairs) {
                 val typo = damage(target, slip, prox, rnd) ?: continue
                 if (engine.acceptedWord(typo, lang, locale)) continue
                 asked++
 
                 val pool = offered(typo, emptyMap())
                 val b = pool.firstOrNull() == target
-                val h = offered(typo, ranks(prev)).firstOrNull() == target
+                val h = offered(typo, ranks(prev2, prev)).firstOrNull() == target
                 // Nothing came second, so there is nothing to be pulled
                 // toward and this word cannot say anything about the bonus.
                 // Counted as unmoved rather than dropped, because dropping it
@@ -442,88 +501,59 @@ class AutocorrectAccuracyTest {
         val lines = results.joinToString("\n") { (lang, s) -> contextReport(lang, s) }
         println(lines)
 
-        // Measured 2026-08-21 against the shipped model, at the shipped
-        // CONTEXT_CORRECTION_WEIGHT of 2.0:
+        // Measured 2026-08-22 against the shipped model, at
+        // CONTEXT_CORRECTION_WEIGHT = 1.5. One-word contexts, this arm:
         //
-        //   en (n=250): blind 86%, informed 88%, runner-up 71%
-        //               true context rescued 6, broke 1; runner-up pulled 57 off, 18 on
-        //   tr (n=243): blind 80%, informed 83%, runner-up 72%
-        //               true context rescued 7, broke 0; runner-up pulled 43 off, 25 on
+        //   en (n=232): blind 88%, informed 89%, runner-up 77%
+        //               true context rescued 4, broke 1; runner-up pulled 39 off, 14 on
+        //   tr (n=243): blind 80%, informed 82%, runner-up 78%
+        //               true context rescued 6, broke 0; runner-up pulled 30 off, 25 on
         //
-        // The honest summary, which is smaller than the size of the data might
-        // suggest: **the n-grams pay for themselves in both languages and are
-        // not a large effect in either.** Both start high without them, and
-        // the words a common function word predicts are common ones the
-        // frequency term ranks first anyway, so much of the time context
-        // arrives with nothing to add. Nineteen thousand rows did not buy
-        // nineteen thousand times anything; they bought a few points and a
-        // ledger that stays positive. That is what the 4.4 MB is for, and it
-        // is not what a reader would assume from the row count.
+        // And two-word contexts, the arm below:
         //
-        // **These numbers are not comparable with the ones this block held
-        // before 2026-08-21**, and the reason is worth more than the numbers.
-        // The sample used to be taken off the top of the model file, so the
-        // arm was measuring the head and calling it the model; see
-        // [contextPairs]. The figures it produced (en 94/95, tr 85/89) were
-        // the easy third of the question. On a sample that spans the model:
+        //   en (n=207): blind 94%, informed 97%, runner-up 88%
+        //               true context rescued 5, broke 0; runner-up pulled 22 off, 9 on
+        //   tr (n=249): blind 88%, informed 89%, runner-up 73%
+        //               true context rescued 6, broke 3; runner-up pulled 50 off, 12 on
         //
-        //   at the 6,000-row model the shipped weight of 2.0 put Turkish at
-        //   68 answers pulled off 238 -- 28.6%, over the 25% ceiling below.
+        // **The weight came down from 2.0 on 2026-08-22, and the two-word arm
+        // is why.** It had been swept twice, and both times against a sample
+        // where a two-word context never fired -- [contextPairs] filters those
+        // rows out by construction. Once measured, 2.0 put a wrong two-word
+        // context at 69 of 249 Turkish answers overturned: 27.7%, against the
+        // 25% ceiling this file asserts and 17.7% on the one-word path. The
+        // ceiling is not arbitrary; it is the operational form of "context
+        // settles a near-tie and does not overrule the geometry of what was
+        // typed", and the path that broke it now fires on about half of
+        // English words.
         //
-        // It passes on the model that actually ships, at 17.7%. But the
-        // margin at 2.0 was thinner than anyone had measured, and the reason
-        // it had never shown up is that the instrument was looking at the part
-        // of the model where the channel model is most confident anyway.
+        // Sweeping against both arms at once, worst damage of the four
+        // measurements and total rescues across them:
         //
-        // **What this arm does not cover, since 105dd25: two-word contexts.**
-        // [contextPairs] filters keys to letters only, so a trigram row -- keyed
-        // "first second" -- never enters the sample, and [measureContext] passes
-        // an empty prevWord2, so the engine never consults one. That keeps these
-        // numbers comparable across that change, which is why it was left alone.
+        //   2.0    27.7%  (tr, two-word)   26 rescued, 4 broken   over the ceiling
+        //   1.75   24.1%                   24 rescued, 4 broken   one point of margin
+        //   1.5    20.1%                   21 rescued, 4 broken   shipped
         //
-        // It also means the damage figures below are a floor rather than the
-        // whole story. In real typing a two-word context fires on about half of
-        // English words, and when it does the ranked list handed to the
-        // corrector is up to twelve words instead of six -- twice as many
-        // candidates able to collect a context bonus. Measuring that needs an
-        // arm that samples trigram rows and passes both words; until one
-        // exists, do not read the ceiling here as a measurement of what a wrong
-        // context costs in production.
-        //
-        // Sweeping the weight on the fixed sample, at the shipped model
-        // (en/tr rescued-broke, then how much a runner-up context pulls off):
-        //
-        //   1.2   +3 / +4    13% /  9%    the cheapest place the ledger holds
-        //   1.5   +3 / +6    16% / 12%
-        //   2.0   +5 / +7    23% / 18%    shipped
-        //
-        // Held at 2.0: it buys the most rescues and stays inside the ceiling.
-        // Note what it does *not* do any more -- claim a margin measured on
-        // the head of the file. A future change that adds rows changes this
-        // sample, so these figures move when the data does, and a sweep is
-        // worth repeating after any data change rather than trusted from here.
-        //
-        // Earlier sweep, on the head-only sample, kept because it is what the
-        // 25% ceiling was originally set against:
-        //
-        //   1.0   +0 / +5    12% / 12%    context does nothing at all in en
-        //   2.0   +1 / +6    15% / 16%
-        //   3.0   +3 / +5    24% / 27%    tr *net worse*, damage half again
-        //   6.0   +6 / +9    65% / 56%    context has overruled the geometry
-        //
-        // On the head-only sample the signal read as inert in English below
-        // 2.0, which the fixed sample says was an artifact of where it was
-        // looking: English keeps three rescues at 1.2. What survives from that
-        // reading is the shape above 2.0 -- robustness falls away much faster
-        // than accuracy climbs, 3.0 already makes Turkish net worse while
-        // costing 60% more damage, and 6.0 has context overruling the geometry
-        // outright.
+        // 1.75 passes and was not taken: a ratchet sitting one word away from
+        // failing is one resample from being edited rather than believed. 1.5
+        // costs five rescues out of twenty-six and buys seven points.
         //
         // The informed column is an upper bound, so tuning to maximise it is
         // exactly the overfitting this file warns about elsewhere: real prose
         // supplies a wrong or absent context far more often than a corpus
-        // built out of the model's own rows ever will. 6.0 wins that column
-        // outright and would be a plainly bad keyboard.
+        // built out of the model's own rows ever will.
+        //
+        // Kept from the earlier sweeps, because it is what the 25% ceiling was
+        // originally set against, on the head-only sample that predates all of
+        // this:
+        //
+        //   1.0   +0 / +5    12% / 12%
+        //   2.0   +1 / +6    15% / 16%
+        //   3.0   +3 / +5    24% / 27%    tr *net worse*, damage half again
+        //   6.0   +6 / +9    65% / 56%    context has overruled the geometry
+        //
+        // A data change moves these samples, so re-sweep after one rather than
+        // trusting the numbers here.
         val total = results.map { it.second }
         val rescued = total.sumOf { it.rescued }
         val broken = total.sumOf { it.broken }
@@ -556,6 +586,42 @@ class AutocorrectAccuracyTest {
             // value where geometry stops deciding.
             assertTrue(
                 "a wrong context now overturns ${s.pulledOff} of ${s.asked} " +
+                    "answers in $lang, which is not tie-breaking any more.\n" + lines,
+                s.pulledOff <= s.asked / 4
+            )
+        }
+    }
+
+    @Test
+    fun `a two-word context helps and costs no more than a one-word one`() {
+        val results = listOf(
+            "en" to Locale.ENGLISH,
+            "tr" to Locale.forLanguageTag("tr")
+        ).map { (lang, locale) -> lang to measureContext(lang, locale, 150, twoWord = true) }
+
+        val lines = results.joinToString("\n") { (lang, s) -> contextReport(lang, s) }
+        println("two-word context:\n" + lines)
+
+        val total = results.map { it.second }
+        assertTrue(
+            "the two-word rows stopped paying for themselves: " +
+                "${total.sumOf { it.rescued }} rescued, ${total.sumOf { it.broken }} broken.\n" +
+                lines,
+            total.sumOf { it.rescued } > total.sumOf { it.broken }
+        )
+        results.forEach { (lang, s) ->
+            assertTrue(
+                "a rank-0 context moved almost nothing in $lang, so the ceiling " +
+                    "below is vacuous.\n" + lines,
+                s.pulledOff >= 8
+            )
+            // The same ceiling as the one-word arm, and the reason it is the
+            // same: the rule being defended is about the engine, not about
+            // which row answered. A two-word row hands the corrector up to
+            // twelve ranked words where a one-word row hands it six, so if
+            // context is going to overrule the geometry anywhere, it is here.
+            assertTrue(
+                "a wrong two-word context overturns ${s.pulledOff} of ${s.asked} " +
                     "answers in $lang, which is not tie-breaking any more.\n" + lines,
                 s.pulledOff <= s.asked / 4
             )
