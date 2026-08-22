@@ -47,7 +47,7 @@ object Morphology {
     }
 
     private fun peel(word: String, depth: Int, known: (String) -> Boolean): Boolean {
-        if (word.length >= MIN_STEM && known(word)) return true
+        if (word.length >= MIN_STEM && rootShaped(word) && known(word)) return true
         if (depth == 0) return false
         for (suf in TR_SUFFIXES) {
             if (word.length - suf.length >= MIN_STEM && word.endsWith(suf)) {
@@ -175,8 +175,62 @@ object Morphology {
         }
     }
 
-    /** Turkish roots as short as two letters are common: ev, su, el, göz. */
+    /**
+     * The shortest thing that may be called a stem, and what one has to be.
+     *
+     * Two letters, because two-letter Turkish roots are real and ordinary: ev,
+     * su, el. Raising this to three was tried and is wrong — "evde" and
+     * "evlerimizden" peel to "ev" and are pinned in MorphologyTest as words
+     * this guard exists to accept. Six tests said so.
+     *
+     * Length was the wrong question. Frequency cannot tell a root from an
+     * abbreviation, and **209 two-letter strings clear
+     * [Dictionary.STEM_MIN_FREQ] in the Turkish list** — tv, km, cd, dr, mr,
+     * dj, cm, kg, ss, st, mm, plus English that leaks out of subtitles: my,
+     * by, up, so, no, we. Every one of them was vouching for anything with a
+     * plausible suffix behind it, which is how "sskin" became accepted Turkish
+     * by way of "ss", and "ssnki" and "bielikte" the same way.
+     *
+     * So a two-letter stem has to be on a list. Measured on one-key slips
+     * against common words, and on ordinary inflected Turkish the
+     * 200,000-word list does not hold — taken from the corpus rather than
+     * generated, so no form in it was invented by this file's own rules:
+     *
+     *     two-letter stems         typos accepted   ordinary Turkish accepted
+     *     any frequent string           5.5%              30.9%
+     *     [TR_SHORT_ROOTS]              4.7%              30.8%
+     *     three letters required        4.5%              29.7%   breaks evde
+     *
+     * The other constant in reach, [Dictionary.STEM_MIN_FREQ], is a much worse
+     * lever and was measured too: 500 to 2000 buys 1.3 points of typo
+     * rejection and gives up *eleven* points of ordinary Turkish, because what
+     * it filters is real stems rather than short ones.
+     */
     private const val MIN_STEM = 2
+
+    /** Whether a candidate stem is shaped like a root at all. */
+    private fun rootShaped(stem: String): Boolean =
+        stem.length > 2 || stem in TR_SHORT_ROOTS
+
+    /**
+     * Every two-letter Turkish root a suffix attaches to: nouns, adjectives
+     * and verb stems.
+     *
+     * Closed on purpose. Turkish two-letter roots are enumerable, and the cost
+     * of one being missing is this guard declining to vouch for a real word —
+     * a red underline under something correct — rather than a typo waved
+     * through. Bare particles are absent (mi, ki, ve, and "de" as a clitic):
+     * they are not what a suffix attaches to.
+     */
+    private val TR_SHORT_ROOTS = setOf(
+        // nouns and adjectives
+        "ev", "su", "el", "at", "ad", "iş", "iç", "üç", "az", "ay", "on",
+        "ok", "ot", "öz", "ön", "ün", "üs", "us", "iz", "ip", "ek", "eş",
+        "er", "oy", "av", "ağ", "un", "ur", "uç", "il",
+        // verb roots
+        "aç", "al", "as", "ol", "öl", "öp", "ye", "de", "et", "in", "em",
+        "ez", "uy", "üz", "ör", "öv"
+    )
 
     /** Enough for a realistic stack (plural + possessive + case + a verb tail). */
     private const val MAX_DEPTH = 6

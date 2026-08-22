@@ -64,6 +64,12 @@ dictionary — Tatoeba is a language-teaching collection whose sentences are
 largely about two people named Tom and Mary, and without that filter "tom"
 would be the commonest prediction in the language. See tools/build_ngrams.py.
 
+The same corpus supplies `app/src/test/fixtures/tr_unlisted.txt`, 500
+ordinary Turkish words that appear in it and not in the shipped
+dictionary. That file is test data: it is what the Turkish morphology
+guard is measured against, and it is taken from a corpus rather than
+generated so that no word in it was invented by the rules being tested.
+
 CC BY 2.0 FR requires attribution and does not impose share-alike, so unlike
 the dictionaries below these files carry no licence onward. The entries at the
 head of each row are hand-written for RimBoard and are covered by its own
