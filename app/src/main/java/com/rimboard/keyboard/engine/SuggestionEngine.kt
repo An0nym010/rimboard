@@ -834,22 +834,7 @@ class SuggestionEngine private constructor(
         // An *attested* accented word still wins: the corpus holds it, so the
         // bare spelling in front of us is a spelling of it.
         if (attested != null) return false
-        if (com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) {
-                dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
-            }) {
-            return true
-        }
-        // Two words written closed, which in German is ordinary writing rather
-        // than a coinage: a 200,000-entry list holds whichever compounds its
-        // corpus happened to contain and underlines the rest. See [Compounds]
-        // for why this is scoped to one language and what it was measured
-        // against.
-        if (com.rimboard.keyboard.model.Compounds.splitOf(
-                lang, lower, Dictionary.STEM_MIN_FREQ
-            ) { dict.frequency(it) } != null
-        ) {
-            return true
-        }
+        if (wellFormedWord(lower, lang, dict)) return true
         // A *built* one does not, and is asked last. See [accentedBuilt]: it
         // says an accented form could be constructed, not that anybody has
         // ever written one, and that is weaker than the word in hand being
@@ -858,6 +843,28 @@ class SuggestionEngine private constructor(
         return altLang != null && altLocale != null &&
             dictionary(altLang, altLocale).contains(typed.lowercase(altLocale))
     }
+
+    /**
+     * Whether the language's own word-building rules make [lower] one word.
+     *
+     * Two rules, one per shape of language, and neither is about the word
+     * being *in* the list: Turkish stacks suffixes on a stem the list holds,
+     * German joins two words the list holds. Both mean the same thing — this
+     * is a word the list could not have been expected to contain.
+     *
+     * It is one function because two callers need the same answer.
+     * [acceptedWord] uses it to decide not to underline, and [splitFor] uses
+     * it to decide not to offer a space in the middle. When only the first one
+     * asked, the strip spent its time offering to turn "hekimlerin" into "he
+     * kimlerin" — 94 of the 168 ordinary Turkish words in
+     * `fixtures/tr_unlisted.txt` that the underline had just accepted.
+     */
+    private fun wellFormedWord(lower: String, lang: String, dict: Dictionary): Boolean =
+        com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) {
+            dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
+        } || com.rimboard.keyboard.model.Compounds.splitOf(
+            lang, lower, Dictionary.STEM_MIN_FREQ
+        ) { dict.frequency(it) } != null
 
     /**
      * Whether [lower] is a known word with a letter held down.
@@ -991,17 +998,18 @@ class SuggestionEngine private constructor(
         if (typed.drop(1).any { it.isUpperCase() }) return null
         val lower = typed.lowercase(locale)
         if (userData.isKnown(lower)) return null
-        // In a language that writes compounds closed, a word made of two words
-        // is a word — offering to put a space in "Bananenkuchen" is offering
-        // to misspell it. This is the same test [acceptedWord] uses, so the
-        // strip and the underline cannot disagree about what a compound is.
-        if (com.rimboard.keyboard.model.Compounds.splitOf(
-                lang, lower, Dictionary.STEM_MIN_FREQ
-            ) { dictionary(lang, locale).frequency(it) } != null
-        ) {
-            return null
-        }
-        val (a, b) = dictionary(lang, locale).splitInto(lower) ?: return null
+        val dict = dictionary(lang, locale)
+        val (a, b) = dict.splitInto(lower) ?: return null
+        // A word the language's own rules build is one word, so offering a
+        // space inside it is offering to misspell it — "Bananenkuchen" as
+        // "Bananen Kuchen", "hekimlerin" as "he kimlerin".
+        //
+        // Asked here rather than at the top, so the suffix walk only runs on
+        // the rare word that splitInto found a split for, and never on every
+        // keystroke. Note this is *not* the same as "accepted": "alot" is in
+        // the English list and accepted, and is exactly the word this feature
+        // exists to split.
+        if (wellFormedWord(lower, lang, dict)) return null
         if (isOffensive(a, lang, locale) || isOffensive(b, lang, locale)) return null
         if (userData.isBlocked(a) || userData.isBlocked(b)) return null
         // The pair as it is shown, so long-pressing the chip to remove it

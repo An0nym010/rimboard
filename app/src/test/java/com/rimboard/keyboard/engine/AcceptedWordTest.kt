@@ -221,6 +221,21 @@ class AcceptedWordTest {
     }
 
     @Test
+    fun `a Turkish word built from a stem is not offered as two words`() {
+        // The same decision as the German compounds, for the other shape of
+        // language. These are ordinary Turkish that the 200,000-word list does
+        // not hold, and the strip was offering to put a space inside them:
+        // "he kimlerin", "japonca dan", "kirpi si" — 94 of the 168 words in
+        // fixtures/tr_unlisted.txt that the underline had already accepted.
+        val e = realEngine()
+        val tr = java.util.Locale.forLanguageTag("tr")
+        for (w in listOf("hekimlerin", "japoncadan", "kirpisi")) {
+            assertTrue("$w is ordinary Turkish", e.acceptedWord(w, "tr", tr))
+            assertNull("$w should not be offered as two words", e.splitFor(w, "tr", tr))
+        }
+    }
+
+    @Test
     fun `an English run-together word is still offered as two words`() {
         // The scoping, from the other side: English writes compounds open, so
         // the same shape of word gets the opposite answer.
