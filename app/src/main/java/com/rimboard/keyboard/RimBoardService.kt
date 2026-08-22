@@ -1083,8 +1083,15 @@ class RimBoardService : InputMethodService(),
             personalized = !isIncognito() && Prefs.learnWords(this)
         )
         if (cands.isEmpty()) {
-            // tiny flick that matched nothing: fall back to the starting key
-            if (sequence.length <= 2) typeText(sequence.substring(0, 1))
+            // Tiny flick that matched nothing: fall back to the starting key.
+            //
+            // take(1) rather than substring(0, 1), because the length test
+            // admits an empty sequence and substring would then throw — inside
+            // an input method, which means the keyboard disappears. The only
+            // caller cannot produce one (KeyboardView.finishGlide requires two
+            // characters before it calls this), so it is the interface that is
+            // being made safe rather than a live path.
+            if (sequence.length <= 2) typeText(sequence.take(1))
             return
         }
         val kv = keyboardView

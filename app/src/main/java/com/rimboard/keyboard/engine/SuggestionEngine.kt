@@ -476,6 +476,17 @@ class SuggestionEngine private constructor(
      */
     @Volatile
     var userDictionaryWords: Set<String> = emptySet()
+    /**
+     * Per instance, unlike the dictionaries and the prediction models, and
+     * deliberately so.
+     *
+     * Two engines exist in this process and each holds its own copy of these,
+     * which is the exact duplication that was worth removing for the models —
+     * at two to five megabytes each. An offensive list is a kilobyte or two
+     * per language and the emoji table sixty kilobytes in total, so sharing
+     * them would buy back less than a tenth of a megabyte in exchange for a
+     * second process-wide cache to keep straight. Sized, not overlooked.
+     */
     private val offensiveSets = HashMap<String, Set<String>>()
 
     /** See [predictionModelLock] for why this is not `@Synchronized`. */
