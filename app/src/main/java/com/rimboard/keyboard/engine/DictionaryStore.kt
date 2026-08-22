@@ -92,8 +92,6 @@ object DictionaryStore {
             .filter { it.isFile && it.name.endsWith(".txt") && it.length() > 0 }
             .mapTo(HashSet()) { it.name.removeSuffix(".txt") }
 
-    fun isInstalled(c: Context, lang: String): Boolean = file(c, lang).length() > 0
-
     /**
      * The override stream for [path], or null to fall through to the APK.
      *

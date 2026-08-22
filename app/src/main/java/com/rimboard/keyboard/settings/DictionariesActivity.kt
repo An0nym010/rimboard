@@ -52,6 +52,16 @@ class DictionariesActivity : LocalisedActivity() {
     /** Languages with a fetch in flight, so a row cannot be started twice. */
     private val busy = HashSet<String>()
 
+    /**
+     * What is installed, read once per redraw rather than once per row.
+     *
+     * The adapter asked the disk directly, so drawing the list was one
+     * `File.length()` per language on the UI thread, repeated every time
+     * anything changed. Nothing here is slow enough to drop a frame on its
+     * own, and file I/O on the main thread is still the wrong shape.
+     */
+    private var installedNow: Set<String> = emptySet()
+
     private val importLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
             val lang = importing
@@ -101,6 +111,7 @@ class DictionariesActivity : LocalisedActivity() {
                 setText(R.string.dicts_none)
             })
         } else {
+            installedNow = DictionaryStore.installed(DictionaryStore.dir(this))
             adapterImpl = Adapter()
             root.addView(
                 ListView(this).apply { adapter = adapterImpl },
@@ -187,6 +198,7 @@ class DictionariesActivity : LocalisedActivity() {
         String.format(resources.configuration.locales[0], "%,d", n)
 
     private fun refresh() {
+        installedNow = DictionaryStore.installed(DictionaryStore.dir(this))
         if (::adapterImpl.isInitialized) adapterImpl.notifyDataSetChanged()
     }
 
@@ -207,7 +219,7 @@ class DictionariesActivity : LocalisedActivity() {
             fun dp(v: Int) = (v * d).toInt()
             val entry = rows[i]
             val lang = entry.lang
-            val installed = DictionaryStore.isInstalled(ctx, lang)
+            val installed = lang in installedNow
             val working = lang in busy
 
             val row = LinearLayout(ctx).apply {

@@ -475,6 +475,21 @@ class AutocorrectAccuracyTest {
         // it had never shown up is that the instrument was looking at the part
         // of the model where the channel model is most confident anyway.
         //
+        // **What this arm does not cover, since 105dd25: two-word contexts.**
+        // [contextPairs] filters keys to letters only, so a trigram row -- keyed
+        // "first second" -- never enters the sample, and [measureContext] passes
+        // an empty prevWord2, so the engine never consults one. That keeps these
+        // numbers comparable across that change, which is why it was left alone.
+        //
+        // It also means the damage figures below are a floor rather than the
+        // whole story. In real typing a two-word context fires on about half of
+        // English words, and when it does the ranked list handed to the
+        // corrector is up to twelve words instead of six -- twice as many
+        // candidates able to collect a context bonus. Measuring that needs an
+        // arm that samples trigram rows and passes both words; until one
+        // exists, do not read the ceiling here as a measurement of what a wrong
+        // context costs in production.
+        //
         // Sweeping the weight on the fixed sample, at the shipped model
         // (en/tr rescued-broke, then how much a runner-up context pulls off):
         //
