@@ -1290,6 +1290,13 @@ class SuggestionEngine private constructor(
                 l.length > lower.length && l.startsWith(lower)
             }
             if (display.drop(1).none(continues)) {
+                // First in [ranked], which is score order with corrections
+                // dragged to the front -- so a candidate that both repairs and
+                // continues the prefix is taken ahead of a better-scoring pure
+                // continuation. Tried the other way and it measured 0.1 points
+                // worse on Turkish and identical on English: a word carrying
+                // both kinds of evidence is not the wrong answer, and the
+                // extra ordering to keep was not paying for itself.
                 ranked.firstOrNull(continues)?.let { best ->
                     val caseLocale =
                         if (best in altWords && altLocale != null) altLocale else locale
