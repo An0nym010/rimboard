@@ -40,44 +40,35 @@ class TranslationGapTest {
      * wrong in the reader's language is worse than one they have to read in a
      * second language — it still looks like it was understood. A prefix
      * rather than a list: a new `net_` string belongs to the same policy.
+     *
+     * **Except the error messages.** `net_error_*` are not consent copy --
+     * "the server is busy" explains nothing about what left the phone and
+     * carries none of the risk that policy is about. All three were translated
+     * everywhere anyway, quietly, while the prefix rule was exempting them, so
+     * the rule was wider than its own reason. Narrowed to match, which also
+     * means a new `net_error_` string is now held to the same standard as any
+     * other message the user reads.
      */
-    private fun deliberatelyEnglish(name: String) = name.startsWith("net_")
+    private fun deliberatelyEnglish(name: String) =
+        name.startsWith("net_") && !name.startsWith("net_error")
 
     /**
-     * The backlog as it stood on 2026-08-18, the day this test was written:
-     * 72 strings that exist in English and in no other locale, on top of the
-     * `net_` family above.
+     * The backlog, and it is empty.
      *
-     * This list may shrink and must never grow. Shrinking it is the point; a
-     * name that has been translated everywhere, or deleted from English, fails
-     * the second test below until the line is removed.
+     * It held 72 strings on 2026-08-18, the day this test was written: names
+     * that existed in English and in no other locale. They were translated on
+     * 2026-08-22 and the list came out with them, which is what this test was
+     * built to make happen.
+     *
+     * It exists as an empty set rather than being deleted, because the second
+     * test below is what gives it teeth: a name added here is allowed to be
+     * untranslated, and is *required* to still be untranslated. That makes the
+     * escape hatch cost something to use and impossible to leave behind, so it
+     * is worth keeping open. Adding to it is a legitimate move for a string
+     * that genuinely cannot be translated yet; doing it silently, in the same
+     * commit that added the string, is how a ratchet becomes a rubber stamp.
      */
-    private val KNOWN_GAPS = setOf(
-        "ai_failed", "ai_incognito", "ai_moved_on",
-        "ai_needs_selection", "ai_no_key", "ai_proofreading",
-        "ai_translating", "cc_apply", "cc_delete",
-        "cc_deleted", "cc_hex_label", "cc_slot",
-        "cc_slot_empty", "cc_slot_used", "cc_wheel_desc",
-        "clip_timeout_mins", "clip_timeout_never", "gif_close",
-        "gif_copied", "gif_failed", "gif_incognito",
-        "gif_insert_failed", "gif_inserting", "gif_network_off",
-        "gif_no_key", "gif_none", "gif_offline_build",
-        "gif_pick_or_type", "gif_searching", "header_byok",
-        "panel_close", "pref_key_anthropic", "pref_key_anthropic_none",
-        "pref_key_clear", "pref_key_cleared", "pref_key_klipy",
-        "pref_key_klipy_none", "pref_key_libre", "pref_key_libre_none",
-        "pref_key_note", "pref_key_save", "pref_key_saved",
-        "pref_keys_header", "pref_network_summary", "pref_network_title",
-        "spell_service_label", "tb_proofread", "theme_custom2",
-        "theme_custom3", "tool_off_build", "tool_off_incognito",
-        "tool_off_key", "tool_off_locked", "tool_off_network",
-        "tr_host_bad", "tr_host_hint", "tr_host_none",
-        "tr_host_note", "tr_host_title", "tr_host_unused",
-        "tr_no_app", "tr_source_hint", "tr_src_anthropic",
-        "tr_src_auto", "tr_src_current", "tr_src_libre",
-        "tr_src_lingva", "tr_src_note", "tr_src_title",
-        "tr_target_auto", "tr_target_note", "tr_target_title"
-    )
+    private val KNOWN_GAPS = emptySet<String>()
 
     /** Unit tests run from the module directory; tolerate the project root too. */
     private fun res(): File {

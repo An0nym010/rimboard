@@ -4,7 +4,7 @@
     <!-- Shown in Settings -> Languages and input -> Spell checker, next to the
          platform's own. Not just "RimBoard": that list is a choice between
          checkers, and the name has to say which one this is. -->
-    <string name="spell_service_label" tools:ignore="MissingTranslation">RimBoard spell checker</string>
+    <string name="spell_service_label">RimBoard spell checker</string>
     <string name="subtype_en" translatable="false">English (RimBoard)</string>
     <string name="subtype_tr" translatable="false">Türkçe (RimBoard)</string>
 
@@ -53,8 +53,8 @@
     <string name="pref_glide_delete_title">Glide delete</string>
     <string name="pref_glide_delete_summary">Delete words by gliding left from the backspace key</string>
     <string name="theme_custom">Custom 1</string>
-    <string name="theme_custom2" tools:ignore="MissingTranslation">Custom 2</string>
-    <string name="theme_custom3" tools:ignore="MissingTranslation">Custom 3</string>
+    <string name="theme_custom2">Custom 2</string>
+    <string name="theme_custom3">Custom 3</string>
     <string name="pref_height_title">Keyboard height</string>
     <string name="height_compact">Compact</string>
     <string name="height_normal">Normal</string>
@@ -180,23 +180,23 @@
     <string name="subtype_sk" translatable="false">Slovenčina (RimBoard)</string>
     <string name="header_languages">languages</string>
     <string name="header_offline" formatted="false">100% offline</string>
-    <string name="clip_timeout_never" tools:ignore="MissingTranslation">Never cleared automatically</string>
-    <string name="clip_timeout_mins" tools:ignore="MissingTranslation">Cleared %1$d minutes after copying</string>
-    <string name="cc_slot" tools:ignore="MissingTranslation">Custom %1$d</string>
-    <string name="cc_slot_empty" tools:ignore="MissingTranslation">Not set up yet</string>
-    <string name="cc_slot_used" tools:ignore="MissingTranslation">Tap to edit — editing selects it</string>
-    <string name="cc_delete" tools:ignore="MissingTranslation">Delete</string>
-    <string name="cc_deleted" tools:ignore="MissingTranslation">Custom theme deleted</string>
-    <string name="cc_wheel_desc" tools:ignore="MissingTranslation">Colour: hue %1$d degrees, saturation %2$d percent, brightness %3$d percent</string>
-    <string name="cc_hex_label" tools:ignore="MissingTranslation">Hex colour</string>
-    <string name="cc_apply" tools:ignore="MissingTranslation">Save</string>
-    <string name="tr_target_auto" tools:ignore="MissingTranslation">Keyboard language (%1$s)</string>
-    <string name="tr_target_note" tools:ignore="MissingTranslation">Applies to the 🌍 tool. Any language the phone can name, not only the ones you type in.</string>
-    <string name="tool_off_build" tools:ignore="MissingTranslation">Offline build</string>
-    <string name="tool_off_network" tools:ignore="MissingTranslation">Network off</string>
-    <string name="tool_off_incognito" tools:ignore="MissingTranslation">Incognito</string>
-    <string name="tool_off_locked" tools:ignore="MissingTranslation">Unlock phone</string>
-    <string name="tool_off_key" tools:ignore="MissingTranslation">Needs API key</string>
+    <string name="clip_timeout_never">Never cleared automatically</string>
+    <string name="clip_timeout_mins">Cleared %1$d minutes after copying</string>
+    <string name="cc_slot">Custom %1$d</string>
+    <string name="cc_slot_empty">Not set up yet</string>
+    <string name="cc_slot_used">Tap to edit — editing selects it</string>
+    <string name="cc_delete">Delete</string>
+    <string name="cc_deleted">Custom theme deleted</string>
+    <string name="cc_wheel_desc">Colour: hue %1$d degrees, saturation %2$d percent, brightness %3$d percent</string>
+    <string name="cc_hex_label">Hex colour</string>
+    <string name="cc_apply">Save</string>
+    <string name="tr_target_auto">Keyboard language (%1$s)</string>
+    <string name="tr_target_note">Applies to the 🌍 tool. Any language the phone can name, not only the ones you type in.</string>
+    <string name="tool_off_build">Offline build</string>
+    <string name="tool_off_network">Network off</string>
+    <string name="tool_off_incognito">Incognito</string>
+    <string name="tool_off_locked">Unlock phone</string>
+    <string name="tool_off_key">Needs API key</string>
     <string name="net_enable_title" tools:ignore="MissingTranslation">Turn on online features?</string>
     <string name="net_enable_msg" tools:ignore="MissingTranslation">The key is saved, but online features are switched off, so nothing will use it yet.</string>
     <string name="net_enable_yes" tools:ignore="MissingTranslation">Turn on</string>
@@ -205,27 +205,27 @@
         <item quantity="one">%1$d request</item>
         <item quantity="other">%1$d requests</item>
     </plurals>
-    <string name="tr_no_app" tools:ignore="MissingTranslation">No translator app installed</string>
+    <string name="tr_no_app">No translator app installed</string>
     <string name="tr_detect">Detect</string>
     <string name="net_error_server">The translation service is having trouble (HTTP %1$d). Nothing is wrong with your text — try again, or pick another service in Settings.</string>
     <string name="net_error_request">The service refused this request (HTTP %1$d).</string>
     <string name="net_error_rate_limited">Too many requests just now. Wait a moment and try again.</string>
-    <string name="tr_source_hint" tools:ignore="MissingTranslation">Type what you want translated…</string>
-    <string name="tr_target_title" tools:ignore="MissingTranslation">Translate into</string>
-    <string name="tr_src_title" tools:ignore="MissingTranslation">Translation service</string>
-    <string name="tr_src_current" tools:ignore="MissingTranslation">Using: %1$s</string>
-    <string name="tr_src_note" tools:ignore="MissingTranslation">Shows the service actually in use. A choice that cannot work — a key you have not set, or LibreTranslate with no instance of your own — falls back to the keyless one rather than failing on every request.</string>
-    <string name="tr_src_auto" tools:ignore="MissingTranslation">Automatic — best available</string>
-    <string name="tr_src_lingva" tools:ignore="MissingTranslation">Lingva — no key needed</string>
-    <string name="tr_src_libre" tools:ignore="MissingTranslation">LibreTranslate — self-hosted or key</string>
-    <string name="tr_src_anthropic" tools:ignore="MissingTranslation">Anthropic — your API key, best quality</string>
-    <string name="tr_host_title" tools:ignore="MissingTranslation">Your own instance (optional)</string>
-    <string name="tr_host_none" tools:ignore="MissingTranslation">Not set — using the public service</string>
-    <string name="tr_host_unused" tools:ignore="MissingTranslation">Saved, but not in use: choose the service it runs above, so requests are sent in the shape it understands.</string>
-    <string name="tr_host_hint" tools:ignore="MissingTranslation">translate.example.com</string>
-    <string name="tr_host_bad" tools:ignore="MissingTranslation">That is not a hostname</string>
-    <string name="tr_host_note" tools:ignore="MissingTranslation">If you run Lingva or LibreTranslate yourself, put its hostname here and your text goes only to your own server. This is the one address the built-in allowlist cannot know in advance, so setting it widens what this app may contact — by exactly this one host, and only over HTTPS.</string>
-    <string name="header_byok" formatted="false" tools:ignore="MissingTranslation">your own API keys</string>
+    <string name="tr_source_hint">Type what you want translated…</string>
+    <string name="tr_target_title">Translate into</string>
+    <string name="tr_src_title">Translation service</string>
+    <string name="tr_src_current">Using: %1$s</string>
+    <string name="tr_src_note">Shows the service actually in use. A choice that cannot work — a key you have not set, or LibreTranslate with no instance of your own — falls back to the keyless one rather than failing on every request.</string>
+    <string name="tr_src_auto">Automatic — best available</string>
+    <string name="tr_src_lingva">Lingva — no key needed</string>
+    <string name="tr_src_libre">LibreTranslate — self-hosted or key</string>
+    <string name="tr_src_anthropic">Anthropic — your API key, best quality</string>
+    <string name="tr_host_title">Your own instance (optional)</string>
+    <string name="tr_host_none">Not set — using the public service</string>
+    <string name="tr_host_unused">Saved, but not in use: choose the service it runs above, so requests are sent in the shape it understands.</string>
+    <string name="tr_host_hint">translate.example.com</string>
+    <string name="tr_host_bad">That is not a hostname</string>
+    <string name="tr_host_note">If you run Lingva or LibreTranslate yourself, put its hostname here and your text goes only to your own server. This is the one address the built-in allowlist cannot know in advance, so setting it widens what this app may contact — by exactly this one host, and only over HTTPS.</string>
+    <string name="header_byok" formatted="false">your own API keys</string>
     <string name="st_wpm_short">WPM</string>
     <string name="screen_general">Preferences</string>
     <string name="screen_clipboard">Clipboard</string>
@@ -384,8 +384,8 @@ Your search words or selected text go to the service that answers them. Nothing 
     <string name="net_show_proof" tools:ignore="MissingTranslation">Show me</string>
     <string name="net_dismiss" tools:ignore="MissingTranslation">Got it</string>
 
-    <string name="pref_network_title" tools:ignore="MissingTranslation">Network</string>
-    <string name="pref_network_summary" tools:ignore="MissingTranslation">What this build can reach, and proof of it</string>
+    <string name="pref_network_title">Network</string>
+    <string name="pref_network_summary">What this build can reach, and proof of it</string>
     <string name="net_mode_title" tools:ignore="MissingTranslation">Online features</string>
     <string name="net_mode_on" tools:ignore="MissingTranslation">On — GIF search and AI text tools can reach the internet</string>
     <string name="net_mode_off" tools:ignore="MissingTranslation">Off — RimBoard makes no network requests</string>
@@ -411,29 +411,29 @@ Your search words or selected text go to the service that answers them. Nothing 
     <string name="net_log_session_only" tools:ignore="MissingTranslation">The list below covers this session only; the total above is kept across restarts.</string>
     <string name="net_log_entry" tools:ignore="MissingTranslation">%1$s → %2$s</string>
 
-    <string name="ai_needs_selection" tools:ignore="MissingTranslation">Select the text you want translated first</string>
-    <string name="ai_translating" tools:ignore="MissingTranslation">Translating…</string>
-    <string name="ai_proofreading" tools:ignore="MissingTranslation">Proofreading…</string>
-    <string name="ai_incognito" tools:ignore="MissingTranslation">Not available in incognito — it would send what you typed</string>
-    <string name="ai_no_key" tools:ignore="MissingTranslation">Add your Anthropic API key in Settings → Network</string>
-    <string name="tb_proofread" tools:ignore="MissingTranslation">Proofread</string>
+    <string name="ai_needs_selection">Select the text you want translated first</string>
+    <string name="ai_translating">Translating…</string>
+    <string name="ai_proofreading">Proofreading…</string>
+    <string name="ai_incognito">Not available in incognito — it would send what you typed</string>
+    <string name="ai_no_key">Add your Anthropic API key in Settings → Network</string>
+    <string name="tb_proofread">Proofread</string>
     <!-- Shared by translate and proofread, so deliberately not named after
          either one — they used to say "Translation failed" for both. -->
-    <string name="ai_failed" tools:ignore="MissingTranslation">Could not finish: %1$s</string>
-    <string name="ai_moved_on" tools:ignore="MissingTranslation">Discarded — the text changed while it was being worked on</string>
+    <string name="ai_failed">Could not finish: %1$s</string>
+    <string name="ai_moved_on">Discarded — the text changed while it was being worked on</string>
 
-    <string name="pref_keys_header" tools:ignore="MissingTranslation">API keys</string>
-    <string name="pref_key_anthropic" tools:ignore="MissingTranslation">Anthropic API key</string>
-    <string name="pref_key_anthropic_none" tools:ignore="MissingTranslation">Not set — optional, better quality for the 🌍 tool</string>
-    <string name="pref_key_libre" tools:ignore="MissingTranslation">LibreTranslate key (optional)</string>
-    <string name="pref_key_libre_none" tools:ignore="MissingTranslation">Not set — only needed for the public LibreTranslate instance</string>
-    <string name="pref_key_note" tools:ignore="MissingTranslation">Translation works with no key at all. An Anthropic key is optional and used instead when set, for better quality and longer text. GIF search needs a KLIPY key. All keys are your own — there is no RimBoard server and no shared key — and are kept in private app storage, which Android encrypts until you unlock the phone. Whatever you translate is sent to the service that does it, exactly as with any online translator — unless you run your own.</string>
-    <string name="pref_key_save" tools:ignore="MissingTranslation">Save</string>
-    <string name="pref_key_clear" tools:ignore="MissingTranslation">Clear</string>
-    <string name="pref_key_saved" tools:ignore="MissingTranslation">Key saved</string>
-    <string name="pref_key_cleared" tools:ignore="MissingTranslation">Key cleared</string>
-    <string name="pref_key_klipy" tools:ignore="MissingTranslation">KLIPY API key</string>
-    <string name="pref_key_klipy_none" tools:ignore="MissingTranslation">Not set — GIF and sticker search need this</string>
+    <string name="pref_keys_header">API keys</string>
+    <string name="pref_key_anthropic">Anthropic API key</string>
+    <string name="pref_key_anthropic_none">Not set — optional, better quality for the 🌍 tool</string>
+    <string name="pref_key_libre">LibreTranslate key (optional)</string>
+    <string name="pref_key_libre_none">Not set — only needed for the public LibreTranslate instance</string>
+    <string name="pref_key_note">Translation works with no key at all. An Anthropic key is optional and used instead when set, for better quality and longer text. GIF search needs a KLIPY key. All keys are your own — there is no RimBoard server and no shared key — and are kept in private app storage, which Android encrypts until you unlock the phone. Whatever you translate is sent to the service that does it, exactly as with any online translator — unless you run your own.</string>
+    <string name="pref_key_save">Save</string>
+    <string name="pref_key_clear">Clear</string>
+    <string name="pref_key_saved">Key saved</string>
+    <string name="pref_key_cleared">Key cleared</string>
+    <string name="pref_key_klipy">KLIPY API key</string>
+    <string name="pref_key_klipy_none">Not set — GIF and sticker search need this</string>
 
     <!-- "GIF" is the same token in every locale RimBoard ships, so it is not
          a translation gap; the surrounding sentences below are. -->
@@ -441,19 +441,19 @@ Your search words or selected text go to the service that answers them. Nothing 
     <string name="net_device_offline" tools:ignore="MissingTranslation">your phone has no internet connection</string>
     <string name="net_unknown_error" tools:ignore="MissingTranslation">unknown error</string>
     <string name="net_locked" tools:ignore="MissingTranslation">Unlock your phone first — the API keys are encrypted until you do</string>
-    <string name="gif_pick_or_type" tools:ignore="MissingTranslation">Type to search</string>
-    <string name="gif_searching" tools:ignore="MissingTranslation">Searching…</string>
-    <string name="gif_none" tools:ignore="MissingTranslation">No GIFs found</string>
-    <string name="gif_failed" tools:ignore="MissingTranslation">GIF search failed: %1$s</string>
-    <string name="gif_inserting" tools:ignore="MissingTranslation">Inserting…</string>
-    <string name="gif_offline_build" tools:ignore="MissingTranslation">This is the offline build of RimBoard — it has no network access</string>
-    <string name="gif_network_off" tools:ignore="MissingTranslation">Turn on online features in Settings → Network</string>
-    <string name="gif_incognito" tools:ignore="MissingTranslation">Not available in incognito — a GIF search sends what you typed</string>
-    <string name="gif_no_key" tools:ignore="MissingTranslation">Add your KLIPY API key in Settings → Network</string>
-    <string name="gif_copied" tools:ignore="MissingTranslation">GIF copied — long-press the field and paste it</string>
-    <string name="gif_insert_failed" tools:ignore="MissingTranslation">Could not insert that GIF</string>
-    <string name="panel_close" tools:ignore="MissingTranslation">Back to keyboard</string>
-    <string name="gif_close" tools:ignore="MissingTranslation">Back to keyboard</string>
+    <string name="gif_pick_or_type">Type to search</string>
+    <string name="gif_searching">Searching…</string>
+    <string name="gif_none">No GIFs found</string>
+    <string name="gif_failed">GIF search failed: %1$s</string>
+    <string name="gif_inserting">Inserting…</string>
+    <string name="gif_offline_build">This is the offline build of RimBoard — it has no network access</string>
+    <string name="gif_network_off">Turn on online features in Settings → Network</string>
+    <string name="gif_incognito">Not available in incognito — a GIF search sends what you typed</string>
+    <string name="gif_no_key">Add your KLIPY API key in Settings → Network</string>
+    <string name="gif_copied">GIF copied — long-press the field and paste it</string>
+    <string name="gif_insert_failed">Could not insert that GIF</string>
+    <string name="panel_close">Back to keyboard</string>
+    <string name="gif_close">Back to keyboard</string>
     <string name="gif_attribution" translatable="false">Powered by KLIPY</string>
     <string name="pref_live_bg_title">Live background</string>
     <string name="pref_live_bg_summary">Animated, drawn behind the keys. Off by default because it draws while nothing is happening.</string>
