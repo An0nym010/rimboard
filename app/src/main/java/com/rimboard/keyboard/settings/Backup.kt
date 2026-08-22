@@ -5,6 +5,7 @@ import android.net.Uri
 import org.json.JSONArray
 import org.json.JSONObject
 import com.rimboard.keyboard.engine.UserData
+import com.rimboard.keyboard.model.BackupDoc
 import java.io.File
 
 /**
@@ -19,19 +20,7 @@ object Backup {
     /** Highest backup layout this build understands. */
     private const val FORMAT = 1
 
-    private val EXCLUDED = setOf(
-        Prefs.KEY_INCOGNITO_SESSION,
-        Prefs.KEY_PENDING_CLEAR,
-        Prefs.KEY_PENDING_RELOAD,
-        // Deliberately not carried between installs. Restoring a file is not
-        // the same act as consenting to network access, and a backup taken on
-        // an online build would otherwise switch a fresh install on without
-        // ever showing the choice. Leaving it out makes the new install ask.
-        Prefs.KEY_NET_MODE,
-        // A count of requests made by *this* install. Copying it forward would
-        // put someone else's number under a claim about your device.
-        Prefs.KEY_NET_SENT
-    )
+    private val EXCLUDED = BackupDoc.EXCLUDED
 
     fun export(context: Context, uri: Uri): Boolean {
         return try {
@@ -43,25 +32,7 @@ object Backup {
             root.put("format", FORMAT)
             root.put("exportedAt", System.currentTimeMillis())
 
-            val settings = JSONObject()
-            for ((key, value) in Prefs.get(context).all) {
-                if (key in EXCLUDED) continue
-                val entry = JSONObject()
-                when (value) {
-                    is Boolean -> { entry.put("t", "b"); entry.put("v", value) }
-                    is Int -> { entry.put("t", "i"); entry.put("v", value) }
-                    is Long -> { entry.put("t", "l"); entry.put("v", value) }
-                    is Float -> { entry.put("t", "f"); entry.put("v", value.toDouble()) }
-                    is String -> { entry.put("t", "s"); entry.put("v", value) }
-                    is Set<*> -> {
-                        entry.put("t", "set")
-                        entry.put("v", JSONArray(value.map { it.toString() }))
-                    }
-                    else -> continue
-                }
-                settings.put(key, entry)
-            }
-            root.put("settings", settings)
+            root.put("settings", BackupDoc.encodeSettings(Prefs.get(context).all))
             root.put("learned", readFileOrEmpty(File(UserData.dataDir(context), "learned.txt")))
             root.put("bigrams", readFileOrEmpty(File(UserData.dataDir(context), "bigrams.txt")))
             root.put("trigrams", readFileOrEmpty(File(UserData.dataDir(context), "trigrams.txt")))
@@ -84,12 +55,8 @@ object Backup {
                 it.readBytes().toString(Charsets.UTF_8)
             } ?: return false
             val root = JSONObject(text)
-            if (root.optString("app") != "RimBoard") return false
-            // Refuse a file written by a newer build rather than importing the
-            // parts that happen to still parse.
-            val format = root.optInt("format", 0)
-            if (format < 1 || format > FORMAT) {
-                android.util.Log.w(TAG, "unsupported backup format: $format")
+            BackupDoc.refuse(root)?.let {
+                android.util.Log.w(TAG, "backup refused: $it")
                 return false
             }
 
@@ -110,25 +77,27 @@ object Backup {
             // shortcuts simply do not work until the process is killed.
             Shortcuts.invalidate()
 
-            val settings = root.optJSONObject("settings") ?: JSONObject()
-            val editor = Prefs.get(context).edit()
-            val keys = settings.keys()
-            while (keys.hasNext()) {
-                val key = keys.next()
-                if (key in EXCLUDED) continue
-                val entry = settings.optJSONObject(key) ?: continue
-                when (entry.optString("t")) {
-                    "b" -> editor.putBoolean(key, entry.optBoolean("v"))
-                    "i" -> editor.putInt(key, entry.optInt("v"))
-                    "l" -> editor.putLong(key, entry.optLong("v"))
-                    "f" -> editor.putFloat(key, entry.optDouble("v").toFloat())
-                    "s" -> editor.putString(key, entry.optString("v"))
-                    "set" -> {
-                        val arr = entry.optJSONArray("v") ?: JSONArray()
-                        val set = HashSet<String>()
-                        for (i in 0 until arr.length()) set.add(arr.optString(i))
-                        editor.putStringSet(key, set)
-                    }
+            val incoming = BackupDoc.decodeSettings(root)
+            val prefs = Prefs.get(context)
+            val editor = prefs.edit()
+            // "This replaces your current settings", says the dialog before
+            // this runs, and until 2026-08-22 it did not: what the file held
+            // was written and everything else was left alone, so a preference
+            // changed after the backup was taken outlived the restore.
+            // Somebody restoring a backup is asking to be back where they
+            // were, and a setting that quietly persists is the one they will
+            // not think to look for.
+            for (key in BackupDoc.keysToRemove(prefs.all.keys, incoming.keys)) {
+                editor.remove(key)
+            }
+            for ((key, value) in incoming) {
+                when (value) {
+                    is Boolean -> editor.putBoolean(key, value)
+                    is Int -> editor.putInt(key, value)
+                    is Long -> editor.putLong(key, value)
+                    is Float -> editor.putFloat(key, value)
+                    is String -> editor.putString(key, value)
+                    is Set<*> -> editor.putStringSet(key, value.map { it.toString() }.toSet())
                 }
             }
             editor.apply()
