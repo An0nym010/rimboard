@@ -297,7 +297,7 @@
 
     <string name="pref_dicts_title">Dizionari estesi</string>
     <string name="pref_dicts_summary">Aggiungi l’elenco di parole più ampio di una lingua</string>
-    <string name="dicts_intro">Ogni lingua include 200.000 parole. L’elenco esteso contiene tutte le parole che compaiono almeno %1$d volte nel corpus di origine — due o tre volte tante — e soprattutto evita che la tastiera corregga parole insolite che hai digitato di proposito. I file scaricati restano su questo dispositivo.</string>
+    <string name="dicts_intro">Le lingue elencate qui includono 200.000 parole ciascuna. L’elenco esteso contiene tutte le parole che compaiono almeno %1$d volte nel corpus di origine — due o tre volte tante — e soprattutto evita che la tastiera corregga parole insolite che hai digitato di proposito. I file scaricati restano su questo dispositivo.</string>
     <string name="dicts_intro_offline">Questa versione non ha il permesso di accesso a Internet, quindi non può scaricare nulla. Scarica tu stesso il file da %2$s, poi selezionalo con Importa. Ognuno contiene tutte le parole che compaiono almeno %1$d volte nel corpus di origine. RimBoard lo verifica con un checksum incluso nell’app prima di installarlo.</string>
     <string name="dicts_none">Questa versione non include dizionari estesi.</string>
     <string name="dicts_working">In corso…</string>

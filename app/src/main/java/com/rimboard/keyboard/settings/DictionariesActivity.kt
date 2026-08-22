@@ -56,7 +56,10 @@ class DictionariesActivity : LocalisedActivity() {
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
             val lang = importing
             importing = null
-            if (uri != null && lang != null) install(lang) { readAll(uri) }
+            val entry = lang?.let { catalogue.forLang(it) }
+            if (uri != null && lang != null && entry != null) {
+                install(lang) { readPicked(uri, entry) }
+            }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -107,9 +110,21 @@ class DictionariesActivity : LocalisedActivity() {
         setContentView(root)
     }
 
-    /** Reads a picked document in full. Runs off the main thread. */
-    private fun readAll(uri: Uri): ByteArray =
-        contentResolver.openInputStream(uri).use { it!!.readBytes() }
+    /**
+     * Reads a picked document, refusing anything longer than the manifest
+     * promises. Runs off the main thread.
+     *
+     * The picker hands over whatever the user taps, and a file manager full of
+     * videos is one mis-tap away from a file that does not fit in memory --
+     * an OutOfMemoryError, which is an Error rather than an Exception and so
+     * would not have been caught by the install below either.
+     * [DictionaryStore.readAtMost] stops before that rather than after; an
+     * empty result then fails the hash check as the wrong file.
+     */
+    private fun readPicked(uri: Uri, entry: ExtendedDicts.Entry): ByteArray =
+        contentResolver.openInputStream(uri).use { input ->
+            DictionaryStore.readAtMost(input!!, entry.bytes) ?: ByteArray(0)
+        }
 
     /**
      * Runs [source] off the main thread and installs whatever it returns.
@@ -142,7 +157,13 @@ class DictionariesActivity : LocalisedActivity() {
                         toast(getString(R.string.dicts_wrong_file, name))
                     DictionaryStore.Refusal.CORRUPT -> toast(getString(R.string.dicts_corrupt))
                     DictionaryStore.Refusal.NO_SPACE -> toast(getString(R.string.dicts_no_space))
-                    DictionaryStore.Refusal.NOT_OFFERED -> toast(getString(R.string.dicts_failed))
+                    // Named for the door it came through. The offline build
+                    // has no download to fail, and telling somebody who just
+                    // picked a file that a download failed sends them looking
+                    // for a network problem they do not have.
+                    DictionaryStore.Refusal.NOT_OFFERED -> toast(
+                        getString(if (Net.capable) R.string.dicts_failed else R.string.dicts_corrupt)
+                    )
                 }
                 refresh()
             }

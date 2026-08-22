@@ -297,7 +297,7 @@
 
     <string name="pref_dicts_title">Dictionnaires étendus</string>
     <string name="pref_dicts_summary">Ajouter la liste de mots plus complète d’une langue</string>
-    <string name="dicts_intro">Chaque langue est livrée avec 200 000 mots. La liste étendue contient tous les mots vus au moins %1$d fois dans le corpus source — deux à trois fois plus — et évite surtout que le clavier corrige des mots inhabituels que vous avez tapés volontairement. Les téléchargements restent sur cet appareil.</string>
+    <string name="dicts_intro">Les langues listées ici sont livrées avec 200 000 mots chacune. La liste étendue contient tous les mots vus au moins %1$d fois dans le corpus source — deux à trois fois plus — et évite surtout que le clavier corrige des mots inhabituels que vous avez tapés volontairement. Les téléchargements restent sur cet appareil.</string>
     <string name="dicts_intro_offline">Cette version n’a pas la permission d’accès à Internet et ne peut donc rien télécharger. Récupérez vous-même le fichier depuis %2$s, puis sélectionnez-le avec Importer. Chacun contient tous les mots vus au moins %1$d fois dans le corpus source. RimBoard le vérifie avec une somme de contrôle intégrée à l’application avant de l’installer.</string>
     <string name="dicts_none">Cette version ne contient aucun dictionnaire étendu.</string>
     <string name="dicts_working">En cours…</string>

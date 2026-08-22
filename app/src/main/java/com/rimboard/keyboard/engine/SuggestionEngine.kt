@@ -9,9 +9,30 @@ class SuggestionsResult(
     val autocorrectIndex: Int   // index that would be committed on space, or -1
 )
 
+/**
+ * Which generation of word lists the process is holding.
+ *
+ * Part of every dictionary cache key, so moving it is the whole of the
+ * invalidation when a word list changes underneath — a personal-dictionary
+ * import, an extended dictionary installed or removed.
+ */
 object DictVersion {
-    @Volatile
-    var v = 0
+
+    private val n = java.util.concurrent.atomic.AtomicInteger()
+
+    /** Read on every dictionary lookup; a volatile read and nothing more. */
+    val v: Int get() = n.get()
+
+    /**
+     * Every word list in the process is stale from here.
+     *
+     * `v++` on a plain field is a read, an add and a write. Two installs
+     * finishing together could produce one increment between them, leaving a
+     * cache keyed to a generation neither of them wrote and serving the old
+     * list until something else moved it. Nothing here is hot enough for that
+     * to be worth a plain field.
+     */
+    fun bump(): Int = n.incrementAndGet()
 }
 
 class SuggestionEngine private constructor(

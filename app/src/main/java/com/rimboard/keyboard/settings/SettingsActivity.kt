@@ -835,7 +835,7 @@ class SettingsActivity : LocalisedActivity() {
                     }
                     java.io.File(com.rimboard.keyboard.engine.UserData.dataDir(ctx),
                         "userdict_" + lang + ".txt").writeText(out.toString())
-                    com.rimboard.keyboard.engine.DictVersion.v++
+                    com.rimboard.keyboard.engine.DictVersion.bump()
                     toast(ctx.getString(R.string.dict_saved, valid, lang))
                 } catch (e: Exception) {
                     android.util.Log.w("RimBoard", "dictionary import failed", e)

@@ -472,7 +472,7 @@ Your search words or selected text go to the service that answers them. Nothing 
     <!-- Extended dictionaries -->
     <string name="pref_dicts_title">Extended dictionaries</string>
     <string name="pref_dicts_summary">Add the deeper word list for a language</string>
-    <string name="dicts_intro">Every language ships with 200,000 words. The extended list holds every word the source corpus saw at least %1$d times — two to three times as many — which mostly stops the keyboard correcting away unusual words you typed on purpose. Downloads stay on this device.</string>
+    <string name="dicts_intro">The languages listed here ship with 200,000 words each. The extended list holds every word the source corpus saw at least %1$d times — two to three times as many — which mostly stops the keyboard correcting away unusual words you typed on purpose. Downloads stay on this device.</string>
     <string name="dicts_intro_offline">This build holds no internet permission, so it cannot download. Fetch a file yourself from %2$s, then use Import to pick it. Each holds every word the source corpus saw at least %1$d times. RimBoard checks it against a checksum built into the app before installing it.</string>
     <string name="dicts_none">This build lists no extended dictionaries.</string>
     <string name="dicts_working">Working…</string>

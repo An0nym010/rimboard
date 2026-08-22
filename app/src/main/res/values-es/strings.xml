@@ -297,7 +297,7 @@
 
     <string name="pref_dicts_title">Diccionarios ampliados</string>
     <string name="pref_dicts_summary">Añadir la lista de palabras más amplia de un idioma</string>
-    <string name="dicts_intro">Cada idioma incluye 200.000 palabras. La lista ampliada contiene todas las palabras que aparecen al menos %1$d veces en el corpus de origen, dos o tres veces más, y sobre todo evita que el teclado corrija palabras poco comunes que escribiste a propósito. Las descargas se quedan en este dispositivo.</string>
+    <string name="dicts_intro">Los idiomas de esta lista incluyen 200.000 palabras cada uno. La lista ampliada contiene todas las palabras que aparecen al menos %1$d veces en el corpus de origen, dos o tres veces más, y sobre todo evita que el teclado corrija palabras poco comunes que escribiste a propósito. Las descargas se quedan en este dispositivo.</string>
     <string name="dicts_intro_offline">Esta versión no tiene permiso de internet, así que no puede descargar nada. Consigue tú mismo el archivo en %2$s y elígelo con Importar. Cada uno contiene todas las palabras que aparecen al menos %1$d veces en el corpus de origen. RimBoard lo compara con una suma de verificación incluida en la app antes de instalarlo.</string>
     <string name="dicts_none">Esta versión no incluye diccionarios ampliados.</string>
     <string name="dicts_working">En curso…</string>

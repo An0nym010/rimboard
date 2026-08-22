@@ -307,7 +307,7 @@
 
     <string name="pref_dicts_title">Genişletilmiş sözlükler</string>
     <string name="pref_dicts_summary">Bir dil için daha kapsamlı kelime listesi ekle</string>
-    <string name="dicts_intro">Her dil 200.000 kelimeyle geliyor. Genişletilmiş listede, kaynak derlemde en az %1$d kez geçen bütün kelimeler var — iki ila üç katı. Asıl faydası, bilerek yazdığın alışılmadık kelimelerin otomatik düzeltmeyle değiştirilmesini önlemesi. İndirilen dosyalar bu cihazda kalır.</string>
+    <string name="dicts_intro">Burada listelenen diller 200.000 kelimeyle geliyor. Genişletilmiş listede, kaynak derlemde en az %1$d kez geçen bütün kelimeler var — iki ila üç katı. Asıl faydası, bilerek yazdığın alışılmadık kelimelerin otomatik düzeltmeyle değiştirilmesini önlemesi. İndirilen dosyalar bu cihazda kalır.</string>
     <string name="dicts_intro_offline">Bu sürümde internet izni yok, bu yüzden indirme yapamaz. Dosyayı %2$s adresinden kendin indir, sonra İçe aktar ile seç. Her dosyada, kaynak derlemde en az %1$d kez geçen bütün kelimeler bulunur. RimBoard, kurmadan önce dosyayı uygulamaya gömülü sağlama toplamıyla doğrular.</string>
     <string name="dicts_none">Bu sürümde genişletilmiş sözlük yok.</string>
     <string name="dicts_working">Devam ediyor…</string>

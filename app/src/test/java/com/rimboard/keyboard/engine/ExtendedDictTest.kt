@@ -172,6 +172,36 @@ class ExtendedDictTest {
         )
     }
 
+    @Test
+    fun `a file longer than the manifest promises is refused before it is held`() {
+        // The import path takes whatever the user picks out of a file manager.
+        // Reading it whole first and checking afterwards means a mis-tap on a
+        // video is an OutOfMemoryError -- an Error, not an Exception, so the
+        // catch around the install would not have caught it either.
+        val data = ByteArray(1000) { 7 }
+        assertNull(
+            "a file over the manifest size must not be read into memory",
+            DictionaryStore.readAtMost(data.inputStream(), 999)
+        )
+        assertEquals(1000, DictionaryStore.readAtMost(data.inputStream(), 1000)!!.size)
+    }
+
+    @Test
+    fun `a language code that is not a language code cannot name a file`() {
+        // The catalogue already refuses these, and this is the function that
+        // turns a code into a path, so it refuses them too. Two checks,
+        // because only one of them is next to the file write.
+        val blob = gzip(dictText())
+        for (lang in listOf("../../etc", "tr/../..", "TR", "", "t r")) {
+            assertEquals(
+                lang,
+                DictionaryStore.Refusal.NOT_OFFERED,
+                DictionaryStore.install(dir, entryFor(lang, blob), blob)
+            )
+        }
+        assertTrue(dir.listFiles().orEmpty().isEmpty())
+    }
+
     // ---- the override seam ------------------------------------------------
 
     @Test

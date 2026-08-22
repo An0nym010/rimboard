@@ -297,7 +297,7 @@
 
     <string name="pref_dicts_title">Erweiterte Wörterbücher</string>
     <string name="pref_dicts_summary">Die größere Wortliste einer Sprache hinzufügen</string>
-    <string name="dicts_intro">Jede Sprache bringt 200.000 Wörter mit. Die erweiterte Liste enthält jedes Wort, das im Quellkorpus mindestens %1$d Mal vorkommt — zwei- bis dreimal so viele. Vor allem verhindert sie, dass die Tastatur ungewöhnliche Wörter wegkorrigiert, die du absichtlich getippt hast. Heruntergeladene Dateien bleiben auf diesem Gerät.</string>
+    <string name="dicts_intro">Die hier aufgeführten Sprachen bringen je 200.000 Wörter mit. Die erweiterte Liste enthält jedes Wort, das im Quellkorpus mindestens %1$d Mal vorkommt — zwei- bis dreimal so viele. Vor allem verhindert sie, dass die Tastatur ungewöhnliche Wörter wegkorrigiert, die du absichtlich getippt hast. Heruntergeladene Dateien bleiben auf diesem Gerät.</string>
     <string name="dicts_intro_offline">Diese Version hat keine Internet-Berechtigung und kann deshalb nichts herunterladen. Hol dir die Datei selbst von %2$s und wähle sie mit „Importieren“ aus. Jede enthält jedes Wort, das im Quellkorpus mindestens %1$d Mal vorkommt. RimBoard prüft sie vor der Installation gegen eine in der App hinterlegte Prüfsumme.</string>
     <string name="dicts_none">Diese Version enthält keine erweiterten Wörterbücher.</string>
     <string name="dicts_working">Läuft…</string>

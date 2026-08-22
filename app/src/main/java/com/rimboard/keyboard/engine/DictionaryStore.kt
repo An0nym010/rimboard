@@ -55,6 +55,33 @@ object DictionaryStore {
      * is not decoration -- verifying, unpacking and refusing a file is the part
      * that can be wrong, and a unit test cannot hold a Context.
      */
+    /**
+     * Reads at most [max] bytes from [stream], or null if it holds more.
+     *
+     * The import path takes a file the user picked out of a file manager, and
+     * until this existed it read the whole thing into memory before checking
+     * anything about it. Point it at a video and the settings screen dies of
+     * an OutOfMemoryError — which is an Error, not an Exception, so the catch
+     * around the install would not have caught it either.
+     *
+     * The cap is the size the manifest promises, because the hash check
+     * demands exactly that many bytes: a longer file is already refused, and
+     * this refuses it before it costs anything.
+     */
+    fun readAtMost(stream: java.io.InputStream, max: Long): ByteArray? {
+        val out = java.io.ByteArrayOutputStream()
+        val buf = ByteArray(1 shl 16)
+        var total = 0L
+        while (true) {
+            val n = stream.read(buf)
+            if (n <= 0) break
+            total += n
+            if (total > max) return null
+            out.write(buf, 0, n)
+        }
+        return out.toByteArray()
+    }
+
     fun dir(c: Context): File = File(UserData.dataDir(c), "extdict")
 
     fun file(c: Context, lang: String): File = File(dir(c), "$lang.txt")
@@ -64,8 +91,6 @@ object DictionaryStore {
         dir.listFiles().orEmpty()
             .filter { it.isFile && it.name.endsWith(".txt") && it.length() > 0 }
             .mapTo(HashSet()) { it.name.removeSuffix(".txt") }
-
-    fun installed(c: Context): Set<String> = installed(dir(c))
 
     fun isInstalled(c: Context, lang: String): Boolean = file(c, lang).length() > 0
 
@@ -107,15 +132,32 @@ object DictionaryStore {
         // in the cache key, so this is the whole of the invalidation -- and it
         // happens here rather than inside the file work so that the tests
         // exercise the refusals without reaching into a global.
-        if (refusal == null) DictVersion.v++
+        if (refusal == null) DictVersion.bump()
         return refusal
     }
 
     fun install(dir: File, entry: ExtendedDicts.Entry, gz: ByteArray): Refusal? {
+        // The catalogue validates this, and this is the function that turns a
+        // language code into a path. Two checks, because only one of them is
+        // next to the file write.
+        if (entry.lang.isEmpty() || entry.lang.any { it !in 'a'..'z' }) {
+            return Refusal.NOT_OFFERED
+        }
         if (!ExtendedDicts.accepts(entry, gz)) return Refusal.WRONG_FILE
-        val tmp = File(dir, entry.lang + ".part")
+        dir.mkdirs()
+        // A private working file per attempt, not one named after the
+        // language. Two installs of the same language can overlap -- rotate
+        // the phone mid-download and the screen comes back with its busy set
+        // empty, so the button is live again -- and a shared working file
+        // means two unpackers writing one path, with a rename at the end of
+        // each. The hash was checked against the bytes in memory, so what
+        // landed on disk could be an interleaving of both and still pass the
+        // format check.
+        // Named here rather than by File.createTempFile, which demands a
+        // prefix of at least three characters and so rejects every language
+        // code this app has. Caught by four existing tests going red.
+        val tmp = File(dir, entry.lang + "-" + System.nanoTime() + ".part")
         return try {
-            dir.mkdirs()
             var words = 0
             var first: String? = null
             tmp.outputStream().buffered().use { out ->
@@ -165,14 +207,7 @@ object DictionaryStore {
     fun remove(c: Context, lang: String): Boolean {
         val f = file(c, lang)
         val gone = !f.exists() || f.delete()
-        if (gone) DictVersion.v++
+        if (gone) DictVersion.bump()
         return gone
     }
-
-    /** Bytes on disk under [dir]. */
-    fun bytesUsed(dir: File): Long =
-        dir.listFiles().orEmpty().filter { it.isFile }.sumOf { it.length() }
-
-    /** Bytes currently held on disk, for the settings screen to show. */
-    fun bytesUsed(c: Context): Long = bytesUsed(dir(c))
 }

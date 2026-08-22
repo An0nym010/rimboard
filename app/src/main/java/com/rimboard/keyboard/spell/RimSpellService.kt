@@ -4,6 +4,7 @@ import android.service.textservice.SpellCheckerService
 import android.view.textservice.SentenceSuggestionsInfo
 import android.view.textservice.SuggestionsInfo
 import android.view.textservice.TextInfo
+import com.rimboard.keyboard.engine.DictVersion
 import com.rimboard.keyboard.engine.SuggestionEngine
 import com.rimboard.keyboard.engine.UserData
 import com.rimboard.keyboard.model.Languages
@@ -402,7 +403,28 @@ class RimSpellService : SpellCheckerService() {
              * ranking arrived. This entry became necessary the same way. **When
              * a verdict gains an input, come back here.**
              */
-            val cautious: Boolean
+            val cautious: Boolean,
+
+            /**
+             * Which dictionary answered.
+             *
+             * Fourth instance, and the first that was not here from the start
+             * of the session: the *word list itself* can now change under a
+             * live session. Importing personal words has always bumped
+             * [DictVersion], and extended dictionaries can be installed and
+             * removed from the settings screen — every one of those changes
+             * what "is this a word" means, and this cache was answering it
+             * from before.
+             *
+             * The symptom is quiet in the way this component's staleness
+             * always is: you add the words, come back to the field you had
+             * open, and they are still underlined — with nothing to do about
+             * it, because a session is only rebuilt when the field is.
+             *
+             * The counter is the same one the dictionary cache is keyed on, so
+             * the two cannot disagree about which list is current.
+             */
+            val dict: Int
         )
 
 
@@ -425,7 +447,8 @@ class RimSpellService : SpellCheckerService() {
             val ask = Ask(
                 word, prev, prev2, next, sentenceInitial, suggestionsLimit,
                 contextual = engine.predictionsReady(lang),
-                cautious = engine.cautiousAutocorrect
+                cautious = engine.cautiousAutocorrect,
+                dict = DictVersion.v
             )
             var v = verdicts.get(ask)
             if (v == null) {

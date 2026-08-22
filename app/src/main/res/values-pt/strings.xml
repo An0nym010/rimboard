@@ -297,7 +297,7 @@
 
     <string name="pref_dicts_title">Dicionários estendidos</string>
     <string name="pref_dicts_summary">Adicionar a lista de palavras mais completa de um idioma</string>
-    <string name="dicts_intro">Cada idioma vem com 200.000 palavras. A lista estendida contém todas as palavras que aparecem pelo menos %1$d vezes no corpus de origem — duas a três vezes mais — e evita sobretudo que o teclado corrija palavras incomuns que você digitou de propósito. Os downloads ficam neste dispositivo.</string>
+    <string name="dicts_intro">Os idiomas listados aqui vêm com 200.000 palavras cada. A lista estendida contém todas as palavras que aparecem pelo menos %1$d vezes no corpus de origem — duas a três vezes mais — e evita sobretudo que o teclado corrija palavras incomuns que você digitou de propósito. Os downloads ficam neste dispositivo.</string>
     <string name="dicts_intro_offline">Esta versão não tem permissão de internet, então não pode baixar nada. Baixe o arquivo você mesmo em %2$s e escolha-o com Importar. Cada um contém todas as palavras que aparecem pelo menos %1$d vezes no corpus de origem. O RimBoard confere o arquivo com uma soma de verificação embutida no app antes de instalar.</string>
     <string name="dicts_none">Esta versão não inclui dicionários estendidos.</string>
     <string name="dicts_working">Em andamento…</string>
