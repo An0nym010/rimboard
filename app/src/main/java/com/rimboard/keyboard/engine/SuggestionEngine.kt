@@ -90,6 +90,16 @@ class SuggestionEngine private constructor(
          */
         private const val GLIDE_DEPTH = 24
 
+        /**
+         * How many words a swipe is allowed to offer.
+         *
+         * Three, because the suggestion strip has three slots and every caller
+         * of this takes three. Returning a fourth computed a candidate the user
+         * had no way to reach and quietly made the accuracy this is measured at
+         * look better than the accuracy anyone could use.
+         */
+        private const val GLIDE_OFFERED = 3
+
         /** The learned list is small; this is a bound, not a filter. */
         private const val GLIDE_PERSONAL_DEPTH = 12
 
@@ -1315,7 +1325,7 @@ class SuggestionEngine private constructor(
         val contextRank = contextRankFor(prevWord2, prevWord, lang, locale)
         return merged.entries
             .sortedByDescending { it.value + contextBonus(it.key, contextRank) }
-            .take(4)
+            .take(GLIDE_OFFERED)
             .map { it.key }
     }
 
