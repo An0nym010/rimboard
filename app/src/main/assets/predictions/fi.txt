@@ -73,13 +73,13 @@ todella	paljon hyvä hyvin kaunis pitkä vaikeaa
 siitä	että mitä on ei tulee miten
 tehdä	sitä sen tuota se töitä noin
 joka	päivä on aamu ei osaa tapauksessa
-mitään	muuta tekemistä ei mitä syytä käsitystä
+mitään	muuta tekemistä ei mitä syytä käsitystä yhteistä
 kuinka	monta paljon kauan pitkään vanha usein
 kanssa	naimisiin hän sinä niin on ja
 sinua	jos enää aina ei vastaan varten
 olisi	pitänyt parempi ollut voinut niin mennyt
 hyvä	ja mies ajatus idea ihminen vaimo
-tämän	ongelman kirjeen päivän vuoden kuvan elokuvan
+tämän	ongelman kirjeen päivän vuoden kuvan elokuvan maan
 mikä	on sinun oli tahansa tämä hänen
 oletko	sinä koskaan varma jo nähnyt ikinä
 vielä	kerran vähän yhden yksi ole jotain
@@ -167,7 +167,7 @@ jälkeen	kun hän on tulee me syvä
 ilman	häntä sinua minua heitä vettä että
 päivä	on päivältä sitten tänään jolloin ja
 ulos	huonon ikkunasta huoneesta täältä leikkimään tänä
-yhtä	suuri hyvin paljon suuriin kuin pitkä
+yhtä	suuri hyvin paljon suuriin kuin pitkä rikas
 tästä	kirjasta asiasta lähtien on ei väristä
 sinut	kotiin taas on onnelliseksi sinne uudestaan
 haluaa	mennä että olla ostaa tietää puhua
@@ -213,7 +213,7 @@ sai	hänet minut sinut potkut surmansa hyvän
 kaunis	nainen kuin tyttö päivä sana ilma
 totta	että kai puhuakseni puhutaan puhuen ettet
 kello	on kolmelta yhdeksän kuusi kahdeksan yhdeksältä
-ajan	myötä tasalla kulumaan kuluttua kysymys ja
+ajan	myötä tasalla kulumaan kuluttua kysymys ja partani
 yli	sata kymmenen viisi seitsemän tunnin vuoden
 tapahtui	eilen niin jotain lokakuuta minulle taas
 voinut	olla tehdä tulla mennä muuta uskoa
@@ -231,7 +231,7 @@ heidän	kanssaan täytyi oli täytyy on työnsä
 suuri	kuin määrä menestys ja osa maanjäristys
 pitänyt	kertoa tehdä mennä pitää olla jäädä
 yhtään	mitään rahaa enempää valokuvaa nopeampaa vettä
-käyttää	tätä kypärää sitä aina puhelintasi nimeä
+käyttää	tätä kypärää sitä aina puhelintasi nimeä painovoimaa
 tykkää	siitä puhua katsoa kuunnella olla minusta
 asuu	yksin täällä new pienessä aivan lähellä
 tiennyt	että mitä hänen sitä missä kuinka
@@ -585,7 +585,7 @@ autoa	vai ja
 muutaman	minuutin päivän vuoden viime sanan kuukauden
 vieläkin	liian niin aivan vihainen
 osaatko	puhua sinä soittaa sanoa laskea käyttää
-pelkää	koiria käärmeitä kaikkia sinua hämähäkkejä lentämistä
+pelkää	koiria käärmeitä kaikkia sinua hämähäkkejä lentämistä virheitä
 huoneessa	oli on ei ketään joku olevat
 syön	tämän yleensä illallista paljon mielelläni aamiaista
 rikas	kuin mies mutta enkä kun nainen
@@ -978,7 +978,7 @@ kesken	ja
 lounasta	yhdessä kanssani juuri
 tiesi	että mitä sen miksi ettei
 ketkä	ovat voittivat antoivat syövät tappoivat tulevat
-ken	on ei syö opetteli täyttää tietää
+ken	on ei syö opetteli täyttää tietää vaikuttaa
 lukee	sen paljon
 aiot	tehdä olla syödä mennä viettää illastaa
 avaa	se ovea ovi ikkuna suusi tuo
@@ -5515,7 +5515,7 @@ on ollut	todella sairaana poissa kiireinen kiireitä paljon
 mitä sinä	teet haluat teit sanoit oikein olet
 on vain	yksi vähän kaksi väliaikainen pieni muutamia
 meillä on	paljon vielä ollut ongelma vain kaksi
-ole mitään	tekemistä käsitystä mitä syytä järkeä muuta
+ole mitään	tekemistä käsitystä mitä syytä järkeä muuta hyötyä
 on niin	paljon kuuma kallis kiire sanoakseni iso
 on hyvin	kaunis likainen kylmää vaikeaa tärkeää pitkä
 kuinka monta	kertaa ihmistä päivää tuntia lasta vuotta
@@ -11471,3 +11471,28 @@ heittää pyyhe	kehään
 pyyhe kehään	ja
 kehään ja	tehdä
 täysin kykenemätön	hyväksymään
+ministeri nimitti	erään
+pappi nimitti	erään
+jäsenet useammin	kuin
+suututti useammin	kuin
+nimesi erään	läheisen
+erään läheisen	ystävänsä
+tule pelätä	virheitä
+tavannut monia	ystäviä
+pitänyt voittaa	palkkio
+voittaa palkkio	koska
+jos isäni	ostaisi
+minulle kännykän	soittaisin
+kännykän soittaisin	hänelle
+minulle matkapuhelimen	soittaisin
+matkapuhelimen soittaisin	hänelle
+autoni jarrut	kaipaavat
+jarrut kaipaavat	huoltoa
+voivan auttaa	sinua
+maija eivät	tiedä
+kylmä mutta	niinhän
+tuossa kulman	takana
+tämä tavara	on
+tulkita millään	muulla
+kahvia sinä	joit
+tilanteessa mainita	vielä

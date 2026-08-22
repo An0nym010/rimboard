@@ -325,7 +325,7 @@ kommet	til tilbage hjem i for her
 æg	er i og til på rå
 kop	kaffe te
 fundet	en et den i ud det
-te	og eller med er i drikker
+te	og eller med er i drikker uden
 hørt	at om fra noget det den
 stort	hus og hul knus på træ
 spiller	på du klaver golf ikke jeg
@@ -8687,3 +8687,14 @@ fanden vil	de
 kommet godt	hjem
 hvad foretrækker	du
 hjerte af	sten
+hør godt	efter
+klare dig	uden
+fik ham	til
+fortalte i	mig
+foretrækker flere	og
+mennesker livet	på
+landet frem	for
+til selv	at
+britiske videnskabsmænd	har
+jeg fortæller	dig
+i los	angeles

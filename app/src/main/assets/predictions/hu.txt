@@ -361,7 +361,7 @@ kedves	volt és hogy tőled vagy ember
 időt	vesz töltesz tölt hogy töltök kell
 sokkal	jobban jobb több inkább fiatalabb többet
 fogja	tudni a ezt mondani tenni hagyni
-innen	a nem már az ezt gyalog
+innen	a nem már az ezt gyalog el
 mielőtt	még a elmész meghalt válaszolsz bárki
 add	ide fel meg át vissza a
 nézd	meg csak már a azt mit
@@ -829,7 +829,7 @@ rengeteg	pénzt ember időt a időnk dolgom
 étel	nem amit nagyon van a után
 zenét	hallgatni hallgatott hallgatok hallgat hallgatsz tanulni
 férfiak	nem és a mellett is olyanok
-bármit	is meg megtennék amit csinálsz megteszek
+bármit	is meg megtennék amit csinálsz megteszek megadna
 éreztem	magam hogy a magamat mintha jól
 esni	fog az kezdett vagy a
 ételt	a és hogy enni főzni nem
@@ -900,7 +900,7 @@ igazából	nem a még soha nincs semmi
 háború	alatt után a és az ellen
 kertben	van a egy dolgozni vannak játszanak
 vezetni	a és az ezt minket nem
-nehogy	már elfelejtsd azt túl valami elfelejtse
+nehogy	már elfelejtsd azt túl valami elfelejtse megfázz
 hiszed	hogy el magad vagy én nem
 kivel	mentél van beszéltél voltál mész beszélgettél
 eléggé	megköszönni a biztos váratlan jól fontos
@@ -966,7 +966,7 @@ szerelmes	vagyok volt vagy voltam belé lett
 játszik	a az velem szerepet aki veled
 oka	hogy a annak van volt amiért
 kit	érdekel láttam szeretsz látok ábrázol ismersz
-helyett	a inkább az mézet egy jobban
+helyett	a inkább az mézet egy jobban csak
 hiszek	a neked el az neki benne
 mondták	hogy nekem a el nem meg
 halál	után nem az elől között és
@@ -1167,7 +1167,7 @@ sokszor	nem láttam kevésbé meg a hallottam
 világban	élünk az él már nem minden
 fogd	be meg a már rövidre ezt
 indul	a az el most még
-kínai	kaját ételeket ételt vagy volt nagy
+kínai	kaját ételeket ételt vagy volt nagy vagyok
 függ	hogy a mit össze az mennyi
 semmilyen	problémát áldozatot körülmények ajándékot idegen választ
 gyereket	a az
@@ -1498,7 +1498,7 @@ fát	a ültetni kell vágni apám
 neved	a van nem is
 őrült	vagyok vagy egy volt hogy de
 megtanulni	egy a nem mint szörfözni
-időjárás	miatt nem a nagyon hirtelen
+időjárás	miatt nem a nagyon hirtelen befolyásolása
 teli	van volt szájjal vagyok a hassal
 akivel	együtt beszéltél csak akar valaha tegnap
 alacsony	a volt de vagyok és hőmérsékleten
@@ -1734,7 +1734,7 @@ ellopta	a az valaki
 hátsó	ajtón udvarban ülésre ajtót ülésen ajtó
 ágyba	és bújtam a bújjak bújt nem
 könyvek	a az közül vannak nagyon nélkül
-olasz	ételeket konyhát zenét az város a
+olasz	ételeket konyhát zenét az város a egy
 barna	haja a volt szeme hajam szemei
 leves	túl a nagyon volt
 ágy	alatt alá van a túl alól
@@ -1815,7 +1815,7 @@ ennyit	nem tudok a enni most
 töltöttem	a az hogy egy be
 okozott	nekem a az nekünk neki neked
 nőnek	a nem fák lenni az sem
-apró	darabokra betűket szívességet örömök részletekre
+apró	darabokra betűket szívességet örömök részletekre örömei
 szék	volt az alatt a még van
 fájdalmat	okoztál érzett érzek okoz okozni éreztem
 karácsony	előtt a előtti van az óta
@@ -1827,7 +1827,7 @@ egyből	a hogy felismertem
 tettek	mintha a fel mezejére meg embere
 szemed	és van világa amikor egy sírtál
 állsz	a ott neki
-intelligens	és ember mint de állatok emberek
+intelligens	és ember mint de állatok emberek mosópor
 borzalmas	volt a az baleset idő egy
 érzésem	hogy van volt mintha szerint támadt
 maradtam	a ott volna mert itthon egyedül
@@ -2076,7 +2076,7 @@ lakunk	a
 remény	hogy is hal a az
 meghalni	mint a
 autóját	a egy
-anyád	jut a életére is
+anyád	jut a életére is úristenit
 tűnsz	nekem túl nagyon úgy
 ébren	maradni vagy van voltam vagyok vannak
 vízben	oldódik és
@@ -2123,7 +2123,7 @@ munkája	van miatt nem és a
 megvenni	ezt a azt
 étterem	a ahol előtt
 főnököm	egy nagyon is
-szemei	vannak voltak mint és is
+szemei	vannak voltak mint és is könnyektől
 egyenesen	a előre és amikor az tőle
 ügyet	sem se az
 próbálok	segíteni neked a lenni megértő nem
@@ -2254,7 +2254,7 @@ ugyanúgy	a néznek néz
 fordult	elő a az meg
 értünk	egyet haza el a oda
 olcsóbb	mint a lett az lesz is
-errefelé	lakik a sok ritkán még egy
+errefelé	lakik a sok ritkán még egy nem
 véleményét	és nem de
 akartál	mondani velem valamit beszélni ezzel
 használják	a az ezt
@@ -2499,7 +2499,7 @@ mókus	a után és alakú
 vezetett	a be eredményre
 bűnös	mint vagyok
 távozott	a az közülünk
-kötelező	a
+kötelező	a érvényű
 végéig	maradni a
 hagy	nyugodni a engem maga el már
 sütit	süt a
@@ -2523,7 +2523,7 @@ cigarettát	szív és szívsz
 boldogságot	nem venni az kívánok
 szőke	haja nő herceg és nőket
 gazdasági	válság és fejlődés növekedés bevándorlók miniszter
-évre	növekszik választja van a szól
+évre	növekszik választja van a szól titkosította
 kelt	fel ki föl benned el az
 közülünk	senki a az való
 mondanod	nekem semmit neki az amit a
@@ -3008,7 +3008,7 @@ szóltam	a az neki volna neked hogy
 szólni	a kellene hogy ha akartam fogok
 visz	ez a el magával rá haza
 lift	nem az csak két
-oroszlán	a az között egész barlangjába
+oroszlán	a az között egész barlangjába háziállatként
 szeretet	és nem az nélkül
 elhatározta	hogy magát
 panaszkodik	a hogy az
@@ -3044,7 +3044,7 @@ abbahagyni	a az
 kabátot	viselt és visel hideg
 mindenkivel	szemben lefekszik
 segítettél	nekem neki a nekünk
-örök	életben hűséget szerelem barátok élet rejtély
+örök	életben hűséget szerelem barátok élet rejtély hálára
 öregember	a vagyok
 parton	van
 nyugati	világ média égbolt szél ember
@@ -3221,7 +3221,7 @@ fényt	az a és
 megnézem	a az mi hogy ki
 léteznek	a földönkívüliek
 iskolai	könyvtárból
-melegebb	van lesz vidékre mint volt lett
+melegebb	van lesz vidékre mint volt lett éghajlatra
 örült	hogy neki a az amikor volna
 árt	ha a az meg mint egy
 sikert	aratott kívánok
@@ -3272,7 +3272,7 @@ makacs	ember mint tud vagyok vagy ahhoz
 hánykor	van zár kezdődik indul
 nyilvánvaló	hogy volt
 anyag	a nem
-háborús	bűnös filmeket bűnökért
+háborús	bűnös filmeket bűnökért uszító
 lépni	a tilos sem
 regény	amit egy
 kezdem	a érteni már megszokni jobban
@@ -3379,7 +3379,7 @@ megjavítani	a az ezt
 dobozban	volt van
 érsz	rá el oda
 szólok	ha a hozzá neked neki
-mesterséges	intelligencia
+mesterséges	intelligencia intelligenciára
 előlem	a valamit azt
 szuper	jó volt vallás ötlet ez
 arrébb	a nem van
@@ -3417,7 +3417,7 @@ konyha	a van padlóján és
 várjuk	meg hogy a már ki
 látnak	el a szívesen szemeim minket
 gondolat	hogy
-házassági	évfordulónk évfordulója évfordulóját évfordulónkat ajánlatot
+házassági	évfordulónk évfordulója évfordulóját évfordulónkat ajánlatot évfordulójukat évfordulójukra
 vigyél	magaddal el haza minket egy
 bánt	a valami vele téged meg
 nyitni	az a ezt egy
@@ -3518,7 +3518,7 @@ fájt	a hogy
 szabadságot	a nem
 mindenről	tudok lemondtam tud
 állítani	hogy a az
-fizikai	munkát fájdalom képtelenség
+fizikai	munkát fájdalom képtelenség állapotnak
 gyakrabban	kellene kéne kell
 kezdünk	most is
 egyértelműen	a nem megmondani
@@ -3745,7 +3745,7 @@ megígérem	hogy nem
 beszélik	a hogy az
 kerülnek	a ezek az elő
 vennünk	a kell
-kérnem	tőled a hogy de
+kérnem	tőled a hogy de annától
 szüleimnek	hogy nem köszönhetem a
 kérdezel	ilyen én szerintem
 menő	vagy vallás csávó
@@ -4016,7 +4016,7 @@ telefonszámát	a
 nagyanyám	is
 hőség	van volt lesz miatt
 semmivel	sem nem
-hangokat	hallottam ad hallok hallott
+hangokat	hallottam ad hallok hallott hallat
 meghívott	egy a vacsorára engem minket az
 megígértem	hogy neked magamnak akkor meg
 tettünk	egy semmit
@@ -4099,7 +4099,7 @@ kétszáz	évvel dollár éve
 rizs	ára
 rakta	a fel
 vonatkozik	a
-testi	és sértés
+testi	és sértés fenyítés
 tapasztalata	van a
 falut	a az
 hagyjátok	abba az már hogy magatokat
@@ -5177,7 +5177,7 @@ meglátogatom	a az
 elkészíteni	a
 hajú	lány nő
 nagyapja	után nevelte
-bárkit	is
+bárkit	is meghívhatsz
 kíváncsiak	a vagyunk vagytok rá
 csirke	nem
 zavarban	van voltam vagyok volt
@@ -5387,7 +5387,7 @@ zokni	van vagy
 fogadom	el
 sírva	fakadt fakadok
 műsor	a
-véres	a volt lett
+véres	a volt lett hurkát
 fárasztó	volt munka nap
 semmin	sem nem meglepődni
 kihűl	a az
@@ -5860,7 +5860,7 @@ megcsókolt	téged egy
 felvett	egy
 repülnek	a
 mindezt	egyedül
-magamhoz	veszem
+magamhoz	veszem öleltem
 hagyhatom	hogy a cserben
 amig	nem csak ki
 érthetetlen	volt a módon
@@ -6179,7 +6179,7 @@ kezemben	van
 közeledik	a az
 jóban	vagyunk vagy
 levágta	a az
-bottal	jár
+bottal	jár üthetjük
 paraszt	a vagy
 farkát	és a
 ötödik	emeletre
@@ -7726,7 +7726,7 @@ demokratikus	ország
 láthatjuk	egymást a
 viszik	el az
 fecske	nem a
-szeresd	a őt
+szeresd	a őt felebarátodat
 lajos	a
 rendelkezésre	álló fog
 tiltott	gyümölcs
@@ -9417,7 +9417,7 @@ változtatott	volna
 hatalma	van
 öld	meg
 köszön	nekem
-bőrig	ázott
+bőrig	ázott áztam
 jótékony	célokra hatással
 megvágta	magát a
 zárnak	a
@@ -9779,7 +9779,7 @@ aggódnia	kellene
 kötöttek	a
 elfogadja	a
 nagynak	tűnik
-hálám	jeléül
+hálám	jeléül üldözzön
 kilátszik	a
 rávette	hogy
 fiókba	tettem
@@ -10163,7 +10163,7 @@ eljár	a
 fürödj	meg
 veszélye	fenyegeti
 fakad	a
-kudarcba	fulladt
+kudarcba	fulladt fulladtak
 sírban	van
 mézzel	több
 légből	kapott nyomtatott
@@ -11534,7 +11534,7 @@ kihasználja	a
 értékeljük	a
 meghívhatlak	egy
 kétséget	kizáróan
-virágba	borult
+virágba	borult borultak
 gondolkodnom	kell
 irigylésre	méltó
 levet	a
@@ -12076,7 +12076,7 @@ megjavítottad	a
 magyaráztam	el
 szeretnie	kell
 neveztél	engem
-négylevelű	lóhere
+négylevelű	lóhere lóherét
 érezhető	a
 bíznunk	kell
 sorsdöntő	lesz
@@ -14181,7 +14181,7 @@ kiegészítik	egymást
 buzz	aldrin
 ez a	könyv te ház nő legjobb hely
 ezt a	problémát munkát filmet levelet szót dalt
-van a	legközelebbi közelben házban szobában világon kertben
+van a	legközelebbi közelben házban szobában világon kertben dobozban
 hogy a	föld fia te világ dolgok saját
 meg a	problémát virágokat saját házi kezed nevét
 nem tudom	hogy mit mi miért elhinni a
@@ -14428,7 +14428,7 @@ nekem nem	kell tetszik jön megy volt ez
 már az	is új első a én egész
 nagyon jó	volt a barátok ötlet az hogy
 ez csak	egy a valami az neked időpocsékolás
-tele van	a az titkokkal vele energiával ötletekkel
+tele van	a az titkokkal vele energiával ötletekkel szorongással
 a második	világháború világháborúban emeleten legnagyobb alkalom az
 a sok	pénz pénzt ember közül hülye szép
 hogy ki	vagyok volt ő az vagy tette
@@ -14626,7 +14626,7 @@ minden reggel	a korán
 a házi	feladatát feladatot feladatokat feladat feladatom feladatod
 ki nem	állhatom állhatja megyek szarja állhattam állhatlak
 megvan a	maga saját lehetősége határa pénz
-láttam a	filmet hölgyet parkban nővéredet barátnőm kertben
+láttam a	filmet hölgyet parkban nővéredet barátnőm kertben napot
 egy pár	cipőt szót napig dolgot új órát
 ki van	a ott zárva itt kapcsolva még
 is van	egy a az ez olyan mint
@@ -14701,7 +14701,7 @@ nem voltak	túl ott még sokan titkai gyerekei
 hogy el	ne kell fog sem tudja akarsz
 hol vannak	a az most ők ennek
 légy szíves	a ne csukd kapcsold gyere magyarázd
-ebből a	könyvből szobából városból tanulság szögből szóból
+ebből a	könyvből szobából városból tanulság szögből szóból gyógyszerből
 a férfiak	nem a és is meg közül
 a probléma	az hogy nem megoldása a magától
 el sem	hiszem tudom tudod mondtam merem kezdtem
@@ -14880,7 +14880,7 @@ nem sok	értelme minden mindent pénz időt de
 a német	a fordítás
 hogy hívják	a ezt az őket azt önt
 kell neked	egy ez két a mindig valamit
-a szobában	van hogy nem csak sok a
+a szobában	van hogy nem csak sok a vaksötét
 ha ezt	a nem teszed megtudja előbb meg
 mondta a	tehén macska mókus király gyerekeknek magáét
 akkor nem	kell is voltam lesz tudtam megy
@@ -14895,7 +14895,7 @@ nem beszélek	jól olyan vele veled a az
 nem hallottam	semmit hogy róla a őt még
 lenne a	legjobb világ világgal segítségemre helyed számodra
 ha te	is nem ezt mondod most segítesz
-de csak	egy a azért ha akkor ritkán
+de csak	egy a azért ha akkor ritkán keveset
 is csak	egy a azt most húsz
 mert az	a emberek az ő nem is
 volt már	a ott olyan egy ön ilyen
@@ -14983,7 +14983,7 @@ sok mindent	kell láttam meg nem tudsz elmond
 ha valaki	nem meg ezt
 csukd be	az a magad azt
 azon a	napon helyen sarkon kis széken hegyen
-a tűz	mellé oka körül után nem és
+a tűz	mellé oka körül után nem és martalékává
 nem akarod	hogy tudni látni ezt elmondani azt
 ha én	nem is ezt azt lennék beszélek
 kell ezt	csinálni a csinálnom nekem használni megtennünk
@@ -15007,7 +15007,7 @@ nincs elég	pénzem pénzünk pénze időm fény hely
 nem ezt	vártam akartam mondtam a nem vártuk
 nem érek	rá én fel haza oda
 te egy	új kicsit igazi zseni jó angyal
-arra a	napra következtetésre kérdésre munkára lóra helyre
+arra a	napra következtetésre kérdésre munkára lóra helyre megállapításra
 ismeri a	várost nevét félelmet titkot különbséget feleségemet
 a madarak	a az már is énekét
 szükséged van	egy segítségre még a valamire rám
@@ -15072,7 +15072,7 @@ látom hogy	nem ez a te van
 olyan jól	mint a beszél tudnék
 amit meg	kell akarok akartam kellett tudok szeretnék
 a fia	egy a az halála megszületett született
-a fehér	ember házban házat por bor
+a fehér	ember házban házat por bor napernyő
 félek a	haláltól nagy repüléstől magasságtól jövőtől sötétben
 persze hogy	nem emlékszem az szeretem szeretlek tudom
 az előző	évben héten hónapban hétvégén életében órán
@@ -15105,7 +15105,7 @@ ugye nem	baj akarsz vagy esik fogsz csak
 ha nincs	semmi mit kedved bizonyíték hozzá más
 bocsáss meg	hogy de nem nekem neki ha
 még ha	nem a az meg esik
-ideje hogy	menjünk vegyél ágyba a
+ideje hogy	menjünk vegyél ágyba a kikapcsoljam elbeszélgessek
 a levelet	és a bár
 nem szeretnék	a itt beszélni olyan
 nekem nincs	szükségem időm semmi olyan bajom más
@@ -15257,7 +15257,7 @@ tedd a	kezed könyveidet
 mikor lesz	a kész vége már itt végre
 és ne	is tovább a szólj mozdulj legyen
 tartani a	száját szemem tempót
-a falu	ahol a közepén kovácsa határában legszebb
+a falu	ahol a közepén kovácsa határában legszebb egy
 nekem ezt	a az nem ne
 vagyok olyan	biztos fiatal mint jó hülye okos
 van elég	pénzünk időnk pénze pénzem pénzed pénz
@@ -15267,7 +15267,7 @@ nem tűnik	úgy túl ismerősnek nekem jogosnak nagyon
 jól van	na akkor így az a még
 a bal	kezem oldalon lábát karját kéz oldali
 fontos hogy	a mit melyik mindig az megnyerjük
-vége a	háborúnak játéknak szünetnek napnak nyárnak nyári
+vége a	háborúnak játéknak szünetnek napnak nyárnak nyári munkaidőnek
 a vihar	miatt után sok nagy
 a hír	járja hogy igaz gyorsan a
 a fák	között a nem mögött
@@ -15544,7 +15544,7 @@ az ügy	nem már nagy le
 vagy olyan	szép jó gyors hülye fáradt okos
 elfogyott a	pénze pénzem türelme türelmem pénz kraft
 el egy	történetet dalt
-mik a	terveid jó különbségek lehetőségeink
+mik a	terveid jó különbségek lehetőségeink feltételeid
 nem kérek	többet a bocsánatot kávét belőle
 miért is	nem van vagy
 én majd	tudom megmondom megcsinálom segítek beszélek a
@@ -15761,7 +15761,7 @@ van akkor	ha
 a nagybátyám	tíz egy
 vagy még	mindig nem elég itt
 a hétvégén	nem a is és
-az időjárás	nem a miatt hirtelen
+az időjárás	nem a miatt hirtelen befolyásolása
 nem fér	be bele a el hozzá
 maradt a	szájuk szemüvegem szája
 tíz perc	múlva alatt és késéssel elteltével
@@ -15860,7 +15860,7 @@ ne felejts	el
 az érzésem	hogy mintha
 vagy csak	úgy egy nem az
 nagyon örülök	hogy a ennek neki
-a női	mosdó wc lélek
+a női	mosdó wc lélek táskákban
 itt kell	lennie lenned keresnünk maradnunk lennem maradnom
 menj és	nézd beszélj mondd feküdj
 nem félek	a tőled az semmitől tőlük
@@ -16862,7 +16862,7 @@ könyv a	legjobb könyv tied
 ebbe az	országba iskolába üzletbe edénybe étterembe ügybe
 egész éjszaka	fent
 rég nem	láttalak láttam látott hallottam
-el lett	adva
+el lett	adva halasztva
 a szerencse	hogy nem fia
 amikor már	nem nincs
 nem képes	a
@@ -17225,7 +17225,7 @@ miért vagyok	itt ilyen én ma
 a fiad	egy
 el tudnád	mondani magyarázni ezt nekem
 a férjed	a
-a házassági	évfordulónk évfordulóját
+a házassági	évfordulónk évfordulóját évfordulójukra évfordulójukat
 le egy	kicsit pillanatra
 többé ne	gyere hazudj
 a hibát	amit követi követted követtem mint
@@ -17837,7 +17837,7 @@ erős szél	fújt fúj volt
 a kapu	előtt
 a szabályok	szerint azért
 hosszú haja	van volt
-hogy bármit	is
+hogy bármit	is megadna
 az életemet	is
 a római	birodalom
 nem adott	meg választ nekem neki
@@ -18474,7 +18474,7 @@ hát te	meg nem mit
 mintha egy	másik
 hol találtad	meg ezt
 mindjárt itt	van a vagyok lesznek vannak
-a ma	este esti
+a ma	este esti estit
 nagyon erős	a
 még sohasem	láttam voltam volt
 hinni hogy	a
@@ -19320,7 +19320,7 @@ nézi a	tévét
 sincs mi	az történt
 veled egy	személyes percet
 törvény határozza	meg
-a testi	és
+a testi	és fenyítés
 mindaddig amíg	az nem
 élet és	halál a
 idő lesz	holnap ma
@@ -20179,3 +20179,331 @@ fogom elfelejteni	a amit
 tönkretette az	életét életemet
 van azt	hiszem sem
 hogy többet	nem tud ne
+jogok	illetnek
+országos	népszavazás
+ördöggel	cimborál
+alkoholos	befolyásoltság
+alkalmi	munkákból
+nemzetbiztonsági	szolgálatok
+happy	enddel
+fenékig	tejfel
+mészáros	lőrinc
+szabadságvesztésre	ítélte
+ízlések	és
+tartózkodásom	alatt
+zokszó	nélkül
+bombáz	engem
+sétáltatja	a
+állampolgárnak	joga
+hegyezd	a
+külsejük	alapján
+nagymamámtól	kaptam
+frissítettem	a
+elhalasztottuk	a az
+szimbolizál	a
+fejtette	ki
+enyhült	a
+titkosította	az
+kiteszek	az
+eladási	mutatói
+megadna	egy
+fedezetlen	pénzzel
+médián	keresztül
+virágról	virágra
+desztillált	víz
+mutatója	van
+vaksötét	volt
+kőhajításnyira	lakik
+kikerülte	a
+kertelés	nélkül
+kiállta	a
+önmagukért	beszélnek
+levágatni	a
+ruházata	alapján
+megfogadni	a
+elszaporodtak	a
+könnyezett	a
+orromnál	fogva
+mosogattam	el
+terelődött	a
+becsukott	szemmel
+ablakunk	előtt
+leszaladt	a
+fázz	meg
+elapadt	a
+felrepült	az
+fértem	el
+elfecsérelt	idő
+kiegészítjük	egymást
+előhúzta	a
+elhisznek	a
+pincérként	dolgozik
+fuccs	a
+odasétált	a
+boldogító	igent
+feldíszíteni	a
+kétajtós	szekrény
+belerakta	a
+lilák	az
+kinyomtam	a
+ölelte	meg
+elhánytam	magam
+megnyíltak	az
+bámultuk	a
+címeres	ökör
+aránytalanul	nagy
+felvállalja	a
+kiszolgálják	a
+atombombák	és
+mosópor	azt
+titkárnőként	dolgozik
+utasíthattam	vissza
+felkapcsolni	a
+eloltotta	a
+levezető	elnök
+ébresszem	fel
+kötéssel	és
+elterült	a
+hamarkodd	el
+rávetette	magát
+bátraké	a
+betelik	a
+tönk	szélére
+leülte	a
+kalifa	a
+edgar	degas
+kinyitnia	az
+szétválasztotta	a
+sikerük	volt
+hiábavalóak	voltak
+kivasaltam	a
+valósítsd	meg
+odafutott	a
+elhalasztja	az
+sejtből	áll
+kitöltötted	a
+tanuljam	meg
+orrunknál	fogva
+emelete	van
+időtöltése	a
+levetkőztem	és
+cirmos	cica
+locsolja	a
+javítsátok	ki
+sírhatnékom	van
+üthetjük	a
+állatom	a
+kitakarítja	a
+hármótok	között
+beleszart	a
+meghalhattam	volna
+örökbefogadtak	egy
+megcsókoltuk	egymást
+szellőztesd	ki
+meghiúsította	a
+csaplak	be
+kétségeink	vannak
+megbízhatom	benned
+nehézségeim	vannak
+faggasd	már
+algák	miatt
+várhatnál	még
+főzöd	a
+fetrengett	a
+érdeklődők	száma
+beázott	a
+kipihented	magad
+tempóval	nem
+harmincnégy	éves
+zuhanyozás	közben
+kizártad	magad
+kreatívabb	a
+borotválkoztál	meg
+illetnek	meg
+tetős	ház
+csuktad	be
+leborult	a
+ámulok	és
+kivonultak	az
+háziasszonynak	is
+falumat	a
+megérkezek	a
+figyeljél	már
+felhajtott	egy
+lesöpörte	a
+szabadjon	megjegyeznem
+átírták	a
+letolta	a
+tolnom	kellett
+majomtól	származik
+hányast	adnál
+betegszik	meg
+csikkeket	a
+szaudi	király
+udvarolsz	nekem
+sípoló	hang
+leégés	volt
+tollait	hogy
+túrja	az
+csüccsenj	le
+kifejezésnek	a
+nyissad	ki
+nyomkodd	a
+iratkozz	fel
+kikeltek	a
+kérdőjelezz	meg
+lábujjhegyre	állt
+házammal	szemben
+sípcsonton	rúgta
+demokráciáért	minden
+terpeszben	állt
+fúrtak	a
+csodáltuk	a
+fokról	fokra
+kiszámította	a
+hódította	meg
+meglátogattunk	egy
+futkosott	a
+eloltja	a
+emberemlékezet	óta
+határidőn	belül
+letehetem	ide
+súlyban	van
+untatja	a
+jottányit	sem
+megmosod	a
+kutyául	érzem
+megszedte	magát
+rájárt	a
+leragad	a
+meghívhatsz	akit
+indulóban	volt
+állapítja	meg
+elnökéhez	a
+akadályoztatása	esetén
+bekapcsolhatom	a
+sminkeli	magát
+kikapcsoljam	a
+kicserélje	a
+elborította	a
+csillagzat	alatt
+megduplázni	a
+almában	él
+beleütközött	a
+válaszold	meg
+sértődtem	meg
+pua	a
+fejezhetném	ki
+megsétáltatom	a
+hangtompítós	fegyvert
+megünnepeltük	a
+fordíthatod	le
+halálomról	szóló
+rosszallóan	nézett
+ússzátok	meg
+előszedtem	a
+előérzete	volt
+programotok	van
+kutyasétáltatás	közben
+keltettelek	fel
+elbeszélgessek	a
+szégyeltem	magam
+bonyolította	a
+kerülhette	el
+csukod	be
+összeszűrte	a
+távollétem	alatt
+sebesültél	meg
+nevesd	ki
+árulnálak	el
+határozták	meg
+léptetett	életbe
+közelítsd	meg
+elégedj	meg
+kialudtam	magam
+miheztartás	végett
+megcsillant	a
+megerőltetned	magad
+csapkodott	a
+elvárnád	tőlem
+halogathatjuk	tovább
+kitömve	a
+ketrecekben	tartják
+tanulnivaló	van
+buzdítja	a
+kilehelte	a
+borotválod	a
+károsíthatja	a
+körbeveszi	a
+kettétörte	a
+megbeszélnivalóm	van
+szigetelni	a
+bekapcsolnád	a
+végzettségem	van
+átugorja	a
+talpunk	alatt
+kikotyogta	a
+röhögnöm	kell
+elkergette	az
+kapizsgálod	már
+beszédesebb	mint
+kiesek	a
+szétvet	az
+tériszonya	van
+vesztedbe	rohansz
+csatlakoztattam	a
+volga	a
+semmiségek	miatt
+láthatósági	mellényt
+szeld	fel
+kérdőjelezte	meg
+gyönyörködöm	a
+megmásszuk	a
+szeleteld	fel
+racionalitás	és
+kiírtották	az
+gyújtsak	rá
+figyelhető	meg
+kiolvadt	a
+megerőlteted	magad
+szennyesedet	a
+beleolvastam	a
+leolvadt	a
+beleszaladt	a
+szállásunk	a
+leszarta	egy
+bevigyelek	a
+fagyaszd	le
+befolyásoltság	alatt
+fejlesztenem	kell
+kezelitek	ti
+összeroskad	a
+megihatom	a
+benyomta	a
+pisai	ferde
+kiejtette	a
+belekapott	a
+térül	meg
+semelyikünk	sem
+váltós	autót
+elmondjunk	mindent
+feküdhetsz	itt
+dönthettem	volna
+idegenforgalmi	adót
+lecsukja	a
+népeddel	szemben
+marxot	hogy
+nő az	érdeklődők
+nagyon későn	jött
+szeretnéd tudni	hogy miért ki
+a döntést	a
+készített egy	fényképet képet
+gyere csak	ide
+mondani hol	van
+tudta mit	tegyen csináljon
+szóval nem	megy
+csak mondd	el meg
+időt tölt	a
+hogy házas	vagy vagyok voltál
+keresek egy	jó
+hogy tudja	hogy

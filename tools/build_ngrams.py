@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Add corpus-derived next-word predictions to the bundled models.
 
-    python tools/build_predictions.py     # hand-written model first
-    python tools/build_ngrams.py tr en    # then this, which merges into it
+    python tools/build_predictions.py       # hand-written model first
+    python tools/build_ngrams.py tr en      # then this, which merges into it
+    python tools/build_ngrams.py --check    # do the shipped models still agree
+                                            # with the shipped dictionaries?
 
 Why this exists
 ---------------
@@ -250,6 +252,86 @@ def build(lang):
     merge(lang, rows, starts)
 
 
+def check(lang):
+    """Does the shipped model still agree with the dictionary beside it?
+
+    Asked because the dictionaries grew after the models were built, so
+    [ordinary] had been rejecting words the app now knows. Rebuilding on the
+    bigger dictionaries added rows to ten of the twenty-two: Hungarian 328,
+    Ukrainian 32, Finnish 25, Danish 11, Polish 7, and a continuation or two
+    elsewhere. The other twelve gained nothing at all, because MIN_PAIR does
+    most of what the dictionary gate does -- a word rare enough to be missing
+    from a 100,000-entry list rarely has the same follower three times -- and
+    the languages that did gain are the agglutinative ones, where the words
+    the dictionary was missing were ordinary inflections rather than names.
+
+    The direction a rebuild *cannot* report is the other one. [merge] only
+    ever adds, so nothing tells you when a row should now be dropped -- and
+    that can happen without the corpus changing at all, because [ordinary]
+    divides a word's share of the corpus by its share of the dictionary and
+    the dictionary's total moves under it. Measured after this week's growth:
+    two rows in Dutch, two continuations in English -- and forty contexts in
+    Hungarian, whose dictionary doubled, so its denominator moved most. Some
+    of those are the detector working ("magyar" really is over-represented in
+    a language-learning corpus); the Dutch pair are ordinary words that merely
+    drifted over the line.
+
+    Nothing here removes them. [merge] is additive on purpose, because the
+    hand-written rows share the file with the corpus ones and a from-scratch
+    rebuild would have to tell them apart. Forty rows in twenty thousand is
+    not worth building that for -- but it is worth being able to see, which is
+    why this prints the count rather than the file staying quiet about it.
+
+    So: run this after changing a dictionary. Rebuild if the counts are large,
+    and know that a rebuild only adds.
+    """
+    code3 = ISO3.get(lang)
+    path = os.path.join(CACHE, code3 + "_sentences.tsv.bz2") if code3 else None
+    if not path or not os.path.exists(path):
+        return "%s: no cached corpus; run a build first" % lang
+    freq = dictionary(lang)
+    total_dict = sum(freq.values())
+    unigram = collections.Counter()
+    total_tokens = 0
+    for s in sentences(path):
+        for w in s.split():
+            w = w.strip(STRIP).lower()
+            if w and w.isalpha():
+                unigram[w] += 1
+                total_tokens += 1
+
+    def ordinary(w):
+        d = freq.get(w, 0)
+        if d == 0:
+            return False
+        return (unigram[w] / total_tokens) / (d / total_dict) <= OUTLIER
+
+    rows = 0
+    conts = 0
+    bad_ctx = []
+    bad_next = 0
+    p = os.path.join(ASSETS, "predictions", lang + ".txt")
+    with open(p, encoding="utf-8") as f:
+        for line in f:
+            if "\t" not in line:
+                continue
+            k, v = line.rstrip("\n").split("\t", 1)
+            nexts = v.split()
+            rows += 1
+            conts += len(nexts)
+            parts = k.split(" ")
+            # The opener row is keyed U+0001 and is not a corpus context.
+            if all(w.isalpha() for w in parts) and not all(ordinary(w) for w in parts):
+                bad_ctx.append(k)
+            bad_next += sum(1 for w in nexts if w.isalpha() and not ordinary(w))
+    note = "%s: %d rows, %d continuations" % (lang, rows, conts)
+    if bad_ctx or bad_next:
+        return note + " -- %d contexts and %d continuations would no longer qualify%s" % (
+            len(bad_ctx), bad_next,
+            (" (e.g. " + " ".join(bad_ctx[:4]) + ")") if bad_ctx else "")
+    return note + " -- agrees with the dictionary"
+
+
 def merge(lang, rows, starts):
     """Hand-written entries keep their place; corpus entries fill in behind."""
     p = os.path.join(ASSETS, "predictions", lang + ".txt")
@@ -293,7 +375,18 @@ def merge(lang, rows, starts):
 
 
 if __name__ == "__main__":
-    langs = sys.argv[1:] or ["tr", "en"]
+    args = list(sys.argv[1:])
+    checking = "--check" in args
+    langs = [a for a in args if not a.startswith("--")]
+    if not langs:
+        langs = list(ISO3.keys()) if checking else ["tr", "en"]
+    if checking:
+        for lang in langs:
+            try:
+                print(check(lang), flush=True)
+            except Exception as e:  # noqa: BLE001 - one language must not sink the run
+                print("%s: FAILED (%s: %s)" % (lang, type(e).__name__, e), flush=True)
+        sys.exit(0)
     failed = []
     for lang in langs:
         print(lang)

@@ -290,7 +290,7 @@ kocham	cię ją moją go to moich
 sposób	w żeby nie na mówienia jak
 jeść	więcej na tego surowe przez ryby
 chciałem	się żeby tylko zostać go tego
-byli	w na obecni bardzo dziećmi przeciwko
+byli	w na obecni bardzo dziećmi przeciwko zajęci
 były	otwarte w zamknięte tylko bardzo dla
 miejsce	jest w na dla gdzie do
 pracuje	w jako dla na od nad
@@ -437,7 +437,7 @@ dobra	od w z okazja wiadomość jak
 dziewczyna	jest w która z to ma
 mniej	więcej niż inteligentny czasu mięsa pieniędzy
 zeszłym	roku tygodniu miesiącu
-wolno	ci palić mi nam parkować biegać
+wolno	ci palić mi nam parkować biegać łamać
 trudno	jest mi było się go zrozumieć
 miejscu	nie w pracy
 którym	się nie on jest ci mieszka
@@ -465,7 +465,7 @@ ostatnio	wiele w jest nie bardzo zbyt
 żebym	się ci to mógł sobie poszedł
 wypadku	samochodowym nie była doszło samochodowego w
 samochodu	jest w
-przestań	się mnie mi narzekać udawać owijać
+przestań	się mnie mi narzekać udawać owijać płakać
 zaraz	po się będzie wrócę wracam tam
 john	jest nie i był lubi są
 jedną	z szansę noc kartę trzecią osobę
@@ -11459,3 +11459,10 @@ ci podziękować	za
 udało im	się
 w samą	porę
 zejdź na	dół
+chcesz mówić	jak
+czas wracać	do
+przy filiżance	kawy
+byłoby mi	miło
+państwo to	ja
+nie nazywam	się
+tych chłopców	to
