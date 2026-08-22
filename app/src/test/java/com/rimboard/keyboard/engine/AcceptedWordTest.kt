@@ -207,6 +207,24 @@ class AcceptedWordTest {
     }
 
     @Test
+    fun `a German compound is not corrected away either`() {
+        // The third caller of the same rule. Accepting a word and then
+        // overwriting it on the space bar is the worst of the three
+        // disagreements: "Nervenzelle" was accepted by the underline and
+        // committed as "Nervenzellen", and "Landtiere" was offered "Landeier".
+        val e = realEngine()
+        val de = java.util.Locale.GERMAN
+        for (w in listOf("nervenzelle", "landtiere", "bananenkuchen")) {
+            assertTrue("$w is ordinary German", e.acceptedWord(w, "de", de))
+            assertNull("$w must not be auto-committed over", e.correctionFor(w, "de", de))
+            assertTrue(
+                "$w must not be offered a correction on the strip",
+                e.correctionCandidates(w, "de", de, limit = 3).isEmpty()
+            )
+        }
+    }
+
+    @Test
     fun `a German compound is not offered as two words`() {
         // The other half of the same decision. Offering to put a space in
         // "Bananenkuchen" is offering to misspell it, and the strip and the

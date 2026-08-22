@@ -658,11 +658,14 @@ class SuggestionEngine private constructor(
         // the same precedence [acceptedWord] uses, because the doc on that
         // function promises the two agree about what counts as a word and a
         // split here would make it a liar.
-        if (attested == null && elongated == null &&
-            com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) {
-                dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
-            }
-        ) {
+        //
+        // [wellFormedWord] rather than the morphology rule alone, because
+        // German compounds are the same statement about the same word and
+        // were missed when they arrived: "Nervenzelle" was accepted by the
+        // underline and *overwritten by the space bar* with "Nervenzellen",
+        // and "Landtiere" was offered "Landeier". Three callers, one
+        // definition, so the promise above is structural rather than a habit.
+        if (attested == null && elongated == null && wellFormedWord(lower, lang, dict)) {
             return emptyList()
         }
         // Bilingual typing: never "correct" a word that is valid in the
