@@ -233,11 +233,15 @@ class StripAccuracyTest {
          * Measured 2026-08-23, keystrokes saved over 120 sentences of real
          * prose:
          *
-         *     arm           before the reserved slot   after
-         *     en blind              34.2%              34.6%
-         *     en context            43.1%              43.5%
-         *     tr blind              25.9%              27.9%
-         *     tr context            32.3%              34.2%
+         *     arm            at first measurement   now
+         *     en blind               34.2%            34.6%
+         *     en context             43.1%            43.5%
+         *     tr blind               25.9%            28.5%
+         *     tr context             32.3%            34.7%
+         *
+         * Two changes account for the difference: one slot reserved for
+         * finishing the word, and generated Turkish inflections anchored below
+         * the attested completions instead of above all but one of them.
          *
          * Only the blind arms are asserted on. The context arm is scored partly
          * on the register its own n-grams were counted from, so letting it hold
