@@ -87,6 +87,13 @@ class StripAccuracyTest {
     private fun sentences(lang: String, count: Int): List<String> =
         File(fixtures(), "prose_$lang.txt").readLines().filter { it.isNotBlank() }.take(count)
 
+    /** Every language with both a shipped dictionary and a prose fixture. */
+    private fun surveyLanguages(): List<String> =
+        File(assets(), "dictionaries").list().orEmpty()
+            .map { it.removeSuffix(".txt") }
+            .filter { File(fixtures(), "prose_$it.txt").isFile }
+            .sorted()
+
     /** How many slots the suggestion strip has. */
     private val SLOTS = 3
 
@@ -226,6 +233,66 @@ class StripAccuracyTest {
         )
     }
 
+    /**
+     * The same measure across every language that ships, blind.
+     *
+     * Two languages is not a survey, and which two were chosen was an accident
+     * of what the other benchmarks already used. English and Turkish turn out
+     * to sit at opposite ends of this, which is exactly the shape of sample
+     * that makes an average look like a fact.
+     *
+     * Blind only: the context arm needs the n-grams, which were counted from
+     * this same corpus, and running twenty-two contaminated numbers would say
+     * less than two honest ones. This is the completion path, out of domain,
+     * everywhere it ships.
+     *
+     * Measured 2026-08-23, keystrokes saved, worst first:
+     *
+     *     cs 26.3   sk 28.9   uk 29.2   hu 29.3   tr 29.4   ru 30.0
+     *     pl 30.0   es 31.4   fi 31.7   ro 32.1   hr 32.2   fr 32.2
+     *     no 32.7   de 32.9   it 32.9   da 33.8   pt 33.9   en 34.3
+     *     sv 36.3   el 37.1   nl 38.1   id 40.4
+     *
+     * The order is not noise, it is morphology. Every language in the bottom
+     * third inflects heavily -- Czech, Slovak, Ukrainian, Hungarian, Turkish,
+     * Russian, Polish -- and every language in the top third does not.
+     * Indonesian, which barely inflects at all, is fourteen points clear of
+     * Czech. **It is not a coverage problem:** `never` is 0% for every language
+     * at the bottom, so the word is always in the dictionary. It is prefix
+     * ambiguity. "kter-" in Czech continues a dozen ways that differ only in
+     * the ending, and mid-word the strip has two slots to spend on it, so the
+     * completion path is close to the best it can do without knowing which
+     * grammatical form is wanted -- which is exactly what context knows, and
+     * why Turkish gains nine points from it against English's nine and a half
+     * from a much better starting point.
+     */
+    @Test
+    fun `keystrokes saved in every language that ships`() {
+        val rows = ArrayList<Pair<String, Savings>>()
+        for (lang in surveyLanguages()) {
+            val locale = Locale.forLanguageTag(lang)
+            val corpus = sentences(lang, SURVEY_SENTENCES)
+            if (corpus.size < 25) continue
+            rows.add(lang to measure(lang, locale, corpus, withContext = false))
+        }
+        val report = rows.sortedBy { it.second.ksr }
+            .joinToString("\n") { (lang, s) -> s.line(lang) }
+        println(report)
+        println(
+            "median %.1f%%   worst %s   best %s".format(
+                rows.map { it.second.ksr }.sorted()[rows.size / 2] * 100,
+                rows.minByOrNull { it.second.ksr }?.first,
+                rows.maxByOrNull { it.second.ksr }?.first
+            )
+        )
+
+        assertTrue("the survey covered almost nothing:\n$report", rows.size >= 18)
+        assertTrue(
+            "a language has fallen below the floor.\n$report",
+            rows.all { it.second.ksr >= SURVEY_FLOOR }
+        )
+    }
+
     private companion object {
         /**
          * Under the worst honestly-measured arm, with room for corpus noise.
@@ -233,15 +300,18 @@ class StripAccuracyTest {
          * Measured 2026-08-23, keystrokes saved over 120 sentences of real
          * prose:
          *
-         *     arm            at first measurement   now
-         *     en blind               34.2%            34.6%
-         *     en context             43.1%            43.5%
-         *     tr blind               25.9%            28.5%
-         *     tr context             32.3%            34.7%
+         *     en blind 33.7%    en context 43.1%
+         *     tr blind 29.2%    tr context 38.1%
          *
-         * Two changes account for the difference: one slot reserved for
-         * finishing the word, and generated Turkish inflections anchored below
-         * the attested completions instead of above all but one of them.
+         * Two engine changes moved these: one slot reserved for finishing the
+         * word, and generated Turkish inflections anchored below the attested
+         * completions instead of above all but one of them. Between the two the
+         * *corpus* also changed -- the fixture builder went from rejecting any
+         * sentence with an interior capital (which throws away nearly all of
+         * German) to the outlier detector build_ngrams.py already used -- so
+         * the figures before that change are not comparable to these and are
+         * not reproduced here. The engine improvements they measured are
+         * separately pinned by the tests in SuggestionEngineTest.
          *
          * Only the blind arms are asserted on. The context arm is scored partly
          * on the register its own n-grams were counted from, so letting it hold
@@ -249,5 +319,25 @@ class StripAccuracyTest {
          * the model having seen prose like this before.
          */
         const val KSR_FLOOR = 0.25
+
+        /**
+         * Sentences per language in the survey.
+         *
+         * Fewer than the two-language arm uses, because twenty-two dictionaries
+         * have to be parsed and walked. It is enough to separate the languages
+         * from each other, which is all the survey is for; the arm above is
+         * where a number is read closely.
+         */
+        const val SURVEY_SENTENCES = 60
+
+        /**
+         * Under the worst language measured, with room for corpus noise.
+         *
+         * Czech at 26.3% is the floor-setter, not Turkish. That is worth
+         * saying because Turkish was assumed to be the worst case for two
+         * sessions on the strength of it being the one non-English language
+         * anything was measured on.
+         */
+        const val SURVEY_FLOOR = 0.22
     }
 }
