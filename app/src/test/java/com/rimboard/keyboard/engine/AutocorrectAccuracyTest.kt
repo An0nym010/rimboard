@@ -194,6 +194,21 @@ class AutocorrectAccuracyTest {
         //   tr: neighbour  97/96,  doubled  97/97,  dropped 90/88,
         //       swapped 100/100, first 96/96
         //
+        // Re-read 2026-08-23 and they have drifted, which is the point of
+        // writing them down:
+        //
+        //   en: neighbour 100/100, doubled 100/100, dropped 93/93,
+        //       swapped 100/100, first 91/91
+        //   tr: neighbour  97/96,  doubled  97/97,  dropped 91/89,
+        //       swapped 100/100, first 97/96
+        //
+        // English lost three points of DROPPED and two of FIRST; Turkish
+        // gained on DROPPED and FIRST. Neither was caused by anything measured
+        // here -- the changes in between were the German compound rule and the
+        // Turkish morphology guard, both of which move which words reach the
+        // corrector at all. Recorded rather than chased: the floor below is
+        // what this file promises, and these are the numbers it is at.
+        //
         // The Turkish column moved up once, and the reason is worth keeping:
         // nothing about the ranking changed. The morphology guard learned
         // vowel harmony and stopped peeling onto corpus noise, so seventy more

@@ -404,4 +404,73 @@ class SuggestionEngineTest {
             eng.correctionCandidates("naberr", "tr", tr, limit = 5)
         )
     }
+
+    // ---- a prefix is not a misspelling ----
+
+    @Test
+    fun `the strip always offers to finish the word it can finish`() {
+        // Typing "airport": at "airp" the strip used to offer "air" and "airs"
+        // -- two ways of deleting what had just been typed -- and left the
+        // commonest continuation in the dictionary off entirely. Both repairs
+        // are edit-distance 1 and both outranked a completion four letters
+        // longer, which is the right answer to the wrong question: mid-word,
+        // the user is not finished being wrong yet.
+        val assets = mapOf(
+            "dictionaries/en.txt" to "air 90000\nairs 40000\nairport 30000\nairplane 9000"
+        )
+        val out = engine(assets).suggestionsFor(
+            "airp", "en", en, allowAutocorrect = false, personalized = false
+        ).items
+        assertEquals("airp", out.first())
+        assertTrue("no continuation on the strip: $out", out.contains("airport"))
+    }
+
+    @Test
+    fun `the best repair keeps its slot when a continuation takes one`() {
+        // The rule gives a continuation *one* slot, not both. A prefix with a
+        // typo already in it still has to be repairable -- that is what
+        // byPrefixFuzzy is for, and undoing it here would trade one fault for
+        // another.
+        val assets = mapOf(
+            "dictionaries/en.txt" to "air 90000\nairs 40000\nairport 30000"
+        )
+        val out = engine(assets).suggestionsFor(
+            "airp", "en", en, allowAutocorrect = false, personalized = false
+        ).items
+        assertTrue("the repair was evicted too: $out", out.contains("air"))
+        assertTrue(out.contains("airport"))
+    }
+
+    @Test
+    fun `a finished word that is simply wrong is unaffected`() {
+        // Nothing in the dictionary continues "helko", so there is no
+        // continuation to reserve a slot for and the repairs keep both.
+        val assets = mapOf(
+            "dictionaries/en.txt" to "hello 90000\nhelp 40000\nheld 20000"
+        )
+        val out = engine(assets).suggestionsFor(
+            "helko", "en", en, allowAutocorrect = true, personalized = false
+        ).items
+        assertEquals("helko", out.first())
+        assertTrue("the repair was lost: $out", out.contains("hello"))
+    }
+
+    @Test
+    fun `what the space bar commits is never evicted from the strip`() {
+        // The autocorrect target is committed on a separator, and a chip that
+        // is not on the strip cannot be the one silently applied. Whatever the
+        // reservation rule displaces, it must not be that.
+        val assets = mapOf(
+            "dictionaries/en.txt" to "hello 90000\nhell 50000\nhelloworld 100"
+        )
+        val res = engine(assets).suggestionsFor(
+            "helo", "en", en, allowAutocorrect = true, personalized = false
+        )
+        if (res.autocorrectIndex >= 0) {
+            assertTrue(
+                "autocorrect index ${res.autocorrectIndex} is outside ${res.items}",
+                res.autocorrectIndex < res.items.size
+            )
+        }
+    }
 }
