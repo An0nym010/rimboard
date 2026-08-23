@@ -2,6 +2,7 @@ package com.rimboard.keyboard.engine
 
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -472,5 +473,54 @@ class SuggestionEngineTest {
                 res.autocorrectIndex < res.items.size
             )
         }
+    }
+
+    // ---- completing a word with an apostrophe in it ----
+
+    @Test
+    fun `an elided article completes into an ordinary word`() {
+        // French and Italian shape. The list holds the article with its
+        // apostrophe attached and the noun on its own, so the join needs no
+        // curated list and names no language -- it is two prefix lookups.
+        val fr = Locale.forLanguageTag("fr")
+        val assets = mapOf(
+            "dictionaries/fr.txt" to listOf(
+                "l' 3675406", "homme 90000", "hotel 40000", "qu' 2520219"
+            ).joinToString("\n")
+        )
+        val out = engine(assets).suggestionsFor(
+            "l'h", "fr", fr, allowAutocorrect = false, personalized = false
+        ).items
+        assertTrue("no elision was offered: " + out, out.contains("l'homme"))
+    }
+
+    @Test
+    fun `an English contraction completes from the curated list`() {
+        // The English shape cannot be generated. Both "don" + "'t" and
+        // "don" + "'s" are pairs of known entries, and a corpus that counted
+        // the suffixes apart makes 's the commoner -- so generating would
+        // offer "don's" first. Which suffix belongs to which stem is not in
+        // the lists, so it comes from Contractions.
+        val assets = mapOf(
+            "dictionaries/en.txt" to listOf(
+                "don 4158644", "'s 14291013", "'t 9628970"
+            ).joinToString(System.lineSeparator())
+        )
+        val out = engine(assets).suggestionsFor(
+            "don'", "en", en, allowAutocorrect = false, personalized = false
+        ).items
+        assertTrue("no contraction was offered: " + out, out.contains("don't"))
+        assertFalse("a generated non-word was offered: " + out, out.contains("don's"))
+    }
+
+    @Test
+    fun `an unknown article does not invent an elision`() {
+        val fr = Locale.forLanguageTag("fr")
+        val assets = mapOf("dictionaries/fr.txt" to "homme 90000")
+        val out = engine(assets).suggestionsFor(
+            "z'h", "fr", fr, allowAutocorrect = false, personalized = false
+        ).items
+        assertFalse("an elision was invented from an unknown head: " + out,
+            out.any { it.contains("'") && it != "z'h" })
     }
 }

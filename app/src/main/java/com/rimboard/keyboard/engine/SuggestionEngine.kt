@@ -100,6 +100,15 @@ class SuggestionEngine private constructor(
          */
         private const val GLIDE_OFFERED = 3
 
+        /**
+         * How far below an attested completion a joined elision ranks.
+         *
+         * The same argument as [MORPH_PENALTY] and the same number: the join is
+         * grammatical rather than counted, so an attested word of the same
+         * prefix -- if the corpus happens to hold one -- is the better guess.
+         */
+        private const val ELISION_PENALTY = 0.55
+
         /** The learned list is small; this is a bound, not a filter. */
         private const val GLIDE_PERSONAL_DEPTH = 12
 
@@ -1164,6 +1173,52 @@ class SuggestionEngine private constructor(
             val score = (f * completionFactor(w, contextRank)).toLong()
             val existing = merged[w]
             if (existing == null || existing < score) merged[w] = score
+        }
+
+        // A word with an apostrophe in it cannot be completed from the word
+        // list either, and for a related reason: the lists come from a corpus
+        // that split at the apostrophe, so they hold the halves and never the
+        // join. Typing "l'h" matched nothing at all, which is most of a French
+        // sentence.
+        //
+        // Both halves are looked up in whichever form the list stores them, so
+        // this generates nothing the dictionary cannot vouch for:
+        //
+        //  - **The elided article**, French and Italian: `l'`, `qu'`, `dell'`
+        //    are entries, so the tail is an ordinary prefix lookup and the two
+        //    are joined. Nothing is curated and nothing names a language.
+        //  - **The English contraction**, which cannot work that way. `don` and
+        //    `'t` are both entries and so are `don` and `'s`, and a corpus that
+        //    counted the suffixes separately makes `'s` the commoner -- so
+        //    generating would offer "don's" ahead of "don't". Which suffix goes
+        //    with which stem is knowledge the lists do not contain, so it comes
+        //    from [Contractions], which is curated and already existed for the
+        //    opposite direction.
+        val apos = lower.indexOfFirst { it == '\'' || it == '’' }
+        if (apos > 0 && apos < lower.length) {
+            val head = lower.substring(0, apos + 1)
+            val tail = lower.substring(apos + 1)
+            if (dict.frequency(head) >= Dictionary.STEM_MIN_FREQ) {
+                for ((w, f) in dict.byPrefix(tail.ifEmpty { "" }, COMPLETION_FETCH)) {
+                    if (tail.isEmpty()) break
+                    val joined = head + w
+                    if (userData.isBlocked(joined)) continue
+                    // Below an attested completion of the same prefix, on the
+                    // rare occasions there is one -- the join is grammatical
+                    // rather than counted.
+                    val score = (f * ELISION_PENALTY).toLong()
+                    if (merged[joined] == null) merged[joined] = maxOf(1L, score)
+                }
+            }
+            for (canonical in
+                com.rimboard.keyboard.model.Contractions.completionsFor(lang, lower)) {
+                if (userData.isBlocked(canonical)) continue
+                val stem = canonical.substringBefore('\'')
+                val f = dict.frequency(stem).toLong()
+                if (f > 0 && merged[canonical] == null) {
+                    merged[canonical] = maxOf(1L, (f * ELISION_PENALTY).toLong())
+                }
+            }
         }
 
         // An agglutinative language cannot be completed from a word list: the

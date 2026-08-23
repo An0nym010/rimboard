@@ -73,4 +73,33 @@ object Contractions {
      *  its unapostrophised form out of the completion suggestions. */
     fun isAutoBareForm(lang: String, wordLower: String): Boolean =
         auto[lang]?.containsKey(wordLower) == true
+
+    /**
+     * Contractions that begin with [prefixLower], commonest spelling first.
+     *
+     * The other direction of the same table. Restoring a missing apostrophe
+     * needs bare -> canonical; *completing* one somebody has already typed
+     * needs prefix -> canonical, and the answer is a curated list rather than
+     * anything derived, for a reason worth stating.
+     *
+     * The word lists hold `don` and `'t` but not `don't`, so a keyboard can
+     * tell that "don't" is a word (see [Elision]) without having any idea which
+     * suffix belongs to which stem. Generating them would offer "don's" ahead
+     * of "don't", because `'s` is the commoner suffix in a corpus that counted
+     * them separately. English contractions are a closed set of a few dozen; a
+     * list is the honest way to know them, and this one already existed.
+     */
+    fun completionsFor(lang: String, prefixLower: String): List<String> {
+        if (prefixLower.length < 2) return emptyList()
+        val out = LinkedHashSet<String>()
+        for (m in listOf(auto[lang], suggest[lang])) {
+            m ?: continue
+            for (canonical in m.values) {
+                if (canonical.startsWith(prefixLower) && canonical != prefixLower) {
+                    out.add(canonical)
+                }
+            }
+        }
+        return out.toList()
+    }
 }
