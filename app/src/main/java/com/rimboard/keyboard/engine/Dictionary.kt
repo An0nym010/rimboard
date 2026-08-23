@@ -488,7 +488,6 @@ class Dictionary(
 
     private val words: Array<String>
     private val freqs: IntArray
-    private val exact = HashSet<String>()
     /** Bare-letter form -> index of the most frequent accented word matching it. */
     private val foldedIndex = HashMap<String, Int>()
     /**
@@ -549,7 +548,6 @@ class Dictionary(
         entries.sortBy { it.first }
         words = Array(entries.size) { entries[it].first }
         freqs = IntArray(entries.size) { entries[it].second }
-        exact.addAll(words)
         // Character-transition model for adaptive tap targeting: how likely is
         // letter b to follow letter a in this language, weighted by ln(freq) so
         // common words dominate without drowning everything else. ' ' marks
@@ -623,7 +621,31 @@ class Dictionary(
 
     val size: Int get() = words.size
 
-    fun contains(wordLower: String): Boolean = exact.contains(wordLower)
+    fun contains(wordLower: String): Boolean = indexOf(wordLower) >= 0
+
+    /**
+     * Where [word] sits in the sorted word list, or -1.
+     *
+     * This replaced a `HashSet<String>` holding every word in the language.
+     * The set answered membership in one step and cost about half the memory
+     * of the whole dictionary to do it -- a hash node and a table slot per
+     * word, for a question the array beside it already answers, because the
+     * array is sorted and a binary search over three hundred thousand words is
+     * eighteen comparisons.
+     *
+     * Memory is not a nicety for an input method. It is the lowest-priority
+     * process on the device that the user can still see, and the way this app
+     * fails worst is to be killed and vanish mid-sentence.
+     */
+    fun indexOf(word: String): Int {
+        var lo = 0
+        var hi = words.size
+        while (lo < hi) {
+            val mid = (lo + hi) ushr 1
+            if (words[mid] < word) lo = mid + 1 else hi = mid
+        }
+        return if (lo < words.size && words[lo] == word) lo else -1
+    }
 
     /**
      * The accented dictionary word a bare-letter query spells, or null.
@@ -669,7 +691,7 @@ class Dictionary(
         // every lookup of every word that is in the dictionary.
         val i = foldedIndex[bareLower] ?: return null
         if (foldDiacritics(bareLower) != bareLower) return null // already accented
-        if (exact.contains(bareLower) &&
+        if (contains(bareLower) &&
             freqs[i].toLong() < BARE_KEY_RATIO * maxOf(1, freqOf(bareLower)).toLong()
         ) {
             return null
@@ -870,7 +892,7 @@ class Dictionary(
         for (i in 1 until typedLower.length) {
             val a = typedLower.substring(0, i)
             val b = typedLower.substring(i)
-            if (!exact.contains(a) || !exact.contains(b)) continue
+            if (!contains(a) || !contains(b)) continue
             val fa = freqOf(a)
             val fb = freqOf(b)
             if (fa < floorFor(a) || fb < floorFor(b)) continue
@@ -927,13 +949,8 @@ class Dictionary(
     }
 
     private fun freqOf(word: String): Int {
-        var lo = 0
-        var hi = words.size
-        while (lo < hi) {
-            val mid = (lo + hi) ushr 1
-            if (words[mid] < word) lo = mid + 1 else hi = mid
-        }
-        return if (lo < words.size && words[lo] == word) freqs[lo] else 0
+        val i = indexOf(word)
+        return if (i < 0) 0 else freqs[i]
     }
 
     /**
