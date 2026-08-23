@@ -316,6 +316,10 @@ class UserData private constructor(dir: File) {
     fun blockWord(word: String) {
         blocked.add(word)
         learned.remove(word)
+        // A pin outliving the word it pinned is a promise nobody made. It would
+        // also sit in the file for good, and quietly re-apply itself if the
+        // word were ever typed again.
+        pinned.remove(word)
         io.execute {
             flushLearned()
             flushBlocked()
@@ -325,9 +329,22 @@ class UserData private constructor(dir: File) {
     fun learnedEntries(): List<Pair<String, Int>> =
         learned.entries.sortedByDescending { it.value }.map { it.key to it.value }
 
-    /** [word] is a key as held here — what [learnedEntries] handed out. */
+    /**
+     * [word] is a key as held here — what [learnedEntries] handed out.
+     *
+     * This is somebody deleting a word from the personal dictionary screen, so
+     * it has to take the pin with it. Leaving one behind would mean the word
+     * came back unevictable if it were ever typed again, having been pinned by
+     * an act the user had since undone.
+     */
     fun removeLearned(word: String) {
-        if (learned.remove(word) != null) io.execute { flushLearned() }
+        val wasPinned = pinned.remove(word)
+        if (learned.remove(word) != null || wasPinned) {
+            io.execute {
+                flushLearned()
+                if (wasPinned) flushBlocked()
+            }
+        }
     }
 
     /**

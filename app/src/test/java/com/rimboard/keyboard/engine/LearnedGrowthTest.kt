@@ -84,6 +84,51 @@ class LearnedGrowthTest {
     }
 
     @Test
+    fun `deleting a word from the personal dictionary takes its pin with it`() {
+        // Found reviewing the change that added pinning rather than by it
+        // failing: a pin is set when somebody adds a word by hand and was
+        // cleared by nothing at all. So the pin outlived the word, sat in the
+        // file for good, and would have re-applied itself if the word were
+        // ever typed again — leaving it unevictable on the strength of an act
+        // the user had since undone.
+        //
+        // Ironic in a way worth recording: this was introduced while fixing
+        // another store that only ever grew.
+        val data = UserData.inDir(tmp.newFolder())
+        try {
+            data.addUserWord("Rimboard", java.util.Locale.US)
+            data.removeLearned("rimboard")
+            // Typed again afterwards, so it is back in the table as an
+            // ordinary word with an ordinary count.
+            repeat(2) { data.learnWord("rimboard") }
+            grow(data, words = 40_000, times = 5)
+            assertTrue(
+                "a deleted word came back pinned and survived the cap",
+                !data.isKnown("rimboard")
+            )
+        } finally {
+            data.shutdown()
+        }
+    }
+
+    @Test
+    fun `blocking a word takes its pin with it too`() {
+        val data = UserData.inDir(tmp.newFolder())
+        try {
+            data.addUserWord("Rimboard", java.util.Locale.US)
+            data.blockWord("rimboard")
+            repeat(2) { data.learnWord("rimboard") }
+            grow(data, words = 40_000, times = 5)
+            assertTrue(
+                "a blocked word came back pinned and survived the cap",
+                !data.isKnown("rimboard")
+            )
+        } finally {
+            data.shutdown()
+        }
+    }
+
+    @Test
     fun `a word the user added by hand outlives words that were merely typed`() {
         // addUserWord is somebody opening the personal dictionary and typing a
         // word in. Losing that to a cap is not a trade-off, it is a bug: the

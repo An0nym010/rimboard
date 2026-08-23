@@ -36,6 +36,16 @@ package com.rimboard.keyboard.model
  * `'t` are ordinary entries. The floor matters more than usual here because one
  * half is often a single letter, and a corpus has a stray entry for nearly
  * every letter.
+ *
+ * It does accept combinations nobody writes -- "in't" splits into two perfectly
+ * ordinary entries -- and that is a deliberate limit rather than an oversight.
+ * Knowing which suffix belongs to which stem is exactly what the word lists do
+ * not contain (see [Contractions], which exists because of it), so the choice is
+ * between accepting a few non-words and underlining every real contraction. The
+ * cost of the first is that a nonsense word goes unmarked; the cost of the
+ * second was every French sentence. It also takes a deliberately misplaced
+ * apostrophe to reach, which is not a slip a thumb makes: the key is not on the
+ * letter layer.
  */
 object Elision {
 
