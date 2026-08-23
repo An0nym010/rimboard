@@ -671,6 +671,53 @@ class AutocorrectAccuracyTest {
      * existed. That is the measurement that justified building this at all, and
      * it is why the floor below is on both arms: a threshold tuned to make one
      * of them look good is trivially achievable by wrecking the other.
+     *
+     * ## What the 15/16% average hides
+     *
+     * Read before tuning [Dictionary.AUTO_MAX_COST_PER_CHAR], because the
+     * single figure it is swept against describes a rate that varies fifty-fold
+     * across the corpus. Broken out by the length of the word being destroyed
+     * (150 unknown words per bucket, en/tr):
+     *
+     *     4 letters   14% / 33%        9 letters    0% /  3%
+     *     5 letters   31% / 48%       10 letters    1% /  5%
+     *     6 letters    8% / 17%       11 letters    0% /  5%
+     *     7 letters    3% /  7%       12 letters    0% /  1%
+     *     8 letters    3% /  8%       13 letters    0% /  0%
+     *
+     * **Destruction is a short-word problem**, and the intuition that the
+     * per-character bar gets slack on long words is wrong in practice: it does
+     * (one maximally-distant substitution clears it at eight letters and above,
+     * `cost 1.0 / 8 <= 0.14`), but a long unknown word has no near neighbour in
+     * the dictionary to be destroyed *toward*, so the slack is never spent. The
+     * peak at five letters is where a single deletion first becomes affordable
+     * — `ins` is 0.7 and the budget at five is 0.70.
+     *
+     * By the shape of the edit, over 1,200 unknown words (en/tr):
+     *
+     *     substitution   38% / 40%    of everything destroyed
+     *     deletion       48% / 39%    (drop-inner plus drop-last)
+     *     transposition   8% / 10%
+     *     insertion       7% /  6%
+     *
+     * **A measured dead end, recorded so nobody re-derives it.** Nearly half of
+     * destruction is the keyboard deleting a letter that was really struck —
+     * "thinks" committed as "think", "devam" as "deva", "karar" as "kara" —
+     * which looks like an obvious candidate for a veto, since the repair side
+     * only ever *needs* a deletion for a doubled letter, where the deleted
+     * character duplicates its neighbour. Refusing any other deletion at the
+     * auto-commit gate turns out to cost the entire stray-extra-key arm: a
+     * finger clipping the key next door is repaired by deleting a letter that
+     * duplicates nothing, and that is 95% of English and 97% of Turkish. The
+     * discriminator is not there. Measure the cost of a filter before building
+     * it, the same way a new score has to be checked for excluding anything.
+     *
+     * The remaining structure is a **data** property rather than a threshold:
+     * a large share of substitution targets are proper nouns the subtitle
+     * corpus is full of — "orada" destroyed to "prada", "names" to "james",
+     * "settle" to "seattle". The lists are lowercased, so nothing downstream
+     * can tell a name from a word; fixing that means regenerating the assets
+     * with a capitalisation ratio per word, not tuning a constant.
      */
     private data class CommitScore(
         val asked: Int, val fixed: Int, val alien: Int, val destroyed: Int

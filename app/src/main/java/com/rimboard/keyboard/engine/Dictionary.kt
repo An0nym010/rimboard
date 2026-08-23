@@ -1304,8 +1304,13 @@ class Dictionary(
      * Keyboard-weighted edit cost between the typed word and a candidate: the
      * minimum-cost alignment where a substitution costs [KeyProximity.cost] of
      * the two keys (0 same, ~0.35 adjacent, up to 1.0 far), an insertion or
-     * deletion costs 0.9, and a transposition costs 0.35. Lower means a more
+     * deletion costs 0.7, and a transposition costs 0.35. Lower means a more
      * plausible typo. With no proximity data it degrades to plain edit distance.
+     *
+     * The insertion figure said 0.9 here for a while after the sweep below
+     * moved it to 0.7 — the number a reader would have reached for when
+     * working out why a correction cleared the auto-commit bar. Both live
+     * inside this function; keep them in step.
      */
     private fun spatialCost(
         a: String, b: String, prox: KeyProximity?, touch: FloatArray? = null
