@@ -621,6 +621,16 @@ class Dictionary(
 
     val size: Int get() = words.size
 
+    /**
+     * How many words carry an accent, exposed for the footprint test.
+     *
+     * It is the one part of a loaded language whose size varies wildly by
+     * language rather than by word count -- 31,475 entries in Turkish, 8,080
+     * in German, none at all in English -- so a footprint that has moved is
+     * much easier to explain with it than without.
+     */
+    internal val foldedIndexSize: Int get() = foldedIndex.size
+
     fun contains(wordLower: String): Boolean = indexOf(wordLower) >= 0
 
     /**

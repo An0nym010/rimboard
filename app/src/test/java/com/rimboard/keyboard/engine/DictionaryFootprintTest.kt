@@ -44,6 +44,11 @@ import java.util.Locale
  * words into one char array with an offset index would take it to roughly 24
  * bytes a word, which is the obvious next thing and a much larger change than
  * deleting a redundant index.
+ *
+ * The diacritic index is printed beside each language because it is the one
+ * part of the total that varies by language rather than by word count, and so
+ * accounts for most of the difference between two lists of the same size. It
+ * is not the remaining bulk: English holds none of it and is the largest.
  */
 class DictionaryFootprintTest {
 
@@ -87,6 +92,7 @@ class DictionaryFootprintTest {
                         ((after - before) / maxOf(1, words)))
             )
             if (mb > worstMb) worstMb = mb
+            lines.append("    (diacritic index holds %,d of them)%n".format(d.foldedIndexSize))
             d = null
             // Keep the reference alive across the measurement above.
             if (d != null) throw IllegalStateException()
