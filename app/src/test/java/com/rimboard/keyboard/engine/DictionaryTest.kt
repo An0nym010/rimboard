@@ -4,6 +4,7 @@ import com.rimboard.keyboard.model.GlidePath
 import com.rimboard.keyboard.model.KeyProximity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -548,10 +549,47 @@ class DictionaryTest {
         }
         assertTrue("nothing was checked", checked > 1000)
 
-        // A word that is a strict prefix of a real one must not be found by
-        // being a prefix: that is what an offset landing one short looks like.
+        // An offset landing past the end of a word would let a longer string
+        // match it. A real word with an improbable tail on it must not be
+        // found, and "qqzz" is improbable in every alphabet this ships.
+        //
+        // The first version of this assertion appended a NUL character, which
+        // is trivially absent from any word list and so asserted nothing --
+        // and put a NUL byte in this source file, where grep stopped reading
+        // it as text at all.
         val longOne = all.first { it.length >= 8 }
-        assertEquals(false, d.contains(longOne.dropLast(1) + " "))
+        assertEquals(false, d.contains(longOne + "qqzz"))
+        assertEquals(false, d.contains(longOne.dropLast(1) + "qqzz"))
+    }
+
+    /**
+     * Folding an accent off a word, including the shortcut for words with none.
+     *
+     * `foldDiacritics` runs a Unicode normalisation, and it is asked about every
+     * word in the language at load and about two words on every keystroke that
+     * commits a correction. A word made only of ASCII cannot carry a combining
+     * mark and cannot be one of the atomic folds, so the answer is the word —
+     * but that shortcut is exactly the kind that is right for the wrong reason
+     * until somebody checks the accented half still works.
+     */
+    @Test
+    fun `folding removes accents and leaves plain words alone`() {
+        assertEquals("cafe", Dictionary.foldDiacritics("café"))
+        assertEquals("gunaydin", Dictionary.foldDiacritics("günaydın"))
+        assertEquals("zlutoucky", Dictionary.foldDiacritics("žluťoučký"))
+        // The atomic ones, which have no decomposition and are mapped by hand.
+        assertEquals("lodz", Dictionary.foldDiacritics("łodz"))
+        assertEquals("oster", Dictionary.foldDiacritics("øster"))
+
+        // The shortcut: a plain word comes back as itself, and comes back as
+        // the *same* string rather than a rebuilt copy.
+        val plain = "hello"
+        assertSame(plain, Dictionary.foldDiacritics(plain))
+        assertEquals("", Dictionary.foldDiacritics(""))
+        // Callers ask `foldDiacritics(x) != x` to mean "this had an accent",
+        // so the shortcut has to preserve that reading exactly.
+        assertTrue(Dictionary.foldDiacritics("café") != "café")
+        assertTrue(Dictionary.foldDiacritics("cafe") == "cafe")
     }
 
     /** Optimal string alignment, written the obvious way and nothing else. */

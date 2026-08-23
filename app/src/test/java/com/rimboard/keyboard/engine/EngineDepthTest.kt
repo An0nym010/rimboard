@@ -268,4 +268,43 @@ class EngineDepthTest {
             e.correctionCandidates("kitaplarimizdan", "tr", tr, limit = 1)
         )
     }
+
+    @Test
+    fun `a generated inflection ranks under an attested word, not over it`() {
+        // A generated form is grammatically certain and not attested, so when
+        // the corpus does happen to hold a word for the same prefix, the
+        // attested one is the better guess. The code said so in a comment while
+        // doing the opposite: it anchored generated forms to the *strongest*
+        // corpus score, which put them second overall — ahead of every attested
+        // completion but one.
+        //
+        // **Two** attested completions, deliberately, and the first version of
+        // this test had one. With a single corpus hit the strongest and the
+        // weakest score are the same number, so anchoring to either produced
+        // the same answer and the test passed with the fault reinstated —
+        // proving nothing at all.
+        //
+        // "kitaplarımız" is common and "kitaplardan" is rare; both are in the
+        // list. Anchored to the strongest corpus score, a form built from the
+        // stem outranks rare-but-real "kitaplardan" and takes its chip.
+        // Anchored to the weakest, it sits under both.
+        val e = engine(
+            mapOf(
+                "dictionaries/tr.txt" to listOf(
+                    "kitap 9000", "kitaplarımız 4000", "kitaplardan 100"
+                ).joinToString(System.lineSeparator())
+            )
+        )
+        // The prefix is three edits from the stem, so no correction competes
+        // for a chip -- with a shorter one, "kitap" itself arrives as a repair
+        // and takes the slot this is trying to watch.
+        val out = e.suggestionsFor(
+            "kitaplar", "tr", tr, allowAutocorrect = false, personalized = false
+        ).items
+        assertTrue("the common attested word is missing: $out", out.contains("kitaplarımız"))
+        assertTrue(
+            "a generated form took the chip belonging to a rare but real word: $out",
+            out.contains("kitaplardan")
+        )
+    }
 }
