@@ -71,6 +71,22 @@ class UserData private constructor(dir: File) {
         internal fun hardCapTotal(): Int = BIGRAM_CAP + TRIGRAM_CAP
 
         /**
+         * Words held before the least-used are dropped.
+         *
+         * Sized against what it is protecting rather than against a feeling:
+         * an active typing vocabulary runs to a few thousand distinct words, so
+         * twelve thousand keeps everything anyone actually uses and still bounds
+         * a file that is read at every cold start. The n-gram tables next to it
+         * are capped at four and six thousand contexts for the same reason.
+         */
+        private const val LEARNED_CAP = 12000
+
+        /** Above this, words seen only once are dropped whatever the cap says. */
+        private const val LEARNED_SOFT = 8000
+
+        internal fun learnedCap(): Int = LEARNED_CAP
+
+        /**
          * A word seen after this exact two-word context is much stronger
          * evidence than one seen after the previous word alone — "see you"
          * predicts "soon" even where "you" alone mostly precedes "are".
@@ -97,6 +113,7 @@ class UserData private constructor(dir: File) {
 
     private val learnedFile = File(dir, "learned.txt")
     private val blockedFile = File(dir, "blocked.txt")
+    private val pinnedFile = File(dir, "pinned.txt")
     private val bigramFile = File(dir, "bigrams.txt")
     private val trigramFile = File(dir, "trigrams.txt")
     private val io = Executors.newSingleThreadExecutor()
@@ -107,6 +124,24 @@ class UserData private constructor(dir: File) {
 
     private val learned = ConcurrentHashMap<String, Int>()
     private val blocked: MutableSet<String> = ConcurrentHashMap.newKeySet()
+
+    /**
+     * Words somebody typed into the personal dictionary screen by hand.
+     *
+     * [learned] is capped and evicts its least-used words, and without this
+     * these would be evictable like any other: a hand-added word starts at
+     * three uses and stays there, so it is among the *first* things a
+     * use-ordered eviction would take. Losing it is not a trade-off, it is a
+     * bug -- the entire point of that screen is that the keyboard stops
+     * arguing about the word.
+     *
+     * Deliberately not in the backup, which matches [blocked]. A restore
+     * therefore brings the word back (it is in learned.txt) without its pin,
+     * and an unpinned word is exactly as evictable as it was before any of
+     * this existed. Degrading to the old behaviour is a fair price for not
+     * versioning a fifth file into the backup format.
+     */
+    private val pinned: MutableSet<String> = ConcurrentHashMap.newKeySet()
     private val bigrams = ConcurrentHashMap<String, ConcurrentHashMap<String, Int>>()
 
     // Two-word context -> next-word counts, keyed "prev2 prev1". Trigram hits
@@ -131,6 +166,7 @@ class UserData private constructor(dir: File) {
      */
     fun reload(onLoaded: (() -> Unit)? = null) {
         blocked.clear()
+        pinned.clear()
         loadBlocked()
         io.execute {
             learned.clear()
@@ -149,6 +185,14 @@ class UserData private constructor(dir: File) {
             }
         } catch (_: Exception) {
         }
+        try {
+            // Absent on every install that predates pinning, which reads as
+            // "nothing is pinned" -- the behaviour those installs already had.
+            if (pinnedFile.exists()) {
+                pinnedFile.readLines().forEach { if (it.isNotBlank()) pinned.add(it.trim()) }
+            }
+        } catch (_: Exception) {
+        }
     }
 
     /**
@@ -158,7 +202,7 @@ class UserData private constructor(dir: File) {
      */
     private fun diskStamp(): Long {
         var h = 17L
-        for (f in listOf(learnedFile, blockedFile, bigramFile, trigramFile)) {
+        for (f in listOf(learnedFile, blockedFile, pinnedFile, bigramFile, trigramFile)) {
             h = h * 31 + f.lastModified()
             h = h * 31 + f.length()
         }
@@ -254,6 +298,9 @@ class UserData private constructor(dir: File) {
         dirty = true
     }
 
+    /** How many words are held, for the growth test. */
+    internal val learnedSize: Int get() = learned.size
+
     fun isKnown(word: String): Boolean = (learned[word] ?: 0) >= 2
 
     fun isBlocked(word: String): Boolean = blocked.contains(word)
@@ -298,6 +345,7 @@ class UserData private constructor(dir: File) {
         val w = word.trim().lowercase(locale)
         if (w.isEmpty()) return
         blocked.remove(w)
+        pinned.add(w)
         learned[w] = maxOf(learned[w] ?: 0, 3)
         io.execute {
             flushLearned()
@@ -317,6 +365,7 @@ class UserData private constructor(dir: File) {
     private fun flushBlocked() {
         try {
             writeAtomically(blockedFile, blocked.joinToString("\n"))
+            writeAtomically(pinnedFile, pinned.joinToString("\n"))
         } catch (_: Exception) {
         }
     }
@@ -600,9 +649,30 @@ class UserData private constructor(dir: File) {
         }
     }
 
+    /**
+     * Brings every table back under its cap, weakest first.
+     *
+     * The word table had no cap at all until this was measured: forty thousand
+     * distinct words typed twice each were all still held, because the only
+     * rule dropped words seen *once* and a word seen twice is not one. That is
+     * a file read at startup and a map held for the life of the process, both
+     * growing for as long as the keyboard is used -- the kind of fault that
+     * surfaces as "it got slow after a year" on somebody else's phone.
+     *
+     * Once-only words still go first and go on their own terms, before the cap
+     * is consulted: a word typed once is a typo or a proper noun passing
+     * through, and dropping it is right even when there is room.
+     */
     private fun pruneIfNeeded() {
-        if (learned.size > 8000) {
+        if (learned.size > LEARNED_SOFT) {
             learned.entries.filter { it.value <= 1 }.forEach { learned.remove(it.key) }
+        }
+        if (learned.size > LEARNED_CAP) {
+            learned.entries
+                .filter { it.key !in pinned }
+                .sortedBy { it.value }
+                .take(learned.size - LEARNED_CAP)
+                .forEach { learned.remove(it.key) }
         }
         evictWeakest(bigrams, BIGRAM_CAP)
         evictWeakest(trigrams, TRIGRAM_CAP)
@@ -630,6 +700,7 @@ class UserData private constructor(dir: File) {
     }
 
     fun clearAll() {
+        pinned.clear()
         learned.clear()
         bigrams.clear()
         trigrams.clear()
