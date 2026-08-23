@@ -385,6 +385,18 @@ class Dictionary(
          * (dotless ı, Polish ł, Scandinavian ø) are mapped explicitly.
          */
         fun foldDiacritics(s: String): String {
+            // Nothing below 0x80 decomposes, nothing below 0x80 is a combining
+            // mark, and every key of ATOMIC_FOLD is above it -- so for a purely
+            // ASCII string the answer is the string, and the identity is exact
+            // rather than close enough. Worth checking for because this is not
+            // a load-time function: autoCommitConfident asks it of two words on
+            // the keystroke that commits, and it otherwise runs a Unicode
+            // normalisation and builds two objects to hand back what it was
+            // given. English never leaves this branch; German leaves it for one
+            // word in seven.
+            var ascii = true
+            for (ch in s) if (ch.code >= 0x80) { ascii = false; break }
+            if (ascii) return s
             val decomposed = java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD)
             val sb = StringBuilder(decomposed.length)
             for (ch in decomposed) {

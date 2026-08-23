@@ -195,8 +195,97 @@ class StripLatencyTest {
         )
     }
 
+    /**
+     * How long after opening the keyboard the suggestions arrive.
+     *
+     * [SuggestionEngine.warm] loads the dictionary and the prediction model off
+     * the UI thread, so this never blocks a keystroke — what it delays is the
+     * strip having anything to say. Until then the keyboard types fine and
+     * suggests nothing, which is a worse first impression than a slow one.
+     *
+     * `warm` logs its own duration on a device and nothing had ever measured
+     * it, which is a fair description of most timing in this app before today.
+     * It is also the check on the store rewrite: the words moved from separate
+     * `String` objects into one concatenated array, and a load that copies two
+     * and a half million characters could easily have cost more than it saved.
+     * It did not — the same change deleted a three-hundred-thousand-entry
+     * `HashSet` build from the same constructor.
+     *
+     * ## Where the time goes
+     *
+     * Timed by phase, once, and worth not re-deriving: **sorting dominates**
+     * (19–78 ms), parsing is second (21–52 ms), and everything after them —
+     * building the store, the character-transition model, the length buckets
+     * and the diacritic index — is the rest. German and Turkish sort slowest
+     * because their words are longest and share the deepest prefixes, so a
+     * string comparison in the sort runs further before it decides.
+     *
+     * The one thing found and fixed here was in the phase after: `foldDiacritics`
+     * ran a Unicode normalisation and built two objects for every word in the
+     * language, including the ones with nothing to fold. An ASCII fast path took
+     * the worst language from 361 ms to 196.
+     *
+     *     de 337 -> 159 ms    cs 250 -> 119    tr 150 -> 177    en 117 -> 134
+     *
+     * The sort is the obvious remaining target and is deliberately left alone.
+     * It could be skipped entirely by shipping the word lists already in
+     * alphabetical order, but the extended dictionaries are published on a
+     * branch with their SHA-256 compiled into the APK, so re-ordering the
+     * format means re-publishing and re-pinning all thirteen of them. That is a
+     * lot of moving parts for a background load that happens once per process.
+     */
+    @Test
+    fun `how long until the strip has anything to say`() {
+        val lines = StringBuilder()
+        var worst = 0.0
+        for (lang in languages()) {
+            val text = File(assets(), "dictionaries/$lang.txt").readText()
+            val model = File(assets(), "predictions/$lang.txt").readText()
+            // One discarded build so the measurement is not the JIT's first
+            // sight of the parser.
+            Dictionary(text.byteInputStream(), null, Locale.forLanguageTag(lang))
+
+            val t0 = System.nanoTime()
+            val d = Dictionary(text.byteInputStream(), null, Locale.forLanguageTag(lang))
+            val dictMs = (System.nanoTime() - t0) / 1e6
+            val t1 = System.nanoTime()
+            val engine = realEngine(lang)
+            // The synchronous door to the prediction model; the keyboard's
+            // own path loads it on the warm thread for the same reason.
+            engine.predictions("", "i", lang, Locale.forLanguageTag(lang), 1)
+            val modelMs = (System.nanoTime() - t1) / 1e6
+
+            val total = dictMs + modelMs
+            if (total > worst) worst = total
+            lines.append(
+                "%-3s %,8d words   dictionary %6.0f ms   predictions %5.0f ms   total %6.0f ms\n"
+                    .format(lang, d.size, dictMs, modelMs, total)
+            )
+            if (model.isEmpty()) throw IllegalStateException("no model for $lang")
+        }
+        println(lines)
+        println("worst language: %.0f ms".format(worst))
+
+        assertTrue(
+            "cold start has regressed past the ceiling.\n$lines",
+            worst <= COLD_START_CEILING_MS
+        )
+    }
+
     private companion object {
         const val SENTENCES = 40
+
+        /**
+         * Above the slowest language measured, with room for a busy machine.
+         *
+         * This is a background load, so it buys nothing to be fast and costs a
+         * great deal to be slow: it is the window in which the keyboard types
+         * fine and suggests nothing. Turkish is the slowest at 196 ms, and load
+         * times move much more run to run than keystroke times do -- the same
+         * language has measured 117 and 134 ms in consecutive runs -- so this
+         * sits well clear rather than close.
+         */
+        const val COLD_START_CEILING_MS = 600.0
 
         /**
          * Above the worst language measured, with room for a noisy machine.
