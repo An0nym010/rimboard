@@ -330,4 +330,35 @@ class SpellJudgeTest {
             v.words.contains("bury"))
         assertFalse("but not recommended", recommended(v))
     }
+
+    @Test
+    fun `a contraction is a word, not a misspelling of one`() {
+        // The most visible fault this service has had. The keyboard treats an
+        // apostrophe as part of a word -- it has to, or "don't" would compose
+        // as two -- and the shipped lists come from subtitles, whose tokeniser
+        // split at the apostrophe. So the joined form was in no list, and the
+        // spell checker underlined "don't", "it's", "can't" and "we'll" in
+        // every app on the phone, offering donut, its, cant and well to
+        // replace them. French elides in nearly every sentence.
+        //
+        // The halves are what the list holds, so the halves are what is
+        // checked. Both must clear the same floor a compound part does.
+        val j = judge(mapOf(dict("don" to 4158644, "'t" to 9628970)))
+        val v = verdict(j, "don't")
+        assertTrue(
+            "a contraction was underlined; suggestions were " + v.words,
+            (v.attrs and SuggestionsInfo.RESULT_ATTR_IN_THE_DICTIONARY) != 0
+        )
+        assertTrue("a known word was given corrections", v.words.isEmpty())
+    }
+
+    @Test
+    fun `an apostrophe does not make any two words a word`() {
+        val j = judge(mapOf(dict("don" to 4158644, "'t" to 9628970)))
+        val v = verdict(j, "don'qwerty")
+        assertTrue(
+            "a word with an unknown half was called known",
+            (v.attrs and SuggestionsInfo.RESULT_ATTR_IN_THE_DICTIONARY) == 0
+        )
+    }
 }

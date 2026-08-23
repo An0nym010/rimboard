@@ -943,6 +943,9 @@ class SuggestionEngine private constructor(
             dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
         } || com.rimboard.keyboard.model.Compounds.splitOf(
             lang, lower, Dictionary.STEM_MIN_FREQ
+        ) { dict.frequency(it) } != null ||
+        com.rimboard.keyboard.model.Elision.splitOf(
+            lower, Dictionary.STEM_MIN_FREQ
         ) { dict.frequency(it) } != null
 
     /**
