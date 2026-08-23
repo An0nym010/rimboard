@@ -475,6 +475,64 @@ class SuggestionEngineTest {
         }
     }
 
+    // ---- swiping a word the user taught the keyboard ----
+
+    /** A straight-line swipe through each of [stops], sampled finely. */
+    private fun swipe(stops: String): com.rimboard.keyboard.model.GlidePath {
+        val prox = com.rimboard.keyboard.model.KeyProximity.forLang("en")
+        val pts = ArrayList<Float>()
+        for (i in 0 until stops.length - 1) {
+            val ax = prox.gridX(stops[i])!!
+            val ay = prox.gridY(stops[i])!!
+            val bx = prox.gridX(stops[i + 1])!!
+            val by = prox.gridY(stops[i + 1])!!
+            for (step in 0..11) {
+                val t = step / 11f
+                pts.add(ax + (bx - ax) * t)
+                pts.add(ay + (by - ay) * t)
+            }
+        }
+        return com.rimboard.keyboard.model.GlidePath.of(pts.toFloatArray(), prox)!!
+    }
+
+    @Test
+    fun `a learned word can be swiped though no dictionary has heard of it`() {
+        // Nothing was testing personalised gliding at all, and the scoring for
+        // it was rewritten: learned words used to be handed a score of 1.5e9,
+        // which put every one of them above every dictionary word whatever the
+        // finger drew. They are now placed on the dictionary's own frequency
+        // scale instead, and the risk of that is the opposite failure — a word
+        // somebody taught the keyboard becoming unglidable.
+        val e = engine(mapOf("dictionaries/en.txt" to "hello 9000"))
+        repeat(5) { userData.learnWord("wolfram") }
+        val out = e.glideFor(swipe("wolfram"), "en", en, personalized = true)
+        assertTrue("a learned word could not be swiped: $out", out.contains("wolfram"))
+    }
+
+    @Test
+    fun `a learned word that does not fit the path is not offered`() {
+        // The point of putting them on a scale rather than above it. Under the
+        // old rule a learned word matching by a much weaker test outranked the
+        // word the finger had actually drawn.
+        val e = engine(mapOf("dictionaries/en.txt" to "hello 9000"))
+        repeat(5) { userData.learnWord("wolfram") }
+        val out = e.glideFor(swipe("helo"), "en", en, personalized = true)
+        assertFalse("a learned word was offered for an unrelated swipe: $out",
+            out.contains("wolfram"))
+    }
+
+    @Test
+    fun `a common word still beats a learned one of the same shape`() {
+        // "helo" and "hello" are the same gesture — a finger cannot stop twice
+        // in one place — so only frequency separates them. The learned word
+        // gets a better starting position on that axis, not an exemption from
+        // it.
+        val e = engine(mapOf("dictionaries/en.txt" to "hello 900000"))
+        repeat(5) { userData.learnWord("helo") }
+        val out = e.glideFor(swipe("helo"), "en", en, personalized = true)
+        assertEquals("the commoner spelling should lead: $out", "hello", out.first())
+    }
+
     // ---- completing a word with an apostrophe in it ----
 
     @Test

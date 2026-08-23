@@ -523,14 +523,27 @@ class UserData private constructor(dir: File) {
      * The learned list is small enough to walk whole, so there is no reason for
      * a cheaper approximation to exist here.
      */
-    fun glideCandidates(path: GlidePath, limit: Int): List<Triple<String, Int, Double>> =
-        learned.entries.asSequence()
-            .filter { it.key.length >= 2 }
+    fun glideCandidates(path: GlidePath, limit: Int): List<Triple<String, Int, Double>> {
+        val startKeys = path.startKeys
+        val endKeys = path.endKeys
+        return learned.entries.asSequence()
+            .filter {
+                val w = it.key
+                // The same gate the dictionary scan applies, and it has to be
+                // the same one. Fit alone does not exclude anything -- every
+                // word made of letters this layout draws has *some* finite
+                // distance from *some* path -- so without this a learned word
+                // could be offered for a swipe it has nothing to do with. It
+                // was: teaching the keyboard "wolfram" put it on the strip
+                // after swiping "helo".
+                w.length >= 2 && startKeys.contains(w[0]) && endKeys.contains(w[w.length - 1])
+            }
             .map { Triple(it.key, it.value, path.costOf(it.key)) }
             .filter { !it.third.isInfinite() }
             .sortedBy { it.third }
             .take(limit)
             .toList()
+    }
 
     /**
      * Learned words within [maxDist] edits of [typedLower] — the user's own
