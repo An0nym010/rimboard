@@ -33,6 +33,21 @@ import kotlin.random.Random
  * reduces the path to the keys it crossed is free to do that, and pays for it
  * here only if crossing-order really does lose information — which is the
  * claim under test, not an assumption baked into the generator.
+ *
+ * ## Measured and rejected
+ *
+ * **Weighting the ends of the stroke more than the middle.** The first and last
+ * points are aimed at from and to rest, so they ought to be the most reliable,
+ * and a swipe of "hello" offering "help" first is exactly a last-letter
+ * confusion: p and o are adjacent, the two curves differ only in where they
+ * stop, and frequency settles it. Weighting the four points at each end by two,
+ * three and five times gave mean top-1 of 85.4, 85.5 and 85.2 against 85.5 for
+ * weighting nothing.
+ *
+ * The reason it cannot help is that the ends are also where *overshoot* lives:
+ * a finger that carries past its last letter puts those same points beyond it.
+ * Sharpening the ends helps the swipe that stopped cleanly and hurts the one
+ * that did not, and the two cancel.
  */
 class GlideAccuracyTest {
 
