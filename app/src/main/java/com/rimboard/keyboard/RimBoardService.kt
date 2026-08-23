@@ -41,6 +41,7 @@ import androidx.autofill.inline.v1.InlineSuggestionUi
 import com.rimboard.keyboard.model.InlineAutofill
 import com.rimboard.keyboard.model.ProseContext
 import com.rimboard.keyboard.model.SentenceContext
+import com.rimboard.keyboard.model.AutocorrectGate
 import com.rimboard.keyboard.model.Languages
 import com.rimboard.keyboard.model.LayoutKind
 import com.rimboard.keyboard.model.Layouts
@@ -1223,17 +1224,38 @@ class RimBoardService : InputMethodService(),
     private var identifierContext = false
 
     /**
-     * Whether autocorrect may *commit* here.
+     * Whether the separator may replace the composed word at all.
      *
      * Separate from [autocorrectActive], which answers whether the field wants
      * autocorrect at all. This answers whether the word does — see
      * [ProseContext]. Composition itself is left alone, so corrections are
      * still offered on the strip inside a URL; only applying one without a tap
      * is withdrawn.
+     *
+     * This is the wider of the two gates and is what lets a **shortcut** expand.
+     * See [AutocorrectGate], which owns both decisions and, unlike this class,
+     * can be executed by something other than a thumb.
      */
     private fun autocorrectMayCommit(separator: String = ""): Boolean =
-        autocorrectActive && !identifierContext &&
-            !ProseContext.separatorEndsIdentifier(separator)
+        AutocorrectGate.mayCommit(autocorrectActive, identifierContext, separator)
+
+    /**
+     * The narrower question: may the keyboard apply a guess of *its own*?
+     *
+     * Everything [autocorrectMayCommit] asks, plus the name rule — a
+     * capitalised word in mid-sentence is the user saying "this is a name".
+     * Read by the strip as well as the commit, because the bold chip is a
+     * promise about what the separator is going to do.
+     */
+    private fun autocorrectMayCorrect(separator: String = ""): Boolean =
+        AutocorrectGate.mayCorrect(
+            active = autocorrectActive,
+            identifierContext = identifierContext,
+            separator = separator,
+            composing = composing.toString(),
+            sentenceInitial = atSentenceStart,
+            lang = effLang()
+        )
 
     private fun composeWords(): Boolean = suggestionsActive || autocorrectActive
 
@@ -1379,7 +1401,7 @@ class RimBoardService : InputMethodService(),
             val shortcutExp = Shortcuts.expansionFor(this, typed, effLocale())
         if (shortcutExp != null) {
             finalWord = shortcutExp
-        } else {
+        } else if (autocorrectMayCorrect(separator)) {
             // The same evidence the strip used to decide what to put in
             // bold. Without it this answered from the channel model alone
             // while the strip answered with context, so the word shown and the
@@ -1703,7 +1725,10 @@ class RimBoardService : InputMethodService(),
         }
         val res = engine.suggestionsFor(
             composing.toString(), effLang(), effLocale(),
-            allowAutocorrect = autocorrectMayCommit(),
+            // The narrower gate: the bold chip is a promise about what the
+            // separator will commit, so it must ask the same question the
+            // commit asks -- including the name rule.
+            allowAutocorrect = autocorrectMayCorrect(),
             // The learned vocabulary is history; in incognito the dictionary
             // answers on its own.
             personalized = !isIncognito(),

@@ -4,6 +4,31 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**The keyboard stops rewriting names**
+- **A capital in mid-sentence now means "this is a name", to autocorrect as well
+  as to the underline.** Typing a name the dictionary has never seen, the space
+  bar silently replaced it: "César" was committed as "Cesar", "Noël" as "Noel",
+  "Parijs" as "Paris", "Sundays" as "Sunday". Measured over the real proper
+  nouns in the test corpus that the shipped word list does not hold, 11.7% of
+  English and 15.1% of Turkish were overwritten — and typing them with their
+  capital changed nothing whatever, because autocorrect never looked at it. The
+  spell checker had been declining to underline those same words all along, on
+  exactly this reasoning, so the two halves of one keyboard held opposite
+  opinions about whether a capital means anything. They share one rule now.
+- **Refusing to commit is not refusing to offer.** The correction keeps its chip
+  on the strip, so a capitalised word that really was mistyped is one tap from
+  being fixed rather than silently changed.
+- The first word of a sentence is unaffected, which is not a detail:
+  auto-capitalisation puts a capital on it, so a rule blind to sentence position
+  would have switched autocorrect off for a fifth of everything anyone writes.
+  German is excluded, because it capitalises every noun — the same exclusion the
+  spell checker already makes, and it means German names get no protection.
+- **Found while adding it: user-defined shortcuts shared autocorrect's gate**,
+  so the new rule would have stopped "Omw" expanding to "On my way" anywhere but
+  the start of a sentence. A shortcut is configuration the user wrote down
+  themselves and a heuristic about names has no standing to overrule it. The two
+  questions are now asked separately.
+
 **Three faults found by reading the changes rather than running them**
 - **A swipe could offer a word it had nothing to do with.** If the keyboard had
   ever learned "wolfram", swiping "helo" put it on the strip. Learned words used
