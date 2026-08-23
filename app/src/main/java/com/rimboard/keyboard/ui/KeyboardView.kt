@@ -28,6 +28,7 @@ import com.rimboard.keyboard.model.Key
 import com.rimboard.keyboard.model.KeyType
 import com.rimboard.keyboard.model.GlideTrail
 import com.rimboard.keyboard.model.KeyProximity
+import com.rimboard.keyboard.model.PointerGesture
 import com.rimboard.keyboard.model.TapArbiter
 import com.rimboard.keyboard.model.KeyboardLayout
 import com.rimboard.keyboard.model.LayoutKind
@@ -173,6 +174,25 @@ class KeyboardView(context: Context) : View(context) {
     private var spaceFlashAt = 0L
 
     private companion object {
+        /**
+         * How far a press must travel before it becomes a swipe, in dp.
+         *
+         * Less than a key is wide, so a thumb that rolls while pressing can arm
+         * one without leaving the key it started on. [finishGlide] has the
+         * matching fallback for when that produces no word.
+         */
+        private const val GLIDE_TRAVEL_DP = 14f
+
+        /**
+         * How far past a key's edge a press may stray before it is abandoned.
+         *
+         * More room vertically because the rows sit closer together than the
+         * columns are wide. Measured from the key rather than from the finger,
+         * unlike [GLIDE_TRAVEL_DP] -- the two read as a pair and are not one.
+         */
+        private const val SLIDE_OFF_X_DP = 12f
+        private const val SLIDE_OFF_Y_DP = 18f
+
         /** Full-strength hold before the flashed name starts to fade. */
         const val FLASH_HOLD_MS = 650L
         const val FLASH_FADE_MS = 350f
@@ -1087,7 +1107,7 @@ class KeyboardView(context: Context) : View(context) {
         val glideCapable = glideEnabled && layout?.kind == LayoutKind.MAIN &&
             isGlideKey(ps.kb.key) && !ps.handledOnDown
         if (glideCapable && !ps.glide &&
-            (abs(x - ps.downX) > dp(14f) || abs(y - ps.downY) > dp(14f))
+            PointerGesture.armsGlide(x, y, ps.downX, ps.downY, dp(GLIDE_TRAVEL_DP))
         ) {
             ps.glide = true
             cancelTimers(ps)
@@ -1111,9 +1131,15 @@ class KeyboardView(context: Context) : View(context) {
         }
 
         // slide far off the key => cancel it (glide-capable keys never cancel)
+        // Only for a key that cannot glide. A swipe crosses the whole
+        // keyboard, so asking this of a glide-capable key would abandon the
+        // press three keys in -- see PointerGestureTest, where that composition
+        // is the rule rather than either half of it.
         if (!glideCapable &&
-            (x < ps.kb.x - dp(12f) || x > ps.kb.x + ps.kb.w + dp(12f) ||
-                y < ps.kb.y - dp(18f) || y > ps.kb.y + ps.kb.h + dp(18f))
+            PointerGesture.slidesOff(
+                x, y, ps.kb.x, ps.kb.y, ps.kb.w, ps.kb.h,
+                dp(SLIDE_OFF_X_DP), dp(SLIDE_OFF_Y_DP)
+            )
         ) {
             ps.cancelled = true
             cancelTimers(ps)
@@ -1127,13 +1153,18 @@ class KeyboardView(context: Context) : View(context) {
         pointers.remove(pid)
         cancelTimers(ps)
         if (previewKb === ps.kb) previewKb = null
-        when {
-            ps.cancelled -> {}
-            ps.glide -> finishGlide(ps)
-            ps.popupOpen -> commitPopup(ps)
-            ps.cursorMode -> {}
-            ps.handledOnDown -> {}
-            else -> listener?.onKeyPressed(ps.kb.key, tapDx(ps), tapDy(ps))
+        when (
+            PointerGesture.releaseAction(
+                ps.cancelled, ps.glide, ps.popupOpen, ps.cursorMode, ps.handledOnDown
+            )
+        ) {
+            PointerGesture.Release.NOTHING -> {}
+            PointerGesture.Release.GLIDE -> finishGlide(ps)
+            PointerGesture.Release.POPUP -> commitPopup(ps)
+            PointerGesture.Release.CURSOR -> {}
+            PointerGesture.Release.ALREADY_DONE -> {}
+            PointerGesture.Release.TAP ->
+                listener?.onKeyPressed(ps.kb.key, tapDx(ps), tapDy(ps))
         }
         if (popupOwner === ps) {
             snapshotPopupOut()
