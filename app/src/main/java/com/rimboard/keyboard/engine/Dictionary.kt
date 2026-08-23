@@ -379,32 +379,105 @@ class Dictionary(
             'ı' to 'i', 'ł' to 'l', 'ø' to 'o', 'đ' to 'd', 'ð' to 'd'
         )
 
-        /** Optimal string alignment (Damerau-Levenshtein) distance with early
-         *  cutoff: anything beyond [max] comes back as max + 1. Companion
-         *  because it reads no dictionary state, and UserData uses it to rank
-         *  learned words as correction candidates by the same measure. */
-        fun editDistance(a: String, b: String, max: Int): Int {
+        /**
+         * Optimal string alignment (Damerau-Levenshtein) distance with early
+         * cutoff: anything beyond [max] comes back as max + 1.
+         *
+         * Companion because it reads no dictionary state, and UserData uses it
+         * to rank learned words as correction candidates by the same measure.
+         *
+         * Allocates three small arrays per call. That is fine for the handful
+         * of calls UserData makes and ruinous for the scan in
+         * [correctionsScored], which asks this of every word in the dictionary
+         * within two characters of what was typed -- so that scan passes its
+         * own [EditScratch] and pays for the arrays once per keystroke instead
+         * of a hundred thousand times.
+         */
+        fun editDistance(a: String, b: String, max: Int): Int =
+            editDistance(a, b, max, EditScratch())
+
+        /**
+         * Reusable row buffers for [editDistance].
+         *
+         * One per correction scan, never shared between threads: the keyboard
+         * and the system spell checker hold the same Dictionary from two
+         * threads, so this is deliberately something a caller owns rather than
+         * a field on the dictionary.
+         */
+        class EditScratch {
+            var a = IntArray(0)
+            var b = IntArray(0)
+            var c = IntArray(0)
+
+            fun ensure(n: Int) {
+                if (a.size <= n) {
+                    val cap = n + 1
+                    a = IntArray(cap); b = IntArray(cap); c = IntArray(cap)
+                }
+            }
+        }
+
+        /**
+         * The same distance, computing only the cells that can matter.
+         *
+         * Two things make this the version worth having on the hot path.
+         *
+         * **The band.** An alignment that strays more than [max] columns from
+         * the diagonal has already spent more than [max] edits getting there,
+         * so cells outside `|i - j| <= max` cannot contribute to an answer
+         * within budget. Computing them anyway is what the previous version
+         * did: for a seven-letter word it filled forty-nine cells to decide a
+         * question that five per row can answer. Out-of-band cells are left at
+         * `max + 1` so the minimums above them stay correct without a special
+         * case.
+         *
+         * **The early exit, which now fires.** The row minimum was checked
+         * before too, but over the whole row -- and a full row nearly always
+         * contains a cheap cell somewhere off the diagonal, so the check
+         * almost never tripped until the last rows. Over the band it is a real
+         * bound: once every in-band cell of a row exceeds the budget, no
+         * completion of that alignment can come back under it.
+         *
+         * Verified against a plain unbanded Damerau-Levenshtein over random
+         * pairs in `DictionaryTest`; this is an optimisation, not a redefinition.
+         */
+        fun editDistance(a: String, b: String, max: Int, scratch: EditScratch): Int {
             val m = a.length
             val n = b.length
             if (abs(m - n) > max) return max + 1
-            var prevPrev: IntArray? = null
-            var prev = IntArray(n + 1) { it }
-            var curr = IntArray(n + 1)
+            val inf = max + 1
+            scratch.ensure(n)
+            var prevPrev = scratch.a
+            var prev = scratch.b
+            var curr = scratch.c
+            for (j in 0..n) prev[j] = if (j <= max) j else inf
+            for (j in 0..n) prevPrev[j] = inf
             for (i in 1..m) {
-                curr[0] = i
+                val lo = if (i - max > 1) i - max else 1
+                val hi = if (i + max < n) i + max else n
+                curr[0] = if (i <= max) i else inf
+                // The cell just left of the band is read as curr[j - 1]; it has
+                // to be inf rather than whatever the last row left there.
+                if (lo - 1 >= 1) curr[lo - 1] = inf
                 var rowMin = curr[0]
-                for (j in 1..n) {
+                for (j in lo..hi) {
                     val cost = if (a[i - 1] == b[j - 1]) 0 else 1
-                    var v = minOf(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost)
+                    var v = prev[j - 1] + cost
+                    val del = prev[j] + 1
+                    if (del < v) v = del
+                    val ins = curr[j - 1] + 1
+                    if (ins < v) v = ins
                     if (i > 1 && j > 1 && a[i - 1] == b[j - 2] && a[i - 2] == b[j - 1]) {
-                        val pp = prevPrev
-                        if (pp != null && pp[j - 2] + 1 < v) v = pp[j - 2] + 1
+                        val tr = prevPrev[j - 2] + 1
+                        if (tr < v) v = tr
                     }
+                    if (v > inf) v = inf
                     curr[j] = v
                     if (v < rowMin) rowMin = v
                 }
+                if (hi < n) curr[hi + 1] = inf
                 if (rowMin > max) return max + 1
-                val recycled = prevPrev ?: IntArray(n + 1)
+                val recycled = prevPrev
                 prevPrev = prev
                 prev = curr
                 curr = recycled
@@ -889,9 +962,31 @@ class Dictionary(
         if (n < 2 || words.isEmpty()) return emptyList()
         val maxDist = maxEditDistance(n)
         val scored = ArrayList<Pair<String, Double>>()
+        // One set of row buffers for the whole scan. This walks every word
+        // within maxDist characters of what was typed -- on English that is
+        // over a hundred thousand words for a seven-letter prefix -- and
+        // allocating three arrays inside each of those was most of what a
+        // keystroke cost.
+        val scratch = EditScratch()
+        // A lower bound on the distance, in about ten instructions, so the
+        // hundred-thousand-cell question below is only asked of words that
+        // could possibly answer it. One edit changes which letters a word
+        // contains by at most two -- a substitution can drop one and add
+        // another; an insertion or deletion moves one; a transposition moves
+        // none -- so two words whose letter sets differ by more than twice the
+        // budget cannot be within it.
+        //
+        // Exact, not heuristic: it can only ever refuse to reject. Letters are
+        // hashed into sixty-four bits, and a collision makes two different
+        // letters look like the same one, which *understates* the difference
+        // and lets a word through to be measured properly. Nothing is lost, a
+        // little work is wasted.
+        val typedMask = letterMask(typedLower)
+        val maxSetDiff = 2 * maxDist
         for (bl in maxOf(1, n - maxDist)..minOf(24, n + maxDist)) for (i in byLen[bl]) {
             val cand = words[i]
-            val d = editDistance(typedLower, cand, maxDist)
+            if (java.lang.Long.bitCount(letterMask(cand) xor typedMask) > maxSetDiff) continue
+            val d = editDistance(typedLower, cand, maxDist, scratch)
             if (d in 1..maxDist) {
                 var score = ln((freqs[i] + 1).toDouble()) -
                     3.5 * spatialCost(typedLower, cand, prox, touch)
@@ -1154,6 +1249,20 @@ class Dictionary(
         }
         out.sortByDescending { it.second }
         return if (out.size > limit) ArrayList(out.subList(0, limit)) else out
+    }
+
+    /**
+     * Which letters [w] contains, as a bit each, hashed into sixty-four.
+     *
+     * Hashed rather than indexed because the alphabets here are not Latin --
+     * Cyrillic, Greek, and the accented halves of Turkish and Czech all have to
+     * land somewhere. Collisions are harmless where this is used; see the note
+     * at the call site.
+     */
+    private fun letterMask(w: String): Long {
+        var m = 0L
+        for (ch in w) m = m or (1L shl (ch.code and 63))
+        return m
     }
 
     /** First index whose word starts with [ch], by binary search. */

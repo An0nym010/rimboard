@@ -421,4 +421,83 @@ class DictionaryTest {
         assertFalse(Dictionary.firstLetterSubstituted("", "hello"))
         assertFalse(Dictionary.firstLetterSubstituted("hello", ""))
     }
+
+    /**
+     * The banded distance agrees with a plain one, on everything.
+     *
+     * [Dictionary.editDistance] computes only the cells within `max` of the
+     * diagonal and gives up on a row once the whole band is over budget. Both
+     * are sound arguments, and both are the kind of argument that turns out to
+     * be wrong in one corner nobody thought of. So it is checked against an
+     * unbanded reference over every short string a three-letter alphabet can
+     * make, and then over random longer pairs.
+     *
+     * That is the difference between an optimisation and a redefinition. The
+     * correction ranking, the autocorrect confidence bar and UserData's
+     * personal-word scan all read this number; a version of it that were
+     * merely *close* would move all three by amounts no test here is looking
+     * for.
+     */
+    @Test
+    fun `the banded edit distance agrees with an unbanded one`() {
+        val words = ArrayList<String>()
+        for (len in 0..4) {
+            var count = 1
+            repeat(len) { count *= 3 }
+            for (i in 0 until count) {
+                val sb = StringBuilder()
+                var k = i
+                repeat(len) { sb.append('a' + k % 3); k /= 3 }
+                words.add(sb.toString())
+            }
+        }
+        var checked = 0
+        for (a in words) for (b in words) for (max in 1..3) {
+            assertEquals(
+                "d($a, $b) at max=$max",
+                referenceOsa(a, b).coerceAtMost(max + 1),
+                Dictionary.editDistance(a, b, max)
+            )
+            checked++
+        }
+
+        val rnd = java.util.Random(20260823L)
+        val letters = "abcdefgh"
+        repeat(4000) {
+            val a = randomWord(rnd, letters)
+            val b = randomWord(rnd, letters)
+            val max = 1 + rnd.nextInt(3)
+            assertEquals(
+                "d($a, $b) at max=$max",
+                referenceOsa(a, b).coerceAtMost(max + 1),
+                Dictionary.editDistance(a, b, max)
+            )
+            checked++
+        }
+        assertTrue("nothing was compared", checked > 20_000)
+    }
+
+    private fun randomWord(rnd: java.util.Random, letters: String): String {
+        val sb = StringBuilder()
+        repeat(1 + rnd.nextInt(9)) { sb.append(letters[rnd.nextInt(letters.length)]) }
+        return sb.toString()
+    }
+
+    /** Optimal string alignment, written the obvious way and nothing else. */
+    private fun referenceOsa(a: String, b: String): Int {
+        val m = a.length
+        val n = b.length
+        val d = Array(m + 1) { IntArray(n + 1) }
+        for (i in 0..m) d[i][0] = i
+        for (j in 0..n) d[0][j] = j
+        for (i in 1..m) for (j in 1..n) {
+            val cost = if (a[i - 1] == b[j - 1]) 0 else 1
+            var v = minOf(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost)
+            if (i > 1 && j > 1 && a[i - 1] == b[j - 2] && a[i - 2] == b[j - 1]) {
+                v = minOf(v, d[i - 2][j - 2] + 1)
+            }
+            d[i][j] = v
+        }
+        return d[m][n]
+    }
 }

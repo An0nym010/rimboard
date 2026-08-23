@@ -5,8 +5,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.io.File
+import com.rimboard.keyboard.model.KeyProximity
 import com.rimboard.keyboard.model.StripLayout
 import java.util.Locale
+import kotlin.random.Random
 
 /**
  * How much typing the suggestion strip actually saves, over real prose.
@@ -159,9 +161,16 @@ class StripAccuracyTest {
      * completion path measurable against a corpus it did not come from.
      */
     private fun measure(
-        lang: String, locale: Locale, sentences: List<String>, withContext: Boolean
+        lang: String,
+        locale: Locale,
+        sentences: List<String>,
+        withContext: Boolean,
+        typos: Boolean = false
     ): Savings {
         val engine = realEngine(lang)
+        val prox = KeyProximity.forLang(lang)
+        // Seeded, so the same slips happen on every machine and every run.
+        val rnd = Random(seed = 20260823)
         var keystrokes = 0
         var baseline = 0
         var words = 0
@@ -188,10 +197,19 @@ class StripAccuracyTest {
                     )
                     if (preds.any { it.equals(w, ignoreCase = true) }) taken = 0
                 }
+                // What the finger actually put in the buffer, which is the
+                // word only when it did not slip.
+                val typed = if (!typos) w else buildString {
+                    for (ch in w) {
+                        val slip = rnd.nextDouble() < TYPO_RATE
+                        val nb = if (slip) prox.neighbours(ch).firstOrNull() else null
+                        append(nb ?: ch)
+                    }
+                }
                 if (taken < 0) {
-                    for (k in 1..w.length) {
+                    for (k in 1..typed.length) {
                         val res = engine.suggestionsFor(
-                            w.substring(0, k), lang, locale,
+                            typed.substring(0, k), lang, locale,
                             allowAutocorrect = true, personalized = false,
                             prevWord2 = prev2, prevWord = prev
                         )
@@ -263,6 +281,44 @@ class StripAccuracyTest {
         assertTrue(
             "keystroke savings have fallen below the floor.\n$lines",
             blind.values.all { it.ksr >= KSR_FLOOR }
+        )
+    }
+
+    /**
+     * The same measure, but the finger misses sometimes.
+     *
+     * Every arm above types perfectly, which nobody does. That makes them a
+     * measurement of *completion* and blind to the half of the strip that
+     * exists for mistakes: mid-word, the two free chips are shared between
+     * continuations of what was typed and repairs of it, and until this arm
+     * there was no way to price a change that moved that boundary.
+     *
+     * The finger slips to an adjacent key with probability [TYPO_RATE], using
+     * the same key geometry [AutocorrectAccuracyTest] damages words with, and
+     * **the slip is not noticed**: the wrong letter stays in the buffer and
+     * every later keystroke is typed on top of it. That is what makes this
+     * hard and what makes it realistic — by the time the strip could help, the
+     * prefix has been wrong for several letters.
+     *
+     * `never` is the number to watch rather than the savings. It is how often a
+     * mistyped word could not be recovered from the strip at all, which is the
+     * user ending up with the wrong word in their message.
+     */
+    @Test
+    fun `what the strip is worth when the finger misses`() {
+        val lines = StringBuilder()
+        val scores = LinkedHashMap<String, Savings>()
+        for ((lang, locale) in listOf("en" to Locale.ENGLISH, "tr" to Locale.forLanguageTag("tr"))) {
+            val s = measure(lang, locale, sentences(lang, 120), withContext = true, typos = true)
+            scores[lang] = s
+            lines.append(s.line("$lang typo")).append('\n')
+        }
+        println(lines)
+        assertTrue("the corpus generated nothing:\n$lines",
+            scores.values.all { it.words >= 400 })
+        assertTrue(
+            "mistyped words are being lost more often than the floor allows.\n$lines",
+            scores.values.all { it.never <= it.words * TYPO_LOST_CEILING }
         )
     }
 
@@ -362,6 +418,18 @@ class StripAccuracyTest {
          * where a number is read closely.
          */
         const val SURVEY_SENTENCES = 60
+
+        /**
+         * How often the finger lands on the neighbouring key.
+         *
+         * Per *letter*, so a six-letter word is mistyped about a quarter of the
+         * time at 5% — which is roughly what unhurried thumb typing looks like
+         * and is deliberately not a worst case.
+         */
+        const val TYPO_RATE = 0.05
+
+        /** Share of mistyped words that may go unrecovered. */
+        const val TYPO_LOST_CEILING = 0.30
 
         /**
          * Under the worst language measured, with room for corpus noise.
