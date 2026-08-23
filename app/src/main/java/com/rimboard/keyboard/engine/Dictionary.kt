@@ -532,8 +532,22 @@ class Dictionary(
     private val starts: IntArray
 
     private val freqs: IntArray
-    /** Bare-letter form -> index of the most frequent accented word matching it. */
-    private val foldedIndex = HashMap<String, Int>()
+    /**
+     * Bare-letter forms, sorted, concatenated -- the same shape as [blob] and
+     * for the same reason.
+     *
+     * A `HashMap<String, Int>` here was the largest single item left in a
+     * loaded Turkish dictionary: thirty-one thousand entries, each a hash node
+     * plus a freshly-built string that exists nowhere else, for about three and
+     * a third of Turkish's nine and a half megabytes. English holds none of it,
+     * which is why it only showed up once English had been made small.
+     *
+     * `foldedTo[k]` is the index in [blob] of the most frequent accented word
+     * whose bare form is folded entry `k`.
+     */
+    private val foldedBlob: CharArray
+    private val foldedStarts: IntArray
+    private val foldedTo: IntArray
     /**
      * Kept from the build, because [correctionFloor] copies and sorts the whole
      * frequency array and this is asked per correction.
@@ -639,6 +653,7 @@ class Dictionary(
         }
         val floor = correctionFloor()
         floorFreq = floor
+        val foldedPairs = HashMap<String, Int>()
         val buckets = Array(25) { ArrayList<Int>() }
         for (i in 0 until size) {
             if (freqs[i] < floor) continue
@@ -655,11 +670,30 @@ class Dictionary(
             val word = wordAt(i)
             val folded = foldDiacritics(word)
             if (folded != word) {
-                val prev = foldedIndex[folded]
-                if (prev == null || freqs[prev] < freqs[i]) foldedIndex[folded] = i
+                val prev = foldedPairs[folded]
+                if (prev == null || freqs[prev] < freqs[i]) foldedPairs[folded] = i
             }
         }
         byLen = Array(25) { buckets[it].toIntArray() }
+
+        // The map above is transient: built to resolve clashes by frequency,
+        // then flattened and dropped. Sorted so a lookup can binary-search it
+        // in place, exactly as the word list is searched.
+        val foldedKeys = foldedPairs.keys.toMutableList()
+        foldedKeys.sort()
+        var foldedTotal = 0
+        for (k in foldedKeys) foldedTotal += k.length
+        foldedBlob = CharArray(foldedTotal)
+        foldedStarts = IntArray(foldedKeys.size + 1)
+        foldedTo = IntArray(foldedKeys.size)
+        var fat = 0
+        for ((k, key) in foldedKeys.withIndex()) {
+            foldedStarts[k] = fat
+            for (c in key.indices) foldedBlob[fat + c] = key[c]
+            fat += key.length
+            foldedTo[k] = foldedPairs[key]!!
+        }
+        foldedStarts[foldedKeys.size] = fat
     }
 
     /**
@@ -745,7 +779,39 @@ class Dictionary(
      * in German, none at all in English -- so a footprint that has moved is
      * much easier to explain with it than without.
      */
-    internal val foldedIndexSize: Int get() = foldedIndex.size
+    internal val foldedIndexSize: Int get() = foldedTo.size
+
+    /**
+     * The word index whose bare form is [bare], or -1.
+     *
+     * Binary search over [foldedBlob], comparing in place. The folded forms are
+     * sorted by `String.compareTo`, which is what this comparison reproduces --
+     * the same requirement, and the same trap, as [compareAt].
+     */
+    private fun foldedFor(bare: String): Int {
+        var lo = 0
+        var hi = foldedTo.size
+        while (lo < hi) {
+            val mid = (lo + hi) ushr 1
+            if (compareFoldedAt(mid, bare) < 0) lo = mid + 1 else hi = mid
+        }
+        if (lo >= foldedTo.size) return -1
+        val n = foldedStarts[lo + 1] - foldedStarts[lo]
+        return if (n == bare.length && compareFoldedAt(lo, bare) == 0) foldedTo[lo] else -1
+    }
+
+    private fun compareFoldedAt(k: Int, s: String): Int {
+        val off = foldedStarts[k]
+        val n = foldedStarts[k + 1] - off
+        val m = s.length
+        val lim = if (n < m) n else m
+        for (i in 0 until lim) {
+            val a = foldedBlob[off + i]
+            val b = s[i]
+            if (a != b) return a.code - b.code
+        }
+        return n - m
+    }
 
     fun contains(wordLower: String): Boolean = indexOf(wordLower) >= 0
 
@@ -815,7 +881,8 @@ class Dictionary(
         // the common case. Asking about frequency instead of presence removed
         // that early exit without replacing it, and left a normalisation on
         // every lookup of every word that is in the dictionary.
-        val i = foldedIndex[bareLower] ?: return null
+        val i = foldedFor(bareLower)
+        if (i < 0) return null
         if (foldDiacritics(bareLower) != bareLower) return null // already accented
         if (contains(bareLower) &&
             freqs[i].toLong() < BARE_KEY_RATIO * maxOf(1, freqOf(bareLower)).toLong()

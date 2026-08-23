@@ -46,17 +46,24 @@ import java.util.Locale
  * built.
  *
  *     bytes per English word   107  ->  64  ->  31
- *     en  30.6 MB  ->  18.4  ->   9.1        de  22.2  ->  13.1  ->  7.1
- *     tr  25.4 MB  ->  16.2  ->   9.5        ru  23.4  ->  14.3  ->  7.0
+ *     en  30.6 MB  ->  18.4  ->   9.1        de  22.2  ->  13.1  ->  6.4
+ *     tr  25.4 MB  ->  16.2  ->   7.5        ru  23.4  ->  14.3  ->  6.4
  *
  * The second step made keystrokes *faster* as well, which was not the point of
  * it: worst p99 went from 1.6-2.1 ms to 0.8-1.0. A scan of a hundred thousand
  * candidates now walks one contiguous array instead of chasing a pointer per
  * word, and the correction scan compares in place rather than through objects.
  *
- * Turkish is now the largest despite having a third fewer words than English,
- * because its diacritic index is four times the size of anyone else's -- which
- * is what that column is printed for.
+ * The diacritic index was flattened the same way afterwards, which is what that
+ * column had been printed to reveal: it briefly made Turkish the largest
+ * language despite having a third fewer words than English, and it cost two
+ * megabytes of Turkish and none at all of English.
+ *
+ * English at 9.1 MB is now close to the floor of this design: about 5 MB of it
+ * is the characters themselves, and the rest is one offset and one frequency
+ * per word. Storing Latin-1 languages one byte to a character would save
+ * another two and a half, at the price of a branch in every accessor and no
+ * benefit to Cyrillic or Greek. That is where this stops being worth it.
  *
  * The diacritic index is printed beside each language because it is the one
  * part of the total that varies by language rather than by word count, and so
@@ -125,10 +132,10 @@ class DictionaryFootprintTest {
         /**
          * Above the largest language measured, with room for a noisy heap.
          *
-         * Turkish measures 9.5 MB and is now the largest. Fourteen is close
-         * enough to catch something being added back and loose enough not to
-         * fail on a heap that settled differently.
+         * English measures 9.1 MB and is the largest. Twelve is close enough
+         * to catch something being added back and loose enough not to fail on
+         * a heap that settled differently.
          */
-        const val PER_LANGUAGE_CEILING_MB = 14.0
+        const val PER_LANGUAGE_CEILING_MB = 12.0
     }
 }
