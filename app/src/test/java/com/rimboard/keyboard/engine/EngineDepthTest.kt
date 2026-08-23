@@ -176,6 +176,30 @@ class EngineDepthTest {
     }
 
     @Test
+    fun `a split does not take a chip from a word still being typed`() {
+        // Mid-word, a prefix of a long word splits into two short real words
+        // alarmingly often. Typing "airport", the strip at "airpo" led with
+        // "air po" -- a proposal to put a space in the middle of a word the
+        // user is plainly still writing, in the most prominent slot.
+        //
+        // A split fills a chip nobody else wanted now. A word that really is
+        // two words run together has no continuations to lose to, which is why
+        // the "alot" cases above still hold.
+        val e = engine(
+            mapOf(
+                "dictionaries/en.txt" to listOf(
+                    "air 90000", "po 8000", "airport 30000", "airports 9000"
+                ).joinToString(System.lineSeparator())
+            )
+        )
+        val out = e.suggestionsFor(
+            "airpo", "en", en, allowAutocorrect = false, personalized = false
+        ).items
+        assertTrue("the word being typed is missing: $out", out.contains("airport"))
+        assertFalse("a split took a chip mid-word: $out", out.contains("air po"))
+    }
+
+    @Test
     fun `blocking a split actually stops it being offered`() {
         // Long-pressing a chip blocks whatever was displayed. For a split that
         // is the pair, so checking only the two halves left the chip coming

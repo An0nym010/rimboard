@@ -1327,12 +1327,22 @@ class SuggestionEngine private constructor(
 
         val display = mutableListOf(composing) // slot 0: verbatim
         if (contractionWord != null) display.add(contractionWord)
-        // A missing space, offered but never taken automatically. Placed after
-        // any contraction and ahead of the ordinary completions: "alot" almost
-        // certainly wanted "a lot", but adding a word boundary on the user's
-        // behalf is not something to do without a tap.
+        // A missing space, offered but never taken automatically: "alot" almost
+        // certainly wanted "a lot", but adding a word boundary on somebody's
+        // behalf is not a thing to do without a tap.
+        //
+        // It fills a chip nobody else wanted rather than claiming one, which is
+        // the same argument as the reserved continuation below and the same
+        // fault it fixes. Mid-word, a prefix of a long word splits into two
+        // short real words alarmingly often -- "airpo" into "air po", "aujo"
+        // into "au jo", "kita" into "ki ta" -- and offering that as the *first*
+        // chip while somebody is plainly still typing "airport" is noise in the
+        // most prominent slot on the strip.
+        //
+        // A word that really is two words run together has no continuations to
+        // lose to: nothing in the dictionary follows "alot", so the split still
+        // gets its chip in exactly the case it exists for.
         val split = if (contractionWord == null) splitFor(composing, lang, locale) else null
-        if (split != null) display.add(split)
         for (w in ranked) {
             // Case foreign words with their own locale (Turkish dotted I, etc.)
             val caseLocale = if (w in altWords && altLocale != null) altLocale else locale
@@ -1340,6 +1350,8 @@ class SuggestionEngine private constructor(
             if (cased != composing && !display.contains(cased)) display.add(cased)
             if (display.size >= 3) break
         }
+
+        if (split != null && display.size < 3 && !display.contains(split)) display.add(split)
 
         // One of the two free slots is kept for finishing the word.
         //
