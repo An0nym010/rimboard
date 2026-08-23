@@ -4,6 +4,116 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Glide typing reads the shape of the swipe**
+- A swipe used to reach the dictionary as a string: the keys the finger crossed,
+  in order, with repeats dropped. Everything else about the gesture — where it
+  actually went — was measured to draw the trail and then thrown away. Rounding
+  a corner a third of a key short of `l` removed `l` from that string, and with
+  it every word needing one, so a swipe that looks unmistakable to anyone
+  watching the trail decoded to nothing.
+- A word now names a curve — the line through its letters' keys — and the
+  decoder compares that against the line the finger drew, point for point. On
+  swipes with the ordinary distortions of a real hand (momentum rounding the
+  corners, the odd cut corner, a shaking thumb), the right word went from being
+  first 17% of the time to 88% in English and 8% to 92% in Turkish. On a hurried
+  flick, from 3% to 75%. It is on the strip essentially always: 95–100%.
+- Two models were built and measured before the right one. Charging every point
+  of the path to the nearest letter of the candidate reads as a coverage test,
+  and coverage is not what a swipe means — it billed the correct word for the
+  ordinary business of travelling between its own letters and offered "stuff"
+  for a swipe of "said". The tell was that a *flawless* swipe scored 1.2 key
+  widths of error, when a perfect gesture should cost nothing.
+- The trail is also thinned when it gets long rather than dropped from the
+  front, which used to behead exactly the long swipes that most need decoding,
+  and the n-grams that rank every tapped word now rank swiped ones too.
+
+**A prefix is not a misspelling**
+- Mid-word the strip has two free chips, and both were going to *repairs* of
+  what had been typed rather than *continuations* of it. Typing "airport", at
+  "airp" the strip offered "air" and "airs" — two ways of deleting what you had
+  just typed — and left off "airport", the commonest completion in the
+  dictionary by a distance. "abro" offered "a bro", proposing a space in the
+  middle of a word still being written.
+- One chip is now kept for finishing the word, and only when there is something
+  to finish it with. The best repair keeps its place, so a typo already inside
+  the prefix is still fixable; a finished word that is simply wrong has no
+  continuation and is untouched; and whatever the space bar would commit is
+  never what gets displaced.
+- Generated Turkish inflections were also ranked above every attested
+  completion but one, which is the opposite of what the code said they did.
+
+**"don't" is a word**
+- The keyboard treats an apostrophe as part of a word — it has to, or "don't"
+  composes as two — and the bundled word lists come from a corpus whose
+  tokeniser split at the apostrophe. So the joined form was in no list, and the
+  system spell checker underlined "don't", "it's", "can't" and "we'll" **in
+  every app on the phone**, offering *donut*, *its*, *cant* and *well* to
+  replace them. French elides in nearly every sentence, so French was underlined
+  nearly everywhere.
+- The lists do hold the halves, stored the way each language elides — English
+  puts the apostrophe on the suffix (`don` + `'t`), French and Italian on the
+  article (`l'` + `homme`). A word is now well formed if it splits at an
+  apostrophe into two halves the dictionary knows, which names no language: a
+  list with no apostrophe entries, as German's and Turkish's have none, matches
+  nothing.
+- The strip can complete them too. The elided article is generative and needs no
+  list; the English contraction cannot be, because `don` + `'t` and `don` + `'s`
+  are both pairs of known entries and the corpus makes `'s` the commoner, so it
+  comes from the curated contraction table instead. That table holds the common
+  forms rather than every form.
+- French typing went from twelfth of the twenty-two shipped languages to fourth.
+
+**A keystroke costs a fraction of what it did, and two languages a third of the memory**
+- Nothing had ever timed the keyboard's own per-keystroke work, which happens
+  between the finger going down and the next frame. The middle keystroke cost
+  almost nothing and the slowest one in a hundred cost 6 ms — a tail three
+  hundred times the middle, concentrated at the end of long words. It is now
+  0.8 ms, without a single suggestion changing.
+- The distance function allocated three arrays for every candidate word across a
+  scan of a hundred thousand of them, and computed every cell of a matrix when
+  only a narrow band of it can matter. A letter-set bound now discards most
+  candidates before any matrix is built at all.
+- The word list was three hundred thousand separate objects, spending about
+  fifty-six bytes of overhead per word to carry eight bytes of text. It is one
+  array now. With the removal of a duplicate index that answered a question the
+  sorted list already answers, English fell from 30.6 MB to 9.1 MB and two
+  languages with the spell checker from about ninety to twenty-seven.
+- The slowest languages to load are about twice as fast as well, because a word
+  with no accent in it no longer goes through Unicode normalisation to find that
+  out. German fell from 337 ms to 159 and Czech from 250 to 119; English, which
+  was never slow, did not move. This is a background load, so what it shortens
+  is the window in which the keyboard types fine and suggests nothing.
+
+**What the keyboard learns now has a limit**
+- The two-word and three-word tables have always had caps and dropped their
+  least-used entries to meet them. The word table had none: its only rule
+  dropped words seen *once*, and a word seen twice is not one. Forty thousand
+  distinct words typed twice each were all still held. That file is read every
+  time the keyboard warms up and kept for as long as it runs, so it is a
+  keyboard that gets slower for as long as it is used.
+- It holds twelve thousand now, dropping the least-used first, which is far more
+  than an active typing vocabulary. Words added by hand in the personal
+  dictionary are never dropped: they sit at three uses and stay there, so a
+  use-ordered eviction would take them first, and losing one is not a trade-off
+  — the point of that screen is that the keyboard stops arguing about the word.
+
+**Numbers instead of opinions**
+- Six things that had never been measured now are, each with a floor or ceiling
+  set from what was measured rather than from a wish: how often glide typing is
+  right, how much typing the suggestion strip saves across all twenty-two
+  languages, what a keystroke costs, how long until suggestions arrive, how much
+  memory a language holds, and what the system spell checker costs the app that
+  asked it.
+- The strip is measured against real prose rather than generated words, and in
+  two arms — one blind to context, because the bundled n-grams were counted from
+  the same source as the test sentences and a number scored partly on its own
+  training data is a ceiling rather than a figure.
+- Four ways of closing the gap for heavily inflected languages were tried and
+  none worked; they are written down where the next person will think of them.
+  Czech, Slovak, Ukrainian, Hungarian, Turkish, Russian and Polish still save
+  markedly less typing than English or Dutch, and closing that needs the
+  keyboard to know grammatical agreement rather than word counts.
+
 **The keyboard stayed light after the system went dark**
 - "Match the app's light or dark mode" reads the app's declared theme, and
   another package's resources resolve through *this* process's configuration
