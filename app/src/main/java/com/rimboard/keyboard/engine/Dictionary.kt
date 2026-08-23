@@ -25,6 +25,27 @@ class Dictionary(
     private val locale: Locale
 ) {
 
+    /**
+     * Reusable row buffers for [editDistance].
+     *
+     * One per correction scan, never shared between threads: the keyboard
+     * and the system spell checker hold the same Dictionary from two
+     * threads, so this is deliberately something a caller owns rather than
+     * a field on the dictionary.
+     */
+    class EditScratch {
+        var a = IntArray(0)
+        var b = IntArray(0)
+        var c = IntArray(0)
+
+        fun ensure(n: Int) {
+            if (a.size <= n) {
+                val cap = n + 1
+                a = IntArray(cap); b = IntArray(cap); c = IntArray(cap)
+            }
+        }
+    }
+
     companion object {
         /**
          * How hard the shape of a swipe argues against how common a word is,
@@ -397,27 +418,6 @@ class Dictionary(
             editDistance(a, b, max, EditScratch())
 
         /**
-         * Reusable row buffers for [editDistance].
-         *
-         * One per correction scan, never shared between threads: the keyboard
-         * and the system spell checker hold the same Dictionary from two
-         * threads, so this is deliberately something a caller owns rather than
-         * a field on the dictionary.
-         */
-        class EditScratch {
-            var a = IntArray(0)
-            var b = IntArray(0)
-            var c = IntArray(0)
-
-            fun ensure(n: Int) {
-                if (a.size <= n) {
-                    val cap = n + 1
-                    a = IntArray(cap); b = IntArray(cap); c = IntArray(cap)
-                }
-            }
-        }
-
-        /**
          * The same distance, computing only the cells that can matter.
          *
          * Two things make this the version worth having on the hot path.
@@ -441,9 +441,28 @@ class Dictionary(
          * Verified against a plain unbanded Damerau-Levenshtein over random
          * pairs in `DictionaryTest`; this is an optimisation, not a redefinition.
          */
-        fun editDistance(a: String, b: String, max: Int, scratch: EditScratch): Int {
+        fun editDistance(a: String, b: String, max: Int, scratch: EditScratch): Int =
+            editDistance(a, b, null, 0, b.length, max, scratch)
+
+        /**
+         * The same distance against a slice of a character array.
+         *
+         * The correction scan holds its words as ranges of one big array rather
+         * than as separate objects, and asks this of a hundred thousand of them
+         * per keystroke. Building a `String` for each would put back, as
+         * garbage, most of what that store was created to save.
+         */
+        fun editDistance(
+            a: String, b: CharArray, bOff: Int, bLen: Int, max: Int, scratch: EditScratch
+        ): Int = editDistance(a, null, b, bOff, bLen, max, scratch)
+
+
+        private fun editDistance(
+            a: String, bs: String?, bc: CharArray?, bOff: Int, bLen: Int,
+            max: Int, scratch: EditScratch
+        ): Int {
             val m = a.length
-            val n = b.length
+            val n = bLen
             if (abs(m - n) > max) return max + 1
             val inf = max + 1
             scratch.ensure(n)
@@ -461,13 +480,17 @@ class Dictionary(
                 if (lo - 1 >= 1) curr[lo - 1] = inf
                 var rowMin = curr[0]
                 for (j in lo..hi) {
-                    val cost = if (a[i - 1] == b[j - 1]) 0 else 1
+                    val bj = if (bs != null) bs[bOff + j - 1] else bc!![bOff + j - 1]
+                    val cost = if (a[i - 1] == bj) 0 else 1
                     var v = prev[j - 1] + cost
                     val del = prev[j] + 1
                     if (del < v) v = del
                     val ins = curr[j - 1] + 1
                     if (ins < v) v = ins
-                    if (i > 1 && j > 1 && a[i - 1] == b[j - 2] && a[i - 2] == b[j - 1]) {
+                    if (i > 1 && j > 1 &&
+                        a[i - 1] == (if (bs != null) bs[bOff + j - 2] else bc!![bOff + j - 2]) &&
+                        a[i - 2] == bj
+                    ) {
                         val tr = prevPrev[j - 2] + 1
                         if (tr < v) v = tr
                     }
@@ -486,7 +509,28 @@ class Dictionary(
         }
     }
 
-    private val words: Array<String>
+    /**
+     * Every word in the language, sorted, concatenated into one array.
+     *
+     * An `Array<String>` here cost about fifty-six bytes of object header and
+     * pointer per word to carry eight bytes of text -- eighteen megabytes of
+     * heap for the three hundred thousand English words, of which a little over
+     * four was the words themselves. An input method is the lowest-priority
+     * process on the device that the user can still see, so that overhead is
+     * paid in the risk of being killed mid-sentence.
+     *
+     * The cost of this shape is that a word is no longer an object one can pass
+     * around: it is a range, and anything that wants a `String` has to build
+     * one. That is why the primitives below exist. **The rule that keeps this
+     * fast is that the scans compare in place and only the handful of words
+     * that survive a scan are ever materialised** -- the correction scan looks
+     * at a hundred thousand words per keystroke and returns two.
+     */
+    private val blob: CharArray
+
+    /** Where word `i` begins in [blob]; `starts[size]` is the end of the last. */
+    private val starts: IntArray
+
     private val freqs: IntArray
     /** Bare-letter form -> index of the most frequent accented word matching it. */
     private val foldedIndex = HashMap<String, Int>()
@@ -546,7 +590,18 @@ class Dictionary(
             try { userDictStream?.close() } catch (_: Exception) {}
         }
         entries.sortBy { it.first }
-        words = Array(entries.size) { entries[it].first }
+        var total = 0
+        for (e in entries) total += e.first.length
+        blob = CharArray(total)
+        starts = IntArray(entries.size + 1)
+        var at = 0
+        for ((k, e) in entries.withIndex()) {
+            starts[k] = at
+            val w = e.first
+            for (c in w.indices) blob[at + c] = w[c]
+            at += w.length
+        }
+        starts[entries.size] = at
         freqs = IntArray(entries.size) { entries[it].second }
         // Character-transition model for adaptive tap targeting: how likely is
         // letter b to follow letter a in this language, weighted by ln(freq) so
@@ -556,7 +611,7 @@ class Dictionary(
         // accumulate into plain arrays without allocating or boxing.
         var lo = WORD_START.code
         var hi = WORD_START.code
-        for (w in words) for (ch in w) {
+        for (ch in blob) {
             val c = ch.code
             if (c < lo) lo = c
             if (c > hi) hi = c
@@ -565,17 +620,17 @@ class Dictionary(
         charSlot = IntArray(hi - lo + 1) { -1 }
         var dense = 0
         charSlot[WORD_START.code - lo] = dense++
-        for (w in words) for (ch in w) {
+        for (ch in blob) {
             val k = ch.code - lo
             if (charSlot[k] < 0) charSlot[k] = dense++
         }
         charTotals = DoubleArray(dense)
         rows = arrayOfNulls(dense)
-        for (i in words.indices) {
+        for (i in 0 until size) {
             val wgt = ln((freqs[i] + 1).toDouble())
             var pi = 0 // WORD_START always takes the first slot
-            for (ch in words[i]) {
-                val ci = charSlot[ch.code - lo]
+            for (k in 0 until lenAt(i)) {
+                val ci = charSlot[charAt(i, k).code - lo]
                 val row = rows[pi] ?: DoubleArray(dense).also { rows[pi] = it }
                 row[ci] += wgt
                 charTotals[pi] += wgt
@@ -585,17 +640,21 @@ class Dictionary(
         val floor = correctionFloor()
         floorFreq = floor
         val buckets = Array(25) { ArrayList<Int>() }
-        for (i in words.indices) {
+        for (i in 0 until size) {
             if (freqs[i] < floor) continue
-            val len = words[i].length
+            val len = lenAt(i)
             if (len in 1..24) buckets[len].add(i)
             // Diacritic index: only words that actually carry an accent, keyed
             // by their bare-letter form, keeping the most frequent on a clash
             // ("şık" and a hypothetical "sık" both fold to "sik"). Words with no
             // accent are reached by the ordinary exact lookup and would only
             // bloat this.
-            val folded = foldDiacritics(words[i])
-            if (folded != words[i]) {
+            // The only place a word is built during load, and it is built
+            // because foldDiacritics needs a string to normalise. Transient:
+            // only the folded form is kept, and only when it differs.
+            val word = wordAt(i)
+            val folded = foldDiacritics(word)
+            if (folded != word) {
                 val prev = foldedIndex[folded]
                 if (prev == null || freqs[prev] < freqs[i]) foldedIndex[folded] = i
             }
@@ -619,7 +678,64 @@ class Dictionary(
         return maxOf(CORRECTION_MIN_FREQ, cutoff)
     }
 
-    val size: Int get() = words.size
+    val size: Int get() = starts.size - 1
+
+    /** Length of word [i], without building it. */
+    private fun lenAt(i: Int): Int = starts[i + 1] - starts[i]
+
+    /** Character [k] of word [i], without building it. */
+    private fun charAt(i: Int, k: Int): Char = blob[starts[i] + k]
+
+    /**
+     * Word [i] as a `String`.
+     *
+     * The only place this shape costs anything, so it is deliberately not
+     * convenient: every call allocates, and a scan that calls it per candidate
+     * has undone the point of the store. Materialise after filtering, never
+     * before.
+     */
+    private fun wordAt(i: Int): String = String(blob, starts[i], lenAt(i))
+
+    /**
+     * `wordAt(i).compareTo(s)`, in place.
+     *
+     * Compares UTF-16 code units in order and then by length, which is exactly
+     * what `String.compareTo` does -- and it has to be exactly that, because
+     * the array is sorted by `String.compareTo` and a binary search that
+     * ordered anything differently would silently fail to find words.
+     */
+    private fun compareAt(i: Int, s: String): Int {
+        val off = starts[i]
+        val n = lenAt(i)
+        val m = s.length
+        val lim = if (n < m) n else m
+        for (k in 0 until lim) {
+            val a = blob[off + k]
+            val b = s[k]
+            if (a != b) return a.code - b.code
+        }
+        return n - m
+    }
+
+    private fun equalsAt(i: Int, s: String): Boolean =
+        lenAt(i) == s.length && compareAt(i, s) == 0
+
+    private fun startsWithAt(i: Int, p: String): Boolean {
+        val n = lenAt(i)
+        if (n < p.length) return false
+        val off = starts[i]
+        for (k in p.indices) if (blob[off + k] != p[k]) return false
+        return true
+    }
+
+    /** [letterMask] of word [i], without building it. */
+    private fun letterMaskAt(i: Int): Long {
+        var m = 0L
+        val off = starts[i]
+        for (k in 0 until lenAt(i)) m = m or (1L shl (blob[off + k].code and 63))
+        return m
+    }
+
 
     /**
      * How many words carry an accent, exposed for the footprint test.
@@ -649,12 +765,12 @@ class Dictionary(
      */
     fun indexOf(word: String): Int {
         var lo = 0
-        var hi = words.size
+        var hi = size
         while (lo < hi) {
             val mid = (lo + hi) ushr 1
-            if (words[mid] < word) lo = mid + 1 else hi = mid
+            if (compareAt(mid, word) < 0) lo = mid + 1 else hi = mid
         }
-        return if (lo < words.size && words[lo] == word) lo else -1
+        return if (lo < size && equalsAt(lo, word)) lo else -1
     }
 
     /**
@@ -706,7 +822,7 @@ class Dictionary(
         ) {
             return null
         }
-        return words[i]
+        return wordAt(i)
     }
 
     /**
@@ -756,18 +872,18 @@ class Dictionary(
      */
     fun byPrefix(prefixRaw: String, limit: Int): List<Pair<String, Int>> {
         val prefix = prefixRaw.lowercase(locale)
-        if (prefix.isEmpty() || words.isEmpty() || limit <= 0) return emptyList()
+        if (prefix.isEmpty() || size == 0 || limit <= 0) return emptyList()
         var lo = 0
-        var hi = words.size
+        var hi = size
         while (lo < hi) {
             val mid = (lo + hi) ushr 1
-            if (words[mid] < prefix) lo = mid + 1 else hi = mid
+            if (compareAt(mid, prefix) < 0) lo = mid + 1 else hi = mid
         }
         val bestIdx = IntArray(limit)
         val bestFreq = IntArray(limit)
         var n = 0
         var i = lo
-        while (i < words.size && words[i].startsWith(prefix)) {
+        while (i < size && startsWithAt(i, prefix)) {
             val f = freqs[i]
             // Only a candidate that beats the weakest one held is worth placing,
             // so the common case past the first [limit] words is one compare.
@@ -784,7 +900,7 @@ class Dictionary(
             i++
         }
         val out = ArrayList<Pair<String, Int>>(n)
-        for (k in 0 until n) out.add(words[bestIdx[k]] to bestFreq[k])
+        for (k in 0 until n) out.add(wordAt(bestIdx[k]) to bestFreq[k])
         return out
     }
 
@@ -813,7 +929,7 @@ class Dictionary(
         limit: Int
     ): List<Pair<String, Int>> {
         val prefix = prefixRaw.lowercase(locale)
-        if (prefix.length < FUZZY_MIN_PREFIX || words.isEmpty()) return emptyList()
+        if (prefix.length < FUZZY_MIN_PREFIX || size == 0) return emptyList()
         val out = LinkedHashMap<String, Int>()
         for (variant in prefixVariants(prefix, prox)) {
             for ((w, f) in byPrefix(variant, limit)) {
@@ -986,7 +1102,7 @@ class Dictionary(
         typedLower: String, prox: KeyProximity?, limit: Int, touch: FloatArray? = null
     ): List<Pair<String, Double>> {
         val n = typedLower.length
-        if (n < 2 || words.isEmpty()) return emptyList()
+        if (n < 2 || size == 0) return emptyList()
         val maxDist = maxEditDistance(n)
         val scored = ArrayList<Pair<String, Double>>()
         // One set of row buffers for the whole scan. This walks every word
@@ -1011,10 +1127,11 @@ class Dictionary(
         val typedMask = letterMask(typedLower)
         val maxSetDiff = 2 * maxDist
         for (bl in maxOf(1, n - maxDist)..minOf(24, n + maxDist)) for (i in byLen[bl]) {
-            val cand = words[i]
-            if (java.lang.Long.bitCount(letterMask(cand) xor typedMask) > maxSetDiff) continue
-            val d = editDistance(typedLower, cand, maxDist, scratch)
+            if (java.lang.Long.bitCount(letterMaskAt(i) xor typedMask) > maxSetDiff) continue
+            val d = editDistance(typedLower, blob, starts[i], lenAt(i), maxDist, scratch)
             if (d in 1..maxDist) {
+                // Built only now, for the few words that got this far.
+                val cand = wordAt(i)
                 var score = ln((freqs[i] + 1).toDouble()) -
                     3.5 * spatialCost(typedLower, cand, prox, touch)
                 // A word whose first letter was swapped for another is a
@@ -1239,7 +1356,7 @@ class Dictionary(
      * itself is bounded to words that start and end where the finger did.
      */
     fun glideScored(path: GlidePath, limit: Int): List<Pair<String, Double>> {
-        if (words.isEmpty()) return emptyList()
+        if (size == 0) return emptyList()
 
         val endKeys = path.endKeys
         if (endKeys.isEmpty()) return emptyList()
@@ -1247,9 +1364,9 @@ class Dictionary(
         val survivors = ArrayList<Int>(256)
         for (firstCh in path.startKeys) {
             var i = lowerBound(firstCh)
-            while (i < words.size && words[i][0] == firstCh) {
-                val w = words[i]
-                if (w.length >= 2 && endKeys.contains(w[w.length - 1])) survivors.add(i)
+            while (i < size && charAt(i, 0) == firstCh) {
+                val n = lenAt(i)
+                if (n >= 2 && endKeys.contains(charAt(i, n - 1))) survivors.add(i)
                 i++
             }
         }
@@ -1270,9 +1387,10 @@ class Dictionary(
 
         val out = ArrayList<Pair<String, Double>>(survivors.size)
         for (idx in survivors) {
-            val fit = path.costOf(words[idx])
+            val w = wordAt(idx)
+            val fit = path.costOf(w)
             if (fit.isInfinite()) continue
-            out.add(words[idx] to ln(freqs[idx] + 1.0) - GLIDE_SHAPE_WEIGHT * fit)
+            out.add(w to ln(freqs[idx] + 1.0) - GLIDE_SHAPE_WEIGHT * fit)
         }
         out.sortByDescending { it.second }
         return if (out.size > limit) ArrayList(out.subList(0, limit)) else out
@@ -1296,10 +1414,10 @@ class Dictionary(
     private fun lowerBound(ch: Char): Int {
         val key = ch.toString()
         var lo = 0
-        var hi = words.size
+        var hi = size
         while (lo < hi) {
             val mid = (lo + hi) ushr 1
-            if (words[mid] < key) lo = mid + 1 else hi = mid
+            if (compareAt(mid, key) < 0) lo = mid + 1 else hi = mid
         }
         return lo
     }

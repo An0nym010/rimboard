@@ -6,6 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 import java.util.Locale
 import kotlin.math.ln
 
@@ -481,6 +482,76 @@ class DictionaryTest {
         val sb = StringBuilder()
         repeat(1 + rnd.nextInt(9)) { sb.append(letters[rnd.nextInt(letters.length)]) }
         return sb.toString()
+    }
+
+    /**
+     * The ranged distance agrees with the string one, on the same pairs.
+     *
+     * The correction scan holds words as ranges of one big char array and calls
+     * the ranged overload a hundred thousand times per keystroke. It is the
+     * same algorithm reading its second argument a different way, which is
+     * exactly the kind of duplicate that drifts.
+     */
+    @Test
+    fun `the ranged edit distance agrees with the string one`() {
+        val rnd = java.util.Random(20260824L)
+        val letters = "abcdefgh"
+        repeat(3000) {
+            val a = randomWord(rnd, letters)
+            val b = randomWord(rnd, letters)
+            val max = 1 + rnd.nextInt(3)
+            // Placed inside a larger array, at an offset, so a slice that
+            // ignored bOff or read past bLen would show up here.
+            val padded = ("zzz" + b + "zzz").toCharArray()
+            assertEquals(
+                "d($a, $b) at max=$max",
+                Dictionary.editDistance(a, b, max),
+                Dictionary.editDistance(
+                    a, padded, 3, b.length, max, Dictionary.EditScratch()
+                )
+            )
+        }
+    }
+
+    /**
+     * The concatenated store holds what it was given, in the order it was
+     * given, and nothing else.
+     *
+     * Words stopped being objects and became ranges of one array. Everything
+     * downstream — the binary searches, the prefix scan, the glide scan — rests
+     * on that array being in `String.compareTo` order and on the offsets
+     * landing on the right boundaries. An off-by-one here does not crash; it
+     * quietly makes some words unfindable, which no accuracy benchmark would
+     * name.
+     *
+     * Checked against the real shipped list rather than a toy one, because the
+     * awkward cases are the ones a toy list does not have: two hundred thousand
+     * words, shared prefixes, accents, and every length from one to twenty-four.
+     */
+    @Test
+    fun `the word store holds every word it was given`() {
+        val file = listOf(
+            File("src/main/assets/dictionaries/tr.txt"),
+            File("app/src/main/assets/dictionaries/tr.txt")
+        ).first { it.isFile }
+        val all = file.readLines().mapNotNull { it.split(' ').firstOrNull() }
+            .filter { it.isNotEmpty() }
+        val d = Dictionary(file.readText().byteInputStream(), null, Locale.forLanguageTag("tr"))
+        assertEquals(all.size, d.size)
+
+        var checked = 0
+        for (i in all.indices step 137) {
+            val w = all[i]
+            assertTrue("'$w' went into the dictionary and cannot be found", d.contains(w))
+            assertEquals("'$w' has the wrong frequency", true, d.frequency(w) > 0)
+            checked++
+        }
+        assertTrue("nothing was checked", checked > 1000)
+
+        // A word that is a strict prefix of a real one must not be found by
+        // being a prefix: that is what an offset landing one short looks like.
+        val longOne = all.first { it.length >= 8 }
+        assertEquals(false, d.contains(longOne.dropLast(1) + " "))
     }
 
     /** Optimal string alignment, written the obvious way and nothing else. */

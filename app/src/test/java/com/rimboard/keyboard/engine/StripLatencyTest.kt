@@ -57,6 +57,13 @@ import java.util.Locale
  *     Ukrainian p99                    6.03 ms -> 0.73 ms
  *     Turkish p99                      5.98 ms -> 1.04 ms
  *
+ * Then the word list stopped being an array of `String` objects and became one
+ * concatenated `CharArray` -- done for memory, and worth another third here for
+ * free. A scan of a hundred thousand candidates walks one contiguous array
+ * instead of chasing a pointer per word, and compares in place.
+ *
+ *     worst p99 across all languages   1.33 ms -> 0.80-0.96 ms
+ *
  * Every figure in [AutocorrectAccuracyTest] and [StripAccuracyTest] is
  * unchanged to the digit, which is the claim that matters: this is the same
  * keyboard, three to four times faster on the keystrokes that were slow.
@@ -194,12 +201,13 @@ class StripLatencyTest {
         /**
          * Above the worst language measured, with room for a noisy machine.
          *
-         * Measured at 1.33 ms across twenty-two languages, and 1.81 on a
-         * second run, so the run-to-run spread is real and the ceiling sits
-         * clear of it. It was 6.03 before the correction scan was fixed; three
-         * is low enough to catch a slide back toward that and high enough not
-         * to fail on a busy build machine.
+         * Measured at 0.80, 0.88 and 0.96 ms across three runs of all
+         * twenty-two languages, so the run-to-run spread is a fifth of a
+         * millisecond and the ceiling sits well clear of it. It was 6.03
+         * before the correction scan was fixed. Two is low enough to catch a
+         * slide back toward that and high enough not to fail on a busy build
+         * machine.
          */
-        const val P99_CEILING_MS = 3.0
+        const val P99_CEILING_MS = 2.0
     }
 }
