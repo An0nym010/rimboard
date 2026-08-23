@@ -47,6 +47,39 @@ import java.util.Locale
  *    model partly on its own training data and is a ceiling rather than a
  *    figure. It is here for the gap between the two, which is the only part
  *    that means anything: it bounds what context can be worth.
+ *
+ * ## Measured and rejected
+ *
+ * Four ideas for closing the gap at the bottom of that table, none of which
+ * survived contact with it. Recorded because each is the obvious next thought
+ * and none is cheap to re-derive.
+ *
+ *  - **Fetch more prefix matches per keystroke.** Swept `COMPLETION_FETCH`
+ *    12/24/40/64: Turkish +0.1 points, English none. Candidates below twelve
+ *    are rarer than the ones above and cannot outrank them, so the bottleneck
+ *    was never generation.
+ *  - **Deepen the shipped n-grams.** `CONTEXT_COMPLETION_DEPTH` is 12 while
+ *    `build_ngrams.PER_CONTEXT` is 6, which looks like the engine asking for
+ *    twice the material the asset holds. It is not: the trigram row is merged
+ *    in front of the bigram row, and the map really does reach twelve entries
+ *    on 47% of English contexts. The target is found at rank 6 or deeper on
+ *    10% of English hits and 1% of Czech ones, so the deep ranks carry almost
+ *    nothing. A rebuild at PER_CONTEXT=12 would have cost about a megabyte of
+ *    APK for that.
+ *  - **Prefer the best-scoring continuation over the first in display order.**
+ *    0.1 points worse on Turkish, identical on English. See the note in
+ *    `SuggestionEngine`.
+ *  - **Reward longer completions**, on the theory that a keystroke-savings
+ *    metric should prefer the candidate that saves more when it is right.
+ *    Swept a length bonus at 0.05/0.10/0.20/0.35: the median moved +0.5 points
+ *    while English and Turkish both *lost*. Frequency already encodes most of
+ *    what length would say, and the two effects -- a long word is likelier to
+ *    need the strip, and likelier to be wrong -- very nearly cancel.
+ *
+ * What is left is not a constant. Every language at the bottom needs the
+ * grammatical form, not the word, and a counted lookup table does not know
+ * agreement. That is the shape of the remaining gap, and it is worth being
+ * honest that tuning will not close it.
  */
 class StripAccuracyTest {
 
