@@ -1198,9 +1198,16 @@ class SuggestionEngine private constructor(
         if (apos > 0 && apos < lower.length) {
             val head = lower.substring(0, apos + 1)
             val tail = lower.substring(apos + 1)
-            if (dict.frequency(head) >= Dictionary.STEM_MIN_FREQ) {
-                for ((w, f) in dict.byPrefix(tail.ifEmpty { "" }, COMPLETION_FETCH)) {
-                    if (tail.isEmpty()) break
+            // A bare article with nothing after it -- "l'" on its own -- offers
+            // nothing. Completing it would mean ranking the whole dictionary
+            // behind an apostrophe, which is a different feature and a worse
+            // one: the two commonest nouns in the language are not a guess
+            // about what this particular sentence wants. The previous shape of
+            // this said the same thing by asking byPrefix for an empty prefix
+            // and breaking out of a loop that could never run, which is a
+            // harder way to read it.
+            if (tail.isNotEmpty() && dict.frequency(head) >= Dictionary.STEM_MIN_FREQ) {
+                for ((w, f) in dict.byPrefix(tail, COMPLETION_FETCH)) {
                     val joined = head + w
                     if (userData.isBlocked(joined)) continue
                     // Below an attested completion of the same prefix, on the

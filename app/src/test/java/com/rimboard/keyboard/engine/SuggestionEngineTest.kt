@@ -572,6 +572,24 @@ class SuggestionEngineTest {
     }
 
     @Test
+    fun `a bare article on its own offers nothing`() {
+        // Completing "l'" would mean ranking the whole dictionary behind an
+        // apostrophe. The two commonest nouns in French are not a guess about
+        // what this sentence wants, and the strip is three chips wide.
+        val fr = Locale.forLanguageTag("fr")
+        val assets = mapOf(
+            "dictionaries/fr.txt" to listOf(
+                "l' 3675406", "homme 90000", "hotel 40000"
+            ).joinToString(System.lineSeparator())
+        )
+        val out = engine(assets).suggestionsFor(
+            "l'", "fr", fr, allowAutocorrect = false, personalized = false
+        ).items
+        assertFalse("a bare article was completed: $out",
+            out.any { it.startsWith("l'") && it.length > 2 })
+    }
+
+    @Test
     fun `an unknown article does not invent an elision`() {
         val fr = Locale.forLanguageTag("fr")
         val assets = mapOf("dictionaries/fr.txt" to "homme 90000")
