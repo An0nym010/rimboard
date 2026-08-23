@@ -4,6 +4,41 @@ Release notes for every RimBoard version. The current release is summarised in t
 
 ## Unreleased
 
+**Three faults found by reading the changes rather than running them**
+- **A swipe could offer a word it had nothing to do with.** If the keyboard had
+  ever learned "wolfram", swiping "helo" put it on the strip. Learned words used
+  to be filtered by shape before being scored; replacing the decoder replaced
+  that filter with a *fit*, and a fit excludes almost nothing on its own —
+  every word made of letters the layout draws sits some finite distance from
+  some path. The dictionary kept its gate, the personal list silently lost it.
+  Both use the same one now.
+- **A word deleted from the personal dictionary kept its pin.** Words added by
+  hand are never dropped when the learned list is trimmed; nothing cleared that
+  mark when the word was deleted or blocked. So it sat in the file for good and
+  would have re-applied itself if the word were typed again, on the strength of
+  a decision the user had since undone.
+- **A missing-space suggestion claimed the leftmost chip mid-word.** Typing
+  "airport", the strip at "airpo" led with "air po" — a proposal to put a space
+  in the middle of a word plainly still being written. French "aujo" gave
+  "au jo" and Turkish "kita" gave "ki ta". A split fills a spare chip now rather
+  than taking one; a word that really is two words run together has no
+  continuations to lose to, so it still wins its place in the case it exists for.
+
+**Things that were checked and left alone**
+- Widening the window a fuzzy prefix search looks back over, from four
+  characters to twelve, changes no figure at all. Neither does letting it
+  substitute the first letter of a word, which it is otherwise forbidden to do:
+  the ordinary corrector already reaches a first-letter slip.
+- Weighting the ends of a swipe above its middle does not help either. The ends
+  look like the reliable part — they are aimed at from and to rest — but they
+  are also where overshoot lives, and the two cancel exactly.
+- The five percent of mistyped words that cannot be recovered from the strip are
+  mostly slips onto *another real word*: "if" typed as "of", "good" as "food",
+  "be" as "he". The strip offers completions of what was actually typed, because
+  what was actually typed is a word. They are overwhelmingly one- to
+  three-letter words where there was almost nothing to save. That is the floor
+  of typo correction without deeper context, not a defect to fix.
+
 **Glide typing reads the shape of the swipe**
 - A swipe used to reach the dictionary as a string: the keys the finger crossed,
   in order, with repeats dropped. Everything else about the gesture — where it
