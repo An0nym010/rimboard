@@ -1166,16 +1166,14 @@ class RimBoardService : InputMethodService(),
         // dictionary), not 'i', keeping the language prior meaningful in Turkish.
         val prev = composing.lastOrNull()?.toString()?.lowercase(effLocale())?.firstOrNull()
             ?: com.rimboard.keyboard.engine.Dictionary.WORD_START
-        var best = -1
-        var bestScore = Double.NEGATIVE_INFINITY
-        for (i in chars.indices) {
-            val s = spatialLogP[i] + 0.55 * dict.charLogP(prev, chars[i].lowercaseChar())
-            if (s > bestScore) {
-                bestScore = s
-                best = i
-            }
+        // The weighing lives in TapArbiter beside the geometry that decides
+        // which keys are asked about at all -- the two are one mechanism, and
+        // reading either constant without the other gives the wrong idea of how
+        // far a tap can move.
+        val language = DoubleArray(chars.size) {
+            dict.charLogP(prev, chars[it].lowercaseChar())
         }
-        return best
+        return com.rimboard.keyboard.model.TapArbiter.pick(spatialLogP, language)
     }
 
     /** Scratch for [onKeyDownFeedback]; reused so a keystroke allocates nothing. */

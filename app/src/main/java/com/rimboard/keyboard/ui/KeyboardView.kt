@@ -28,6 +28,7 @@ import com.rimboard.keyboard.model.Key
 import com.rimboard.keyboard.model.KeyType
 import com.rimboard.keyboard.model.GlideTrail
 import com.rimboard.keyboard.model.KeyProximity
+import com.rimboard.keyboard.model.TapArbiter
 import com.rimboard.keyboard.model.KeyboardLayout
 import com.rimboard.keyboard.model.LayoutKind
 import com.rimboard.keyboard.theme.KeyboardTheme
@@ -1339,11 +1340,7 @@ class KeyboardView(context: Context) : View(context) {
         var cands: ArrayList<KeyBounds>? = null
         for (kb in bounds) {
             if (!isLetterKey(kb.key)) continue
-            val ex = kb.w * 0.18f
-            val ey = kb.h * 0.15f
-            if (x >= kb.x - ex && x < kb.x + kb.w + ex &&
-                y >= kb.y - ey && y < kb.y + kb.h + ey
-            ) {
+            if (TapArbiter.contends(x, y, kb.x, kb.y, kb.w, kb.h)) {
                 (cands ?: ArrayList<KeyBounds>(4).also { cands = it }).add(kb)
             }
         }
@@ -1354,9 +1351,7 @@ class KeyboardView(context: Context) : View(context) {
         for (i in list.indices) {
             val kb = list[i]
             chars[i] = kb.key.label[0]
-            val dx = (x - (kb.x + kb.w / 2f)) / (kb.w * 0.40f)
-            val dy = (y - (kb.y + kb.h / 2f)) / (kb.h * 0.40f)
-            logp[i] = -0.5 * (dx * dx + dy * dy).toDouble()
+            logp[i] = TapArbiter.spatialLogP(x, y, kb.x, kb.y, kb.w, kb.h)
         }
         val idx = arb(chars, logp)
         return if (idx in list.indices) list[idx] else primary
