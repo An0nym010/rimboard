@@ -82,6 +82,32 @@ import kotlin.random.Random
  * grammatical form, not the word, and a counted lookup table does not know
  * agreement. That is the shape of the remaining gap, and it is worth being
  * honest that tuning will not close it.
+ *
+ * ## And two more, from the other end
+ *
+ * The typo arm leaves about 5% of mistyped words unrecoverable, and reading
+ * *which* ones settles what can be done about it. Two answers, neither of them
+ * a bug:
+ *
+ *  - **Most of them are slips onto another real word.** "if" typed as "of",
+ *    "good" as "food", "on" as "in", "be" as "he". The strip shows completions
+ *    of what was actually typed, because what was actually typed is a word, and
+ *    a keyboard that offered "if" every time somebody wrote "of" would be wrong
+ *    far more often than right. They are also overwhelmingly one- to
+ *    three-letter function words, where there was almost nothing to save. This
+ *    is the irreducible floor of typo correction without deeper context, not a
+ *    fault to fix.
+ *  - **The rest are long words with more than one slip in them**, where no
+ *    single-edit path reaches the target at all.
+ *
+ * Both of the obvious repairs were measured and neither moved a figure:
+ * widening [Dictionary.FUZZY_EDIT_WINDOW] from four to six, eight and twelve
+ * changed nothing whatever, and letting a fuzzy prefix substitute the *first*
+ * letter — which it is structurally forbidden to do, independently of that
+ * window — changed one Turkish figure by 0.01 letters. The reason is that
+ * `correctionCandidates` already reaches a first-letter slip, with a penalty;
+ * the fuzzy prefix path was never what covered that case, so opening it up buys
+ * a second route to answers already being found.
  */
 class StripAccuracyTest {
 
