@@ -42,6 +42,7 @@ import com.rimboard.keyboard.model.InlineAutofill
 import com.rimboard.keyboard.model.ProseContext
 import com.rimboard.keyboard.model.SentenceContext
 import com.rimboard.keyboard.model.AutocorrectGate
+import com.rimboard.keyboard.model.BackspaceUndo
 import com.rimboard.keyboard.model.Languages
 import com.rimboard.keyboard.model.LayoutKind
 import com.rimboard.keyboard.model.Layouts
@@ -162,8 +163,8 @@ class RimBoardService : InputMethodService(),
     private var editSelectMode = false
 
 
-    /** Words removed by the backspace swipe, restorable by sliding right. */
-    private val wordUndo = ArrayDeque<String>()
+    /** Text removed by the backspace swipe, restorable by sliding right. */
+    private val wordUndo = BackspaceUndo()
 
     private var appliedUiLang: String? = null
 
@@ -518,7 +519,7 @@ class RimBoardService : InputMethodService(),
         altBoost = false
         altBoostStreak = 0
         primStreak = 0
-        wordUndo.clear()
+        wordUndo.reset()
         currentPkg = info.packageName
         if (Prefs.langPerApp(this)) {
             Prefs.appLang(this, info.packageName)?.let { saved ->
@@ -942,7 +943,9 @@ class RimBoardService : InputMethodService(),
         pendingTapDx = tapDx
         pendingTapDy = tapDy
         if (consumedBySearch(key, Source.TAP)) return
-        wordUndo.clear()
+        // A new press is a new gesture: what the last one removed is no longer
+        // reachable by sliding right, so it must not be restorable either.
+        wordUndo.reset()
         Stats.key(this)
         backspaceRepeats = 0
         // Typing dismisses the drawer. Without this the strip keeps showing
@@ -1502,7 +1505,13 @@ class RimBoardService : InputMethodService(),
             return
         }
         clearWordState()
+        // Everything removed here is noted so that a backspace *swipe* starting
+        // from this same press can give it back. Backspace repeats, so the key
+        // going down deletes before the swipe can arm at 30dp of travel; until
+        // this was recorded, sliding back to the right restored the words and
+        // silently kept the character.
         if (composing.isNotEmpty()) {
+            wordUndo.noteDeleted(composing.substring(composing.length - 1))
             composing.deleteCharAt(composing.length - 1)
             touchTrail.removeLast()
             if (composing.isEmpty()) {
@@ -1515,6 +1524,7 @@ class RimBoardService : InputMethodService(),
         }
         val selected = ic.getSelectedText(0)
         if (!selected.isNullOrEmpty()) {
+            wordUndo.noteDeleted(selected.toString())
             ic.commitText("", 1)
         } else {
             // Sixteen units rather than two: a character can be far longer
@@ -1524,7 +1534,9 @@ class RimBoardService : InputMethodService(),
             val units = GraphemeDelete.unitsToDeleteBefore(before ?: "")
             // A window that could not be read at all falls back to one unit,
             // which is what this did before and is never worse than nothing.
-            ic.deleteSurroundingText(if (units > 0) units else 1, 0)
+            val n = if (units > 0) units else 1
+            before?.let { wordUndo.noteDeleted(it.takeLast(n).toString()) }
+            ic.deleteSurroundingText(n, 0)
         }
         afterEdit()
     }
@@ -3902,14 +3914,14 @@ class RimBoardService : InputMethodService(),
         val chunk = before.substring(i)
         if (chunk.isEmpty()) return
         ic.deleteSurroundingText(chunk.length, 0)
-        wordUndo.addLast(chunk)
-        while (wordUndo.size > 50) wordUndo.removeFirst()
+        // Folds in whatever the key-down and any auto-repeat removed before
+        // the swipe armed, so one slide right returns "world" and not "worl".
+        wordUndo.noteWordDeleted(chunk)
         afterEdit()
     }
 
     override fun onBackspaceWordRestore() {
-        if (wordUndo.isEmpty()) return
-        val chunk = wordUndo.removeLast()
+        val chunk = wordUndo.restore() ?: return
         currentInputConnection?.commitText(chunk, 1)
         afterEdit()
     }

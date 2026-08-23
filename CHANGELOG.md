@@ -29,6 +29,16 @@ Release notes for every RimBoard version. The current release is summarised in t
   themselves and a heuristic about names has no standing to overrule it. The two
   questions are now asked separately.
 
+**The backspace swipe gives back exactly what it took**
+- **Sliding right to undo left a character behind.** Backspace is a repeating
+  key, so the finger going down deletes one character before the swipe can arm
+  at 30dp of travel — and only whole words removed after that point were ever
+  recorded. Swiping left to delete a few words and then changing your mind
+  restored the words and silently kept the missing character; pausing on the key
+  first lost more than one. An undo that does not round-trip is worse than none,
+  because it invites you to rely on it. Everything removed since the finger went
+  down is now restored, in the order it stood in the text.
+
 **Three faults found by reading the changes rather than running them**
 - **A swipe could offer a word it had nothing to do with.** If the keyboard had
   ever learned "wolfram", swiping "helo" put it on the strip. Learned words used
