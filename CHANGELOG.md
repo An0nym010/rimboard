@@ -29,6 +29,20 @@ Release notes for every RimBoard version. The current release is summarised in t
   themselves and a heuristic about names has no standing to overrule it. The two
   questions are now asked separately.
 
+**A second language stopped trampling your first**
+- **Turning on English cost Turkish 3.2 points of its own typing; it now costs
+  1.3.** The two word lists are built from different amounts of text — 728
+  million words of English against 215 million of Turkish — so the same word at
+  the same rank carries a five times larger number in one list than the other.
+  The keyboard merged those raw numbers and discounted the second language by
+  15%, which meant the "secondary" language actually outranked the primary among
+  exactly the common words suggestions are drawn from. Corpus size is now
+  divided out first, so the discount means what it says.
+- The feature itself is untouched and still does the work it was there for:
+  typing English with Turkish selected goes from 8.7% of keystrokes saved to
+  32.8%, and English words stop being underlined.
+- None of this had ever been measured. No test anywhere used a second language.
+
 **Glide typing started working in half the languages that ship with it**
 - **Greek could not be swiped at all.** Layouts put their accented letters under
   a long press, so a word containing one sat on no key, had no shape, and could

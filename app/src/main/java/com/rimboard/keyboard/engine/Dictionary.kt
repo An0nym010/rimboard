@@ -519,6 +519,23 @@ class Dictionary(
     private val starts: IntArray
 
     private val freqs: IntArray
+
+    /**
+     * Every occurrence this list counted, summed — the size of the corpus it
+     * was built from.
+     *
+     * Exists so two dictionaries can be compared. A raw count means nothing on
+     * its own: English was built from 728 million tokens and Turkish from 215
+     * million, so the *same* word at the *same* rank carries a five-times
+     * bigger number in one list than the other. Anything that puts candidates
+     * from two languages in one ordering has to divide this out first, or it is
+     * ranking corpora rather than words.
+     *
+     * The same trap [CORRECTION_TARGET_CAP] documents, in a different place:
+     * there a flat frequency cutoff kept a quarter of English and a scrap of a
+     * smaller language, and the fix was to count by rank instead.
+     */
+    val tokenTotal: Long
     /**
      * Bare-letter forms, sorted, concatenated -- the same shape as [blob] and
      * for the same reason.
@@ -604,6 +621,9 @@ class Dictionary(
         }
         starts[entries.size] = at
         freqs = IntArray(entries.size) { entries[it].second }
+        var tokens = 0L
+        for (f in freqs) tokens += f
+        tokenTotal = tokens
         // Character-transition model for adaptive tap targeting: how likely is
         // letter b to follow letter a in this language, weighted by ln(freq) so
         // common words dominate without drowning everything else. ' ' marks

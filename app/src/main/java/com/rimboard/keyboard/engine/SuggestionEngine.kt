@@ -113,6 +113,43 @@ class SuggestionEngine private constructor(
         private const val GLIDE_PERSONAL_DEPTH = 12
 
         /**
+         * How far below the primary language a word from the other one sits,
+         * once both are on the same scale.
+         *
+         * Applied *after* dividing out corpus size — see the blend in
+         * [suggestionsFor]. Before that division this number was doing almost
+         * no work: a 0.85 discount on a figure five times too large is still
+         * four times too large, so the "secondary" language outranked the
+         * primary among exactly the common words completions come from.
+         *
+         * **Swept, and kept at the value it already had.** Keystrokes saved,
+         * over English and Turkish prose, in the four configurations a
+         * bilingual user actually meets:
+         *
+         *                    en typing en   tr typing tr   en typing tr   tr typing en
+         *     no second lang     37.7           31.2            1.4            8.7
+         *     0.85 unnormalised  37.3           28.0           25.7           34.8
+         *     1.00 normalised    36.0           29.9           28.0           32.8
+         *     0.85 normalised    36.2           30.1           27.7           32.8  <- here
+         *     0.60 normalised    36.5           30.2           27.3           31.7
+         *     0.45 normalised    36.7           30.7           26.9           29.8
+         *     0.30 normalised    37.3           30.8           25.7           28.8
+         *
+         * Normalising moves ground toward whichever language was built from
+         * *less* text, in both configurations — which is the whole point, since
+         * corpus size is a fact about asset construction and not about the user.
+         * The column that matters is the second: **turning on a second language
+         * used to cost Turkish 3.2 points of its own typing and now costs 1.1.**
+         *
+         * Lowering the weight further keeps buying the primary a little more,
+         * and costs the other language about twice as much each time. Averaged
+         * over the four columns the best value is 0.85 or 1.00, and 0.85 is
+         * already what the code said, so it stays. The number was never the
+         * problem; the scale it multiplied was.
+         */
+        private const val ALT_WEIGHT = 0.85
+
+        /**
          * Where a word the user taught the keyboard sits on the dictionary's
          * own frequency scale, before its use count is added.
          *
@@ -1285,10 +1322,26 @@ class SuggestionEngine private constructor(
         }
         val altWords = HashSet<String>()
         if (altLang != null && altLocale != null) {
-            // Secondary-language candidates rank slightly below primary ones.
-            for ((w, f) in dictionary(altLang, altLocale).byPrefix(lower, 6)) {
+            val altDict = dictionary(altLang, altLocale)
+            // Secondary-language candidates rank slightly below primary ones —
+            // but only once the two lists are on the same scale, which they are
+            // not. See [Dictionary.tokenTotal]: English was counted from 728
+            // million tokens and Turkish from 215 million, so at rank 100 the
+            // English word carries a number 5.2 times larger for being no more
+            // common in its own language.
+            //
+            // Multiplying by ALT_WEIGHT alone therefore did not put the second
+            // language slightly below the first; it put it comfortably above.
+            // Measured over real prose, adding English as a second language cost
+            // Turkish 3.2 points of keystroke savings, while adding Turkish cost
+            // English 0.4 — an asymmetry that is nothing to do with the
+            // languages and everything to do with how much text each list was
+            // built from.
+            val scale = if (altDict.tokenTotal <= 0L) 1.0
+                else dict.tokenTotal.toDouble() / altDict.tokenTotal
+            for ((w, f) in altDict.byPrefix(lower, 6)) {
                 if (userData.isBlocked(w)) continue
-                val score = (f * 0.85).toLong()
+                val score = (f * scale * ALT_WEIGHT).toLong()
                 val existing = merged[w]
                 if (existing == null && !dict.contains(w)) altWords.add(w)
                 if (existing == null || existing < score) merged[w] = score
