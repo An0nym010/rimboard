@@ -50,6 +50,14 @@ Release notes for every RimBoard version. The current release is summarised in t
   Word-building rules belong to a language, not to whichever slot it is in.
   Unrecognised words while typing the other language: en+tr 1.8%->1.0%,
   tr+en 3.9%->0.2%.
+- **Typing your second language got no help from context at all.** Suggestions
+  are ranked partly by what the previous word predicts, which is worth six to
+  nine points of typing saved — but only the primary language's word-pair data
+  was ever consulted. Type a Turkish word and the English data has never seen
+  it, so the ranking fell back to raw frequency and every suggestion arrived
+  later than it needed to. Both languages are asked now: typing English with
+  Turkish selected went from 32.8% of keystrokes saved to 35.1%, and Turkish
+  under English from 27.7% to 29.4%, with no extra cost to the primary.
 - None of this had ever been measured. No test anywhere used a second language.
 
 **Glide typing started working in half the languages that ship with it**

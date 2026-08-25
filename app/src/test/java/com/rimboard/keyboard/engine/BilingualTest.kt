@@ -186,6 +186,34 @@ class BilingualTest {
     }
 
     @Test
+    fun `the other language gets context ranking too`() {
+        // Context is worth six to nine points of keystroke savings, and
+        // somebody typing their second language was getting none of it: the
+        // word before is in that language, the primary's n-grams have never
+        // seen it, so the rank map came back empty and every completion fell
+        // back to raw frequency.
+        //
+        // Two things had to change together, which is why loading the second
+        // model alone moved nothing: the map has to be built from both
+        // languages, *and* the second language's candidates have to be
+        // multiplied by it. Every other candidate source already was.
+        val e = engine("tr", "en")
+        val tr = Locale.forLanguageTag("tr")
+        val en = Locale.ENGLISH
+        // mayLoad is false on the keystroke path, so the models must be resident.
+        e.dictionary("tr", tr); e.predictions("", "x", "tr", tr, 1)
+        e.dictionary("en", en); e.predictions("", "x", "en", en, 1)
+
+        val saved = saved("tr", "en", "en")
+        println("typing English with Turkish primary: %.1f%% saved".format(saved))
+        assertTrue(
+            "typing the other language saved only %.1f%%; it was 32.8 before the ".format(saved) +
+                "second language's n-grams were consulted and 35.1 after",
+            saved > 34.0
+        )
+    }
+
+    @Test
     fun `word-building rules follow the language, not the slot`() {
         // Turkish stacks suffixes whether it is the first language or the
         // second. "kitaplarımızda" is in no word list — it is a stem with four
