@@ -89,12 +89,22 @@ class BilingualTest {
                 out.map { it.trim('\'').lowercase(locale) }.filter { it.length > 1 }
             }
 
-    /** The three chips actually shown; see StripAccuracyTest for why not items. */
+    /**
+     * The three chips actually shown; see StripAccuracyTest for why not items.
+     *
+     * [alt] is passed to [SuggestionEngine.acceptedWord] because the keyboard
+     * passes it (`arrangeUnknownWord` in the service). Leaving it out here
+     * quoted every word of the *other* language as unrecognised, so it never
+     * matched the target and the harness reported words as "never offered"
+     * that the strip was showing all along -- 7.8% of Turkish, all of it the
+     * instrument.
+     */
     private fun strip(
-        e: SuggestionEngine, res: SuggestionsResult, lang: String, locale: Locale
+        e: SuggestionEngine, res: SuggestionsResult, lang: String, locale: Locale,
+        alt: String?, altLocale: Locale?
     ): List<String> {
         val verbatim = res.items.firstOrNull() ?: return emptyList()
-        val known = e.acceptedWord(verbatim, lang, locale)
+        val known = e.acceptedWord(verbatim, lang, locale, alt, altLocale)
         return StripLayout.arrange(res.items, res.autocorrectIndex, known) { "“$it”" }.words
     }
 
@@ -118,7 +128,8 @@ class BilingualTest {
                         altLang = alt, altLocale = altLocale,
                         prevWord2 = prev2, prevWord = prev
                     )
-                    if (strip(e, res, lang, locale).any { it.equals(w, ignoreCase = true) }) {
+                    if (strip(e, res, lang, locale, alt, altLocale)
+                            .any { it.equals(w, ignoreCase = true) }) {
                         taken = k; break
                     }
                 }
