@@ -1088,9 +1088,17 @@ class RimBoardService : InputMethodService(),
 
     override fun onGlideComplete(points: FloatArray, keys: String) {
         if (!Prefs.glide(this) || !isTextClass) return
-        val loc = locale()
-        val lang = currentLangCode()
-        val path = GlidePath.of(points, KeyProximity.forLang(lang))
+        // Two different languages, and the split matters. The *geometry* is
+        // the layout actually on screen, because that is the only set of keys
+        // a finger can have crossed. The *dictionaries* are the effective
+        // ones, so gliding follows `altBoost` to whichever language the user
+        // has been typing in, exactly as the tapped strip does — it used to
+        // read `currentLangCode()` for both and so ignored the boost entirely.
+        val loc = effLocale()
+        val lang = effLang()
+        val altLang = effAlt()
+        val altLoc = effAltLocale()
+        val path = GlidePath.of(points, KeyProximity.forLang(currentLangCode()))
         // The context the swipe lands in, which is the same evidence a tapped
         // word is ranked with. Read before anything is committed, because
         // committing is what makes it stale.
@@ -1098,7 +1106,9 @@ class RimBoardService : InputMethodService(),
             path, lang, loc,
             personalized = !isIncognito() && Prefs.learnWords(this),
             prevWord2 = prevWord2,
-            prevWord = prevWordForBigram
+            prevWord = prevWordForBigram,
+            altLang = altLang,
+            altLocale = altLoc
         )
         if (cands.isEmpty()) {
             // Tiny flick that matched nothing: fall back to the starting key.
@@ -1115,16 +1125,31 @@ class RimBoardService : InputMethodService(),
         val kv = keyboardView
         val capsLock = kv?.shiftState == KeyboardView.ShiftState.CAPSLOCK
         val cap = kv != null && kv.shiftState != KeyboardView.ShiftState.NONE
+        // Which language's casing rules a decoded word answers to. Turkish maps
+        // i and I differently from every other locale, so a word belonging to
+        // the *other* dictionary and cased by the primary's rules comes out
+        // wrong in both directions: English "in", shift-glided with Turkish
+        // effective, titlecases to "In" and lowercases back to "ın". The tapped
+        // strip has always drawn this distinction; gliding could not, because
+        // until now a swipe could never return a word from the other language.
+        fun caseLocaleOf(word: String): Locale =
+            if (altLang != null && altLoc != null &&
+                !engine.knownIn(word, lang, loc) && engine.knownIn(word, altLang, altLoc)
+            ) altLoc else loc
         val words = cands.map { w ->
+            val wl = caseLocaleOf(w)
             when {
-                capsLock -> w.uppercase(loc)
+                capsLock -> w.uppercase(wl)
                 cap -> w.replaceFirstChar {
-                    if (it.isLowerCase()) it.titlecase(loc) else it.toString()
+                    if (it.isLowerCase()) it.titlecase(wl) else it.toString()
                 }
                 else -> w
             }
         }
         val best = words.first()
+        // The same locale the word was cased with, so lowercasing undoes the
+        // capitalisation rather than mangling it.
+        val bestLoc = caseLocaleOf(cands.first())
         // Glided into a picker's search box: the word goes to the query, and
         // none of the learning, autospace or bigram bookkeeping below applies
         // because nothing was committed to a text field.
@@ -1143,9 +1168,9 @@ class RimBoardService : InputMethodService(),
         ic.endBatchEdit()
         val canLearn = Prefs.learnWords(this) && !isIncognito() && !isPassword && !isEmailOrUri
         if (canLearn && Prefs.predictions(this) && (prevWordForBigram.isNotEmpty() || atSentenceStart)) {
-            userData.recordNgram(prevWord2, prevWordForBigram, best.lowercase(loc))
+            userData.recordNgram(prevWord2, prevWordForBigram, best.lowercase(bestLoc))
         }
-        prevWordForBigram = best.lowercase(loc)
+        prevWordForBigram = best.lowercase(bestLoc)
         atSentenceStart = false
         revert = null
         noteCommittedWord(best)

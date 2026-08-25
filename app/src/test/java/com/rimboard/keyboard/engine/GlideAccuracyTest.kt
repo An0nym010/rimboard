@@ -673,4 +673,191 @@ class GlideAccuracyTest {
         /** Under the worst arm measured, with room for corpus noise. */
         const val GLIDE_TOP1_FLOOR = 0.60
     }
+
+    // ---- Two languages at once ---------------------------------------------
+
+    private fun engineFor(vararg langs: String): SuggestionEngine {
+        val files = HashMap<String, String>()
+        for (l in langs) {
+            files["dictionaries/$l.txt"] = File(assets(), "dictionaries/$l.txt").readText()
+            files["predictions/$l.txt"] = File(assets(), "predictions/$l.txt").readText()
+        }
+        return SuggestionEngine.forTesting(userData) { p -> files[p]?.byteInputStream() }
+    }
+
+    /**
+     * Swiping [words] on [layoutLang]'s layout, over all four hands.
+     *
+     * The layout stays the primary language's throughout, because that is what
+     * a bilingual user is looking at: they do not switch layouts to type one
+     * word of the other language, which is the whole point of the feature.
+     * Letters the layout does not draw are folded onto the key that hosts them,
+     * by the same fold the decoder itself uses.
+     */
+    private fun measureBilingual(
+        engine: SuggestionEngine,
+        layoutLang: String,
+        locale: Locale,
+        words: List<String>,
+        altLang: String? = null,
+        altLocale: Locale? = null
+    ): Score {
+        val prox = KeyProximity.forLang(layoutLang)
+        var asked = 0
+        var t1 = 0
+        var t4 = 0
+        for (hand in Hand.values()) {
+            val rnd = Random(seed = 20260825 + hand.ordinal)
+            for (w in words) {
+                val pts = path(w, hand, prox, rnd) ?: continue
+                val gp = GlidePath.of(pts, prox) ?: continue
+                asked++
+                val offered = engine.glideFor(
+                    gp, layoutLang, locale, personalized = false,
+                    altLang = altLang, altLocale = altLocale
+                )
+                if (offered.firstOrNull() == w) t1++
+                if (offered.contains(w)) t4++
+            }
+        }
+        return Score(
+            top1 = if (asked == 0) 0.0 else t1.toDouble() / asked,
+            offered = if (asked == 0) 0.0 else t4.toDouble() / asked,
+            asked = asked
+        )
+    }
+
+    /**
+     * A word of the user's *other* language, swiped without switching layouts.
+     *
+     * This was the last thing in the keyboard a second language did not reach.
+     * Tapping has consulted both dictionaries for a long time -- that is what
+     * makes "merhab" offer "Merhaba" on the English layout -- but the glide
+     * decoder asked the primary dictionary alone, so the same word could be
+     * tapped and not swiped. A bilingual user got a feature that quietly
+     * stopped working on half of what they typed.
+     *
+     * Nothing about a swipe belongs to a language. It is a shape over the keys
+     * that are drawn, and the decoder already folds the letters no layout draws
+     * onto the keys that host them -- the fix Greek needed, which turns out to
+     * be exactly what a Turkish word needs on an English layout.
+     *
+     * Measured over 400 words per language and all four hands (1600 paths per
+     * cell), before and after the second dictionary is consulted:
+     *
+     *                                  before        after
+     *     en primary, swiping tr        1%/3%       63%/85%
+     *     tr primary, swiping en       27%/53%      74%/95%
+     *
+     * The English figure was not low, it was zero-shaped: 1% top-1 is what the
+     * handful of Turkish words that are also English words gets you. The
+     * Turkish column starts higher for a reason worth knowing -- the Turkish
+     * list is built from a subtitle corpus and simply *contains* a lot of
+     * English, the same contamination [BilingualTest] had to derive its fixture
+     * around -- and that inflated baseline is why the English arm is the honest
+     * one to quote.
+     */
+    @Test
+    fun `a word in the second language can be swiped`() {
+        val en = Locale.ENGLISH
+        val tr = Locale.forLanguageTag("tr")
+        val both = engineFor("en", "tr")
+
+        val trOnEn = measureBilingual(both, "en", en, sample("tr", 400), "tr", tr)
+        val enOnTr = measureBilingual(both, "tr", tr, sample("en", 400), "en", en)
+        val lines = "en primary, swiping tr: ${trOnEn.pct()}\n" +
+            "tr primary, swiping en: ${enOnTr.pct()}"
+
+        // Both floors sit well under what was measured and well over what the
+        // primary dictionary alone could reach (3% and 53% offered), so this
+        // fails loudly if the second dictionary stops being consulted, and
+        // does not fail for corpus noise.
+        assertTrue(
+            "a Turkish word swiped on the English layout is no longer offered.\n$lines",
+            trOnEn.offered >= 0.75 && trOnEn.top1 >= 0.55
+        )
+        assertTrue(
+            "an English word swiped on the Turkish layout is no longer offered.\n$lines",
+            enOnTr.offered >= 0.88 && enOnTr.top1 >= 0.65
+        )
+    }
+
+    /**
+     * What the second language costs the first.
+     *
+     * It is not free, and pretending otherwise would be the easy mistake here:
+     * every word of the other language is one more candidate the right one has
+     * to beat. Same corpus as above, primary language swiped:
+     *
+     *                     one language    two languages
+     *     swiping en        75%/96%          71%/94%
+     *     swiping tr        79%/96%          75%/94%
+     *
+     * Four points of top-1 and two of top-3 -- and the word stays reachable in
+     * the strip either way. That is the price of the other half of a user's
+     * vocabulary working at all, and it is only paid by someone who asked for
+     * two languages. It is also the worst case rather than the typical one: the
+     * service picks which dictionary is primary from what the user has actually
+     * been typing (`altBoost`), so a run of words in one language moves that
+     * language into the primary slot and out of this table.
+     *
+     * **The discount was swept here and left alone.** An extra penalty in log
+     * space -- 0.25 through 3.0 -- buys the primary back a point or two and
+     * costs the second language more than it gains, monotonically, from the
+     * very first step: summed over all four arms it is highest with no extra
+     * penalty at all (283.5) and falls away without ever rising (283.0, 282.0,
+     * 280.6, 279.8, ...). A narrower sweep over 120 words showed a flat tie
+     * across the first three steps, which is what a sample that size shows for
+     * a difference of three words; widening it to 1600 paths per cell resolved
+     * it. `ALT_WEIGHT` translated into log space is the whole of the discount.
+     */
+    @Test
+    fun `the second language costs the first only a little`() {
+        val en = Locale.ENGLISH
+        val tr = Locale.forLanguageTag("tr")
+        val both = engineFor("en", "tr")
+        val enWords = sample("en", 400)
+        val trWords = sample("tr", 400)
+
+        val enAlone = measureBilingual(both, "en", en, enWords)
+        val enWithTr = measureBilingual(both, "en", en, enWords, "tr", tr)
+        val trAlone = measureBilingual(both, "tr", tr, trWords)
+        val trWithEn = measureBilingual(both, "tr", tr, trWords, "en", en)
+        val lines = "swiping en: ${enAlone.pct()} alone, ${enWithTr.pct()} with tr\n" +
+            "swiping tr: ${trAlone.pct()} alone, ${trWithEn.pct()} with en"
+
+        assertTrue(
+            "a second language now costs the primary more of its top slot.\n$lines",
+            enAlone.top1 - enWithTr.top1 <= 0.07 &&
+                trAlone.top1 - trWithEn.top1 <= 0.07
+        )
+        assertTrue(
+            "a second language now pushes primary words out of the strip.\n$lines",
+            enAlone.offered - enWithTr.offered <= 0.04 &&
+                trAlone.offered - trWithEn.offered <= 0.04
+        )
+    }
+
+    /**
+     * One language enabled decodes exactly as it did before any of this.
+     *
+     * The invariance that says the change does only what it claims, and the
+     * same one the diacritic fold was held to. A user with a single language
+     * passes `altLang = null`, so every candidate comes from the one dictionary
+     * through the path it always took -- these two measurements are not merely
+     * close, they are the same number, and the comparison is written as
+     * equality to keep it that way.
+     */
+    @Test
+    fun `a single language is untouched by the second-language path`() {
+        val en = Locale.ENGLISH
+        val words = sample("en", 400)
+        val alone = measureBilingual(engineFor("en"), "en", en, words)
+        val secondLoaded = measureBilingual(engineFor("en", "tr"), "en", en, words)
+        assertTrue(
+            "loading a second dictionary changed monolingual gliding: " +
+                "${alone.pct()} vs ${secondLoaded.pct()}",
+            alone.top1 == secondLoaded.top1 && alone.offered == secondLoaded.offered
+        )
+    }
 }

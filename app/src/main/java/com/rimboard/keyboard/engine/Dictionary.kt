@@ -1433,8 +1433,25 @@ class Dictionary(
      * turns "could this word have been swiped here at all" into a few bit
      * operations, and only what survives that is scored properly. The scan
      * itself is bounded to words that start and end where the finger did.
+     *
+     * ## Scoring a second language on the first's scale
+     *
+     * [freqScale] multiplies every count before it is logged, which is how a
+     * *second* language's words are made comparable with the primary's.
+     *
+     * It has to be applied inside the logarithm rather than to the finished
+     * score, because the score is not a frequency: it is a frequency traded
+     * against a shape, and scaling the whole of it would scale the shape term
+     * too — discounting the second language would then quietly make its swipes
+     * *better matched* the further the finger strayed. See
+     * [SuggestionEngine.glideFor], which is the only caller that passes
+     * anything but 1.
      */
-    fun glideScored(path: GlidePath, limit: Int): List<Pair<String, Double>> {
+    fun glideScored(
+        path: GlidePath,
+        limit: Int,
+        freqScale: Double = 1.0
+    ): List<Pair<String, Double>> {
         if (size == 0) return emptyList()
 
         val endKeys = path.endKeys
@@ -1476,7 +1493,7 @@ class Dictionary(
             val w = wordAt(idx)
             val fit = path.costOf(w)
             if (fit.isInfinite()) continue
-            out.add(w to ln(freqs[idx] + 1.0) - GLIDE_SHAPE_WEIGHT * fit)
+            out.add(w to ln(freqs[idx] * freqScale + 1.0) - GLIDE_SHAPE_WEIGHT * fit)
         }
         out.sortByDescending { it.second }
         return if (out.size > limit) ArrayList(out.subList(0, limit)) else out

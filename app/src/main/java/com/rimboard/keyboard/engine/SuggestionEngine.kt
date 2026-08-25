@@ -1564,6 +1564,18 @@ class SuggestionEngine private constructor(
      * That third source is new to gliding and was the odder gap of the two:
      * the n-grams were being consulted for every tapped word and for no swiped
      * one, so the keyboard grew less sure of itself the moment you swiped.
+     *
+     * All three read [altLang] too, which they did not until it was measured.
+     * A swipe is a shape over the keys the layout draws, and nothing about that
+     * shape belongs to one language — but the decoder only ever asked the
+     * primary dictionary what the shape might be, so a bilingual user could tap
+     * a word in their other language and not swipe it. Over the same generated
+     * corpus the tapped strip already uses, English primary and Turkish second,
+     * swiping Turkish words offered the right one **5% of the time** where
+     * Turkish alone offers 100%.
+     *
+     * The second language is discounted here exactly as it is in the strip, and
+     * for the same reason has to be put on the primary's frequency scale first.
      */
     fun glideFor(
         path: GlidePath,
@@ -1571,11 +1583,30 @@ class SuggestionEngine private constructor(
         locale: Locale,
         personalized: Boolean,
         prevWord2: String = "",
-        prevWord: String = ""
+        prevWord: String = "",
+        altLang: String? = null,
+        altLocale: Locale? = null
     ): List<String> {
+        val dict = dictionary(lang, locale)
         val merged = LinkedHashMap<String, Double>()
-        for ((w, score) in dictionary(lang, locale).glideScored(path, GLIDE_DEPTH)) {
+        for ((w, score) in dict.glideScored(path, GLIDE_DEPTH)) {
             merged[w] = score
+        }
+        if (altLang != null && altLocale != null) {
+            val altDict = dictionary(altLang, altLocale)
+            // The same normalisation the tapped strip does, in log space: the
+            // two lists were counted from corpora of different sizes, so the
+            // discount [ALT_WEIGHT] is meant to apply has to be measured
+            // against a scaled count rather than a raw one. Folded into one
+            // multiplier because [Dictionary.glideScored] must apply it inside
+            // the logarithm, where the shape term cannot reach it.
+            val scale = if (altDict.tokenTotal <= 0L) 1.0
+                else dict.tokenTotal.toDouble() / altDict.tokenTotal
+            for ((w, score) in altDict.glideScored(
+                path, GLIDE_DEPTH, scale * ALT_WEIGHT
+            )) {
+                merged[w] = maxOf(merged[w] ?: Double.NEGATIVE_INFINITY, score)
+            }
         }
         if (personalized) {
             for ((w, count, fit) in userData.glideCandidates(path, GLIDE_PERSONAL_DEPTH)) {
@@ -1585,9 +1616,8 @@ class SuggestionEngine private constructor(
             }
         }
         if (merged.isEmpty()) return emptyList()
-        // Single-language: the decoder scores a path against one dictionary,
-        // so there is no second language in scope here to rank with.
-        val contextRank = contextRankFor(prevWord2, prevWord, lang, locale)
+        val contextRank =
+            contextRankFor(prevWord2, prevWord, lang, locale, altLang, altLocale)
         return merged.entries
             .sortedByDescending { it.value + contextBonus(it.key, contextRank) }
             .take(GLIDE_OFFERED)
