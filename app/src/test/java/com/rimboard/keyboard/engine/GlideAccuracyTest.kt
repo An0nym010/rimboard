@@ -1078,6 +1078,16 @@ class GlideAccuracyTest {
      * does not answer, and answering it would mean letting one letter occupy
      * two slots rather than one. Measured and left, not overlooked: the French
      * row above is what that limit costs.
+     *
+     * ## On the phone
+     *
+     * German enabled alongside English and Turkish, German layout, seven words
+     * swiped by tracing the ß at the `s` key: Straße, weiß, groß, heißt,
+     * fußball and schließen all came out right. `außen` came out `augen`, which
+     * is the shape being honestly ambiguous rather than the mapping failing --
+     * a straight line from `u` to `s` passes over `g`, and `augen` is the
+     * commoner word. Before this change none of the seven could be produced at
+     * all.
      */
     @Test
     fun `a letter that folds onto nothing is still on a key`() {
