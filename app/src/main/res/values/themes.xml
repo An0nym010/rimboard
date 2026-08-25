@@ -3,5 +3,18 @@
     <style name="Theme.RimBoard" parent="Theme.Material3.DayNight">
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
         <item name="colorPrimary">#1A73E8</item>
+        <!--
+            Overriding colorPrimary without this left the *label* on every
+            filled button at Material 3's baseline, which in the dark theme is
+            a dark purple (#381E72). Measured off a device screenshot of the
+            setup screen: #381E72 on #1A73E8 is 2.92:1, well under the 4.5:1
+            WCAG AA needs for text this size — three unreadable buttons on the
+            first screen a new install shows. White is 4.51:1.
+
+            The pair is the unit, not the colour: a theme that sets one half
+            and inherits the other is asking two different design systems what
+            the button should look like. ThemesTest holds them together.
+        -->
+        <item name="colorOnPrimary">#FFFFFF</item>
     </style>
 </resources>
