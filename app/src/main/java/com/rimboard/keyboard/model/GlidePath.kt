@@ -98,18 +98,35 @@ class GlidePath private constructor(
      * "ώρα" begins with a letter no layout draws, so an unfolded test threw it
      * away before its shape was ever considered.
      */
-    fun couldStart(ch: Char): Boolean = inSet(startKeys, ch)
+    fun couldStart(ch: Char): Boolean = inSet(startKeys, ch, foldChar(ch))
+
+    /**
+     * [couldStart] for a caller that already knows what [ch] folds to.
+     *
+     * [Diacritics.fold] allocates a string and runs a Unicode normalisation for
+     * anything above ASCII, and the dictionary scan asks this of every letter
+     * its word list begins with — an alphabet's worth, on the UI thread, every
+     * time a finger lifts. The caller folds once at load and hands the answer
+     * in, so nothing is normalised or allocated per swipe.
+     *
+     * Worth about 7 microseconds of a Turkish decode, which is to say the
+     * allocation rather than the arithmetic is the reason: an alphabet is small
+     * and the scan is short. It is here because a phone pays for garbage in a
+     * currency a desktop JVM does not show, not because it was the cost the
+     * first-letter fix added — that one is the extra candidates being scored,
+     * measured separately and kept deliberately.
+     */
+    fun couldStart(ch: Char, folded: Char): Boolean = inSet(startKeys, ch, folded)
 
     /** Whether a word ending in [ch] could have been ended by this swipe. */
-    fun couldEnd(ch: Char): Boolean = inSet(endKeys, ch)
+    fun couldEnd(ch: Char): Boolean = inSet(endKeys, ch, foldChar(ch))
 
     private fun foldChar(ch: Char): Char = Diacritics.fold(ch)
 
-    private fun inSet(keys: CharArray, ch: Char): Boolean {
+    private fun inSet(keys: CharArray, ch: Char, folded: Char): Boolean {
         for (k in keys) if (k == ch) return true
-        val f = foldChar(ch)
-        if (f == ch) return false
-        for (k in keys) if (k == f) return true
+        if (folded == ch) return false
+        for (k in keys) if (k == folded) return true
         return false
     }
 

@@ -91,6 +91,26 @@ class GlideAccuracyTest {
                 .toList()
         }
 
+    /**
+     * Words from [lang]'s list whose first letter [lang]'s own layout does not
+     * draw, filtered as the file is read rather than out of a fixed prefix of
+     * it: they are common in Greek and rare in Italian, so a sample deep enough
+     * for one is nowhere near deep enough for the other.
+     */
+    private fun undrawnInitials(lang: String, count: Int): List<String> {
+        val prox = KeyProximity.forLang(lang)
+        val out = ArrayList<String>(count)
+        File(assets(), "dictionaries/$lang.txt").useLines { lines ->
+            for (line in lines.drop(40)) {
+                val w = line.split(' ').firstOrNull() ?: continue
+                if (w.length !in 4..10 || !w.all { c -> c.isLetter() }) continue
+                if (prox.gridX(w[0]) == null) out.add(w)
+                if (out.size >= count) break
+            }
+        }
+        return out
+    }
+
     // ---- The motion model --------------------------------------------------
 
     /**
@@ -417,7 +437,12 @@ class GlideAccuracyTest {
             // This is what Greek failed: 7 of 120 words could even be given a
             // path, so the accuracy figure described almost nothing.
             if (n.asked < words.size * 9 / 10) unreachable.add("$lang ${n.asked}/${words.size}")
-            if (n.top1 < 0.70 || n.offered < 0.80) weak.add("$lang ${n.pct()}")
+            // The offered floor was 0.80 and Greek sat at 0.83 while a whole
+            // class of its words could not be swiped at all -- see
+            // `a word can begin with a letter the layout does not draw`. The
+            // lowest measured now is 96%, so this leaves six points of room
+            // and would have failed on that Greek.
+            if (n.top1 < 0.70 || n.offered < 0.90) weak.add("$lang ${n.pct()}")
         }
         println(lines)
         assertTrue(
@@ -746,8 +771,14 @@ class GlideAccuracyTest {
      * cell), before and after the second dictionary is consulted:
      *
      *                                  before        after
-     *     en primary, swiping tr        1%/3%       63%/85%
+     *     en primary, swiping tr        1%/3%       67%/90%
      *     tr primary, swiping en       27%/53%      74%/95%
+     *
+     * The first row was 63%/85% when this was written and moved on its own,
+     * without this file changing, when the first letter of a word stopped
+     * having to be a letter the layout draws -- 6.9% of the Turkish list begins
+     * with one that an English layout does not. The second row did not move,
+     * because English has no such word to be stopped by.
      *
      * The English figure was not low, it was zero-shaped: 1% top-1 is what the
      * handful of Turkish words that are also English words gets you. The
@@ -767,6 +798,7 @@ class GlideAccuracyTest {
         val enOnTr = measureBilingual(both, "tr", tr, sample("en", 400), "en", en)
         val lines = "en primary, swiping tr: ${trOnEn.pct()}\n" +
             "tr primary, swiping en: ${enOnTr.pct()}"
+        println(lines)
 
         // Both floors sit well under what was measured and well over what the
         // primary dictionary alone could reach (3% and 53% offered), so this
@@ -825,6 +857,7 @@ class GlideAccuracyTest {
         val trWithEn = measureBilingual(both, "tr", tr, trWords, "en", en)
         val lines = "swiping en: ${enAlone.pct()} alone, ${enWithTr.pct()} with tr\n" +
             "swiping tr: ${trAlone.pct()} alone, ${trWithEn.pct()} with en"
+        println(lines)
 
         assertTrue(
             "a second language now costs the primary more of its top slot.\n$lines",
@@ -858,6 +891,104 @@ class GlideAccuracyTest {
             "loading a second dictionary changed monolingual gliding: " +
                 "${alone.pct()} vs ${secondLoaded.pct()}",
             alone.top1 == secondLoaded.top1 && alone.offered == secondLoaded.offered
+        )
+    }
+
+    /**
+     * Words whose *first* letter their own layout does not draw.
+     *
+     * Every language, not just the two this file measures in detail, and the
+     * one arm where the answer used to be identical everywhere: **zero.** Not
+     * "poor" — nineteen languages at 0% offered, because no swipe a finger was
+     * capable of making could produce such a word.
+     *
+     * The scan that finds candidates is keyed on the first letter, and it was
+     * keyed in the wrong direction. It walked the *layout's* keys and asked the
+     * index for each, comparing them against the word's own first character
+     * with nothing folding in between — so the letters a layout draws were the
+     * only letters a word was allowed to begin with. `charAt(i, 0)` is the
+     * word's character, `path.startKeys` are the layout's, and an accented
+     * initial is by definition in one and not the other.
+     *
+     * This outlived the fix meant to close it. That fix taught the decoder to
+     * fold accented letters onto the keys that host them and took Greek from 5%
+     * to 75%, and its comment claimed the first letter was folded too — naming
+     * a function the loop never called. The middle and the end of every word
+     * were folded; the first letter was not, and the comment said otherwise,
+     * which is most of why nobody looked again.
+     *
+     * Same corpus, same natural hand, same engine, top-1/offered:
+     *
+     *     before   all nineteen           0%/0%
+     *     after    sk 79/97   cs 76/96   ro 69/93   pl 67/93   hr 65/94
+     *              el 60/91   hu 59/87   fr 47/75   de 46/76   uk 44/72
+     *              sv 41/73   da 38/66   no 30/60   pt 21/39   es 17/38
+     *              ru  8/37   fi 14/28   nl  3/7    it  1/3
+     *
+     * The spread is not the fix working unevenly. It is how often the accented
+     * spelling is the *only* spelling. Where it is — Slovak, Czech, Romanian,
+     * Polish, Croatian, Greek — the word is offered nine times in ten. Where
+     * the unaccented form is the ordinary one, that form correctly still wins:
+     * Dutch "écht" is an emphatic spelling of "echt" and is outnumbered 1,120
+     * to 424,799; Russian ё is habitually written е, so "ебаный" beating
+     * "ёбаный" is Russian practice and not a decoding failure; most of the
+     * Italian entries are borrowed names. What changed is that the accented
+     * word is now *in the list at all*.
+     *
+     * These are far below what the same words score on an unjittered path
+     * straight through their letters (el 100%, nl 35%, it 21% offered), and the
+     * gap is the point: an accented initial has to out-argue its own unaccented
+     * twin, and every key width the finger strays makes that argument harder.
+     *
+     * Neither [GLIDE_TOP1_FLOOR] nor the language sweep caught this, for the
+     * same reason: both measure a language's ordinary vocabulary, where these
+     * words were absent from the answer rather than wrong in it. Greek scored
+     * 83% offered against a floor of 80 and passed.
+     */
+    @Test
+    fun `a word can begin with a letter the layout does not draw`() {
+        // Languages where an accented initial is the normal spelling rather
+        // than a variant of a commoner one, so the word has no twin to lose to.
+        val accentIsTheSpelling = setOf("el", "cs", "sk", "hr", "pl", "ro", "hu")
+        val langs = File(assets(), "dictionaries").list().orEmpty()
+            .map { it.removeSuffix(".txt") }.sorted()
+        val lines = StringBuilder()
+        val silent = ArrayList<String>()
+        val weak = ArrayList<String>()
+        var sum = 0.0
+        var counted = 0
+        for (lang in langs) {
+            val words = undrawnInitials(lang, 120)
+            // en, id and tr draw their whole alphabet, so there is no such word
+            // and nothing to measure.
+            if (words.size < 40) continue
+            val n = measure(lang, Locale.forLanguageTag(lang), words, Hand.NATURAL)
+            lines.append("%-4s %s (n=%d)%n".format(lang, n.pct(), n.asked))
+            if (n.offered <= 0.0) silent.add(lang)
+            if (lang in accentIsTheSpelling && n.offered < 0.80) {
+                weak.add("$lang ${n.pct()}")
+            }
+            sum += n.offered
+            counted++
+        }
+        println(lines)
+        assertTrue("no language had any such word to measure", counted >= 15)
+        // The bug's own signature, and the assertion that would have caught it
+        // the day it was written: not a low score somewhere, a zero everywhere.
+        assertTrue(
+            "these languages cannot swipe a word beginning with a letter their " +
+                "layout does not draw, at all: $silent || $lines",
+            silent.isEmpty()
+        )
+        assertTrue(
+            "in these languages the accented spelling is the only spelling, so " +
+                "it has nothing to lose to and should be offered: $weak || $lines",
+            weak.isEmpty()
+        )
+        assertTrue(
+            "words beginning with an undrawn letter reach the strip much less " +
+                "often than measured (mean offered ${"%.2f".format(sum / counted)}).\n$lines",
+            sum / counted >= 0.55
         )
     }
 }
