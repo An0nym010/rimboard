@@ -279,4 +279,43 @@ class BilingualTest {
             rescued == onlyEnglish.size
         )
     }
+
+    /**
+     * A third language, and which two of the three actually get blended.
+     *
+     * The engine holds one other language at a time, so with three enabled
+     * *which* one is a real decision — and it used to be made by the order
+     * [com.rimboard.keyboard.model.Languages].all is written in. Enabling en,
+     * tr and de gave the pairs en+tr, tr+en and de+en, so German and Turkish
+     * never met however much the user wrote both.
+     *
+     * This measures what that was worth, on the same corpus and the same
+     * keystroke counter as everything else in this file. The rule that picks
+     * the pair now lives in
+     * [com.rimboard.keyboard.settings.SecondLanguageChoiceTest]; this is the
+     * half that says the choice is worth making at all.
+     */
+    @Test
+    fun `pairing the right two of three languages is worth about thirty points`() {
+        // German prose, typed on the Turkish layout, by a user who has English
+        // enabled as well. English is what the old rule handed them.
+        val wrongPair = saved("tr", "en", "de")
+        val rightPair = saved("tr", "de", "de")
+        val noSecond = saved("tr", null, "de")
+        val lines = ("typing de on the tr layout: none %.1f%%, alt=en %.1f%%, alt=de %.1f%%")
+            .format(noSecond, wrongPair, rightPair)
+        println(lines)
+
+        // The wrong second language is worth almost nothing, which is the
+        // point: it is not a smaller benefit, it is the absence of one.
+        assertTrue(
+            "pairing Turkish with English did more for German prose than " +
+                "expected, so this no longer measures a wasted slot.\n$lines",
+            wrongPair - noSecond < 5.0
+        )
+        assertTrue(
+            "pairing the two languages actually being typed must transform it.\n$lines",
+            rightPair > wrongPair + 20.0
+        )
+    }
 }

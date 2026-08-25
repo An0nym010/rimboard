@@ -92,14 +92,20 @@ object TranslateTargets {
      * must be given a real target different from it.
      *
      * The stored target if it is concrete and not the source; otherwise the
-     * first enabled keyboard language that is not the source; otherwise
-     * English. So a Turkish keyboard with English also enabled translates
-     * Turkish into English by default, which is the common bilingual case.
+     * user's other keyboard language; otherwise English. So a Turkish keyboard
+     * with English also enabled translates Turkish into English by default,
+     * which is the common bilingual case.
+     *
+     * "The other language" is [Prefs.altLangFor]'s question and is answered
+     * there, so that a user with three enabled gets the one they have actually
+     * been switching to rather than whichever is written first in
+     * `Languages.all`. For two languages -- the case the paragraph above
+     * describes -- the two rules cannot give different answers.
      */
     fun keylessTarget(c: Context, source: String): String {
         val stored = stored(c)
         if (stored != AUTO && stored != source) return stored
-        Prefs.languages(c).firstOrNull { it != source }?.let { return it }
+        Prefs.altLangFor(c, source)?.let { return it }
         return if (source != "en") "en" else "es"
     }
 

@@ -221,7 +221,7 @@ class RimSpellService : SpellCheckerService() {
             // The user's other enabled keyboard language, so a bilingual writer
             // does not get every English word in a Turkish message underlined.
             // Read from the same setting the keyboard uses, for the same reason.
-            altLang = Prefs.languages(service).firstOrNull { it != lang }
+            altLang = Prefs.altLangFor(service, lang)
             altLoc = altLang?.let { Languages.byCode(it).locale }
 
             // Now that the field's language is known, warm *that*. The service

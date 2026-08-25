@@ -521,12 +521,9 @@ class RimBoardService : InputMethodService(),
         primStreak = 0
         wordUndo.reset()
         currentPkg = info.packageName
-        if (Prefs.langPerApp(this)) {
-            Prefs.appLang(this, info.packageName)?.let { saved ->
-                val idx = langs.indexOf(saved)
-                if (idx >= 0) langIndex = idx
-            }
-        }
+        // The per-app language is chosen in readPrefsAndFieldFlags, below, and
+        // used to be chosen here as well -- where the choice was immediately
+        // overwritten by the one made there.
         keyboardView?.shiftState = KeyboardView.ShiftState.NONE
         // Panel visibility survives the input view being hidden and shown
         // again, so without this the keyboard could return still covered by
@@ -622,14 +619,30 @@ class RimBoardService : InputMethodService(),
         }
 
         langs = Prefs.languages(this)
-        val saved = Prefs.currentLang(this)
-        val idx = langs.indexOf(saved)
-        val sysIdx = langs.indexOf(java.util.Locale.getDefault().language)
-        langIndex = when {
-            idx >= 0 -> idx
-            sysIdx >= 0 -> sysIdx
-            else -> 0
-        }
+        // Language-per-app wins over the global "language last used anywhere",
+        // because it is the more specific answer and the only thing the setting
+        // has to say.
+        //
+        // It used to be applied in onStartInputView and then thrown away here,
+        // a few microseconds later and before any layout was drawn: this line
+        // read `Prefs.currentLang` unconditionally, so the per-app choice never
+        // survived to reach the screen. The setting has been inert for as long
+        // as it has existed, and silently — it wrote its preference faithfully
+        // on every switch and simply never read it back.
+        val perApp =
+            if (Prefs.langPerApp(this)) Prefs.appLang(this, info.packageName) else null
+        langIndex = langs.indexOf(
+            Prefs.startupLang(
+                langs, perApp, Prefs.currentLang(this),
+                java.util.Locale.getDefault().language
+            )
+        ).coerceAtLeast(0)
+        // Whichever language this field opened in counts as used, so a user
+        // who never touches the globe key -- because language-per-app already
+        // puts them in the right one -- still gets the pair they type rather
+        // than the pair Languages.all happens to list first. Idempotent: only
+        // a real change writes anything.
+        Prefs.noteLangUsed(this, currentLangCode())
 
         val inputType = info.inputType
         val cls = inputType and InputType.TYPE_MASK_CLASS
@@ -813,7 +826,12 @@ class RimBoardService : InputMethodService(),
 
     private fun locale(): Locale = localeFor(currentLangCode())
 
-    private fun altLangCode(): String? = langs.firstOrNull { it != currentLangCode() }
+    /**
+     * The other language the engine blends in. See [Prefs.altLangFor]: with
+     * more than two enabled it is the one most recently switched to, not the
+     * first in a list written here.
+     */
+    private fun altLangCode(): String? = Prefs.altLangFor(this, currentLangCode())
 
     private fun altLocale(): Locale? = altLangCode()?.let { localeFor(it) }
 
@@ -2303,6 +2321,7 @@ class RimBoardService : InputMethodService(),
         // just switched to.
         langIndex = (langIndex + 1) % langs.size
         Prefs.setCurrentLang(this, currentLangCode())
+        Prefs.noteLangUsed(this, currentLangCode())
         kind = LayoutKind.MAIN
         applyLayout()
         updateShiftState()
@@ -2397,6 +2416,7 @@ class RimBoardService : InputMethodService(),
         if (idx >= 0 && idx != langIndex) {
             langIndex = idx
             Prefs.setCurrentLang(this, code)
+            Prefs.noteLangUsed(this, code)
             if (keyboardView != null && kind == LayoutKind.MAIN) applyLayout()
             // Same as the globe key: a half-typed word gets its suggestions
             // recomputed in the language just switched to, rather than the
@@ -2852,6 +2872,7 @@ class RimBoardService : InputMethodService(),
             primStreak = 0
             langIndex = (langIndex - 1 + langs.size) % langs.size
             Prefs.setCurrentLang(this, currentLangCode())
+            Prefs.noteLangUsed(this, currentLangCode())
             kind = LayoutKind.MAIN
             applyLayout()
             updateShiftState()
