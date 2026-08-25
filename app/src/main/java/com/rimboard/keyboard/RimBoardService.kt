@@ -170,9 +170,12 @@ class RimBoardService : InputMethodService(),
 
     // Language auto-detection: if the user keeps typing words that only the
     // other enabled language knows, suggestions quietly swap priority.
-    private var altBoost = false
-    private var altBoostStreak = 0
-    private var primStreak = 0
+    /**
+     * Which language the user is actually writing, which is not always the one
+     * their layout is drawn in. See [com.rimboard.keyboard.model.LanguageBoost].
+     */
+    private val langBoost = com.rimboard.keyboard.model.LanguageBoost()
+    private val altBoost: Boolean get() = langBoost.boosted
 
     private val composing = StringBuilder()
 
@@ -516,9 +519,7 @@ class RimBoardService : InputMethodService(),
             setInputView(onCreateInputView())
         }
         appliedUiLang = ui
-        altBoost = false
-        altBoostStreak = 0
-        primStreak = 0
+        langBoost.reset()
         wordUndo.reset()
         currentPkg = info.packageName
         // The per-app language is chosen in readPrefsAndFieldFlags, below, and
@@ -849,18 +850,7 @@ class RimBoardService : InputMethodService(),
         val alt = altLangCode() ?: return
         val inPrim = engine.knownIn(word.lowercase(locale()), currentLangCode(), locale())
         val inAlt = engine.knownIn(word.lowercase(localeFor(alt)), alt, localeFor(alt))
-        when {
-            inAlt && !inPrim -> {
-                altBoostStreak++
-                primStreak = 0
-                if (altBoostStreak >= 3) altBoost = true
-            }
-            inPrim -> {
-                primStreak++
-                altBoostStreak = 0
-                if (primStreak >= 2) altBoost = false
-            }
-        }
+        langBoost.note(inPrim, inAlt)
     }
 
     private fun applyLayout() {
@@ -2305,9 +2295,7 @@ class RimBoardService : InputMethodService(),
     // ---------------------------------------------------------------- languages / modes
 
     private fun cycleLanguage() {
-        altBoost = false
-        altBoostStreak = 0
-        primStreak = 0
+        langBoost.reset()
         if (langs.size <= 1) {
             imePicker()
             return
@@ -2867,9 +2855,7 @@ class RimBoardService : InputMethodService(),
     override fun onLanguageSwipe(direction: Int) {
         if (direction < 0 && langs.size > 1) {
             // Composing survives, same as cycleLanguage — see the note there.
-            altBoost = false
-            altBoostStreak = 0
-            primStreak = 0
+            langBoost.reset()
             langIndex = (langIndex - 1 + langs.size) % langs.size
             Prefs.setCurrentLang(this, currentLangCode())
             Prefs.noteLangUsed(this, currentLangCode())
