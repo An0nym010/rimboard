@@ -955,7 +955,14 @@ class SuggestionEngine private constructor(
         ) { dict.frequency(it) } != null ||
         com.rimboard.keyboard.model.Elision.splitOf(
             lower, Dictionary.STEM_MIN_FREQ
-        ) { dict.frequency(it) } != null
+        ) { dict.frequency(it) } != null ||
+        // "Paris'e", "ABD'de" — a proper noun carrying its case ending across
+        // an apostrophe. A fourth shape of the same question and so a fourth
+        // clause here, rather than a fourth opinion somewhere else about
+        // whether something is a word.
+        com.rimboard.keyboard.model.Morphology.apostropheSuffixed(lang, lower) {
+            dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
+        }
 
     /**
      * Whether [lower] is a known word with a letter held down.

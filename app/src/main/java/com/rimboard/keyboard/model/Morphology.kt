@@ -46,6 +46,78 @@ object Morphology {
         return peel(wordLower, MAX_DEPTH, known)
     }
 
+    /**
+     * Whether [wordLower] is a known word carrying suffixes **after an
+     * apostrophe** — "Paris'e", "Türkiye'de", "ABD'de", "Rusya'nın".
+     *
+     * Turkish attaches its case endings to proper nouns and acronyms across an
+     * apostrophe, and this is not a rare flourish: every sentence naming a
+     * person, a place or an organisation has one. Measured over the Turkish
+     * prose in `src/test/fixtures`, **every single apostrophe word was rejected
+     * — 12 of the 15 unknown words in the corpus**, which is 80% of everything
+     * the keyboard did not recognise. In English, French and Italian the
+     * equivalent forms are handled and the same count is zero.
+     *
+     * ## Why [Elision] cannot do this and [stemIsKnown] cannot either
+     *
+     * [Elision] asks whether the two halves are *both dictionary entries with
+     * the apostrophe attached to one of them*. That is the right question for
+     * `l'homme` and `don't`, whose lists really do hold `l'` and `'t`. The
+     * Turkish list holds no apostrophe entry at all, so it matches nothing —
+     * Elision's own documentation says as much and treats it as a guarantee.
+     *
+     * Nor is it enough to delete the apostrophe and hand the result to
+     * [stemIsKnown]. That works for nine of the twelve and fails for exactly
+     * the ones the apostrophe exists to write:
+     *
+     *  - **"ABD'de"** joins to "abdde", a doubled consonant Turkish never
+     *    writes, and the suffix disagrees with the stem's vowel besides. ABD is
+     *    said "a-be-de", so it takes a front-vowel ending after a back-vowel
+     *    spelling.
+     *
+     * **That is the whole point of the apostrophe: it marks a boundary where
+     * the spelling of the stem does not predict the suffix.** So harmony is
+     * deliberately *not* checked across it, where [peel] checks it everywhere
+     * else. Applying the rule that governs ordinary words to the mark whose
+     * job is to say "this is not an ordinary word" would be a contradiction.
+     *
+     * ## What holds it back
+     *
+     * The head must be a word the dictionary vouches for, which is what stops
+     * this accepting anything with a quote in it: "İskenderiye'ye" is still
+     * rejected, because the corpus has never seen "iskenderiye" and nothing
+     * here can invent it. The tail must decompose entirely into recognised
+     * suffixes, and [MAX_DEPTH] bounds the search.
+     *
+     * It does accept tails nobody would write, because the inventory ends in
+     * single letters that really are suffixes — the same trade [Elision]
+     * documents for "in't". The cost is a word left un-underlined; the cost of
+     * the alternative was underlining "Paris'e" in every app on the phone.
+     */
+    fun apostropheSuffixed(
+        lang: String, wordLower: String, known: (String) -> Boolean
+    ): Boolean {
+        if (!isAgglutinative(lang)) return false
+        val i = wordLower.indexOfFirst { it == '\'' || it == '’' }
+        // Head at least a stem long, and something after the mark to be a
+        // suffix. A trailing apostrophe is a quote, not a boundary.
+        if (i < MIN_STEM || i >= wordLower.length - 1) return false
+        if (!known(wordLower.substring(0, i))) return false
+        return suffixChain(wordLower.substring(i + 1), MAX_DEPTH)
+    }
+
+    /** Whether [t] is nothing but recognised suffixes, stacked. */
+    private fun suffixChain(t: String, depth: Int): Boolean {
+        if (t.isEmpty()) return true
+        if (depth == 0) return false
+        for (suf in TR_SUFFIXES) {
+            if (t.length >= suf.length && t.endsWith(suf) &&
+                suffixChain(t.substring(0, t.length - suf.length), depth - 1)
+            ) return true
+        }
+        return false
+    }
+
     private fun peel(word: String, depth: Int, known: (String) -> Boolean): Boolean {
         if (word.length >= MIN_STEM && rootShaped(word) && known(word)) return true
         if (depth == 0) return false

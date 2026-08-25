@@ -29,6 +29,23 @@ Release notes for every RimBoard version. The current release is summarised in t
   themselves and a heuristic about names has no standing to overrule it. The two
   questions are now asked separately.
 
+**Turkish stopped underlining every proper noun**
+- **"Paris'e", "Türkiye'de", "ABD'de" were all marked misspelled.** Turkish
+  attaches its case endings to names and acronyms across an apostrophe, so every
+  sentence naming a person, a place or an organisation had one — and every
+  single one was rejected. Twelve of the fifteen unrecognised words in the
+  Turkish test corpus were this, 80% of the total; the same count is zero in
+  English, French and Italian, which have had their apostrophes handled since
+  the contraction work. Now one, and it is a place name the corpus has simply
+  never seen.
+- The rule deliberately does **not** check vowel harmony across the apostrophe,
+  because that is exactly what the apostrophe is there to say: "ABD" is
+  pronounced "a-be-de" and takes a front-vowel ending after a back-vowel
+  spelling. Joining the halves and reusing the ordinary word-building check gets
+  nine of the twelve and fails on precisely the ones the mark exists to write.
+- Foreign names take Turkish endings the same way — "Google'a", "Twitter'da" —
+  and those work now too.
+
 **Two things that only a phone could show**
 - **The setup screen's buttons were unreadable.** Dark purple lettering on the
   blue, 2.92:1 against the 4.5:1 needed to read it — on the first screen a new
