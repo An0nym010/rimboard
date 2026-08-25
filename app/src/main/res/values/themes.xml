@@ -16,5 +16,19 @@
             the button should look like. ThemesTest holds them together.
         -->
         <item name="colorOnPrimary">#FFFFFF</item>
+        <!--
+            And the container half of the same family, for the same reason.
+            Every switch in settings was drawing a Material 3 baseline purple
+            track (#4F378B, M3's dark `primaryContainer`) around a RimBoard blue
+            thumb — two design systems in one control, on a screen where nothing
+            else is purple. `SwitchCompat` under a Material 3 theme tints its
+            track from `colorPrimaryContainer` and its thumb from `colorPrimary`,
+            so overriding only the latter split the control in half.
+
+            The values are the app's own blues, not new ones: #0B47A1 is already
+            the far end of the settings header gradient. #D3E3FD on it is 6.66:1.
+        -->
+        <item name="colorPrimaryContainer">#0B47A1</item>
+        <item name="colorOnPrimaryContainer">#D3E3FD</item>
     </style>
 </resources>

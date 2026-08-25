@@ -73,6 +73,41 @@ class AppThemeContrastTest {
         return (maxOf(la, lb) + 0.05) / (minOf(la, lb) + 0.05)
     }
 
+    /**
+     * Tokens Material resolves together for a single control.
+     *
+     * A `SwitchCompat` under a Material 3 theme tints its **track** from
+     * `colorPrimaryContainer` and its **thumb** from `colorPrimary`. Overriding
+     * only `colorPrimary` therefore did not produce a blue switch: it produced
+     * a blue thumb inside M3's baseline purple track, on every settings screen.
+     *
+     * That is the same fault as the button label and a different attribute, so
+     * the rule worth holding is not "declare this one line" but **take a family
+     * or leave it** — a half-claimed family is two palettes in one widget.
+     */
+    private val families = mapOf(
+        "colorPrimary" to listOf(
+            "colorOnPrimary", "colorPrimaryContainer", "colorOnPrimaryContainer"
+        )
+    )
+
+    @Test
+    fun `claiming a colour family means claiming all of it`() {
+        val declared = items(themesXml())
+        val missing = families
+            .filterKeys { it in declared }
+            .mapValues { (_, kin) -> kin.filter { it !in declared } }
+            .filterValues { it.isNotEmpty() }
+        assertTrue(
+            "Theme.RimBoard declares ${missing.keys} but not ${missing.values.flatten()}. " +
+                "Material resolves these together for one control, so the missing ones " +
+                "come from its own baseline palette — which is purple in the dark " +
+                "theme. That is how every settings switch got a purple track around " +
+                "a blue thumb.",
+            missing.isEmpty()
+        )
+    }
+
     @Test
     fun `overriding a colour also overrides the one written on top of it`() {
         val declared = items(themesXml())

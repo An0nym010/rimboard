@@ -29,6 +29,18 @@ Release notes for every RimBoard version. The current release is summarised in t
   themselves and a heuristic about names has no standing to overrule it. The two
   questions are now asked separately.
 
+**Two things that only a phone could show**
+- **The setup screen's buttons were unreadable.** Dark purple lettering on the
+  blue, 2.92:1 against the 4.5:1 needed to read it — on the first screen a new
+  install shows. The theme took over the app's primary colour and left the
+  colour *written on top of it* at Material's own default, which in the dark
+  theme is purple.
+- **Every switch in settings had a purple track around a blue thumb.** The same
+  fault one attribute along: a switch tints its track from one colour and its
+  thumb from another, so claiming half the family put two design systems in one
+  control. Both halves are the app's own blues now, and a test holds the family
+  together rather than the single line that was missing.
+
 **The backspace swipe gives back exactly what it took**
 - **Sliding right to undo left a character behind.** Backspace is a repeating
   key, so the finger going down deletes one character before the swipe can arm
