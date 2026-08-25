@@ -962,7 +962,10 @@ class SuggestionEngine private constructor(
         // whether something is a word.
         com.rimboard.keyboard.model.Morphology.apostropheSuffixed(lang, lower) {
             dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
-        }
+        } ||
+        // "комп'ютер" — Ukrainian, where the apostrophe is a letter and the
+        // word is indivisible. A fifth shape of the same question.
+        com.rimboard.keyboard.model.InnerApostrophe.isWord(lower) { dict.frequency(it) }
 
     /**
      * Whether [lower] is a known word with a letter held down.

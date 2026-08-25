@@ -29,6 +29,21 @@ Release notes for every RimBoard version. The current release is summarised in t
   themselves and a heuristic about names has no standing to overrule it. The two
   questions are now asked separately.
 
+**Ukrainian stopped being corrected into Russian**
+- **`комп'ютер` was underlined and then rewritten as `компьютер`.** In Ukrainian
+  the apostrophe is a letter, part of the spelling of ordinary words — computer,
+  health, family, name, meat, five — but the corpus behind the word lists split
+  at every apostrophe, so none of those words was in the list and both halves
+  were counted as words instead. Underlining them was bad; silently replacing
+  one with the Russian spelling was worse. Seventeen everyday words checked, all
+  accepted now, and the corpus has none left unknown.
+- The halves being present is what makes it recoverable: a fragment like `ютер`
+  or `їзд` is not a word and is in the list only because something was cut in
+  front of it. Ukrainian orthography allows the mark in exactly one place —
+  after a consonant, before я ю є ї — which is what keeps the rule from
+  accepting anything else. It names no language: Russian shares the alphabet,
+  does not write the mark that way, and is untouched.
+
 **Turkish stopped underlining every proper noun**
 - **"Paris'e", "Türkiye'de", "ABD'de" were all marked misspelled.** Turkish
   attaches its case endings to names and acronyms across an apostrophe, so every
