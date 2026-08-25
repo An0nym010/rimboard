@@ -30,6 +30,12 @@ class GlidePath private constructor(
     private val px: FloatArray,
     private val py: FloatArray,
     private val slots: HashMap<Char, Int>,
+    /**
+     * Letters the layout draws only inside a long press, mapped to the key that
+     * hosts them. See [KeyProximity.hostOf]: this is the answer for letters that
+     * are not accented forms of anything and so cannot be folded onto a base.
+     */
+    private val hosts: Map<Char, Char>,
     private val keyX: FloatArray,
     private val keyY: FloatArray,
     /** Total distance the finger travelled, in key widths. */
@@ -78,7 +84,16 @@ class GlidePath private constructor(
      */
     fun slotOf(ch: Char): Int {
         slots[ch]?.let { return it }
-        return foldedSlots.getOrPut(ch) { slots[foldChar(ch)] ?: -1 }
+        return foldedSlots.getOrPut(ch) {
+            // Fold first, host second, and the order is the whole of the
+            // compatibility argument: every letter that resolved before still
+            // resolves the same way, and only letters that resolved to nothing
+            // reach the host. Where the two disagree the fold is the better
+            // answer anyway -- Ukrainian ї is drawn under х but is read as і
+            // with a diaeresis, and a finger goes where the letter looks like
+            // it belongs.
+            slots[foldChar(ch)] ?: hosts[ch]?.let { slots[it] } ?: -1
+        }
     }
 
     /**
@@ -125,8 +140,23 @@ class GlidePath private constructor(
 
     private fun inSet(keys: CharArray, ch: Char, folded: Char): Boolean {
         for (k in keys) if (k == ch) return true
-        if (folded == ch) return false
-        for (k in keys) if (k == folded) return true
+        if (folded != ch) {
+            for (k in keys) if (k == folded) return true
+        }
+        // Only a letter with no key of its own asks where it is hosted, and
+        // the test has to be "not drawn anywhere" rather than "not among these
+        // keys" -- [keys] is the handful near one end of the swipe, so a letter
+        // that is drawn but simply not near would otherwise reach this and be
+        // admitted from its popup parent as well.
+        //
+        // Greek is where that showed: the layout draws ς as a real key *and*
+        // lists it under σ, so every word ending in final sigma -- which is
+        // most masculine nouns -- became a candidate for swipes that ended
+        // nowhere near it, and Greek lost a point of top-1 to the extra
+        // company.
+        if (slots.containsKey(ch)) return false
+        val host = hosts[ch] ?: return false
+        for (k in keys) if (k == host) return true
         return false
     }
 
@@ -389,7 +419,11 @@ class GlidePath private constructor(
                 keyX[s] = prox.gridX(ch) ?: return null
                 keyY[s] = prox.gridY(ch) ?: return null
             }
-            return GlidePath(rx, ry, slots, keyX, keyY, total)
+            val hosts = HashMap<Char, Char>()
+            for (ch in prox.lettersHosted()) {
+                prox.hostOf(ch)?.let { if (slots.containsKey(it)) hosts[ch] = it }
+            }
+            return GlidePath(rx, ry, slots, hosts, keyX, keyY, total)
         }
     }
 }

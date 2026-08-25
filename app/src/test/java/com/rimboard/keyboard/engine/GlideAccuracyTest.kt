@@ -3,6 +3,7 @@ package com.rimboard.keyboard.engine
 import com.rimboard.keyboard.model.GlidePath
 import com.rimboard.keyboard.model.KeyProximity
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -212,11 +213,24 @@ class GlideAccuracyTest {
             // real keys, so those resolve to themselves and the Turkish figures
             // are untouched.
             val ch = letters[i]
+            // Fold, then the key that hosts the letter under a long press, in
+            // that order -- the decoder's own order, because the harness has to
+            // aim where the decoder looks or it measures its own disagreement.
+            //
+            // The host arm is the second time this generator has been the thing
+            // standing between a fix and its measurement. Without the fold it
+            // could not build a path for most words in half these languages and
+            // scored Greek on 7 of 120; without this it could not build one for
+            // any word holding ß, æ, œ, ъ or ґ, and reported n=0 rather than a
+            // low number -- which is at least an honest way to fail.
+            val host = prox.hostOf(ch)
             ax[i] = prox.gridX(ch)
                 ?: prox.gridX(com.rimboard.keyboard.model.Diacritics.fold(ch))
+                ?: host?.let { prox.gridX(it) }
                 ?: return null
             ay[i] = prox.gridY(ch)
                 ?: prox.gridY(com.rimboard.keyboard.model.Diacritics.fold(ch))
+                ?: host?.let { prox.gridY(it) }
                 ?: return null
         }
         // Corner-cutting: interior aim points drift toward the chord that
@@ -990,5 +1004,176 @@ class GlideAccuracyTest {
                 "often than measured (mean offered ${"%.2f".format(sum / counted)}).\n$lines",
             sum / counted >= 0.55
         )
+    }
+
+    /**
+     * Words from [lang]'s list holding a letter that folding cannot place —
+     * one that is neither drawn nor an accented form of anything drawn.
+     */
+    private fun hostedOnlyWords(lang: String, count: Int): List<String> {
+        val prox = KeyProximity.forLang(lang)
+        fun foldable(ch: Char) = prox.gridX(ch) != null ||
+            prox.gridX(com.rimboard.keyboard.model.Diacritics.fold(ch)) != null
+        val out = ArrayList<String>(count)
+        File(assets(), "dictionaries/$lang.txt").useLines { lines ->
+            for (line in lines.drop(40)) {
+                val w = line.split(' ').firstOrNull() ?: continue
+                if (w.length !in 4..10 || !w.all { c -> c.isLetter() }) continue
+                if (w.any { c -> !foldable(c) }) out.add(w)
+                if (out.size >= count) break
+            }
+        }
+        return out
+    }
+
+    /**
+     * A letter that is not an accented form of anything.
+     *
+     * German ß, Danish and Norwegian æ, French œ, Russian ъ, Ukrainian ґ. None
+     * of them decomposes, so there is nothing for [Diacritics] to strip and no
+     * base letter to fold onto — and the decoder placed a word's letters by
+     * folding alone. A word holding one had a letter at no position, an infinite
+     * cost, and could not be swiped by anyone. **7.8% of the Danish list**, 1.5%
+     * of Norwegian, 1.4% of German.
+     *
+     * The layout knew the answer the whole time. Every one of those letters is
+     * drawn in the long-press popup of an ordinary key — æ on `a`, ß on `s`, œ
+     * on `o`, ґ on `г`, ъ on `ь` — and that key is exactly where a finger goes
+     * looking for it. [KeyProximity.hostOf] reads that back out of the layout
+     * rather than keeping a second table, so the two cannot drift apart.
+     *
+     * Asked after the fold, never before, which is the whole compatibility
+     * argument: every letter that resolved before resolves the same way, and
+     * only letters that resolved to nothing reach the host. Where the two would
+     * disagree the fold is the better answer anyway — Ukrainian ї is drawn under
+     * х but reads as і with a diaeresis, and a finger goes where the letter
+     * looks like it belongs.
+     *
+     * Natural hand, each language's own list and layout, top-1/offered, and the
+     * before column measured with this same generator rather than assumed:
+     *
+     *              before        after
+     *     da       0% / 0%     44% / 79%
+     *     de       0% / 0%     34% / 68%
+     *     no       0% / 0%     28% / 57%
+     *     ru       0% / 0%     29% / 57%
+     *     uk       0% / 0%     23% / 43%
+     *     fr       0% / 0%      2% /  9%
+     *
+     * ## Why these are lower than every other arm in this file
+     *
+     * Because the letter collapses onto a key that already spells a different
+     * and commoner word, and the commoner word correctly wins. French is the
+     * extreme: `œuvre` traces o-u-v-r-e, which is `ouvre`, and `cœur` traces
+     * `cour`. That is the same thing Dutch "écht" does against "echt" and it is
+     * not a decoding failure. What changed is that the word is in the list at
+     * all — six languages went from *nothing* to something.
+     *
+     * ## What is still not modelled
+     *
+     * A ligature is one letter over two base letters, and a key is one key. The
+     * host says `œ` is on `o`, so a swipe of `cœur` is read as c-o-u-r — which
+     * is where the finger goes, since `o` is the key you long-press. Whether a
+     * writer instead traces the *spelling*, c-o-e-u-r, is a real question this
+     * does not answer, and answering it would mean letting one letter occupy
+     * two slots rather than one. Measured and left, not overlooked: the French
+     * row above is what that limit costs.
+     */
+    @Test
+    fun `a letter that folds onto nothing is still on a key`() {
+        val langs = File(assets(), "dictionaries").list().orEmpty()
+            .map { it.removeSuffix(".txt") }.sorted()
+        val lines = StringBuilder()
+        val silent = ArrayList<String>()
+        val byLang = HashMap<String, Double>()
+        var sum = 0.0
+        var counted = 0
+        for (lang in langs) {
+            val words = hostedOnlyWords(lang, 120)
+            // Most layouts draw every letter their language spells, or draw a
+            // base for each. Only six ship a letter that neither describes.
+            if (words.size < 40) continue
+            val n = measure(lang, Locale.forLanguageTag(lang), words, Hand.NATURAL)
+            lines.append("%-4s %s (n=%d)%n".format(lang, n.pct(), n.asked))
+            byLang[lang] = n.offered
+            if (n.offered <= 0.0) silent.add(lang)
+            sum += n.offered
+            counted++
+        }
+        println(lines)
+        assertTrue(
+            "no language ships a letter that folding cannot place, so this " +
+                "measures nothing; it covered six",
+            counted >= 4
+        )
+        // The bug's signature, and the only floor that can be set language-wide:
+        // every one of these scored exactly 0% before the layout was asked which
+        // key hosts the letter.
+        assertTrue(
+            "these cannot swipe a word holding a letter that folds onto " +
+                "nothing, at all: $silent || $lines",
+            silent.isEmpty()
+        )
+        assertTrue(
+            "Danish is the largest affected list -- 7.8% of it -- and the case " +
+                "where the letter is a plain letter rather than a ligature " +
+                "colliding with a commoner word.\n$lines",
+            (byLang["da"] ?: 0.0) >= 0.65
+        )
+        assertTrue(
+            "words holding such a letter reach the strip much less often than " +
+                "measured (mean offered ${"%.2f".format(sum / counted)}).\n$lines",
+            sum / counted >= 0.40
+        )
+    }
+
+    /**
+     * A letter that has a key of its own is never reached through a popup.
+     *
+     * The host lookup exists for letters the layout draws *only* under a long
+     * press. Some letters are drawn both ways, and Greek final sigma is the one
+     * that matters: `ς` is a real key on the top row and is also listed in the
+     * popup of `σ`. Consulting the host for it made every word ending in final
+     * sigma — which is most masculine nouns — a candidate for swipes that ended
+     * nowhere near it, and cost Greek a point of top-1 to the extra company.
+     *
+     * The trap was that the obvious test, "is this letter among the keys near
+     * the end of the swipe", is not the same question as "does this letter have
+     * a key at all". The first is false for any letter the finger happened not
+     * to end on.
+     */
+    @Test
+    fun `a letter drawn on its own key is not also reached through its host`() {
+        val prox = KeyProximity.forLang("el")
+        val sigma = 'σ'
+        val finalSigma = 'ς'
+        // The premise: the layout draws both, and still lists one under the other.
+        assertTrue("Greek must draw both sigmas for this to test anything",
+            prox.gridX(sigma) != null && prox.gridX(finalSigma) != null)
+        assertEquals("final sigma is expected to sit in sigma's popup",
+            sigma, prox.hostOf(finalSigma))
+
+        // A swipe that begins and ends on sigma, nowhere near final sigma.
+        val sx = prox.gridX(sigma)!!
+        val sy = prox.gridY(sigma)!!
+        val ax = prox.gridX('α')!!
+        val ay = prox.gridY('α')!!
+        val pts = ArrayList<Float>()
+        for (s in 0..8) {
+            val t = s / 8f
+            pts.add(sx + (ax - sx) * t); pts.add(sy + (ay - sy) * t)
+        }
+        for (s in 1..8) {
+            val t = s / 8f
+            pts.add(ax + (sx - ax) * t); pts.add(ay + (sy - ay) * t)
+        }
+        val gp = GlidePath.of(pts.toFloatArray(), prox)
+        assertTrue("the corpus generated no path", gp != null)
+        assertTrue(
+            "a swipe that ended on sigma must not admit words ending in final " +
+                "sigma, which has a key of its own several rows away",
+            !gp!!.couldEnd(finalSigma)
+        )
+        assertTrue("and sigma itself must still be admitted", gp.couldEnd(sigma))
     }
 }

@@ -13,7 +13,14 @@ import kotlin.math.hypot
  * Rows are read from the language's real layout in [Layouts], so a layout
  * change can never leave tap targeting pointing at the wrong keys.
  */
-class KeyProximity private constructor(rows: List<String>) {
+class KeyProximity private constructor(
+    rows: List<String>,
+    /**
+     * For a letter the layout does not draw, the key that hosts it under a long
+     * press. See [hostOf].
+     */
+    private val hosts: Map<Char, Char>
+) {
 
     private val xs = HashMap<Char, Float>()
     private val ys = HashMap<Char, Float>()
@@ -59,6 +66,26 @@ class KeyProximity private constructor(rows: List<String>) {
      */
     fun gridX(ch: Char): Float? = xs[ch]
     fun gridY(ch: Char): Float? = ys[ch]
+
+    /**
+     * The key [ch] lives on when the layout draws no key of its own for it.
+     *
+     * Some letters are not accented forms of anything and so cannot be folded
+     * onto a base: German ß, Danish and Norwegian æ, French œ, Russian ъ,
+     * Ukrainian ґ. Unicode has nothing to decompose, and a decoder that only
+     * knew how to strip accents could place none of them -- which meant no word
+     * containing one could be swiped at all, 7.8% of the Danish list among them.
+     *
+     * The layout has known the answer the whole time: every one of those
+     * letters is drawn in the long-press popup of a real key, and that key is
+     * where a finger would go looking for it. This reads that mapping back out
+     * of the layout rather than keeping a second table of it, so the two cannot
+     * drift the way a copy would.
+     */
+    fun hostOf(ch: Char): Char? = hosts[ch]
+
+    /** Every letter this layout draws only inside a long press. */
+    fun lettersHosted(): Set<Char> = hosts.keys
 
     /**
      * Every letter this layout actually draws.
@@ -148,10 +175,13 @@ class KeyProximity private constructor(rows: List<String>) {
          * comma/period, shift, space) are dropped, which leaves exactly the
          * three letter rows in top-to-bottom order.
          */
-        private fun letterRows(lang: String): List<String> = try {
-            Languages.byCode(lang)
-                .layout(false, false)
-                .rows
+        /**
+         * The letter rows and the popup hosts of [lang]'s real layout, read in
+         * one traversal so they cannot describe different keyboards.
+         */
+        private fun geometry(lang: String): Pair<List<String>, Map<Char, Char>> = try {
+            val layout = Languages.byCode(lang).layout(false, false)
+            val rows = layout.rows
                 .map { row ->
                     row.keys
                         .filter {
@@ -163,12 +193,34 @@ class KeyProximity private constructor(rows: List<String>) {
                 .filter { it.length >= 4 }
                 .take(3)
                 .ifEmpty { qwerty }
+            val hosts = HashMap<Char, Char>()
+            for (row in layout.rows) {
+                for (key in row.keys) {
+                    if (key.type != KeyType.CHARACTER || key.label.length != 1) continue
+                    val host = key.label[0]
+                    if (!host.isLetter()) continue
+                    for (p in key.popup) {
+                        if (p.label.length != 1) continue
+                        val ch = p.label[0]
+                        // Letters only: a popup also carries digits and
+                        // punctuation, and neither is something a swipe spells.
+                        if (!ch.isLetter()) continue
+                        // First host wins, so the answer is the layout's own
+                        // reading order rather than whichever key was visited
+                        // last.
+                        if (!hosts.containsKey(ch)) hosts[ch] = host
+                    }
+                }
+            }
+            rows to hosts
         } catch (_: Exception) {
-            qwerty
+            qwerty to emptyMap()
         }
 
         @Synchronized
-        fun forLang(lang: String): KeyProximity =
-            cache.getOrPut(lang) { KeyProximity(letterRows(lang)) }
+        fun forLang(lang: String): KeyProximity = cache.getOrPut(lang) {
+            val (rows, hosts) = geometry(lang)
+            KeyProximity(rows, hosts)
+        }
     }
 }

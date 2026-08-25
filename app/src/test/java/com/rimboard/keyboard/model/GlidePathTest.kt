@@ -21,20 +21,22 @@ class GlidePathTest {
     private val en = KeyProximity.forLang("en")
 
     /** A straight-line swipe through each of [stops], sampled finely. */
-    private fun swipe(stops: String, samples: Int = 16): GlidePath {
+    private fun swipe(stops: String, samples: Int = 16): GlidePath = swipeOn(en, stops, samples)
+
+    private fun swipeOn(prox: KeyProximity, stops: String, samples: Int = 16): GlidePath {
         val pts = ArrayList<Float>()
         for (i in 0 until stops.length - 1) {
-            val ax = en.gridX(stops[i])!!
-            val ay = en.gridY(stops[i])!!
-            val bx = en.gridX(stops[i + 1])!!
-            val by = en.gridY(stops[i + 1])!!
+            val ax = prox.gridX(stops[i])!!
+            val ay = prox.gridY(stops[i])!!
+            val bx = prox.gridX(stops[i + 1])!!
+            val by = prox.gridY(stops[i + 1])!!
             for (s in 0..samples) {
                 val t = s.toFloat() / samples
                 pts.add(ax + (bx - ax) * t)
                 pts.add(ay + (by - ay) * t)
             }
         }
-        return GlidePath.of(pts.toFloatArray(), en)!!
+        return GlidePath.of(pts.toFloatArray(), prox)!!
     }
 
     @Test
@@ -180,13 +182,43 @@ class GlidePathTest {
     }
 
     @Test
-    fun `a letter whose base is two letters stays unreachable`() {
-        // The honest edge. "ß" lowers to "ss", and a key is one letter, so
-        // there is no single key to fold it onto — German words spelled with
-        // it still cannot be swiped. Recorded rather than hidden: the fix
-        // above is broad, not total.
+    fun `a letter whose base is two letters sits on the key that hosts it`() {
+        // This asserted the opposite, and the assertion was a limit of the
+        // method rather than a fact about keyboards. "ß" lowers to "ss" and a
+        // key is one letter, so there is no single base to *fold* it onto —
+        // but folding was never the only way to ask. Every Latin layout draws
+        // ß in the long-press popup of s, which is exactly where a finger goes
+        // looking for it, and the layout could have been asked all along.
+        //
+        // The same is true of æ (on a), œ (on o), ъ (on ь) and ґ (on г). While
+        // this stood as an honest edge, 7.8% of the Danish word list, 1.5% of
+        // Norwegian and 1.4% of German could not be swiped by anyone.
         val p = swipe("helo")
-        assertEquals(-1, p.slotOf('ß'))
+        assertEquals(p.slotOf('s'), p.slotOf('ß'))
+        assertTrue(p.costOf("heß").isFinite())
+    }
+
+    @Test
+    fun `a hosted letter is one key, which for a ligature is a real limit`() {
+        // What the host answer does not do. One letter takes one key, so a
+        // swipe of "straße" is read as s-t-r-a-s-e rather than as the spelling
+        // s-t-r-a-s-s-e. For ß those are the same shape anyway, because a
+        // repeated letter collapses to one stop — the finger cannot stop twice
+        // in the same place.
+        val p = swipe("helo")
+        assertEquals(p.costOf("strasse"), p.costOf("straße"), 1e-9)
+
+        // For a ligature of two *different* letters it is a real difference.
+        // Danish æ lives on `a`, so "være" is read as v-a-r-e and not as the
+        // spelling v-a-e-r-e. That is where the finger goes — `a` is the key
+        // you long-press for æ — but it is a claim about the gesture rather
+        // than about the spelling, and it is why the languages whose hosted
+        // letter is a ligature score lowest of the six this reaches.
+        val da = KeyProximity.forLang("da")
+        val dp = swipeOn(da, "vare")
+        assertEquals(dp.costOf("vare"), dp.costOf("være"), 1e-9)
+        assertTrue("the spelling and the gesture are not the same shape",
+            dp.costOf("vaere") != dp.costOf("være"))
     }
 
     @Test
