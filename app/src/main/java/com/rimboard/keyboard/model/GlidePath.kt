@@ -43,12 +43,75 @@ class GlidePath private constructor(
     fun y(i: Int): Float = py[i]
 
     /**
-     * The table slot for [ch], or -1 when the layout has no such key.
+     * The table slot for [ch], or -1 when nothing on the layout can spell it.
      *
-     * A word containing a letter this layout does not draw cannot have been
-     * swiped on it, so -1 is a rejection and not a missing value.
+     * **An accented letter resolves to the key of its base letter**, and that
+     * is the whole of why gliding works outside English. Almost no layout draws
+     * its accented forms: they live under a long press, so `á`, `ł`, `ä` and
+     * `ά` are on no key at all. A word containing one therefore had no slot,
+     * [costOf] returned infinity, and the word could not be swiped — ever, by
+     * anyone.
+     *
+     * Which is most of some languages. Measured as the share of a language's
+     * common words that could be given a path at all, before this:
+     *
+     *     el   6%      cs  38%     sk  53%     fi  62%     pl  63%
+     *     sv  66%      hu  73%     ro  74%     hr  78%     es  88%
+     *
+     * Greek is the extreme and the clearest case: modern orthography puts an
+     * accent on nearly every polysyllabic word, and the layout draws none of
+     * them, so **94% of ordinary Greek could not be swiped**.
+     *
+     * Folding is the right answer rather than a lenient one. The finger can
+     * only cross keys the layout draws, so tracing "καλά" *is* tracing κ-α-λ-α;
+     * the accent is not something a swipe can express. The word keeps its
+     * accent — only the shape it is matched against is folded — so what the
+     * strip offers is still "καλά". Where a folded pair really is two words
+     * ("ποτε"/"πότε"), both reach the strip and frequency orders them, exactly
+     * as it does for the tapped path through [Dictionary.accentedFormOf].
+     *
+     * Memoised per swipe. A miss costs one Unicode normalisation and there are
+     * only a handful of distinct accented letters in any one language, so the
+     * table fills in the first few candidate words and every later lookup is a
+     * hash probe. This runs inside the per-swipe budget the latency benchmark
+     * holds, for up to `MAX_GLIDE_SCORED` words.
      */
-    fun slotOf(ch: Char): Int = slots[ch] ?: -1
+    fun slotOf(ch: Char): Int {
+        slots[ch]?.let { return it }
+        return foldedSlots.getOrPut(ch) { slots[foldChar(ch)] ?: -1 }
+    }
+
+    /**
+     * Per-swipe memo for letters that are not on the layout.
+     *
+     * A [GlidePath] belongs to one swipe on one thread — the keyboard builds a
+     * fresh one per gesture — so a mutable map here cannot be shared between
+     * the two engine threads the way a cache on the dictionary could.
+     */
+    private val foldedSlots = HashMap<Char, Int>(8)
+
+    /**
+     * Whether a word beginning with [ch] could have been started by this swipe,
+     * folding as [slotOf] does.
+     *
+     * The membership test has to fold for the same reason the slot lookup does:
+     * "ώρα" begins with a letter no layout draws, so an unfolded test threw it
+     * away before its shape was ever considered.
+     */
+    fun couldStart(ch: Char): Boolean = inSet(startKeys, ch)
+
+    /** Whether a word ending in [ch] could have been ended by this swipe. */
+    fun couldEnd(ch: Char): Boolean = inSet(endKeys, ch)
+
+    private fun foldChar(ch: Char): Char = Diacritics.fold(ch)
+
+    private fun inSet(keys: CharArray, ch: Char): Boolean {
+        for (k in keys) if (k == ch) return true
+        val f = foldChar(ch)
+        if (f == ch) return false
+        for (k in keys) if (k == f) return true
+        return false
+    }
 
     /**
      * The letters a word could plausibly begin with: those whose key the swipe

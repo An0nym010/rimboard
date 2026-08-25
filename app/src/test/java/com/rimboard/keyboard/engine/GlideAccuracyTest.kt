@@ -181,8 +181,23 @@ class GlideAccuracyTest {
         val ax = FloatArray(letters.length)
         val ay = FloatArray(letters.length)
         for (i in letters.indices) {
-            ax[i] = prox.gridX(letters[i]) ?: return null
-            ay[i] = prox.gridY(letters[i]) ?: return null
+            // A finger can only cross keys the layout draws, so an accented
+            // letter is traced at its base letter's key -- which is what the
+            // decoder folds to as well. Without this the harness could not
+            // build a path for most words in half the shipped languages, and
+            // so could measure the folding's cost without ever seeing its
+            // benefit: 94% of Greek was invisible to this benchmark.
+            //
+            // A fallback, not a rewrite. Turkish draws ı, ğ, ü, ş, ö and ç as
+            // real keys, so those resolve to themselves and the Turkish figures
+            // are untouched.
+            val ch = letters[i]
+            ax[i] = prox.gridX(ch)
+                ?: prox.gridX(com.rimboard.keyboard.model.Diacritics.fold(ch))
+                ?: return null
+            ay[i] = prox.gridY(ch)
+                ?: prox.gridY(com.rimboard.keyboard.model.Diacritics.fold(ch))
+                ?: return null
         }
         // Corner-cutting: interior aim points drift toward the chord that
         // bypasses them. The first and last are where the finger starts and
@@ -340,6 +355,81 @@ class GlideAccuracyTest {
             top1 = if (asked == 0) 0.0 else t1.toDouble() / asked,
             offered = if (asked == 0) 0.0 else t4.toDouble() / asked,
             asked = asked
+        )
+    }
+
+    /**
+     * Every shipped language, not just the two the rest of this file measures.
+     *
+     * ## What this found
+     *
+     * Almost no layout draws its accented letters — they live under a long
+     * press — so a word containing one had no key to be placed on, its cost was
+     * infinite, and **it could not be swiped at all, by anyone**. Modern Greek
+     * puts an accent on nearly every polysyllabic word, so Greek gliding was
+     * effectively not a feature.
+     *
+     * Same corpus, same motion model, decoder folding off then on
+     * (natural hand, top-1 / top-3):
+     *
+     *     el   5%/6%   ->  75%/83%        pl  61%/63%  ->  94%/98%
+     *     cs  35%/38%  ->  84%/95%        sv  62%/65%  ->  90%/97%
+     *     sk  48%/53%  ->  88%/97%        hu  67%/73%  ->  89%/98%
+     *     fi  51%/62%  ->  77%/95%        hr  69%/78%  ->  84%/97%
+     *     ro  60%/72%  ->  75%/92%        es  75%/86%  ->  83%/98%
+     *
+     * English, Dutch, Indonesian, Russian, Turkish and Ukrainian do not move by
+     * a single point, which is the check that the change does what it says:
+     * those six layouts already draw every letter their language spells with,
+     * so there is nothing to fold.
+     *
+     * ## The cost, which is real and small
+     *
+     * Folding lets an accented word compete for a path that an unaccented word
+     * also fits, so on the words that *were* already reachable the top-1 slips
+     * a little — cs 91->87, fi 84->78, sk 90->87, es 86->83, most others one or
+     * two points, en/tr/it/hu not at all. That is the whole of the downside,
+     * and it buys the other seventy points. Recorded so nobody reads the small
+     * regression on its own and reverses this.
+     *
+     * ## Reading the harness
+     *
+     * `path` folds too, and has to: a finger can only cross keys the layout
+     * draws. Before it did, this benchmark could not build a path for most
+     * words in half these languages and so could see the folding's cost while
+     * being blind to its benefit — it scored Greek on 7 words out of 120 and
+     * called it 86%.
+     */
+    @Test
+    fun `every shipped language can be swiped`() {
+        val langs = File(assets(), "dictionaries").list().orEmpty()
+            .map { it.removeSuffix(".txt") }.sorted()
+        val lines = StringBuilder()
+        val weak = ArrayList<String>()
+        val unreachable = ArrayList<String>()
+        for (lang in langs) {
+            val locale = Locale.forLanguageTag(lang)
+            val words = sample(lang, 120)
+            if (words.size < 40) continue
+            val n = measure(lang, locale, words, Hand.NATURAL)
+            lines.append("%-4s natural %s (n=%d)%n".format(lang, n.pct(), n.asked))
+            // Every language's ordinary vocabulary must be swipeable at all.
+            // This is what Greek failed: 7 of 120 words could even be given a
+            // path, so the accuracy figure described almost nothing.
+            if (n.asked < words.size * 9 / 10) unreachable.add("$lang ${n.asked}/${words.size}")
+            if (n.top1 < 0.70 || n.offered < 0.80) weak.add("$lang ${n.pct()}")
+        }
+        println(lines)
+        assertTrue(
+            "words in these languages cannot be given a swipe path at all, " +
+                "which is how Greek gliding was 5% without anyone noticing: " +
+                unreachable.toString() + " || " + lines,
+            unreachable.isEmpty()
+        )
+        assertTrue(
+            "these languages decode too poorly to call gliding supported: " +
+                weak.toString() + " || " + lines,
+            weak.isEmpty()
         )
     }
 

@@ -384,33 +384,8 @@ class Dictionary(
          * handful of letters that are atomic code points with no decomposition
          * (dotless ı, Polish ł, Scandinavian ø) are mapped explicitly.
          */
-        fun foldDiacritics(s: String): String {
-            // Nothing below 0x80 decomposes, nothing below 0x80 is a combining
-            // mark, and every key of ATOMIC_FOLD is above it -- so for a purely
-            // ASCII string the answer is the string, and the identity is exact
-            // rather than close enough. Worth checking for because this is not
-            // a load-time function: autoCommitConfident asks it of two words on
-            // the keystroke that commits, and it otherwise runs a Unicode
-            // normalisation and builds two objects to hand back what it was
-            // given. English never leaves this branch; German leaves it for one
-            // word in seven.
-            var ascii = true
-            for (ch in s) if (ch.code >= 0x80) { ascii = false; break }
-            if (ascii) return s
-            val decomposed = java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD)
-            val sb = StringBuilder(decomposed.length)
-            for (ch in decomposed) {
-                when {
-                    Character.getType(ch) == Character.NON_SPACING_MARK.toInt() -> {}
-                    else -> sb.append(ATOMIC_FOLD[ch] ?: ch)
-                }
-            }
-            return sb.toString()
-        }
-
-        private val ATOMIC_FOLD: Map<Char, Char> = mapOf(
-            'ı' to 'i', 'ł' to 'l', 'ø' to 'o', 'đ' to 'd', 'ð' to 'd'
-        )
+        fun foldDiacritics(s: String): String =
+            com.rimboard.keyboard.model.Diacritics.fold(s)
 
         /**
          * Optimal string alignment (Damerau-Levenshtein) distance with early
@@ -1446,11 +1421,18 @@ class Dictionary(
         if (endKeys.isEmpty()) return emptyList()
 
         val survivors = ArrayList<Int>(256)
+        // The scan is keyed on the first letter, so it walks the layout's own
+        // letters and asks the index for each. An accented first letter is
+        // reached because the word's own first char is folded by couldStart
+        // below -- the two directions meet in the middle.
         for (firstCh in path.startKeys) {
             var i = lowerBound(firstCh)
             while (i < size && charAt(i, 0) == firstCh) {
                 val n = lenAt(i)
-                if (n >= 2 && endKeys.contains(charAt(i, n - 1))) survivors.add(i)
+                // Folding here too: "ώρα" ends in a letter no layout draws,
+                // and an unfolded membership test discarded the word before
+                // its shape was ever looked at.
+                if (n >= 2 && path.couldEnd(charAt(i, n - 1))) survivors.add(i)
                 i++
             }
         }

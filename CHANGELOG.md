@@ -29,6 +29,24 @@ Release notes for every RimBoard version. The current release is summarised in t
   themselves and a heuristic about names has no standing to overrule it. The two
   questions are now asked separately.
 
+**Glide typing started working in half the languages that ship with it**
+- **Greek could not be swiped at all.** Layouts put their accented letters under
+  a long press, so a word containing one sat on no key, had no shape, and could
+  never be offered. Modern Greek writes an accent on nearly every word, so 94%
+  of the language was unreachable; the measured top-1 was 5%. It is 75% now, and
+  the words come back correctly accented from tracing the bare letters.
+- The same fault, in proportion, everywhere the alphabet is bigger than the
+  keyboard: Czech 35%->84%, Slovak 48%->88%, Finnish 51%->77%, Polish 61%->94%,
+  Swedish 62%->90%, Hungarian 67%->89%, Croatian 69%->84%, Spanish 75%->83%.
+  English, Dutch, Indonesian, Russian, Turkish and Ukrainian do not move at all,
+  because their layouts already draw every letter they spell with.
+- A finger can only cross keys that exist, so tracing "καλά" *is* tracing
+  κ-α-λ-α. The word keeps its accent; only the shape it is matched against is
+  folded. Where two real words differ only by an accent, both reach the strip.
+- The cost, which is small and real: on words that were already reachable, a
+  couple of points of top-1 go to the accented twins now competing for the same
+  path. It buys the other seventy.
+
 **Ukrainian stopped being corrected into Russian**
 - **`комп'ютер` was underlined and then rewritten as `компьютер`.** In Ukrainian
   the apostrophe is a letter, part of the spelling of ordinary words — computer,

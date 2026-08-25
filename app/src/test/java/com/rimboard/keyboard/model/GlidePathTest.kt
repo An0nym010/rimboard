@@ -155,9 +155,38 @@ class GlidePathTest {
 
     @Test
     fun `a word this layout cannot spell is refused rather than guessed at`() {
+        // Still the rule, and still the point: a word made of letters that
+        // reach no key on this layout cannot have been drawn on it. Cyrillic
+        // on a Latin layout folds to itself and is refused.
         val p = swipe("helo")
-        assertTrue(p.costOf("hellö").isInfinite())
-        assertEquals(-1, p.slotOf('ö'))
+        assertTrue(p.costOf("привет").isInfinite())
+        assertEquals(-1, p.slotOf('п'))
+    }
+
+    @Test
+    fun `an accented letter is drawn at its base letter's key`() {
+        // This case used to assert the opposite, and that assertion was the
+        // bug. Layouts put their accented forms under a long press, so `ö`,
+        // `ą` and `ά` are on no key at all — and a word containing one had an
+        // infinite cost and could never be swiped by anybody. Greek writes an
+        // accent on nearly every word, so 94% of it was unreachable.
+        //
+        // A finger can only cross keys the layout draws, so tracing "schön"
+        // *is* tracing s-c-h-o-n; the accent is not something a swipe can
+        // express. The word keeps its accent, only the shape folds.
+        val p = swipe("helo")
+        assertEquals(p.slotOf('o'), p.slotOf('ö'))
+        assertTrue(p.costOf("hellö").isFinite())
+    }
+
+    @Test
+    fun `a letter whose base is two letters stays unreachable`() {
+        // The honest edge. "ß" lowers to "ss", and a key is one letter, so
+        // there is no single key to fold it onto — German words spelled with
+        // it still cannot be swiped. Recorded rather than hidden: the fix
+        // above is broad, not total.
+        val p = swipe("helo")
+        assertEquals(-1, p.slotOf('ß'))
     }
 
     @Test
