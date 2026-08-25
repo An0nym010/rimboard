@@ -41,6 +41,15 @@ Release notes for every RimBoard version. The current release is summarised in t
 - The feature itself is untouched and still does the work it was there for:
   typing English with Turkish selected goes from 8.7% of keystrokes saved to
   32.8%, and English words stop being underlined.
+- **The second language was also being judged by a dumber rule than the first.**
+  Whether a word is well formed — Turkish suffixes, German compounds, French
+  elision, both apostrophe rules — was only ever asked about the primary
+  language; the other one got a plain "is it in the list". So the same Turkish
+  word was correctly spelled with Turkish selected and a misspelling with
+  English selected, though nothing about the user or the word had changed.
+  Word-building rules belong to a language, not to whichever slot it is in.
+  Unrecognised words while typing the other language: en+tr 1.8%->1.0%,
+  tr+en 3.9%->0.2%.
 - None of this had ever been measured. No test anywhere used a second language.
 
 **Glide typing started working in half the languages that ship with it**

@@ -175,6 +175,39 @@ class BilingualTest {
     }
 
     @Test
+    fun `word-building rules follow the language, not the slot`() {
+        // Turkish stacks suffixes whether it is the first language or the
+        // second. "kitaplarımızda" is in no word list — it is a stem with four
+        // endings on it — and the morphology rule is what makes it a word.
+        // That rule was only ever asked about the *primary* language, so the
+        // same Turkish typed by the same user was a word with Turkish selected
+        // and a misspelling with English selected.
+        val tr = Locale.forLanguageTag("tr")
+        val en = Locale.ENGLISH
+        val built = "kitaplarımızda"
+
+        val trFirst = engine("tr")
+        assertTrue(
+            "the fixture must not be in the list verbatim, or this proves nothing",
+            !trFirst.dictionary("tr", tr).contains(built)
+        )
+        assertTrue(
+            "$built is a word when Turkish is the primary language",
+            trFirst.acceptedWord(built, "tr", tr)
+        )
+
+        val enFirst = engine("en", "tr")
+        assertTrue(
+            "$built must be a word when Turkish is the *second* language too",
+            enFirst.acceptedWord(built, "en", en, "tr", tr)
+        )
+        assertTrue(
+            "and not merely because English accepts everything",
+            !enFirst.acceptedWord(built, "en", en)
+        )
+    }
+
+    @Test
     fun `the other language's words are accepted rather than underlined`() {
         // The fixture is derived rather than guessed, because guessing it got
         // this wrong: "because", "tomorrow" and "different" are all in the

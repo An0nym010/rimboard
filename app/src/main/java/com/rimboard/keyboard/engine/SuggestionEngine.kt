@@ -965,8 +965,20 @@ class SuggestionEngine private constructor(
         // ever written one, and that is weaker than the word in hand being
         // well-formed Turkish over a stem the corpus knows.
         if (accentedBuilt(lower, lang, dict) != null) return false
-        return altLang != null && altLocale != null &&
-            dictionary(altLang, altLocale).contains(typed.lowercase(altLocale))
+        // The other enabled language, asked the *same* question the primary was
+        // asked — not merely whether the word is in its list.
+        //
+        // Word-formation rules belong to a language, not to whichever slot the
+        // user happens to have put it in. Turkish stacks suffixes whether it is
+        // first or second; so "kitaplarımızda" was a word with Turkish selected
+        // and a misspelling with English selected, though the user typed the
+        // same Turkish and the same list was open in both cases. The same went
+        // for German compounds, French elision and both apostrophe rules: the
+        // second language got a bare `contains` and the first got five rules.
+        if (altLang == null || altLocale == null) return false
+        val altLower = typed.lowercase(altLocale)
+        val altDict = dictionary(altLang, altLocale)
+        return altDict.contains(altLower) || wellFormedWord(altLower, altLang, altDict)
     }
 
     /**
