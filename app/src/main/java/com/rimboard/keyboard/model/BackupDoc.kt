@@ -44,13 +44,70 @@ object BackupDoc {
         "net_sent_count"
     )
 
-    /** The five files a backup carries besides the preferences. */
+    /**
+     * The files a backup carries besides the preferences, as
+     * `document key to file name`.
+     *
+     * Read by `Backup` in both directions. It used to describe the list while
+     * `export` and `import` each hand-wrote the same names, so this was
+     * documentation of what travelled rather than the thing that decided it --
+     * and `blocked.txt` sat outside all three copies for as long as blocking
+     * had existed.
+     */
     val FILES = listOf(
         "learned" to "learned.txt",
         "bigrams" to "bigrams.txt",
         "trigrams" to "trigrams.txt",
+        // Words the user banned by long-pressing a suggestion and saying never
+        // show me this again. The most deliberate statement anyone makes about
+        // this keyboard's vocabulary, and the one a restore used to drop while
+        // faithfully bringing back every word it had learned by accident.
+        "blocked" to "blocked.txt",
         "pinned" to "pinned_clips.json",
         "shortcuts" to "shortcuts.json"
+    )
+
+    /**
+     * Files the keyboard keeps that a backup deliberately leaves behind, and
+     * why.
+     *
+     * A map rather than a set because the reason is the point: the file this
+     * pair of lists lost was lost by being in neither, and an exclusion nobody
+     * had to justify is indistinguishable from an oversight. `BackupCoverageTest`
+     * walks the data directory and requires every file to be in one list or
+     * the other.
+     */
+    val NOT_BACKED_UP = mapOf(
+        // A word is pinned by being added by hand in the personal dictionary
+        // screen, and the pin only makes it unevictable from a cache the new
+        // install does not have yet. Restoring learned.txt brings the word
+        // back without its pin, which is the behaviour every install had
+        // before pinning existed -- a fair price for not versioning another
+        // file into the format. UserData says the same at greater length.
+        "pinned.txt" to
+            "a pin only affects eviction from a cache the restoring install " +
+                "does not share; the word itself travels in learned.txt",
+        // What this install typed. The same argument EXCLUDED makes for
+        // net_sent_count: copying it forward puts someone else's number under
+        // a claim about your device.
+        "stats.json" to
+            "counts what this install typed, so carrying it forward would " +
+                "put another device's totals under your name",
+        // The three below are excluded for size. A backup is one JSON
+        // document the user saves and mails to themselves; a photo, a font
+        // file and a word list of tens of thousands of entries do not belong
+        // inside one, and each is either replaceable or absent-tolerant.
+        "extdict" to
+            "downloaded dictionaries, fetched again from a URL already in the " +
+                "APK and too large to carry as text",
+        "bg_image.jpg" to
+            "a photo the user picked; the keyboard checks for it and falls " +
+                "back to the plain theme when it is not there",
+        "custom_font.ttf" to
+            "a font file the user picked, replaceable by picking it again",
+        "userdict_*.txt" to
+            "a word list the user imported, held as the file they chose and " +
+                "potentially tens of thousands of lines"
     )
 
     /**

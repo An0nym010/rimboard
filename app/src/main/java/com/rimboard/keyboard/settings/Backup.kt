@@ -33,11 +33,12 @@ object Backup {
             root.put("exportedAt", System.currentTimeMillis())
 
             root.put("settings", BackupDoc.encodeSettings(Prefs.get(context).all))
-            root.put("learned", readFileOrEmpty(File(UserData.dataDir(context), "learned.txt")))
-            root.put("bigrams", readFileOrEmpty(File(UserData.dataDir(context), "bigrams.txt")))
-            root.put("trigrams", readFileOrEmpty(File(UserData.dataDir(context), "trigrams.txt")))
-            root.put("pinned", readFileOrEmpty(File(UserData.dataDir(context), "pinned_clips.json")))
-            root.put("shortcuts", readFileOrEmpty(File(UserData.dataDir(context), "shortcuts.json")))
+            // From the declared list rather than a copy of it. The copy is
+            // how blocked.txt came to be described as backed up in one place
+            // and absent from the other two.
+            for ((key, name) in BackupDoc.FILES) {
+                root.put(key, readFileOrEmpty(File(UserData.dataDir(context), name)))
+            }
 
             context.contentResolver.openOutputStream(uri)?.use { out ->
                 out.write(root.toString(2).toByteArray(Charsets.UTF_8))
@@ -64,11 +65,9 @@ object Backup {
             // all landed, so a failed restore leaves the existing settings
             // alone instead of replacing them and then reporting failure.
             var ok = true
-            ok = writeIfPresent(root, "learned", File(UserData.dataDir(context), "learned.txt")) && ok
-            ok = writeIfPresent(root, "bigrams", File(UserData.dataDir(context), "bigrams.txt")) && ok
-            ok = writeIfPresent(root, "trigrams", File(UserData.dataDir(context), "trigrams.txt")) && ok
-            ok = writeIfPresent(root, "pinned", File(UserData.dataDir(context), "pinned_clips.json")) && ok
-            ok = writeIfPresent(root, "shortcuts", File(UserData.dataDir(context), "shortcuts.json")) && ok
+            for ((key, name) in BackupDoc.FILES) {
+                ok = writeIfPresent(root, key, File(UserData.dataDir(context), name)) && ok
+            }
             if (!ok) return false
 
             // Shortcuts are cached in a process-wide map that outlives this
