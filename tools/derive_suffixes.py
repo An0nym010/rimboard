@@ -67,7 +67,7 @@ MIN_SUFFIX = 3
 #
 # The left column takes two; the right column would pay several times the cost
 # for its extra gain and keeps three.
-MIN_SUFFIX_BY_LANG = {"cs": 2, "de": 2, "id": 2, "nl": 2, "sv": 2}
+MIN_SUFFIX_BY_LANG = {"cs": 2, "de": 2, "id": 2, "nl": 2, "sv": 2, "ru": 2, "no": 2, "sk": 2, "da": 2}
 
 # Longer than this and a "suffix" is really a second word; the compound
 # splitter is the right tool for those and German already has one.
@@ -84,8 +84,18 @@ MIN_STEMS = 150
 # An inventory buys coverage -- words outside the shipped list that are
 # recognised anyway, and so are never silently rewritten -- and pays for it by
 # occasionally waving a mistyped word through as correct. Both were measured
-# per language in SuffixInventoryTest; a language ships only if it gains at
-# least 5% of the held-out words for no more than 1.5% false accepts.
+# per language in SuffixInventoryTest, and judged on the outcome rather than on
+# a proxy for it: a language ships if its inventory takes at least one point off
+# the rate at which correct words outside the list are rewritten, for no more
+# than 1.5% of damaged words wrongly waved through.
+#
+# Points of destruction prevented, measured with the inventory and without:
+#
+#     hu 5.8   ro 4.0   fi 3.7   de 3.2   sv 2.5   da 1.8   sk 0.2
+#     es 5.5   cs 3.8   fr 3.5   nl 2.8   hr 2.2   no 1.5
+#     it 4.2   pl 3.8   pt 3.3   id 2.2   ru 1.5
+#
+# Slovak is the only one that derives an inventory and gains nothing from it.
 #
 # That ceiling is the one already in the product rather than a number chosen
 # here: the hand-written Turkish inventory, which has shipped from the start,
@@ -106,6 +116,7 @@ MIN_STEMS = 150
 # 0.5%. Harmony is doing real work there and nothing counted here knows it.
 ENABLED = {
     "cs", "de", "es", "fi", "fr", "hu", "id", "it", "nl", "pl", "pt", "ro", "sv",
+    "ru", "no", "da", "hr",
 }
 
 # English clears the numbers and is still left out, which is the one judgement

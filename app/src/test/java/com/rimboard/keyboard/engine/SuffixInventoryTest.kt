@@ -40,35 +40,64 @@ import java.util.Locale
  * ## What each language is held to
  *
  * An inventory buys coverage and pays in false accepts, so a language ships one
- * only where the measured trade earns it: at least 5% of held-out words gained
- * for no more than 1% of damaged words wrongly waved through. Both halves are
- * measured below, on the same run, because a gain measured without its cost has
- * misled this project four times.
+ * only where the trade earns it — and the test of that is the outcome rather
+ * than a proxy for it: **at least one point off the rate at which correct words
+ * outside the list are rewritten, for at most 1.5% of damaged words wrongly
+ * waved through.** Both halves are measured on the same run, because a gain
+ * measured without its cost has misled this project four times.
  *
- *     ships:  hu 13.5/0.4   ro 10.3/0.7   fi 10.0/0.9   pl 9.5/0.4
- *             it  8.3/0.8   fr  7.2/0.3   pt  6.2/0.7
- *     not:    es 11.3/1.4   en  6.2/0.8   hr  4.5/0.4   nl 3.8/0.3
- *             cs  3.0/0.2   id  2.8/0.7   sv  2.7/0.0   de 2.2/0.5
- *             ru  1.3/0.0
+ * The ceiling is the trade already in the product rather than a figure chosen
+ * here. The hand-written Turkish inventory has shipped from the beginning at
+ * 3.8%, so anything well inside that is something this keyboard has already
+ * decided once, with numbers.
  *
- * English clears those numbers and is left out anyway, which is the one
+ * Points of destruction prevented, with the inventory and without:
+ *
+ *     hu 5.8   ro 4.0   fi 3.7   de 3.2   sv 2.5   da 1.8   sk 0.2
+ *     es 5.5   cs 3.8   fr 3.5   nl 2.8   hr 2.2   no 1.5
+ *     it 4.2   pl 3.8   pt 3.3   id 2.2   ru 1.5
+ *
+ * **Slovak is why the criterion is the outcome.** It derives a respectable
+ * inventory and accepts a fair number of held-out words with it, and it
+ * prevents 0.2 points of destruction, because the words it accepts were not the
+ * ones being rewritten. On the old proxy — "how much does the walk accept" — it
+ * looked like a small success. On the thing actually being bought it does
+ * nothing, and it does not ship.
+ *
+ * ## How long an ending is, is a fact about the language
+ *
+ * Slavic and Germanic inflection is short and Romance and Uralic is not, so the
+ * minimum length is per language rather than global. Measured both ways for
+ * every one of them, at the same ceiling:
+ *
+ *            two chars     three chars              two chars    three chars
+ *     cs    12.7 / 0.6     3.0 / 0.2        hu     24.8 / 3.9   13.5 / 0.4
+ *     nl     7.5 / 0.8     3.8 / 0.3        es     18.3 / 4.5   11.3 / 1.4
+ *     de     7.0 / 0.9     2.2 / 0.5        ro     18.3 / 3.6   10.3 / 0.7
+ *     id     6.0 / 0.8     2.8 / 0.7        fi     18.2 / 2.3   10.0 / 0.9
+ *     sv     5.8 / 1.2     2.7 / 0.0        pl     17.8 / 1.8    9.5 / 0.4
+ *
+ * The left column gains three to four times as much at two characters and pays
+ * almost nothing; the right column would pay several times the cost for its
+ * extra gain and keeps three. Czech is the one this brought in from nowhere: it
+ * had the joint-worst destruction of any language and no inventory at all,
+ * because its case endings are two letters long.
+ *
+ * Greek and Ukrainian derive nothing whatever. Their endings are one character,
+ * and one is where the derivation stops believing anything without the vowel
+ * harmony that only Turkish has.
+ *
+ * English clears every number and is left out anyway, which is the one
  * judgement here that is not arithmetic. Its list comes back with -man, -son,
  * -ton, -ley and -ville beside -ing and -ness, because English builds names out
  * of whole words — Johnson, Hamilton, Nashville — and counting cannot tell a
  * name formative from a suffix. "that" + "-ville" being vouched for is not a
- * permissive rule but a wrong one, and English had the weakest gain of the eight
- * besides. The other seven are inflectional endings with no equivalent problem.
- *
- * Spanish is the near miss on the numbers, and misses on the cost side rather
- * than the gain.
- * Greek and Ukrainian derive nothing at all: their endings are one and two
- * characters, which the derivation will not believe without the vowel harmony
- * only Turkish has.
+ * permissive rule but a wrong one.
  *
  * Turkish keeps its hand-written list. The counted one is measurably worse for
- * it — 31% gained for 0.5% against 46% for 3.8% — because harmony lets the
- * hand-written inventory carry one- and two-letter endings that nothing counted
- * here could trust.
+ * it — 31% of held-out words for 0.5% against 46% for 3.8% — because harmony
+ * lets the hand-written inventory carry one- and two-letter endings that
+ * nothing counted here could trust.
  */
 class SuffixInventoryTest {
 
@@ -96,6 +125,40 @@ class SuffixInventoryTest {
     private fun inventory(lang: String): List<String> =
         File(assets(), "suffixes/$lang.txt").readLines()
             .filter { it.isNotBlank() }.sortedByDescending { it.length }
+
+    /**
+     * How often the corrector rewrites a correct word outside [lang]'s list,
+     * with the inventory in play and without it.
+     *
+     * This is the outcome the inventories exist for, and it is what decides
+     * whether one ships. It replaced a proxy -- how many held-out words the
+     * walk accepts -- which is a fine thing to know and not the thing being
+     * bought. Slovak was the language that showed the difference: it accepts a
+     * respectable number and prevents 0.2 points of destruction, because the
+     * words it accepts were not the ones being rewritten.
+     */
+    private fun destruction(lang: String, withInventory: Boolean): Double {
+        val all = File(assets(), "dictionaries/$lang.txt").readLines().filter { it.isNotBlank() }
+        val files = HashMap<String, String>()
+        files["dictionaries/$lang.txt"] = all.take(KEEP).joinToString(NEWLINE)
+        files["predictions/$lang.txt"] = File(assets(), "predictions/$lang.txt").readText()
+        if (withInventory) {
+            File(assets(), "suffixes/$lang.txt").takeIf { it.exists() }?.let {
+                files["suffixes/$lang.txt"] = it.readText()
+            }
+        }
+        val e = SuggestionEngine.forTesting(userData) { p -> files[p]?.byteInputStream() }
+        val locale = Locale.forLanguageTag(lang)
+        val cut = all.drop(KEEP).mapNotNull { it.split(' ').firstOrNull() }
+            .filter { w -> w.length in 6..16 && w.all { it.isLetter() } }
+        val sample = cut.filterIndexed { i, _ -> i % maxOf(1, cut.size / 600) == 0 }.take(600)
+        var d = 0
+        for (w in sample) {
+            val fix = e.correctionFor(w, lang, locale) ?: continue
+            if (fix.lowercase(locale) != w) d++
+        }
+        return d * 100.0 / sample.size
+    }
 
     /** Gain and cost for [lang], both from the same truncated list. */
     private fun trade(lang: String, depth: Int = 2): Pair<Double, Double> {
@@ -137,16 +200,20 @@ class SuffixInventoryTest {
         val lines = StringBuilder()
         val failed = ArrayList<String>()
         for (lang in shipped()) {
-            val (gain, cost) = trade(lang)
-            lines.append("%-4s gains %5.1f%% for %4.1f%% wrongly accepted%n".format(lang, gain, cost))
-            if (gain < MIN_GAIN || cost > MAX_FALSE) failed.add(lang)
+            val saved = destruction(lang, false) - destruction(lang, true)
+            val (_, cost) = trade(lang)
+            lines.append(
+                "%-4s prevents %4.1f points of destruction for %4.1f%% wrongly accepted%n"
+                    .format(lang, saved, cost)
+            )
+            if (saved < MIN_POINTS_SAVED || cost > MAX_FALSE) failed.add(lang)
         }
         println(lines)
         assertTrue("no inventory ships", shipped().isNotEmpty())
         assertTrue(
             "these inventories no longer pay for themselves -- at least " +
-                "$MIN_GAIN% of held-out words gained for at most $MAX_FALSE% " +
-                "wrongly accepted: $failed\n$lines",
+                "$MIN_POINTS_SAVED points of destruction prevented for at most " +
+                "$MAX_FALSE% wrongly accepted: " + failed + " || " + lines,
             failed.isEmpty()
         )
     }
@@ -198,7 +265,7 @@ class SuffixInventoryTest {
         )
         // And the ones deliberately left out stay out, so that the set is a
         // decision rather than a leftover.
-        for (lang in listOf("en", "ru", "hr", "no", "sk", "da", "el", "uk", "tr")) {
+        for (lang in listOf("en", "sk", "el", "uk", "tr")) {
             assertTrue(
                 "$lang ships an inventory now; it was left out on measurement, " +
                     "so the table in this file wants revisiting",
@@ -238,7 +305,8 @@ class SuffixInventoryTest {
 
     private companion object {
         const val KEEP = 60000
-        const val MIN_GAIN = 5.0
+        val NEWLINE = String(charArrayOf(10.toChar()))
+        const val MIN_POINTS_SAVED = 1.0
         const val MAX_FALSE = 1.5
     }
 }
