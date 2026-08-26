@@ -215,6 +215,14 @@ class RimBoardService : InputMethodService(),
     private var isEmailOrUri = false
     private var isTextClass = false
     private var suggestionsActive = false
+
+    /**
+     * Whether the focused field takes prose at all -- a text field that is not
+     * a password, not an address, and has not asked for no suggestions. The
+     * half of [autocorrectActive] and [suggestionsActive] that is about the
+     * field rather than about what the user switched on.
+     */
+    private var fieldTakesProse = false
     private var autocorrectActive = false
 
     private var lastSpaceTime = 0L
@@ -673,10 +681,13 @@ class RimBoardService : InputMethodService(),
         // learned data behind a suggestion, not the suggestion itself. The
         // callers pass `personalized = !isIncognito()` so nothing from history
         // reaches the strip.
-        suggestionsActive = Prefs.suggestions(this) && isTextClass && !isPassword &&
-            !fieldNoSuggestions && !isEmailOrUri
-        autocorrectActive = Prefs.autocorrect(this) && isTextClass && !isPassword &&
-            !fieldNoSuggestions && !isEmailOrUri
+        // The field's own answer, before any preference is consulted: does
+        // this box take prose at all? Both switches below are that answer and
+        // a setting, and it was written out twice. Named because text
+        // shortcuts need exactly this half and have no setting of their own.
+        fieldTakesProse = isTextClass && !isPassword && !fieldNoSuggestions && !isEmailOrUri
+        suggestionsActive = Prefs.suggestions(this) && fieldTakesProse
+        autocorrectActive = Prefs.autocorrect(this) && fieldTakesProse
         // The network gate cannot see the field: it is reached from Klipy,
         // AiText and the two translators, none of which is handed anything but
         // a Context. So the one thing it needs is pushed to it here, with the
@@ -1197,7 +1208,10 @@ class RimBoardService : InputMethodService(),
         val ic = currentInputConnection ?: return
         ic.beginBatchEdit()
         if (composing.isNotEmpty()) {
-            commitComposedWord(ic, allowAutocorrect = autocorrectMayCommit(" "), separator = " ")
+            commitComposedWord(
+                ic, allowAutocorrect = autocorrectMayCommit(" "),
+                separator = " ", allowShortcut = true
+            )
         }
         val before = ic.getTextBeforeCursor(1, 0)
         val lead = if (!before.isNullOrEmpty() && before[0].isLetterOrDigit()) " " else ""
@@ -1301,6 +1315,17 @@ class RimBoardService : InputMethodService(),
      * See [AutocorrectGate], which owns both decisions and, unlike this class,
      * can be executed by something other than a thumb.
      */
+    /**
+     * Whether a separator may expand a text shortcut here.
+     *
+     * Deliberately not [autocorrectMayCommit]: a shortcut is a phrase the user
+     * wrote down, and "Expand short codes into full phrases" is all its
+     * setting claims. See `AutocorrectGate.mayExpandShortcut` for why the
+     * autocorrect switch is not the thing that withholds it.
+     */
+    private fun shortcutMayExpand(separator: String = ""): Boolean =
+        AutocorrectGate.mayExpandShortcut(fieldTakesProse, identifierContext, separator)
+
     private fun autocorrectMayCommit(separator: String = ""): Boolean =
         AutocorrectGate.mayCommit(autocorrectActive, identifierContext, separator)
 
@@ -1430,7 +1455,10 @@ class RimBoardService : InputMethodService(),
         val ic = currentInputConnection ?: return
         ic.beginBatchEdit()
         if (composing.isNotEmpty()) {
-            commitComposedWord(ic, allowAutocorrect = autocorrectMayCommit(sep), separator = sep)
+            commitComposedWord(
+                ic, allowAutocorrect = autocorrectMayCommit(sep),
+                separator = sep, allowShortcut = true
+            )
         } else {
             val swap = autoSpace && sep.length == 1 && sep[0] in AUTO_SPACE_PUNCT &&
                 ic.getTextBeforeCursor(1, 0)?.toString() == " "
@@ -1459,14 +1487,26 @@ class RimBoardService : InputMethodService(),
         afterEdit()
     }
 
-    private fun commitComposedWord(ic: InputConnection, allowAutocorrect: Boolean, separator: String) {
+    private fun commitComposedWord(
+        ic: InputConnection,
+        allowAutocorrect: Boolean,
+        separator: String,
+        allowShortcut: Boolean = false
+    ) {
         val typed = composing.toString()
         var finalWord = typed
-        if (allowAutocorrect) {
-            val shortcutExp = Shortcuts.expansionFor(this, typed, effLocale())
+        // Asked ahead of autocorrect and separately from it. Defaults to false
+        // so the one caller that means "commit exactly what was typed" --
+        // commitTextRaw, flushing the word before inserting something else --
+        // keeps meaning that without having to say so again.
+        val shortcutExp =
+            if (allowShortcut && shortcutMayExpand(separator)) {
+                Shortcuts.expansionFor(this, typed, effLocale())
+            } else null
         if (shortcutExp != null) {
             finalWord = shortcutExp
-        } else if (autocorrectMayCorrect(separator)) {
+        } else if (allowAutocorrect) {
+            if (autocorrectMayCorrect(separator)) {
             // The same evidence the strip used to decide what to put in
             // bold. Without it this answered from the channel model alone
             // while the strip answered with context, so the word shown and the
@@ -1486,7 +1526,7 @@ class RimBoardService : InputMethodService(),
                 finalWord = it
                 Stats.autocorrect(this)
             }
-        }
+            }
             if (finalWord == typed && typed == "i" && currentLangCode() == "en") {
                 finalWord = "I" // standalone English pronoun
             }
@@ -1632,7 +1672,10 @@ class RimBoardService : InputMethodService(),
         val ic = currentInputConnection ?: return
         if (composing.isNotEmpty()) {
             ic.beginBatchEdit()
-            commitComposedWord(ic, allowAutocorrect = autocorrectMayCommit(), separator = "")
+            commitComposedWord(
+                ic, allowAutocorrect = autocorrectMayCommit(),
+                separator = "", allowShortcut = true
+            )
             ic.endBatchEdit()
         }
         clearWordState()
@@ -1823,7 +1866,13 @@ class RimBoardService : InputMethodService(),
             // behaviour it had before touch data existed.
             touch = touchTrail.offsetsFor(composing.length)
         )
-        val shortcutExp = Shortcuts.expansionFor(this, composing.toString(), effLocale())
+        // Only when the separator would actually apply it. The chip below is
+        // shown bold, which is a promise about what space is going to commit,
+        // and this path used to make that promise without asking.
+        val shortcutExp =
+            if (shortcutMayExpand()) {
+                Shortcuts.expansionFor(this, composing.toString(), effLocale())
+            } else null
         var shownWords = res.items
         var shownHi = res.autocorrectIndex
         if (shortcutExp != null) {

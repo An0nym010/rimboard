@@ -68,6 +68,35 @@ object AutocorrectGate {
         active && !identifierContext && !ProseContext.separatorEndsIdentifier(separator)
 
     /**
+     * Whether a separator may expand a text shortcut.
+     *
+     * Everything [mayCommit] asks except the autocorrect preference, and the
+     * exception is the whole point. A shortcut is not a guess: the user wrote
+     * down that "omw" means "on my way", and "Expand short codes into full
+     * phrases" is all the setting for it claims. Turning autocorrect off says
+     * do not guess at my words; it does not say forget the phrases I defined.
+     *
+     * It used to be read off `autocorrectActive`, so one switch governed two
+     * features -- and worse, only one end of one of them. The strip offered
+     * the expansion as its bold first chip whatever the setting said, while
+     * the space bar committed the raw trigger, which is exactly the promise
+     * [mayCorrect] exists to keep: "a word this refuses to commit must never
+     * be shown as the one that will be."
+     *
+     * [fieldTakesProse] is the field half of `autocorrectActive` -- a text
+     * field that is not a password, not an address, and has not asked for no
+     * suggestions. Those still apply: nothing should silently rewrite what
+     * somebody typed into a password box, shortcut or not.
+     */
+    fun mayExpandShortcut(
+        fieldTakesProse: Boolean,
+        identifierContext: Boolean,
+        separator: String
+    ): Boolean =
+        fieldTakesProse && !identifierContext &&
+            !ProseContext.separatorEndsIdentifier(separator)
+
+    /**
      * Whether the keyboard may apply a *correction* of its own devising.
      *
      * Read by the suggestion strip as well as by the commit, and it has to be:
