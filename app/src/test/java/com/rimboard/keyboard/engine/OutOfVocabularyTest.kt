@@ -36,14 +36,17 @@ import java.util.Locale
  *
  *                en    tr    de    pl    es    ru    cs    fi    hu
  *     found    25.5  26.0  29.8  40.0  40.7  40.7  41.3  41.7  46.0
- *     now      21.7  20.7  25.5  31.7  33.3  33.7  33.7  33.3  36.3
+ *     shape    21.7  20.7  25.5  31.7  33.3  33.7  33.7  33.3  36.3
+ *     endings  21.7  20.7  25.5  27.8  33.3  33.7  33.7  29.7  30.5
  *
- * The second row is what
- * [com.rimboard.keyboard.engine.Dictionary.looksLikeAWord] brought it to: a
- * string shaped like a word of the language is held to a tighter bar than one
- * that is not. Five to ten points off every language, and it cost nothing on
- * the repair side -- see the constant's own note for that sweep. What remains
- * is what shape alone cannot reach.
+ * Two things brought it down. [Dictionary.looksLikeAWord] holds a string
+ * shaped like a word of the language to a tighter bar than one that is not,
+ * which is worth five to ten points everywhere and costs nothing on the repair
+ * side. Then a counted suffix inventory (`tools/derive_suffixes.py`) lets seven
+ * languages recognise a word built out of parts they know, worth another four
+ * to six points to those -- and nothing at all to `cs`, `de`, `en`, `es` and
+ * `ru`, which have none, exactly as it should be. Which languages have one, and
+ * why English does not, is in [SuffixInventoryTest].
  *
  * `elohopea` becomes `elohopeaa`, `kisegített` becomes `segített`,
  * `zignorowałeś` becomes `zignorował`, `povinnostech` becomes `povinnostem`,
@@ -155,6 +158,11 @@ class OutOfVocabularyTest {
         val files = HashMap<String, String>()
         files["dictionaries/$lang.txt"] = dictText
         files["predictions/$lang.txt"] = File(assets(), "predictions/$lang.txt").readText()
+        // The suffix inventory is an asset like any other, and leaving it out
+        // of the map is how this measured no change at all from adding one.
+        File(assets(), "suffixes/$lang.txt").takeIf { it.exists() }?.let {
+            files["suffixes/$lang.txt"] = it.readText()
+        }
         return SuggestionEngine.forTesting(userData) { p -> files[p]?.byteInputStream() }
     }
 
@@ -280,18 +288,33 @@ class OutOfVocabularyTest {
                 "cannot be destroyed. Finnish and Hungarian accept 0%.",
             rate >= 30.0
         )
-        for (lang in listOf("fi", "hu")) {
+        // Finnish and Hungarian accepted *none* when this was written, for want
+        // of any morphology at all. They have counted inventories now -- see
+        // `tools/derive_suffixes.py` -- and the point of this arm is that the
+        // acceptance is what moves the destruction, in both directions and for
+        // the same reason: a word the keyboard can vouch for is never offered a
+        // correction, so it cannot be silently rewritten.
+        for (lang in listOf("fi", "hu", "pl")) {
             val sp = split(lang)!!
-            val en2 = engineWith(lang, sp.kept)
+            val e2 = engineWith(lang, sp.kept)
             val loc = Locale.forLanguageTag(lang)
-            val ok = sp.heldOut.count { en2.acceptedWord(it, lang, loc) }
+            val ok = sp.heldOut.count { e2.acceptedWord(it, lang, loc) }
             assertTrue(
-                "$lang now accepts $ok held-out words. It accepted none, for want " +
-                    "of any morphology at all -- if that has changed, the figures " +
-                    "in this file need remeasuring.",
-                ok == 0
+                "$lang accepts only $ok of ${sp.heldOut.size} held-out words; it " +
+                    "accepted zero before it had an inventory and about a tenth " +
+                    "after.",
+                ok >= sp.heldOut.size / 20
             )
         }
+        // And a language with no inventory still accepts none, which is what
+        // says the acceptance above comes from the inventory rather than from
+        // something that would have happened anyway.
+        val cs = split("cs")!!
+        val csEngine = engineWith("cs", cs.kept)
+        assertTrue(
+            "Czech has no shipped inventory and should still accept nothing",
+            cs.heldOut.none { csEngine.acceptedWord(it, "cs", Locale.forLanguageTag("cs")) }
+        )
     }
 
 

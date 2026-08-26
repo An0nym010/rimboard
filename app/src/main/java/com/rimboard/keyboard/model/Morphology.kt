@@ -43,7 +43,53 @@ object Morphology {
      */
     fun stemIsKnown(lang: String, wordLower: String, known: (String) -> Boolean): Boolean {
         if (!isAgglutinative(lang) || wordLower.length < MIN_STEM) return false
-        return peel(wordLower, MAX_DEPTH, known)
+        return peel(wordLower, TR_SUFFIXES, harmony = true, depth = MAX_DEPTH, known = known)
+    }
+
+    /**
+     * The same walk for a language whose inventory was *counted* rather than
+     * written, from its own word list. See `tools/derive_suffixes.py`.
+     *
+     * The note above this object says a wrong inventory would suppress real
+     * corrections and that guessing at one was not on. Counting is not
+     * guessing: split every word where the front half is itself a frequent
+     * word, and the endings the language really uses rise to the top. Run
+     * against Turkish -- the one language whose list was written by hand -- it
+     * reproduces that list, which is the check that says the method works.
+     *
+     * Two things Turkish gets and this does not, both deliberately:
+     *
+     *  - **Vowel harmony.** It is a fact about Turkish and nothing counted from
+     *    a word list knows it. Without it the walk is more willing, so the
+     *    inventories are held to three characters and up, where Turkish can
+     *    afford one- and two-letter endings because harmony filters them.
+     *    Measured: admitting shorter endings roughly quadruples the rate at
+     *    which a mistyped word is waved through (Turkish 0.3% at three, 2.8% at
+     *    two, 10.2% at one).
+     *  - **A closed list of two-letter roots.** That is an enumeration of
+     *    Turkish, so a derived walk simply requires three characters of stem.
+     */
+    fun stemIsKnown(
+        wordLower: String, suffixes: List<String>, known: (String) -> Boolean
+    ): Boolean {
+        if (suffixes.isEmpty() || wordLower.length < DERIVED_MIN_STEM) return false
+        // At least one ending has to come off. "Is this word in the list" is a
+        // question the dictionary already answers, and answering it here as
+        // well would make every listed word well-formed -- including the
+        // misspellings a subtitle corpus carries. That is how "alot" stopped
+        // being offered as "a lot": it is in the English list, so the walk
+        // vouched for it without stripping anything, and a word the language's
+        // own rules build is not offered a space.
+        for (suf in suffixes) {
+            if (wordLower.length - suf.length < DERIVED_MIN_STEM) continue
+            if (!wordLower.endsWith(suf)) continue
+            val stem = wordLower.substring(0, wordLower.length - suf.length)
+            if (doubledLetter(stem, suf)) continue
+            if (peel(stem, suffixes, harmony = false, depth = MAX_DEPTH - 1, known = known)) {
+                return true
+            }
+        }
+        return false
     }
 
     /**
@@ -118,15 +164,25 @@ object Morphology {
         return false
     }
 
-    private fun peel(word: String, depth: Int, known: (String) -> Boolean): Boolean {
-        if (word.length >= MIN_STEM && rootShaped(word) && known(word)) return true
+    private fun peel(
+        word: String,
+        suffixes: List<String>,
+        harmony: Boolean,
+        depth: Int,
+        known: (String) -> Boolean
+    ): Boolean {
+        // The two-letter-root allowance is an enumeration of Turkish, so a
+        // counted inventory asks for three characters of stem instead.
+        val floor = if (harmony) MIN_STEM else DERIVED_MIN_STEM
+        val rootOk = if (harmony) rootShaped(word) else true
+        if (word.length >= floor && rootOk && known(word)) return true
         if (depth == 0) return false
-        for (suf in TR_SUFFIXES) {
-            if (word.length - suf.length >= MIN_STEM && word.endsWith(suf)) {
+        for (suf in suffixes) {
+            if (word.length - suf.length >= floor && word.endsWith(suf)) {
                 val stem = word.substring(0, word.length - suf.length)
                 if (doubledLetter(stem, suf)) continue
-                if (!harmonises(stem, suf)) continue
-                if (peel(stem, depth - 1, known)) return true
+                if (harmony && !harmonises(stem, suf)) continue
+                if (peel(stem, suffixes, harmony, depth - 1, known)) return true
             }
         }
         return false
@@ -279,6 +335,16 @@ object Morphology {
      * it filters is real stems rather than short ones.
      */
     private const val MIN_STEM = 2
+
+    /**
+     * The shortest stem a *counted* inventory will vouch for.
+     *
+     * Three, matching `tools/derive_suffixes.py`, which only counted an ending
+     * off a stem of three or more. Two different floors would be the derivation
+     * and the walk disagreeing about what a stem is, and the walk would then
+     * accept splits the counting never saw.
+     */
+    private const val DERIVED_MIN_STEM = 3
 
     /** Whether a candidate stem is shaped like a root at all. */
     private fun rootShaped(stem: String): Boolean =

@@ -1004,6 +1004,14 @@ class SuggestionEngine private constructor(
     private fun wellFormedWord(lower: String, lang: String, dict: Dictionary): Boolean =
         com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) {
             dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
+        } ||
+        // The same question of a language whose endings were counted rather
+        // than written. Turkish answers above and never reaches here; every
+        // other inflecting language answered "no" to everything until this
+        // existed, and a word it cannot vouch for is a word autocorrect is
+        // free to overwrite.
+        com.rimboard.keyboard.model.Morphology.stemIsKnown(lower, suffixesFor(lang)) {
+            dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
         } || com.rimboard.keyboard.model.Compounds.splitOf(
             lang, lower, Dictionary.STEM_MIN_FREQ
         ) { dict.frequency(it) } != null ||
@@ -1653,6 +1661,39 @@ class SuggestionEngine private constructor(
     private val predictionModelLock = Any()
     private val emojiLock = Any()
     private val offensiveLock = Any()
+
+    private val suffixSets = java.util.concurrent.ConcurrentHashMap<String, List<String>>()
+    private val suffixLock = Any()
+
+    /**
+     * Endings [lang] builds words with, counted from its own dictionary by
+     * `tools/derive_suffixes.py` and shipped as assets/suffixes/<lang>.txt.
+     *
+     * Absent for most languages and that is the answer, not an oversight: a
+     * language ships one only where the trade was measured and earned. Greek
+     * and Ukrainian derive nothing at all, because their endings are one and
+     * two characters and the derivation will not believe those without the
+     * vowel harmony that only Turkish has.
+     *
+     * Longest first, so the walk strips the most specific ending it can before
+     * falling back on a shorter one that happens to be its tail.
+     */
+    private fun suffixesFor(lang: String): List<String> = synchronized(suffixLock) {
+        suffixSets.getOrPut(lang) {
+            try {
+                val stream = assets.open("suffixes/$lang.txt") ?: return@getOrPut emptyList()
+                stream.bufferedReader().useLines { lines ->
+                    lines.map { it.trim() }
+                        .filter { it.isNotEmpty() }
+                        .sortedByDescending { it.length }
+                        .toList()
+                }
+            } catch (e: Exception) {
+                android.util.Log.w(TAG, "no suffix inventory for $lang", e)
+                emptyList()
+            }
+        }
+    }
 
     /** Bundled starter next-word model for [lang] (assets/predictions/<lang>.txt). */
     private fun predictionModel(lang: String): Map<String, List<String>> =
