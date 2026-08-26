@@ -70,7 +70,10 @@ object Morphology {
      *    Turkish, so a derived walk simply requires three characters of stem.
      */
     fun stemIsKnown(
-        wordLower: String, suffixes: List<String>, known: (String) -> Boolean
+        wordLower: String,
+        suffixes: List<String>,
+        maxDepth: Int = DERIVED_MAX_DEPTH,
+        known: (String) -> Boolean
     ): Boolean {
         if (suffixes.isEmpty() || wordLower.length < DERIVED_MIN_STEM) return false
         // At least one ending has to come off. "Is this word in the list" is a
@@ -85,7 +88,7 @@ object Morphology {
             if (!wordLower.endsWith(suf)) continue
             val stem = wordLower.substring(0, wordLower.length - suf.length)
             if (doubledLetter(stem, suf)) continue
-            if (peel(stem, suffixes, harmony = false, depth = MAX_DEPTH - 1, known = known)) {
+            if (peel(stem, suffixes, harmony = false, depth = maxDepth - 1, known = known)) {
                 return true
             }
         }
@@ -345,6 +348,17 @@ object Morphology {
      * accept splits the counting never saw.
      */
     private const val DERIVED_MIN_STEM = 3
+
+    /**
+     * How many counted endings may stack on one stem.
+     *
+     * Turkish gets [MAX_DEPTH], because stacking is what Turkish *is*. The
+     * languages with a counted inventory are not agglutinative, and letting
+     * their endings pile up buys almost nothing while multiplying the ways a
+     * mistyped word can be taken apart into something that happens to end in a
+     * known stem. Swept in `SuffixInventoryTest`.
+     */
+    private const val DERIVED_MAX_DEPTH = 2
 
     /** Whether a candidate stem is shaped like a root at all. */
     private fun rootShaped(stem: String): Boolean =

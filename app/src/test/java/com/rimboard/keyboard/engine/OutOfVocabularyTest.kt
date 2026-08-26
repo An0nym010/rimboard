@@ -37,15 +37,15 @@ import java.util.Locale
  *                en    tr    de    pl    es    ru    cs    fi    hu
  *     found    25.5  26.0  29.8  40.0  40.7  40.7  41.3  41.7  46.0
  *     shape    21.7  20.7  25.5  31.7  33.3  33.7  33.7  33.3  36.3
- *     endings  21.7  20.7  25.5  27.8  33.3  33.7  33.7  29.7  30.5
+ *     endings  21.7  20.7  25.5  27.8  27.8  33.7  33.7  29.7  30.5
  *
  * Two things brought it down. [Dictionary.looksLikeAWord] holds a string
  * shaped like a word of the language to a tighter bar than one that is not,
  * which is worth five to ten points everywhere and costs nothing on the repair
- * side. Then a counted suffix inventory (`tools/derive_suffixes.py`) lets seven
+ * side. Then a counted suffix inventory (`tools/derive_suffixes.py`) lets eight
  * languages recognise a word built out of parts they know, worth another four
- * to six points to those -- and nothing at all to `cs`, `de`, `en`, `es` and
- * `ru`, which have none, exactly as it should be. Which languages have one, and
+ * to six points to those -- and nothing at all to `cs`, `de`, `en` and `ru`,
+ * which have none, exactly as it should be. Which languages have one, and
  * why English does not, is in [SuffixInventoryTest].
  *
  * `elohopea` becomes `elohopeaa`, `kisegített` becomes `segített`,
