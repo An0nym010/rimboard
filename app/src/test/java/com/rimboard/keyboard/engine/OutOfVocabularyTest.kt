@@ -34,9 +34,16 @@ import java.util.Locale
  *
  * A correct word outside the list is not merely underlined. It is *rewritten*:
  *
- *     en  25.5%      de  29.8%      pl  40.0%      cs  41.3%
- *     tr  26.0%      es  40.7%      ru  40.7%      fi  41.7%
- *                                                  hu  46.0%
+ *                en    tr    de    pl    es    ru    cs    fi    hu
+ *     found    25.5  26.0  29.8  40.0  40.7  40.7  41.3  41.7  46.0
+ *     now      21.7  20.7  25.5  31.7  33.3  33.7  33.7  33.3  36.3
+ *
+ * The second row is what
+ * [com.rimboard.keyboard.engine.Dictionary.looksLikeAWord] brought it to: a
+ * string shaped like a word of the language is held to a tighter bar than one
+ * that is not. Five to ten points off every language, and it cost nothing on
+ * the repair side -- see the constant's own note for that sweep. What remains
+ * is what shape alone cannot reach.
  *
  * `elohopea` becomes `elohopeaa`, `kisegített` becomes `segített`,
  * `zignorowałeś` becomes `zignorował`, `povinnostech` becomes `povinnostem`,
@@ -108,6 +115,11 @@ import java.util.Locale
  * Nothing was underlined and nothing was offered; the words were simply
  * replaced. `idempotent` to `impotent` is the one to remember when weighing how
  * much this matters.
+ *
+ * Three of those five are left alone now — `refactored`, `deduplicate` and
+ * `idempotent` all look enough like English to be given the benefit. The two
+ * that remain, `unhelpfully` and `prepopulated`, are each one cheap edit from a
+ * real word, which is the shape no amount of looking at the string can settle.
  *
  * ## What this test is for
  *

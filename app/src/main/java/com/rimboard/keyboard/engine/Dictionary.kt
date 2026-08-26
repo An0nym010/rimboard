@@ -289,6 +289,38 @@ class Dictionary(
         private const val AUTO_MAX_COST_PER_CHAR = 0.14
 
         /**
+         * How much of the allowance a word-shaped string keeps. See
+         * [looksLikeAWord] and [autoCommitConfident].
+         *
+         * Swept on [AutocorrectAccuracyTest]'s own corpus, which is the
+         * instrument that already decides whether this keyboard corrects well,
+         * rather than on a convenient sample. That distinction is not
+         * pedantry: measured against a truncated dictionary this looked free at
+         * 0.75, and on the real corpus 0.75 costs nine points of the English
+         * repair rate. Four earlier attempts at this problem each looked clean
+         * until the population they would actually cost was measured.
+         *
+         *     factor   en fixes/destroys   tr fixes/destroys
+         *     none        96% / 14%           96% / 17%
+         *     0.85        96% / 10%           95% / 15%
+         *     0.82        87% /  8%           88% / 15%
+         *
+         * The cliff between 0.85 and 0.82 is sharp, and 0.85 is taken for the
+         * side of it that costs nothing: English destruction falls by four
+         * points for no repairs at all, Turkish by two for one. What sits
+         * either side of the cliff is a mass of repairs whose cost per
+         * character lands just under the bar, so a small further tightening
+         * catches all of them at once.
+         */
+        private const val WORDLIKE_TIGHTEN = 0.85
+
+        /** Where the bar sits among this language's own words. */
+        private const val WORDLIKE_PERCENTILE = 0.20
+
+        /** One word in nine is scored to find that percentile at load. */
+        private const val WORDLIKE_SAMPLE_EVERY = 9
+
+        /**
          * The same bar for someone who would rather it left their words alone.
          *
          * Offered as a setting because it is the one point on the curve that is
@@ -570,6 +602,20 @@ class Dictionary(
     private var charTotals = DoubleArray(0)
     private var rows = arrayOfNulls<DoubleArray>(0)
 
+    /**
+     * Where this language's own words sit under [charLogP], at
+     * [WORDLIKE_PERCENTILE]. A string scoring at or above it is as word-shaped
+     * as most of the real vocabulary. See [looksLikeAWord].
+     *
+     * Declared here, above the `init` that fills it, and deliberately without
+     * an initialiser. Kotlin runs property initialisers and `init` blocks in
+     * declaration order, so the same field declared further down the file as
+     * `= Double.NEGATIVE_INFINITY` was being computed by `init` and then
+     * overwritten by its own initialiser a moment later -- leaving
+     * [looksLikeAWord] true for every string ever passed to it.
+     */
+    private var wordlikeBar: Double
+
     init {
         val entries = ArrayList<Pair<String, Int>>(12000)
         try {
@@ -658,6 +704,26 @@ class Dictionary(
                 pi = ci
             }
         }
+        // What this language's own words score under the model just built. The
+        // bar is a percentile of that, because the scale is not comparable
+        // across languages: Finnish spelling is far more regular than English,
+        // so Finnish words score higher -- and so do Finnish typos.
+        //
+        // One word in nine, which is a sample rather than the list, because
+        // this exists to find a single percentile and sorting two hundred
+        // thousand doubles for it would be the most expensive thing in the
+        // load by some way.
+        val shapeSample = ArrayList<Double>(size / WORDLIKE_SAMPLE_EVERY + 8)
+        var si = 0
+        while (si < size) {
+            if (lenAt(si) >= 4) shapeSample.add(shapeScoreAt(si))
+            si += WORDLIKE_SAMPLE_EVERY
+        }
+        shapeSample.sort()
+        wordlikeBar =
+            if (shapeSample.isEmpty()) Double.NEGATIVE_INFINITY
+            else shapeSample[(WORDLIKE_PERCENTILE * (shapeSample.size - 1)).toInt()]
+
         val floor = correctionFloor()
         floorFreq = floor
         val foldedPairs = HashMap<String, Int>()
@@ -916,6 +982,57 @@ class Dictionary(
         val c = if (ni < 0) 0.0 else row[ni]
         return maxOf(LN_UNSEEN, ln((c + 0.5) / (charTotals[pi] + 40.0)))
     }
+
+    /**
+     * Where this language's own words sit under [charLogP], at
+     * [WORDLIKE_PERCENTILE]. A string scoring at or above it is as word-shaped
+     * as four fifths of the real vocabulary. See [looksLikeAWord].
+     */
+    /** Mean [charLogP] per character, so long and short strings compare. */
+    private fun shapeScore(word: String): Double {
+        if (word.length < 2) return Double.NEGATIVE_INFINITY
+        var sum = 0.0
+        var prev = WORD_START
+        for (c in word) {
+            sum += charLogP(prev, c)
+            prev = c
+        }
+        return sum / word.length
+    }
+
+    /** [shapeScore] of word [i], without building the string. */
+    private fun shapeScoreAt(i: Int): Double {
+        val n = lenAt(i)
+        if (n < 2) return Double.NEGATIVE_INFINITY
+        var sum = 0.0
+        var prev = WORD_START
+        for (k in 0 until n) {
+            val c = charAt(i, k)
+            sum += charLogP(prev, c)
+            prev = c
+        }
+        return sum / n
+    }
+
+    /**
+     * Whether [word] looks like a word of this language, whether or not it is
+     * one.
+     *
+     * The dictionary answers membership; this answers the question membership
+     * cannot. "idempotent" is not in the English list and neither is
+     * "idsmpotent" -- the first is obviously English and the second obviously a
+     * slip, and the difference is in the letter sequences, which the
+     * character-transition model above has already counted.
+     *
+     * Used by [autoCommitConfident] to decide how much licence a correction
+     * gets. It deliberately reuses the model built for adaptive tap targeting
+     * rather than counting its own: a trigram model was written, measured
+     * against this one on the same two populations, and thrown away. It
+     * prevented no more destruction (en 31%, hu 34% against 32% and 38% here),
+     * cost 0.3 MB and a second pass over the word list, and would have been a
+     * second opinion in this file about which letters follow which.
+     */
+    fun looksLikeAWord(word: String): Boolean = shapeScore(word) >= wordlikeBar
 
     /** Dense index of [ch], or -1 if it never appeared in this dictionary. */
     private fun slot(ch: Char): Int {
@@ -1256,8 +1373,27 @@ class Dictionary(
         // The result is that a marginal tap improves what is offered without
         // widening what is committed, which is the conservative half.
         val len = maxOf(typedLower.length, candidate.length)
+        // A string that looks like a word of this language keeps only part of
+        // the allowance. The bar knows how far the keyboard is being asked to
+        // move a word and nothing about what it is moving, so without this a
+        // correct word the list simply lacks is treated exactly like a mistyped
+        // one and is rewritten into whatever real word is nearest: measured on
+        // a phone with the shipped dictionary, "idempotent" committed as
+        // "impotent", "deduplicate" as "duplicate", "refactored" as "factored".
+        //
+        // Not a veto. A one-key slip on something that does not look like a
+        // word keeps the allowance it always had, which is why this costs
+        // around half a percent of repairs to prevent about a third of the
+        // destruction. See [looksLikeAWord] and [WORDLIKE_TIGHTEN].
+        // The two ceilings do not compound. Each says "at most this much", and
+        // the bar is the lower of them -- multiplying them would take cautious
+        // to 0.09, past the 0.11 cliff [AUTO_MAX_COST_PER_CHAR_CAUTIOUS] names,
+        // and turn a setting the user chose into one they did not. Measured:
+        // compounding dropped cautious English repairs to 74%.
         val bar =
-            if (cautious) AUTO_MAX_COST_PER_CHAR_CAUTIOUS else AUTO_MAX_COST_PER_CHAR
+            if (cautious) AUTO_MAX_COST_PER_CHAR_CAUTIOUS
+            else AUTO_MAX_COST_PER_CHAR *
+                (if (looksLikeAWord(typedLower)) WORDLIKE_TIGHTEN else 1.0)
         return spatialCost(typedLower, candidate, prox) / len <= bar
     }
 
@@ -1307,6 +1443,16 @@ class Dictionary(
      * working out why a correction cleared the auto-commit bar. Both live
      * inside this function; keep them in step.
      */
+    /**
+     * [spatialCost] for a caller measuring the bar rather than applying it.
+     * Same contract, same arguments; exists so a benchmark can ask what a
+     * correction actually cost instead of re-implementing the alignment and
+     * measuring its own copy.
+     */
+    internal fun spatialCostFor(
+        typedLower: String, candidate: String, prox: KeyProximity?
+    ): Double = spatialCost(typedLower, candidate, prox)
+
     private fun spatialCost(
         a: String, b: String, prox: KeyProximity?, touch: FloatArray? = null
     ): Double {
