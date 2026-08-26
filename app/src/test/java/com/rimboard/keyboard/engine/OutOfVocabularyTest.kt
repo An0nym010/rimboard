@@ -53,10 +53,14 @@ import java.util.Locale
  * cannot be destroyed. Finnish and Hungarian are agglutinative in exactly the
  * same way and get none of it.
  *
- * ## Three cheaper answers, measured and rejected
+ * ## Four cheaper answers, measured and rejected
  *
  * Morphology is the expensive answer, so the cheap ones were tried first. All
- * three failed, and the numbers are here so they are not tried again:
+ * four failed, and they failed for one reason worth stating plainly: **the
+ * shape of a change says nothing about whether it is a repair or a
+ * destruction.** Every shape that is destructive on a correct word is also the
+ * shape of a common typo, and usually a much commoner one. Only knowing the
+ * language separates them. The numbers are here so none of this is tried again:
  *
  *  - **Refuse corrections that only change the tail.** Destruction is 60-75%
  *    that shape in the inflecting languages against 34-39% of real repairs —
@@ -78,6 +82,32 @@ import java.util.Locale
  *    43-62% of them: `businessze` to `business`, `brauchenjh` to `brauchen`.
  *    A clean separation measured on the wrong population is not a clean
  *    separation.
+ *
+ *  - **Refuse a correction that drops two or more *leading* letters.** Three of
+ *    the five real English words destroyed on the phone (below) lost a
+ *    derivational prefix, so this looked promising. It is worse than the last
+ *    one: only 0-2.8% of destruction has that shape, while 48-66% of words
+ *    typed with two extra letters at the front are legitimately repaired. This
+ *    time the cost population was measured in the same run rather than after
+ *    the fact.
+ *
+ * ## The same thing on a real phone, with the real dictionary
+ *
+ * The construction above truncates the list, so the obvious objection is that
+ * it measures an artefact. It does not. Twenty-two ordinary English words that
+ * are simply absent from the shipped 298,946-entry list were typed on a Redmi
+ * Note 8 running the built keyboard, and five of them were silently rewritten
+ * into different words:
+ *
+ *     unhelpfully   -> unhelpful        deduplicate  -> duplicate
+ *     refactored    -> factored         prepopulated -> repopulate
+ *     idempotent    -> impotent
+ *
+ * Typed as a sentence, `unhelpfully refactored deduplicate idempotent
+ * prepopulated` commits as `Unhelpful factored duplicate impotent repopulate`.
+ * Nothing was underlined and nothing was offered; the words were simply
+ * replaced. `idempotent` to `impotent` is the one to remember when weighing how
+ * much this matters.
  *
  * ## What this test is for
  *
@@ -250,6 +280,61 @@ class OutOfVocabularyTest {
                 ok == 0
             )
         }
+    }
+
+
+    /**
+     * The same finding without the truncation, in words anyone can check.
+     *
+     * Everything else here cuts the dictionary and measures what falls off,
+     * which invites the objection that it measures the cut. These are ordinary
+     * English words that are simply not in the shipped list, and the keyboard
+     * on the phone rewrote five of them into different words -- typed as a
+     * sentence, `unhelpfully refactored deduplicate idempotent prepopulated`
+     * came back `Unhelpful factored duplicate impotent repopulate`.
+     *
+     * The premise is asserted rather than assumed: if any of these words is
+     * added to the dictionary the test says so, because then it is measuring
+     * something else.
+     */
+    @Test
+    fun `ordinary words missing from the shipped list are rewritten, not underlined`() {
+        val lang = "en"
+        val locale = Locale.ENGLISH
+        val e = engineWith(lang, File(assets(), "dictionaries/en.txt").readText())
+        val absent = listOf(
+            "misconfigured", "unhelpfully", "backported", "refactored", "deduplicate",
+            "idempotent", "observability", "parallelised", "orthogonality",
+            "heuristically", "prepopulated", "unsubscribing", "misconfiguration",
+            "serialisation", "interoperable", "extensibility", "discoverability",
+            "tokenisation", "normalisation", "parameterised", "unmaintainable",
+            "disambiguation"
+        )
+        val nowPresent = absent.filter { e.knownIn(it, lang, locale) }
+        assertTrue(
+            "these are in the dictionary now, so this no longer measures a word " +
+                "the keyboard has never seen: $nowPresent",
+            nowPresent.isEmpty()
+        )
+        val rewritten = LinkedHashMap<String, String>()
+        for (w in absent) {
+            val fix = e.correctionFor(w, lang, locale) ?: continue
+            if (fix.lowercase(locale) != w) rewritten[w] = fix
+        }
+        println("rewritten: " + rewritten.entries.joinToString("  ") { "${it.key}->${it.value}" })
+        assertTrue(
+            "more ordinary English words are being rewritten than when this was " +
+                "written, which was 5 of ${absent.size}: $rewritten",
+            rewritten.size <= 7
+        )
+        // Not an aspiration, a record of where this stands: none of them is
+        // merely left alone and underlined, which is what should happen to a
+        // word the keyboard does not know.
+        assertTrue(
+            "if nothing is rewritten any more, something has improved and these " +
+                "figures need remeasuring",
+            rewritten.isNotEmpty()
+        )
     }
 
     private companion object {
