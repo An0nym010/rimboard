@@ -113,6 +113,7 @@
     <string name="learned_count">Öğrenilen kelime: %1$d — silmek için dokun</string>
     <string name="clipboard_title">Pano</string>
     <string name="clipboard_empty">Henüz bir şey kopyalanmadı</string>
+    <string name="clip_sensitive">Gizlenen öğe</string>
     <string name="ui_lang_title">Arayüz dili</string>
     <string name="ui_lang_system">Sistem varsayılanı</string>
     <string name="edit_title">Metin düzenleme</string>

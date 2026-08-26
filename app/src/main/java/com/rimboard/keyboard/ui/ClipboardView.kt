@@ -14,6 +14,8 @@ import android.widget.GridView
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.rimboard.keyboard.R
+import com.rimboard.keyboard.model.ClipChip
+import com.rimboard.keyboard.model.ClipboardStore
 import com.rimboard.keyboard.theme.KeyboardTheme
 
 /**
@@ -23,7 +25,7 @@ import com.rimboard.keyboard.theme.KeyboardTheme
 @SuppressLint("ViewConstructor")
 class ClipboardView(context: Context) : LinearLayout(context) {
 
-    class Item(val text: String, val pinned: Boolean)
+    class Item(val text: String, val pinned: Boolean, val sensitive: Boolean = false)
 
     interface Listener {
         fun onClipPicked(text: String)
@@ -101,8 +103,21 @@ class ClipboardView(context: Context) : LinearLayout(context) {
         addView(emptyLabel, LayoutParams(LayoutParams.MATCH_PARENT, 0, 2f))
     }
 
-    fun setClips(pinned: List<String>, recent: List<String>) {
-        adapterImpl.items = pinned.map { Item(it, true) } + recent.map { Item(it, false) }
+    /**
+     * The clips to draw, as entries rather than strings.
+     *
+     * Strings are what this took before, and taking them is what let the
+     * do-not-preview flag be dropped by the caller on the line above the one
+     * that drew a password on a card. An `Entry` cannot be handed over without
+     * it. See `SensitiveClipTest`.
+     */
+    fun setClips(
+        pinned: List<ClipboardStore.Entry>,
+        recent: List<ClipboardStore.Entry>
+    ) {
+        adapterImpl.items =
+            pinned.map { Item(it.text, true, it.sensitive) } +
+                recent.map { Item(it.text, false, it.sensitive) }
         adapterImpl.notifyDataSetChanged()
         val empty = adapterImpl.items.isEmpty()
         list.visibility = if (empty) GONE else VISIBLE
@@ -156,10 +171,17 @@ class ClipboardView(context: Context) : LinearLayout(context) {
                 }
             }
             card.setOnClickListener { listener?.onClipPicked(item.text) }
-            card.contentDescription = item.text
+            // The mask, not the clip -- on the card and in the accessibility
+            // tree both. contentDescription was the clip text, so a flagged
+            // password was drawn on screen *and* read out by TalkBack; a
+            // masked card that announced the secret would have fixed half of
+            // one of those.
+            val shown = ClipChip.cardLabel(item.text, item.sensitive)
+            card.contentDescription =
+                if (item.sensitive) context.getString(R.string.clip_sensitive) else item.text
 
             (card.getChildAt(0) as TextView).apply {
-                text = item.text
+                text = shown
                 setTextColor(th?.keyText ?: 0xFF000000.toInt())
             }
             (card.getChildAt(1) as IconView).apply {

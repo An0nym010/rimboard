@@ -96,6 +96,7 @@
     <string name="learned_count">Mots appris : %1$d — touchez pour supprimer</string>
     <string name="clipboard_title">Presse-papiers</string>
     <string name="clipboard_empty">Rien de copié pour le moment</string>
+    <string name="clip_sensitive">Élément masqué</string>
     <string name="ui_lang_title">Langue de l\'interface</string>
     <string name="ui_lang_system">Par défaut du système</string>
     <string name="edit_title">Modifier le texte</string>

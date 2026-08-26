@@ -96,6 +96,7 @@
     <string name="learned_count">Palavras aprendidas: %1$d — toque para apagar</string>
     <string name="clipboard_title">Área de transferência</string>
     <string name="clipboard_empty">Nada copiado ainda</string>
+    <string name="clip_sensitive">Item oculto</string>
     <string name="ui_lang_title">Idioma da interface</string>
     <string name="ui_lang_system">Padrão do sistema</string>
     <string name="edit_title">Editar texto</string>

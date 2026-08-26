@@ -122,6 +122,33 @@ object ClipChip {
         return cut(hostOf(flat) ?: flat)
     }
 
+    /**
+     * A mask, of a fixed width so it does not disclose what it hides.
+     *
+     * Eight bullets whatever the length: a mask that grows with the secret
+     * tells you how long the password is, which is worth having if you are
+     * guessing one. Not a translated word, deliberately -- the bullet is what
+     * every password field on the phone already uses for exactly this, and it
+     * reads the same in every language the keyboard ships.
+     */
+    const val MASK = "••••••••"
+
+    /**
+     * What the clipboard panel's card shows for a clip.
+     *
+     * The panel's counterpart to [label], and the reason it exists is that it
+     * did not: the panel built its own list of plain strings, so the
+     * do-not-preview flag that every other part of the clipboard carries was
+     * dropped on the last line before the card was drawn. See
+     * `SensitiveClipTest`.
+     *
+     * Hides the content rather than dropping the entry, which is what [label]
+     * already does on the strip -- the action stays offered, the text does
+     * not. A masked card still pastes the real clip.
+     */
+    fun cardLabel(text: String, sensitive: Boolean): String =
+        if (sensitive) MASK else text
+
     private val URL = Regex(
         "^https?://(?:www\\.)?([^/?#\\s]+)(.*)$", RegexOption.IGNORE_CASE
     )

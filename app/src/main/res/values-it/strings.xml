@@ -96,6 +96,7 @@
     <string name="learned_count">Parole apprese: %1$d — tocca per cancellare</string>
     <string name="clipboard_title">Appunti</string>
     <string name="clipboard_empty">Non hai ancora copiato nulla</string>
+    <string name="clip_sensitive">Elemento nascosto</string>
     <string name="ui_lang_title">Lingua dell\'interfaccia</string>
     <string name="ui_lang_system">Predefinita di sistema</string>
     <string name="edit_title">Modifica testo</string>

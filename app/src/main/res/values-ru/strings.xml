@@ -96,6 +96,7 @@
     <string name="learned_count">Выучено слов: %1$d — нажмите, чтобы удалить</string>
     <string name="clipboard_title">Буфер обмена</string>
     <string name="clipboard_empty">Пока ничего не скопировано</string>
+    <string name="clip_sensitive">Скрытый элемент</string>
     <string name="ui_lang_title">Язык интерфейса</string>
     <string name="ui_lang_system">Системный по умолчанию</string>
     <string name="edit_title">Редактирование текста</string>

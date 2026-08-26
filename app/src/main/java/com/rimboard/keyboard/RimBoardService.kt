@@ -2651,8 +2651,8 @@ class RimBoardService : InputMethodService(),
 
     private fun updateClipView() {
         clipboardView?.setClips(
-            clips.pinnedTexts(),
-            clips.history(System.currentTimeMillis(), Prefs.clipTimeoutMin(this)).map { it.text }
+            clips.pinnedEntries(),
+            clips.history(System.currentTimeMillis(), Prefs.clipTimeoutMin(this))
         )
     }
 

@@ -127,6 +127,7 @@
     <string name="learned_count">Learned words: %1$d — tap to delete</string>
     <string name="clipboard_title">Clipboard</string>
     <string name="clipboard_empty">Nothing copied yet</string>
+    <string name="clip_sensitive">Hidden item</string>
     <string name="ui_lang_title">Interface language</string>
     <string name="ui_lang_system">System default</string>
     <string name="edit_title">Edit text</string>
