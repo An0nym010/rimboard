@@ -21,6 +21,37 @@ package com.rimboard.keyboard.model
 object AutocorrectGate {
 
     /**
+     * Whether a swipe may be decoded into a word at all.
+     *
+     * A glide is this file's question in its strongest form. A correction
+     * replaces a word the user typed; a glide replaces a shape they drew, with
+     * no keystroke in between and nothing on screen to compare it against. So
+     * the fields where a correction is refused are fields where a swipe must
+     * not be read either — and it was, because the gesture asked only whether
+     * gliding was switched on and whether this was a text field.
+     *
+     * A password field is a text field. [mayCommit]'s own note says what that
+     * means: "a password, email or URL field, where words are not prose and a
+     * correction is a wrong password". Swiping in one produced a dictionary
+     * word and committed it, in the one kind of field where the user cannot
+     * read back what they got.
+     *
+     * @param enabled       the user's glide setting.
+     * @param isTextClass   a text field at all, rather than a number pad.
+     * @param isPassword    where a decoded word is a wrong password.
+     * @param noSuggestions the app asked for no suggestions; a swipe is one.
+     * @param isEmailOrUri  an address, where words are not prose.
+     */
+    fun mayDecodeSwipe(
+        enabled: Boolean,
+        isTextClass: Boolean,
+        isPassword: Boolean,
+        noSuggestions: Boolean,
+        isEmailOrUri: Boolean
+    ): Boolean =
+        enabled && isTextClass && !isPassword && !noSuggestions && !isEmailOrUri
+
+    /**
      * Whether the separator may replace the composed word at all.
      *
      * @param active            the user's autocorrect setting, and a text field.

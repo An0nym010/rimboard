@@ -720,7 +720,14 @@ class RimBoardService : InputMethodService(),
         keyboardView?.let { kv ->
             kv.theme = photoTheme ?: t
             kv.previewEnabled = Prefs.popupPreview(this)
-            kv.glideEnabled = Prefs.glide(this)
+            // Not merely the setting: a swipe is decoded into a dictionary
+            // word and committed, so the fields that refuse a correction have
+            // to refuse a swipe. Switched off at the view as well as guarded at
+            // the commit, so the gesture is read as an ordinary key press
+            // rather than decoded and then thrown away.
+            kv.glideEnabled = com.rimboard.keyboard.model.AutocorrectGate.mayDecodeSwipe(
+                Prefs.glide(this), isTextClass, isPassword, fieldNoSuggestions, isEmailOrUri
+            )
             kv.glideDeleteEnabled = Prefs.glideDelete(this)
             when (Prefs.repeatSpeed(this)) {
                 "slow" -> { kv.repeatInitialMs = 420L; kv.repeatIntervalMs = 70L }
@@ -1095,7 +1102,12 @@ class RimBoardService : InputMethodService(),
     }
 
     override fun onGlideComplete(points: FloatArray, keys: String) {
-        if (!Prefs.glide(this) || !isTextClass) return
+        if (!com.rimboard.keyboard.model.AutocorrectGate.mayDecodeSwipe(
+                Prefs.glide(this), isTextClass, isPassword, fieldNoSuggestions, isEmailOrUri
+            )
+        ) {
+            return
+        }
         // Two different languages, and the split matters. The *geometry* is
         // the layout actually on screen, because that is the only set of keys
         // a finger can have crossed. The *dictionaries* are the effective
