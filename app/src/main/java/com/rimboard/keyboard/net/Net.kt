@@ -7,7 +7,7 @@ import com.rimboard.keyboard.settings.Prefs
  * The one door to the network.
  *
  * Nothing in this app opens a connection on its own. Every feature that wants
- * the network calls [fetch] here, and [fetch] can refuse for four separate
+ * the network calls [fetch] here, and [fetch] can refuse for five separate
  * reasons before a socket is ever considered:
  *
  *  1. the build has no INTERNET permission ([capable] is false on the offline
@@ -15,7 +15,9 @@ import com.rimboard.keyboard.settings.Prefs
  *  2. the user picked fully-offline in the first-run dialog or in Settings;
  *  3. the request would carry text the user typed, and the keyboard is in
  *     incognito;
- *  4. the caller asked for a host that is not on [ALLOWED_HOSTS].
+ *  4. the request would carry text the user typed, and the field it came from
+ *     is a password field ([setSensitiveField]);
+ *  5. the caller asked for a host that is not on [ALLOWED_HOSTS].
  *
  * Funnelling everything through one function is what makes the online build
  * auditable: `NetGateTest` asserts that no other file in the app references a
@@ -139,14 +141,61 @@ object Net {
     /**
      * Why a request would be refused right now, or null if it would be allowed.
      *
-     * Exposed so the UI can grey out a feature and say which of the four
+     * Exposed so the UI can grey out a feature and say which of the five
      * reasons applies, instead of letting the user tap it and watch it fail.
      */
-    fun blockedBy(c: Context, sendsTypedText: Boolean): Block? = when {
+    fun blockedBy(c: Context, sendsTypedText: Boolean): Block? = decide(
+        capable = capable,
+        online = mode(c) == MODE_ONLINE,
+        incognito = incognito(c),
+        sensitiveField = sensitiveField,
+        sendsTypedText = sendsTypedText
+    )
+
+    /**
+     * The policy itself, with every input passed in.
+     *
+     * Separated from [blockedBy] for the same reason `AutocorrectGate` is
+     * separated from the service: inside an `InputMethodService` a rule about
+     * what may leave the device can only be exercised by a thumb, and a rule
+     * that can only be exercised by a thumb is one nobody re-checks after a
+     * refactor. Here it is a table.
+     */
+    fun decide(
+        capable: Boolean,
+        online: Boolean,
+        incognito: Boolean,
+        sensitiveField: Boolean,
+        sendsTypedText: Boolean
+    ): Block? = when {
         !capable -> Block.NO_PERMISSION
-        mode(c) != MODE_ONLINE -> Block.USER_OFFLINE
-        sendsTypedText && incognito(c) -> Block.INCOGNITO
+        !online -> Block.USER_OFFLINE
+        sendsTypedText && incognito -> Block.INCOGNITO
+        sendsTypedText && sensitiveField -> Block.SENSITIVE_FIELD
         else -> null
+    }
+
+    /**
+     * Whether the field being typed into is one whose contents must not leave
+     * the device.
+     *
+     * Process-wide rather than threaded through every call because [fetch] is
+     * reached from `Klipy`, `AiText`, `Translate`, `Lingva` and
+     * `LibreTranslate`, none of which is handed anything but a `Context` -- and
+     * giving each of them its own copy of the rule is the mistake this file
+     * exists to prevent. An IME has exactly one focused field at a time, which
+     * is what makes a single flag the honest representation.
+     *
+     * Set from `readPrefsAndFieldFlags`, which runs on every focus change, and
+     * dropped in `onFinishInputView` when the session ends, so it cannot
+     * outlive the field it describes. Errs towards staying set: a stale `true`
+     * refuses a tool with a reason, a stale `false` is the leak.
+     */
+    @Volatile
+    private var sensitiveField = false
+
+    fun setSensitiveField(sensitive: Boolean) {
+        sensitiveField = sensitive
     }
 
     fun allowed(c: Context, sendsTypedText: Boolean): Boolean =
@@ -263,7 +312,7 @@ object Net {
     private fun incognito(c: Context): Boolean =
         Prefs.incognitoAlways(c) || Prefs.incognitoSession(c)
 
-    enum class Block { NO_PERMISSION, USER_OFFLINE, INCOGNITO, HOST_NOT_ALLOWED }
+    enum class Block { NO_PERMISSION, USER_OFFLINE, INCOGNITO, SENSITIVE_FIELD, HOST_NOT_ALLOWED }
 }
 
 class NetBlockedException(val block: Net.Block) :

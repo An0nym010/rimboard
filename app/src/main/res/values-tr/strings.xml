@@ -325,6 +325,7 @@
 
     <string name="ai_failed">Tamamlanamadı: %1$s</string>
     <string name="ai_incognito">Gizli modda kullanılamaz — yazdıkların gönderilirdi</string>
+    <string name="ai_password_field">Şifre alanında kullanılamaz — içindekiler gönderilirdi</string>
     <string name="ai_moved_on">Atıldı — üzerinde çalışılırken metin değişti</string>
     <string name="ai_needs_selection">Önce çevrilmesini istediğin metni seç</string>
     <string name="ai_no_key">Anthropic API anahtarını Ayarlar → Ağ altında ekle</string>
@@ -374,6 +375,7 @@
     <string name="theme_custom3">Özel 3</string>
     <string name="tool_off_build">Çevrimdışı sürüm</string>
     <string name="tool_off_incognito">Gizli mod</string>
+    <string name="tool_off_password">Şifre alanı</string>
     <string name="tool_off_key">API anahtarı gerekli</string>
     <string name="tool_off_locked">Kilidi aç</string>
     <string name="tool_off_network">Ağ kapalı</string>

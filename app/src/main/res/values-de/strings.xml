@@ -315,6 +315,7 @@
 
     <string name="ai_failed">Konnte nicht abgeschlossen werden: %1$s</string>
     <string name="ai_incognito">In Inkognito nicht verfügbar — es würde senden, was du getippt hast</string>
+    <string name="ai_password_field">In einem Passwortfeld nicht verfügbar — es würde senden, was darin steht</string>
     <string name="ai_moved_on">Verworfen — der Text hat sich geändert, während daran gearbeitet wurde</string>
     <string name="ai_needs_selection">Markiere zuerst den Text, der übersetzt werden soll</string>
     <string name="ai_no_key">Füge deinen Anthropic-API-Schlüssel unter Einstellungen → Netzwerk hinzu</string>
@@ -364,6 +365,7 @@
     <string name="theme_custom3">Eigenes 3</string>
     <string name="tool_off_build">Offline-Version</string>
     <string name="tool_off_incognito">Inkognito</string>
+    <string name="tool_off_password">Passwortfeld</string>
     <string name="tool_off_key">API-Schlüssel nötig</string>
     <string name="tool_off_locked">Entsperren</string>
     <string name="tool_off_network">Netzwerk aus</string>

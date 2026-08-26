@@ -195,6 +195,7 @@
     <string name="tool_off_build">Offline build</string>
     <string name="tool_off_network">Network off</string>
     <string name="tool_off_incognito">Incognito</string>
+    <string name="tool_off_password">Password field</string>
     <string name="tool_off_locked">Unlock phone</string>
     <string name="tool_off_key">Needs API key</string>
     <string name="net_enable_title" tools:ignore="MissingTranslation">Turn on online features?</string>
@@ -415,6 +416,7 @@ Your search words or selected text go to the service that answers them. Nothing 
     <string name="ai_translating">Translating…</string>
     <string name="ai_proofreading">Proofreading…</string>
     <string name="ai_incognito">Not available in incognito — it would send what you typed</string>
+    <string name="ai_password_field">Not available in a password field — it would send what is in it</string>
     <string name="ai_no_key">Add your Anthropic API key in Settings → Network</string>
     <string name="tb_proofread">Proofread</string>
     <!-- Shared by translate and proofread, so deliberately not named after

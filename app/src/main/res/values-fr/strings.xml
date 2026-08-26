@@ -315,6 +315,7 @@
 
     <string name="ai_failed">Impossible de terminer : %1$s</string>
     <string name="ai_incognito">Indisponible en incognito : cela enverrait ce que vous avez tapé</string>
+    <string name="ai_password_field">Indisponible dans un champ de mot de passe : cela enverrait ce qu’il contient</string>
     <string name="ai_moved_on">Abandonné : le texte a changé pendant le traitement</string>
     <string name="ai_needs_selection">Sélectionnez d’abord le texte à traduire</string>
     <string name="ai_no_key">Ajoutez votre clé d’API Anthropic dans Réglages → Réseau</string>
@@ -364,6 +365,7 @@
     <string name="theme_custom3">Personnalisé 3</string>
     <string name="tool_off_build">Version hors ligne</string>
     <string name="tool_off_incognito">Incognito</string>
+    <string name="tool_off_password">Champ de mot de passe</string>
     <string name="tool_off_key">Clé d’API requise</string>
     <string name="tool_off_locked">Déverrouiller</string>
     <string name="tool_off_network">Réseau désactivé</string>

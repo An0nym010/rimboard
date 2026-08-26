@@ -317,6 +317,7 @@
 
     <string name="ai_failed">Не удалось выполнить: %1$s</string>
     <string name="ai_incognito">Недоступно в режиме инкогнито — это отправило бы набранный текст</string>
+    <string name="ai_password_field">Недоступно в поле пароля — это отправило бы его содержимое</string>
     <string name="ai_moved_on">Отменено — текст изменился, пока шла обработка</string>
     <string name="ai_needs_selection">Сначала выделите текст для перевода</string>
     <string name="ai_no_key">Добавьте свой API-ключ Anthropic в разделе Настройки → Сеть</string>
@@ -366,6 +367,7 @@
     <string name="theme_custom3">Своя 3</string>
     <string name="tool_off_build">Офлайн-сборка</string>
     <string name="tool_off_incognito">Инкогнито</string>
+    <string name="tool_off_password">Поле пароля</string>
     <string name="tool_off_key">Нужен API-ключ</string>
     <string name="tool_off_locked">Разблокируйте телефон</string>
     <string name="tool_off_network">Сеть выключена</string>

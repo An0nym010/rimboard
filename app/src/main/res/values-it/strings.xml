@@ -315,6 +315,7 @@
 
     <string name="ai_failed">Impossibile completare: %1$s</string>
     <string name="ai_incognito">Non disponibile in incognito: invierebbe ciò che hai digitato</string>
+    <string name="ai_password_field">Non disponibile in un campo password: invierebbe ciò che contiene</string>
     <string name="ai_moved_on">Annullato: il testo è cambiato durante l’elaborazione</string>
     <string name="ai_needs_selection">Seleziona prima il testo da tradurre</string>
     <string name="ai_no_key">Aggiungi la tua chiave API Anthropic in Impostazioni → Rete</string>
@@ -364,6 +365,7 @@
     <string name="theme_custom3">Personalizzato 3</string>
     <string name="tool_off_build">Versione offline</string>
     <string name="tool_off_incognito">Incognito</string>
+    <string name="tool_off_password">Campo password</string>
     <string name="tool_off_key">Serve la chiave API</string>
     <string name="tool_off_locked">Sblocca il telefono</string>
     <string name="tool_off_network">Rete disattivata</string>

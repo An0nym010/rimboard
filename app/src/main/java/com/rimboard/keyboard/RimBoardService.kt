@@ -593,6 +593,12 @@ class RimBoardService : InputMethodService(),
         // with; on a plain hide-and-show they are still wanted, and nothing
         // would send them again.
         if (finishingInput) clearAutofill()
+        // Set per field in readPrefsAndFieldFlags and dropped here, so it can
+        // never describe a field that is no longer focused. Cleared only when
+        // the session is genuinely over: a stale `true` merely refuses a tool
+        // with a reason, while a stale `false` is the leak itself, so this
+        // errs towards keeping it.
+        if (finishingInput) com.rimboard.keyboard.net.Net.setSensitiveField(false)
         userData.saveIfDirty()
         Stats.flush(this)
     }
@@ -671,6 +677,18 @@ class RimBoardService : InputMethodService(),
             !fieldNoSuggestions && !isEmailOrUri
         autocorrectActive = Prefs.autocorrect(this) && isTextClass && !isPassword &&
             !fieldNoSuggestions && !isEmailOrUri
+        // The network gate cannot see the field: it is reached from Klipy,
+        // AiText and the two translators, none of which is handed anything but
+        // a Context. So the one thing it needs is pushed to it here, with the
+        // rest of the per-field flags, on every focus change.
+        //
+        // Only the password field, not `fieldNoLearning`. An app setting
+        // IME_FLAG_NO_PERSONALIZED_LEARNING is asking not to be *learned* from,
+        // which this keyboard already honours everywhere it writes; reading it
+        // as "no network" would take GIFs and translation away in every
+        // encrypted chat that sets it, which is a feature removal nobody asked
+        // for rather than a promise kept.
+        com.rimboard.keyboard.net.Net.setSensitiveField(isPassword)
 
         val themePref = Prefs.theme(this)
         // Tinted before the photo variant is derived from it, not after: over a
@@ -2992,6 +3010,10 @@ class RimBoardService : InputMethodService(),
      * the previous behaviour.
      */
     private fun launchTranslate(ic: InputConnection) {
+        // Before the block below, not after: on the offline build the block is
+        // always NO_PERMISSION, and NO_PERMISSION is the branch that hands the
+        // text to another app.
+        if (refusedInPasswordField()) return
         val block = com.rimboard.keyboard.net.Net.blockedBy(this, sendsTypedText = true)
         // In-place translation needs a network, not a key: the keyless engine
         // covers anyone without an Anthropic key. So the bar opens whenever the
@@ -3030,6 +3052,8 @@ class RimBoardService : InputMethodService(),
                 getString(R.string.tool_off_build)
             block == com.rimboard.keyboard.net.Net.Block.INCOGNITO ->
                 getString(R.string.tool_off_incognito)
+            block == com.rimboard.keyboard.net.Net.Block.SENSITIVE_FIELD ->
+                getString(R.string.tool_off_password)
             block != null -> getString(R.string.tool_off_network)
             locked -> getString(R.string.tool_off_locked)
             else -> null
@@ -3057,6 +3081,31 @@ class RimBoardService : InputMethodService(),
     }
 
     /**
+     * Refuses, and says why, when the focused field's contents must not leave
+     * the keyboard.
+     *
+     * [Net] covers the requests this app makes itself. It does not cover the
+     * two features that hand the text to *another* app through an Intent, and
+     * those turned out to be the wider hole of the two: both fall back to the
+     * whole field when nothing is selected, so in a password field, with no
+     * selection and no warning, the globe key offered the password to
+     * whichever translator was installed and the share key offered it to
+     * everything on the share sheet. Neither is a network call, so neither
+     * passed the gate that was supposed to be the one door; and `shareText`
+     * exists on the offline build, whose entire claim is that nothing leaves.
+     *
+     * Refuses even an explicit selection, for the same reason the network gate
+     * does: this keyboard already declines to learn from a password field,
+     * autocorrect in one, or decode a swipe in one, and "the user selected it
+     * first" is not the difference between those cases and this one.
+     */
+    private fun refusedInPasswordField(): Boolean {
+        if (!isPassword) return false
+        toastLong(getString(R.string.ai_password_field))
+        return true
+    }
+
+    /**
      * Why a network feature is unavailable, as one message.
      *
      * The GIF picker, proofread and translate all refuse for the same four
@@ -3066,6 +3115,7 @@ class RimBoardService : InputMethodService(),
     private fun netBlockMessage(block: com.rimboard.keyboard.net.Net.Block): Int = when (block) {
         com.rimboard.keyboard.net.Net.Block.NO_PERMISSION -> R.string.gif_offline_build
         com.rimboard.keyboard.net.Net.Block.INCOGNITO -> R.string.ai_incognito
+        com.rimboard.keyboard.net.Net.Block.SENSITIVE_FIELD -> R.string.ai_password_field
         else -> R.string.gif_network_off
     }
 
@@ -3407,6 +3457,10 @@ class RimBoardService : InputMethodService(),
      */
     private fun showGifPanel() {
         val gv = gifView ?: return
+        // Asked before anything is read from the field. The seed further down
+        // is what made a password field the sharpest case here: it takes the
+        // sixty characters before the cursor and searches on them, with no
+        // query typed, so a refusal that came after it would come too late.
         com.rimboard.keyboard.net.Net.blockedBy(this, sendsTypedText = true)?.let { block ->
             toast(getString(
                 if (block == com.rimboard.keyboard.net.Net.Block.INCOGNITO)
@@ -3852,6 +3906,12 @@ class RimBoardService : InputMethodService(),
      * with no indication why.
      */
     private fun launchExternalTranslate(ic: InputConnection): Boolean {
+        // Asked here as well as in the one caller, for the reason
+        // `SwipeInPasswordTest` gives about the glide gate: the guard that
+        // matters is the one nearest the text, because it is the one a second
+        // caller cannot be written around. Returns true so the refusal stands
+        // as the outcome rather than falling through to "no translator app".
+        if (refusedInPasswordField()) return true
         val selected = ic.getSelectedText(0)?.toString()
         val text = if (!selected.isNullOrBlank()) {
             selected
@@ -3884,6 +3944,7 @@ class RimBoardService : InputMethodService(),
     /** Shares the selected text (or the whole field) via the system share sheet.
      *  Nothing leaves the device unless the user picks a share target. */
     private fun shareText(ic: InputConnection) {
+        if (refusedInPasswordField()) return
         val selected = ic.getSelectedText(0)?.toString()
         val text = if (!selected.isNullOrBlank()) selected
         else ic.getExtractedText(android.view.inputmethod.ExtractedTextRequest(), 0)
