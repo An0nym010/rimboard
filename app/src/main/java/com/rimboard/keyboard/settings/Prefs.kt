@@ -595,6 +595,19 @@ object Prefs {
 
     fun incognitoAlways(c: Context) = get(c).getBoolean(KEY_INCOGNITO_ALWAYS, false)
     fun incognitoSession(c: Context) = get(c).getBoolean(KEY_INCOGNITO_SESSION, false)
+
+    /**
+     * Whether incognito is on, by preference alone.
+     *
+     * The two switches read as one thing to the user -- the settings toggle
+     * and the per-session one on the comma popup -- and every caller that
+     * asked wrote the `||` out again. Three copies, and the third was the
+     * spell checker's, which never got written at all.
+     *
+     * The keyboard's own `isIncognito()` is this plus what it knows about the
+     * focused field, which nothing outside the service can see.
+     */
+    fun incognitoOn(c: Context) = incognitoAlways(c) || incognitoSession(c)
     fun setIncognitoSession(c: Context, v: Boolean) {
         get(c).edit().putBoolean(KEY_INCOGNITO_SESSION, v).apply()
     }

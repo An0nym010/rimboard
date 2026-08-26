@@ -834,8 +834,7 @@ class RimBoardService : InputMethodService(),
     }
 
     private fun isIncognito(): Boolean =
-        Prefs.incognitoAlways(this) || Prefs.incognitoSession(this) ||
-            isPassword || fieldNoLearning
+        Prefs.incognitoOn(this) || isPassword || fieldNoLearning
 
     private fun initialKindFor(info: EditorInfo): LayoutKind {
         return when (info.inputType and InputType.TYPE_MASK_CLASS) {

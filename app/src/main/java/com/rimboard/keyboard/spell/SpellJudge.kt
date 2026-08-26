@@ -53,7 +53,24 @@ internal class SpellJudge(
     private val lang: String,
     private val loc: Locale,
     private val altLang: String? = null,
-    private val altLoc: Locale? = null
+    private val altLoc: Locale? = null,
+    /**
+     * False in incognito, exactly as it is for the keyboard's own four
+     * callers into the engine.
+     *
+     * The switch says "Never learn or suggest from history", and this service
+     * was the half of the app it did not reach: the keyboard withheld the
+     * user's learned vocabulary while the spell checker went on offering it as
+     * the fix for a typo, and ranking its answers by what that user's own
+     * n-grams predicted. Both were history, surfaced under a promise not to.
+     *
+     * It does not stop the spell checker *knowing* those words. `acceptedWord`
+     * and the `isKnown` short-circuit inside `correctionCandidates` are
+     * deliberately outside this flag, so a word the user has taught the
+     * keyboard is still never underlined. Incognito withholds what would be
+     * suggested, not what is already on the screen.
+     */
+    private val personalized: Boolean = true
 ) {
 
     /**
@@ -119,7 +136,10 @@ internal class SpellJudge(
         // bigrams, which a readiness check would have discarded along with it.
         val contextRank =
             if (prev.isEmpty() && sentenceInitial != true) emptyMap()
-            else engine.predictions(prev2, prev, lang, loc, CONTEXT_DEPTH, mayLoad = false)
+            else engine.predictions(
+                prev2, prev, lang, loc, CONTEXT_DEPTH,
+                personalized = personalized, mayLoad = false
+            )
                 .withIndex().associate { (i, w) -> w.lowercase(loc) to i }
 
         val cap = suggestionsLimit.coerceIn(1, MAX_SUGGESTIONS)
@@ -131,7 +151,8 @@ internal class SpellJudge(
         val pool = engine.correctionCandidates(
             word, lang, loc, altLang, altLoc,
             limit = cap + RIGHT_CONTEXT_POOL,
-            contextRank = contextRank
+            contextRank = contextRank,
+            personalized = personalized
         )
 
         // Nothing in the language of the field, and the user has another one
@@ -156,7 +177,8 @@ internal class SpellJudge(
             else engine.correctionCandidates(
                 word, altLang, altLoc, lang, loc,
                 limit = cap + RIGHT_CONTEXT_POOL,
-                contextRank = contextRank
+                contextRank = contextRank,
+                personalized = personalized
             )
 
         // The word after the typo, which the n-grams can only be asked about

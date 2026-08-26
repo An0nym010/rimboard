@@ -309,8 +309,7 @@ object Net {
      */
     fun deviceOnline(c: Context): Boolean? = NetBackend.deviceOnline(c)
 
-    private fun incognito(c: Context): Boolean =
-        Prefs.incognitoAlways(c) || Prefs.incognitoSession(c)
+    private fun incognito(c: Context): Boolean = Prefs.incognitoOn(c)
 
     enum class Block { NO_PERMISSION, USER_OFFLINE, INCOGNITO, SENSITIVE_FIELD, HOST_NOT_ALLOWED }
 }

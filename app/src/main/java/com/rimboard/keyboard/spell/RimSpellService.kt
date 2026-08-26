@@ -262,7 +262,18 @@ class RimSpellService : SpellCheckerService() {
             com.rimboard.keyboard.engine.UserDictionaryStore.warm(service)
             engine.userDictionaryWords = com.rimboard.keyboard.engine.UserDictionaryStore.words()
 
-            rule = SpellJudge(engine, lang, loc, altLang, altLoc)
+            // Read per session, for the same reason as the two above: a
+            // spell checker service outlives a great many trips to the
+            // settings screen, and the per-session switch on the comma popup
+            // can be thrown between one field and the next.
+            //
+            // The keyboard's `isIncognito()` is this plus the focused field's
+            // type, which this service is never told. What it can see is the
+            // half that is a preference, and that is the half the switch is.
+            rule = SpellJudge(
+                engine, lang, loc, altLang, altLoc,
+                personalized = !Prefs.incognitoOn(service)
+            )
 
             SuggestionEngine.declareNeeded(
                 SuggestionEngine.NEEDED_SPELL, setOfNotNull(lang, altLang)
