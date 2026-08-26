@@ -1447,7 +1447,12 @@ class RimBoardService : InputMethodService(),
                 typed, effLang(), effLocale(), effAlt(), effAltLocale(),
                 prevWord2 = prevWord2,
                 prevWord = prevWordForBigram,
-                touch = touchTrail.offsetsFor(typed.length)
+                touch = touchTrail.offsetsFor(typed.length),
+                // The word the space bar commits, so this is the one place a
+                // learned word could be put into the message without being
+                // chosen. The strip has always passed this; the commit did not
+                // take it.
+                personalized = !isIncognito()
             )?.let {
                 finalWord = it
                 Stats.autocorrect(this)

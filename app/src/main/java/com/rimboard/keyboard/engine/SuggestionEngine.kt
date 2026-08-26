@@ -717,7 +717,14 @@ class SuggestionEngine private constructor(
         altLocale: Locale? = null,
         limit: Int = 1,
         contextRank: Map<String, Int> = emptyMap(),
-        touch: FloatArray? = null
+        touch: FloatArray? = null,
+        /**
+         * False in incognito, exactly as it is for [suggestionsFor],
+         * [glideFor] and [predictions]. This was the one of the four that
+         * never took the flag, so the user's own vocabulary went on correcting
+         * their typos in a mode whose whole promise is that it does not.
+         */
+        personalized: Boolean = true
     ): List<String> {
         if (typed.length < 3) return emptyList()
         if (typed.any { it.isDigit() }) return emptyList()
@@ -832,8 +839,9 @@ class SuggestionEngine private constructor(
         // dictionary was consulted. Appended after the dictionary's candidates
         // on purpose — a personal word must never displace an obvious fix like
         // teh -> the, but it fills in when the dictionary has nothing to say.
-        val personal = userData.correctionCandidates(
-            lower, Dictionary.maxEditDistance(lower.length))
+        val personal =
+            if (!personalized) emptyList()
+            else userData.correctionCandidates(lower, Dictionary.maxEditDistance(lower.length))
         return (listOfNotNull(elongated, accented) + fromDict + personal)
             .distinct()
             .asSequence()
@@ -1152,7 +1160,8 @@ class SuggestionEngine private constructor(
         altLocale: Locale? = null,
         prevWord2: String = "",
         prevWord: String = "",
-        touch: FloatArray? = null
+        touch: FloatArray? = null,
+        personalized: Boolean = true
     ): String? {
         // An unambiguous contraction fires even though its bare form is
         // (wrongly) in the dictionary, and takes priority over any edit-
@@ -1160,7 +1169,8 @@ class SuggestionEngine private constructor(
         contractionFor(typed, lang, locale)?.let { if (it.second) return it.first }
         val best = correctionCandidates(
             typed, lang, locale, altLang, altLocale, 1,
-            contextRankFor(prevWord2, prevWord, lang, locale, altLang, altLocale), touch
+            contextRankFor(prevWord2, prevWord, lang, locale, altLang, altLocale), touch,
+            personalized
         ).firstOrNull() ?: return null
         // Offered is not the same as applied. See [Dictionary.autoCommitConfident]:
         // without this the strip's best guess was committed on the space bar
@@ -1412,7 +1422,7 @@ class SuggestionEngine private constructor(
 
         // Up to two corrections, best first, promoted to the front of the strip.
         var corrs = correctionCandidates(
-            composing, lang, locale, altLang, altLocale, 2, contextRank, touch)
+            composing, lang, locale, altLang, altLocale, 2, contextRank, touch, personalized)
         var crossLanguage = false
         if (corrs.isEmpty() && altLang != null && altLocale != null) {
             // The current language has nothing to offer for this word. Before
@@ -1420,7 +1430,10 @@ class SuggestionEngine private constructor(
             // on the Turkish layout, "helko" should still put "hello" on the
             // strip. Display only — the chip is there to tap, but a guess from
             // the other language is never bold enough to commit on space.
-            corrs = correctionCandidates(composing, altLang, altLocale, lang, locale, 1)
+            corrs = correctionCandidates(
+                composing, altLang, altLocale, lang, locale, 1,
+                personalized = personalized
+            )
             crossLanguage = true
         }
         val corrLocale = if (crossLanguage) altLocale ?: locale else locale
