@@ -740,6 +740,18 @@ class UserData private constructor(dir: File) {
                 learnedFile.delete()
                 bigramFile.delete()
                 trigramFile.delete()
+                // The pins belong to the words just deleted. They are cleared
+                // in memory above, and without this line the next load reads
+                // them straight back -- an IME process is killed constantly,
+                // so "next load" is usually minutes away. The word would then
+                // return unevictable the first time it was typed again,
+                // pinned by an act the user had since undone. `removeLearned`
+                // says the same about deleting one word; this is the path that
+                // deletes all of them.
+                pinnedFile.delete()
+                // blockedFile is deliberately not touched. A block is not a
+                // learned word but the opposite of one, and "Delete learned
+                // words" must not quietly put a banned word back on the strip.
             } catch (_: Exception) {
             }
         }
