@@ -1628,6 +1628,19 @@ class SuggestionEngine private constructor(
             contextRankFor(prevWord2, prevWord, lang, locale, altLang, altLocale)
         return merged.entries
             .sortedByDescending { it.value + contextBonus(it.key, contextRank) }
+            // The same two refusals every other path applies, and applied here
+            // last because a swipe has three sources -- the primary list, the
+            // second language, and what the user has typed before -- and a
+            // filter on one of them is a filter on one of them.
+            //
+            // This is the path where they matter most rather than least. A
+            // completion is offered and waits to be chosen; a swipe's first
+            // candidate is committed on the lift, with no keystroke in between.
+            // So the one input method that puts a word into the message without
+            // being asked was, until this, the one that ignored both "Block
+            // offensive words" -- whose own summary reads "Never suggest or
+            // autocorrect to profanity" -- and the user's own blocked list.
+            .filter { !userData.isBlocked(it.key) && !isOffensive(it.key, lang, locale) }
             .take(GLIDE_OFFERED)
             .map { it.key }
     }
