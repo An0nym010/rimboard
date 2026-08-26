@@ -311,6 +311,29 @@ class Dictionary(
          * either side of the cliff is a mass of repairs whose cost per
          * character lands just under the bar, so a small further tightening
          * catches all of them at once.
+         *
+         * ## A second, tighter step, measured and declined
+         *
+         * This is one step: a string above the bar keeps 85% of the allowance
+         * and everything else keeps all of it, so the top decile of word-likeness
+         * is treated no differently from the twenty-first percentile. A second
+         * step for the most word-shaped strings was built and measured:
+         *
+         *     high factor   en fixes/destroys   out-of-vocabulary en / hu
+         *     none            96% / 10%              20.2% / 30.5%
+         *     0.83            94% /  8%              19.2% / 28.7%
+         *     0.72            94% /  8%              18.5% / 26.2%
+         *
+         * It works, and there is no free point on it -- the repair rate falls
+         * two points at the first setting that does anything, and the trade on
+         * the benchmark's own corpus is about one repair lost per destruction
+         * prevented.
+         *
+         * It is declined because that trade is already the user's to make.
+         * [AUTO_MAX_COST_PER_CHAR_CAUTIOUS] exists for exactly this, and its own
+         * note explains which way different people want it. Moving the default
+         * toward cautious is a decision about somebody else's writing, and a
+         * one-to-one trade is not enough evidence to make it for them.
          */
         private const val WORDLIKE_TIGHTEN = 0.85
 
