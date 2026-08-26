@@ -198,7 +198,7 @@ class SuffixInventoryTest {
         )
         // And the ones deliberately left out stay out, so that the set is a
         // decision rather than a leftover.
-        for (lang in listOf("en", "de", "ru", "cs", "el", "uk", "tr")) {
+        for (lang in listOf("en", "ru", "hr", "no", "sk", "da", "el", "uk", "tr")) {
             assertTrue(
                 "$lang ships an inventory now; it was left out on measurement, " +
                     "so the table in this file wants revisiting",

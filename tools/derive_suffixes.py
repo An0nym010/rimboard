@@ -52,6 +52,23 @@ MIN_STEM = 3
 # nothing derived here knows.
 MIN_SUFFIX = 3
 
+# ...except where the language's endings really are two characters long, which
+# is a fact about the language rather than a knob. Slavic and Germanic
+# inflection is short; Romance and Uralic endings are longer and admitting
+# two-character ones there costs far more than it gains. Measured both ways for
+# every language, at the same 1.5% ceiling:
+#
+#            two chars      three chars              two chars     three chars
+#     cs    12.7 / 0.6      3.0 / 0.2        hu     24.8 / 3.9    13.5 / 0.4
+#     nl     7.5 / 0.8      3.8 / 0.3        es     18.3 / 4.5    11.3 / 1.4
+#     de     7.0 / 0.9      2.2 / 0.5        ro     18.3 / 3.6    10.3 / 0.7
+#     id     6.0 / 0.8      2.8 / 0.7        fi     18.2 / 2.3    10.0 / 0.9
+#     sv     5.8 / 1.2      2.7 / 0.0        pl     17.8 / 1.8     9.5 / 0.4
+#
+# The left column takes two; the right column would pay several times the cost
+# for its extra gain and keeps three.
+MIN_SUFFIX_BY_LANG = {"cs": 2, "de": 2, "id": 2, "nl": 2, "sv": 2}
+
 # Longer than this and a "suffix" is really a second word; the compound
 # splitter is the right tool for those and German already has one.
 MAX_SUFFIX = 6
@@ -87,7 +104,9 @@ MIN_STEMS = 150
 # Turkish is absent because it already has a hand-written inventory checked
 # against vowel harmony, and that one is better -- 46% for 3.8% against 31% for
 # 0.5%. Harmony is doing real work there and nothing counted here knows it.
-ENABLED = {"es", "fi", "fr", "hu", "it", "pl", "pt", "ro"}
+ENABLED = {
+    "cs", "de", "es", "fi", "fr", "hu", "id", "it", "nl", "pl", "pt", "ro", "sv",
+}
 
 # English clears the numbers and is still left out, which is the one judgement
 # here that is not arithmetic. Its list comes back with -man, -son, -ton, -ley
@@ -115,7 +134,7 @@ def load(lang):
     return words
 
 
-def derive(words):
+def derive(words, min_suffix):
     """Endings, and how many distinct stems each was found on."""
     stems = {w for w, f in words.items() if f >= STEM_MIN_FREQ and len(w) >= MIN_STEM}
     found = Counter()
@@ -126,7 +145,7 @@ def derive(words):
         for i in range(MIN_STEM, n):
             if n - i > MAX_SUFFIX:
                 continue
-            if n - i < MIN_SUFFIX:
+            if n - i < min_suffix:
                 continue
             if w[:i] in stems:
                 found[w[i:]] += 1
@@ -146,7 +165,7 @@ def main():
         os.makedirs(OUT, exist_ok=True)
     for lang in langs:
         words = load(lang)
-        found = derive(words)
+        found = derive(words, MIN_SUFFIX_BY_LANG.get(lang, MIN_SUFFIX))
         keep = chosen(found)
         if report:
             top = ", ".join("-%s(%d)" % (s, found[s]) for s in keep[:14])

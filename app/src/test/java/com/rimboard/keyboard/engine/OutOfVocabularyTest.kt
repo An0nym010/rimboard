@@ -37,15 +37,16 @@ import java.util.Locale
  *                en    tr    de    pl    es    ru    cs    fi    hu
  *     found    25.5  26.0  29.8  40.0  40.7  40.7  41.3  41.7  46.0
  *     shape    21.7  20.7  25.5  31.7  33.3  33.7  33.7  33.3  36.3
- *     endings  21.7  20.7  25.5  27.8  27.8  33.7  33.7  29.7  30.5
+ *     endings  21.7  20.7  22.3  27.8  27.8  33.7  29.8  29.7  30.5
  *
  * Two things brought it down. [Dictionary.looksLikeAWord] holds a string
  * shaped like a word of the language to a tighter bar than one that is not,
  * which is worth five to ten points everywhere and costs nothing on the repair
- * side. Then a counted suffix inventory (`tools/derive_suffixes.py`) lets eight
- * languages recognise a word built out of parts they know, worth another four
- * to six points to those -- and nothing at all to `cs`, `de`, `en` and `ru`,
- * which have none, exactly as it should be. Which languages have one, and
+ * side. Then a counted suffix inventory (`tools/derive_suffixes.py`) lets thirteen
+ * languages recognise a word built out of parts they know, worth another three
+ * to six points to those -- and nothing at all to `en` and `ru`, which have
+ * none, exactly as it should be. Russian is the only one of these nine left
+ * untouched by either, and is now the worst of them. Which languages have one, and
  * why English does not, is in [SuffixInventoryTest].
  *
  * `elohopea` becomes `elohopeaa`, `kisegített` becomes `segített`,
@@ -308,12 +309,14 @@ class OutOfVocabularyTest {
         }
         // And a language with no inventory still accepts none, which is what
         // says the acceptance above comes from the inventory rather than from
-        // something that would have happened anyway.
-        val cs = split("cs")!!
-        val csEngine = engineWith("cs", cs.kept)
+        // something that would have happened anyway. Russian is the control
+        // now; Czech used to be, until its endings turned out to be two
+        // characters long rather than absent.
+        val ru = split("ru")!!
+        val ruEngine = engineWith("ru", ru.kept)
         assertTrue(
-            "Czech has no shipped inventory and should still accept nothing",
-            cs.heldOut.none { csEngine.acceptedWord(it, "cs", Locale.forLanguageTag("cs")) }
+            "Russian has no shipped inventory and should still accept nothing",
+            ru.heldOut.none { ruEngine.acceptedWord(it, "ru", Locale.forLanguageTag("ru")) }
         )
     }
 
