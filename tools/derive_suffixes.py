@@ -116,18 +116,26 @@ MIN_STEMS = 150
 # 0.5%. Harmony is doing real work there and nothing counted here knows it.
 ENABLED = {
     "cs", "de", "es", "fi", "fr", "hu", "id", "it", "nl", "pl", "pt", "ro", "sv",
-    "ru", "no", "da", "hr",
+    "ru", "no", "da", "hr", "en",
 }
 
-# English clears the numbers and is still left out, which is the one judgement
-# here that is not arithmetic. Its list comes back with -man, -son, -ton, -ley
-# and -ville alongside -ing and -ness, because English builds names out of whole
-# words -- Johnson, Hamilton, Nashville -- and the counting cannot tell a name
-# formative from a suffix. So "that" + "-ville" is vouched for, which is not a
-# permissive rule but a wrong one. Its gain was also the weakest of the eight
-# (6.2% for 0.8%, against a Turkish inventory that ships at 46% for 3.8%), so
-# there is little being given up. The other seven are inflectional endings and
-# have no equivalent problem.
+# English was held out for a while on a judgement rather than a measurement: its
+# list comes back with -man, -son, -ton, -ley and -ville beside -ing and -ness,
+# because English builds names out of whole words -- Johnson, Hamilton,
+# Nashville -- and counting cannot tell a name formative from a suffix. "that"
+# plus "-ville" being vouched for looked like a wrong rule rather than a lenient
+# one.
+#
+# The measurement overruled it, which is the right way round. Those endings do
+# productive work -- -man alone rescues twenty held-out words, and they are
+# policeman and spokesman rather than thatman. English prevents 1.5 points of
+# destruction for 0.8% wrongly accepted, which is a lower false-accept rate than
+# fi, de, da, sv or es, all of which ship. And it is the one language with a
+# repair benchmark of its own: AutocorrectAccuracyTest reports 96% of typos
+# fixed with the inventory and without it, to the word.
+#
+# The feared harm is exactly what the false-accept figure prices, and it is
+# priced lower here than in half the languages already shipping.
 
 
 def load(lang):

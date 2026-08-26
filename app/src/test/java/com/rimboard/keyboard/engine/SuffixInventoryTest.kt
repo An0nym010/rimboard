@@ -53,8 +53,8 @@ import java.util.Locale
  *
  * Points of destruction prevented, with the inventory and without:
  *
- *     hu 5.8   ro 4.0   fi 3.7   de 3.2   sv 2.5   da 1.8   sk 0.2
- *     es 5.5   cs 3.8   fr 3.5   nl 2.8   hr 2.2   no 1.5
+ *     hu 5.8   ro 4.0   fi 3.7   de 3.2   sv 2.5   da 1.8   en 1.5
+ *     es 5.5   cs 3.8   fr 3.5   nl 2.8   hr 2.2   no 1.5   sk 0.2
  *     it 4.2   pl 3.8   pt 3.3   id 2.2   ru 1.5
  *
  * **Slovak is why the criterion is the outcome.** It derives a respectable
@@ -87,12 +87,26 @@ import java.util.Locale
  * and one is where the derivation stops believing anything without the vowel
  * harmony that only Turkish has.
  *
- * English clears every number and is left out anyway, which is the one
- * judgement here that is not arithmetic. Its list comes back with -man, -son,
- * -ton, -ley and -ville beside -ing and -ness, because English builds names out
- * of whole words — Johnson, Hamilton, Nashville — and counting cannot tell a
- * name formative from a suffix. "that" + "-ville" being vouched for is not a
- * permissive rule but a wrong one.
+ * ## English, and a judgement the measurement overruled
+ *
+ * English was held out of this for a while on taste rather than arithmetic. Its
+ * list comes back with -man, -son, -ton, -ley and -ville beside -ing and -ness,
+ * because English builds names out of whole words — Johnson, Hamilton,
+ * Nashville — and counting cannot tell a name formative from a suffix. "that"
+ * plus "-ville" being vouched for looked like a wrong rule rather than a
+ * lenient one.
+ *
+ * It was the wrong call, and three things say so. Those endings do productive
+ * work: -man alone rescues twenty held-out words and they are `policeman` and
+ * `spokesman`, not `thatman`. English prevents 1.5 points of destruction for
+ * 0.8% wrongly accepted, a *lower* false-accept rate than fi, de, da, sv or es,
+ * all of which ship. And English is the one language with a repair benchmark of
+ * its own — [AutocorrectAccuracyTest] reports 96% of typos fixed with the
+ * inventory and without it, to the word.
+ *
+ * The harm that was feared is precisely what the false-accept figure prices,
+ * and it is priced lower here than in half the languages already shipping. A
+ * judgement that survives only by not being measured is not a judgement.
  *
  * Turkish keeps its hand-written list. The counted one is measurably worse for
  * it — 31% of held-out words for 0.5% against 46% for 3.8% — because harmony
@@ -265,7 +279,7 @@ class SuffixInventoryTest {
         )
         // And the ones deliberately left out stay out, so that the set is a
         // decision rather than a leftover.
-        for (lang in listOf("en", "sk", "el", "uk", "tr")) {
+        for (lang in listOf("sk", "el", "uk", "tr")) {
             assertTrue(
                 "$lang ships an inventory now; it was left out on measurement, " +
                     "so the table in this file wants revisiting",

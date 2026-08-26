@@ -37,15 +37,16 @@ import java.util.Locale
  *                en    tr    de    pl    es    ru    cs    fi    hu
  *     found    25.5  26.0  29.8  40.0  40.7  40.7  41.3  41.7  46.0
  *     shape    21.7  20.7  25.5  31.7  33.3  33.7  33.7  33.3  36.3
- *     endings  21.7  20.7  22.3  27.8  27.8  32.2  29.8  29.7  30.5
+ *     endings  20.2  20.7  22.3  27.8  27.8  32.2  29.8  29.7  30.5
  *
  * Two things brought it down. [Dictionary.looksLikeAWord] holds a string
  * shaped like a word of the language to a tighter bar than one that is not,
  * which is worth five to ten points everywhere and costs nothing on the repair
- * side. Then a counted suffix inventory (`tools/derive_suffixes.py`) lets seventeen
+ * side. Then a counted suffix inventory (`tools/derive_suffixes.py`) lets eighteen
  * languages recognise a word built out of parts they know, worth another one
- * and a half to six points to those -- and nothing at all to English, which has
- * none. Which languages have one, on what measurement, is in
+ * and a half to six points each. Only Greek, Ukrainian and Slovak have none:
+ * the first two derive nothing at all and the third derives an inventory that
+ * prevents nothing. Which languages have one, on what measurement, is in
  * [SuffixInventoryTest]. Which languages have one, and
  * why English does not, is in [SuffixInventoryTest].
  *
