@@ -881,8 +881,18 @@ class RimBoardService : InputMethodService(),
 
     private fun effAltLocale(): Locale? = effAlt()?.let { localeFor(it) }
 
-    private fun noteCommittedWord(word: String) {
-        Stats.word(this)
+    /**
+     * One committed word, as evidence.
+     *
+     * [countAsWord] is false when the word replaces one already committed and
+     * already counted -- tapping a different suggestion after a swipe. The
+     * language evidence still has to be taken, and taken *again*: the swipe's
+     * own commit noted the guess the user is now correcting, and nothing else
+     * would ever say otherwise. The typing statistics must not take it twice,
+     * because one word was written and not two.
+     */
+    private fun noteCommittedWord(word: String, countAsWord: Boolean = true) {
+        if (countAsWord) Stats.word(this)
         val alt = altLangCode() ?: return
         val inPrim = engine.knownIn(word.lowercase(locale()), currentLangCode(), locale())
         val inAlt = engine.knownIn(word.lowercase(localeFor(alt)), alt, localeFor(alt))
@@ -2160,6 +2170,12 @@ class RimBoardService : InputMethodService(),
         ic.deleteSurroundingText(expect.length, 0)
         ic.commitText(if (Prefs.autoSpaceSuggestion(this)) "$word " else word, 1)
         ic.endBatchEdit()
+        // The word the user actually meant, which is the evidence that matters:
+        // a swipe decodes against whichever language holds the primary slot, so
+        // reaching for the strip afterwards is the clearest statement there is
+        // that the slot is wrong. The swipe's commit already noted its own
+        // guess; without this the rejected word stayed on the record.
+        noteCommittedWord(word, countAsWord = false)
         // Replacement of the last word: the trigram context (prevWord2) must
         // not shift onto the word being replaced.
         val keep2 = prevWord2
