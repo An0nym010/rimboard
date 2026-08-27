@@ -120,7 +120,44 @@ MAX_ROWS = 30000
 # the asset is regenerated from it.
 TRI_ROWS = 6000
 
-# A pair seen fewer times than this is not evidence of anything.
+# How many times a continuation must be seen to be kept.
+#
+# This said "a pair seen fewer times than this is not evidence of anything",
+# which was never measured. It has been now, and the honest answer is that it
+# is wrong about predictions and right about everything else.
+#
+# `tools/eval_ngrams.py` holds out a tenth of each corpus by sentence, builds
+# the model from the other nine, and asks the held-out text how often the model
+# has an opinion about the next word and how often it is right. At 2 rather
+# than 3, all eighteen languages measured improved and none regressed --
+# in coverage, which more rows must raise, and in precision *given* coverage,
+# which they need not. Coverage gained, in points:
+#
+#     hr +8.3  id +5.2  fi +5.1  sk +4.5  ro +4.4  pl +4.1  no +3.9  el +3.8
+#     cs +3.7  hu +3.4  tr +3.0  sv +2.9  uk +2.8  da +2.5  nl +1.8  de +1.3
+#     ru +1.3  en +0.4
+#
+# The gain runs inversely with corpus size, which is the whole story: three
+# occurrences is a reasonable bar when the corpus is large enough to clear it,
+# and English is the only language whose corpus comfortably is. Croatian, whose
+# Tatoeba export is 6,408 sentences, keeps 419 rows at 3 and 1,174 at 2.
+#
+# **It is still 3, and here is why.** These rows are not only read by the
+# prediction strip. `SuggestionEngine.correctionCandidates(contextRank=)` ranks
+# *corrections* by what the preceding word predicts, so a denser model is a
+# louder context on the typing path -- and context is allowed to settle a
+# near-tie, not to overrule the geometry. Regenerating all twenty-two at 2 and
+# running `AutocorrectAccuracyTest`:
+#
+#     tr  a deliberately wrong context overturned 65 of 258 answers (ceiling 64)
+#     tr  true context: rescued 6, broke 5   -- was comfortably net positive
+#
+# So the assets went back. Lowering this needs the context weight re-swept
+# beside it (see the sweep table in that test), not a one-line change; and any
+# narrower version -- relaxing it only for the starved languages -- would be
+# shipping to languages the correction benchmark has no fixtures for. The
+# measurement stands and the harness is in the tree, so the question is
+# answerable rather than open.
 MIN_PAIR = 3
 
 STRIP = ".,!?;:\"'()[]{}\u00ab\u00bb\u2018\u2019\u201c\u201d\u2026-\u2014"
