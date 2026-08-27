@@ -1247,11 +1247,22 @@ class RimBoardService : InputMethodService(),
      * contain the touch by combining the spatial Gaussian (from KeyboardView)
      * with the language model's P(letter | previous letter) — the technique
      * behind Gboard's tap accuracy. Word-initial taps use the word-start
-     * distribution. Disabled in password fields, where people type precisely
-     * and unusual sequences (no language prior should second-guess them).
+     * distribution.
+     *
+     * Refused wherever the letters are not prose, which used to mean password
+     * fields alone — see `AutocorrectGate.mayArbitrateTap`. The reason written
+     * here for excluding them ("people type precisely and unusual sequences")
+     * was never about passwords: it is true of an email local part, a URL, a
+     * field that asked for no suggestions, and an address typed in the middle
+     * of an ordinary message.
      */
     private fun resolveAmbiguousTap(chars: CharArray, spatialLogP: DoubleArray): Int {
-        if (isPassword || !Prefs.smartTap(this)) return -1
+        if (!AutocorrectGate.mayArbitrateTap(
+                enabled = Prefs.smartTap(this),
+                fieldTakesProse = fieldTakesProse,
+                identifierContext = identifierContext
+            )
+        ) return -1
         val dict = engine.cachedDictionary(effLang()) ?: return -1
         // Locale-aware lowercase so Turkish 'I' folds to dotless 'ı' (matching the
         // dictionary), not 'i', keeping the language prior meaningful in Turkish.

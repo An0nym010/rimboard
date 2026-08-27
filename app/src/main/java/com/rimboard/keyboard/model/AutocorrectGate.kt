@@ -68,6 +68,36 @@ object AutocorrectGate {
         active && !identifierContext && !ProseContext.separatorEndsIdentifier(separator)
 
     /**
+     * Whether an ambiguous tap may be re-aimed by the language model.
+     *
+     * The keyboard picks among the letter keys a touch actually lands on by
+     * weighing the spatial fit against P(letter | previous letter). That is a
+     * silent change to what somebody typed -- a smaller one than an
+     * autocorrect, and made without any word being replaced -- so it belongs
+     * to the same set of rules as the rest of this file.
+     *
+     * It was refused in password fields only, and its own note gives the
+     * reason: "people type precisely and unusual sequences (no language prior
+     * should second-guess them)". That is a description of every field this
+     * keyboard already declines to treat as prose. An email local part, a URL,
+     * a field whose app asked for no suggestions, and the middle of an address
+     * typed into an ordinary message are all runs of letters that do not follow
+     * the language's statistics, and a prior that nudges one of them has
+     * changed a character with nothing on screen to say so and no word for the
+     * user to blame.
+     *
+     * [fieldTakesProse] is the field's own answer -- a text field that is not a
+     * password, not an address, and has not asked for no suggestions.
+     * [identifierContext] is the per-word one, for the address typed inside a
+     * field that is otherwise prose.
+     */
+    fun mayArbitrateTap(
+        enabled: Boolean,
+        fieldTakesProse: Boolean,
+        identifierContext: Boolean
+    ): Boolean = enabled && fieldTakesProse && !identifierContext
+
+    /**
      * Whether a separator may expand a text shortcut.
      *
      * Everything [mayCommit] asks except the autocorrect preference, and the
