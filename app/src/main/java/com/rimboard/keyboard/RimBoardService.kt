@@ -749,7 +749,11 @@ class RimBoardService : InputMethodService(),
             if (hasBgImage) Themes.overPhoto(t, Prefs.bgLuma(this), bgDimAlpha) else null
         keyboardView?.let { kv ->
             kv.theme = photoTheme ?: t
-            kv.previewEnabled = Prefs.popupPreview(this)
+            kv.previewEnabled = com.rimboard.keyboard.model.KeyPreview.mayShow(
+                enabled = Prefs.popupPreview(this),
+                isPassword = isPassword,
+                systemShowsPasswords = systemShowsPasswords()
+            )
             // Not merely the setting: a swipe is decoded into a dictionary
             // word and committed, so the fields that refuse a correction have
             // to refuse a swipe. Switched off at the view as well as guarded at
@@ -906,6 +910,27 @@ class RimBoardService : InputMethodService(),
      */
     private fun insertedWordTail(): String =
         if (Prefs.autoSpaceSuggestion(this)) " " else ""
+
+    /**
+     * Android's *Show passwords* setting, which is what decides whether a
+     * masked field flashes the character you just typed before hiding it.
+     *
+     * Read here so the key-preview bubble answers to the same switch: it makes
+     * the same disclosure, larger, at the same moment. Defaults to on, which is
+     * the platform's own default, so an unreadable or unset value leaves the
+     * behaviour exactly as it was rather than quietly removing the bubble.
+     *
+     * Asked per focus change and only worth asking in a password field, which
+     * is where the caller uses it; it is one `ContentResolver` lookup of an
+     * int, on the same path that already reads a dozen preferences.
+     */
+    private fun systemShowsPasswords(): Boolean = try {
+        android.provider.Settings.System.getInt(
+            contentResolver, android.provider.Settings.System.TEXT_SHOW_PASSWORD, 1
+        ) != 0
+    } catch (_: Exception) {
+        true
+    }
 
     private fun noteCommittedWord(word: String, countAsWord: Boolean = true) {
         if (countAsWord) Stats.word(this)
