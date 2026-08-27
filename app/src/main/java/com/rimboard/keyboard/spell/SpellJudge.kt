@@ -190,7 +190,9 @@ internal class SpellJudge(
         // rather than overruling the channel model.
         val corrections =
             if (next.isEmpty()) candidates
-            else candidates.sortedByDescending { engine.continues(it, next, lang, loc) }
+            else candidates.sortedByDescending {
+                engine.continues(it, next, lang, loc, personalized)
+            }
 
         // A run-together pair. Last, because it is the largest change: the
         // others fix a word, this one adds a boundary between two.

@@ -527,11 +527,23 @@ class SuggestionEngine private constructor(
      * filters both lists and sorts the result — all of it thrown away to
      * answer a yes/no, once per candidate, on a binder thread.
      */
-    fun continues(word: String, next: String, lang: String, locale: Locale): Boolean {
+    fun continues(
+        word: String,
+        next: String,
+        lang: String,
+        locale: Locale,
+        // No default, deliberately. This is the third reader of the learned
+        // store and the only one that had no flag to forget -- so incognito
+        // withheld the user's words from the candidate list and then ordered
+        // what was left by the pairs they had typed. See SpellRightContextTest.
+        personalized: Boolean
+    ): Boolean {
         if (word.isEmpty() || next.isEmpty()) return false
         val a = word.lowercase(locale)
         val b = next.lowercase(locale)
-        if (userData.follows(a, b)) return true
+        // A membership test, not a count: one typed pair moves a candidate,
+        // which is the right bar for evidence and a very low one for a leak.
+        if (personalized && userData.follows(a, b)) return true
         // The learned bigrams above are a concurrent map and always safe to
         // ask. The curated model is not loaded on demand here: doing so would
         // parse an asset on a binder thread, and a missing answer is only a
@@ -1124,7 +1136,9 @@ class SuggestionEngine private constructor(
     private fun contextRankFor(
         prevWord2: String, prevWord: String, lang: String, locale: Locale,
         altLang: String? = null, altLocale: Locale? = null,
-        personalized: Boolean = true
+        // No default. Every caller has the answer in scope, and the one that
+        // silently took a default is what this comment is about.
+        personalized: Boolean
     ): Map<String, Int> {
         if (prevWord.isEmpty()) return emptyMap()
         val primary = predictions(
