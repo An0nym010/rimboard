@@ -1109,13 +1109,27 @@ class SuggestionEngine private constructor(
      * mayLoad = false: this runs per keystroke on the UI thread, and
      * predictionModel parses an asset when the model is missing.
      */
+    /**
+     * [personalized] false answers from the bundled model alone, exactly as it
+     * does for the strip.
+     *
+     * It was missing, so this took the default and ranked corrections by the
+     * user's own n-grams in incognito. The candidates were correctly stripped
+     * of their vocabulary and then put in an order their typing had chosen --
+     * and the order is the answer here, because the word at the top is the one
+     * the separator commits. `IncognitoContextTest` holds the case: "pkay"
+     * corrects to "okay" on the corpus, and to "play" for someone who has
+     * written "the play" before.
+     */
     private fun contextRankFor(
         prevWord2: String, prevWord: String, lang: String, locale: Locale,
-        altLang: String? = null, altLocale: Locale? = null
+        altLang: String? = null, altLocale: Locale? = null,
+        personalized: Boolean = true
     ): Map<String, Int> {
         if (prevWord.isEmpty()) return emptyMap()
         val primary = predictions(
-            prevWord2, prevWord, lang, locale, CONTEXT_COMPLETION_DEPTH, mayLoad = false
+            prevWord2, prevWord, lang, locale, CONTEXT_COMPLETION_DEPTH,
+            personalized = personalized, mayLoad = false
         )
         if (altLang == null || altLocale == null) {
             return primary.withIndex().associate { (i, w) -> w.lowercase(locale) to i }
@@ -1137,7 +1151,7 @@ class SuggestionEngine private constructor(
         var next = primary.size
         for (w in predictions(
             prevWord2, prevWord, altLang, altLocale, CONTEXT_COMPLETION_DEPTH,
-            mayLoad = false
+            personalized = personalized, mayLoad = false
         )) {
             val k = w.lowercase(altLocale)
             if (!out.containsKey(k)) out[k] = next++
@@ -1170,7 +1184,10 @@ class SuggestionEngine private constructor(
         contractionFor(typed, lang, locale)?.let { if (it.second) return it.first }
         val best = correctionCandidates(
             typed, lang, locale, altLang, altLocale, 1,
-            contextRankFor(prevWord2, prevWord, lang, locale, altLang, altLocale), touch,
+            contextRankFor(
+                prevWord2, prevWord, lang, locale, altLang, altLocale, personalized
+            ),
+            touch,
             personalized
         ).firstOrNull() ?: return null
         // Offered is not the same as applied. See [Dictionary.autoCommitConfident]:
@@ -1253,7 +1270,8 @@ class SuggestionEngine private constructor(
         // contextually-right completion sat below a common irrelevant one. This
         // is the same signal the strip already shows once a word is committed;
         // here it reorders the completions of the word being typed.
-        val contextRank = contextRankFor(prevWord2, prevWord, lang, locale, altLang, altLocale)
+        val contextRank =
+            contextRankFor(prevWord2, prevWord, lang, locale, altLang, altLocale, personalized)
 
         val merged = LinkedHashMap<String, Long>() // lowercase word -> score
         if (personalized) {
@@ -1639,7 +1657,9 @@ class SuggestionEngine private constructor(
         }
         if (merged.isEmpty()) return emptyList()
         val contextRank =
-            contextRankFor(prevWord2, prevWord, lang, locale, altLang, altLocale)
+            contextRankFor(
+                prevWord2, prevWord, lang, locale, altLang, altLocale, personalized
+            )
         return merged.entries
             .sortedByDescending { it.value + contextBonus(it.key, contextRank) }
             // The same two refusals every other path applies, and applied here
