@@ -31,6 +31,32 @@ object WordCase {
      * an English sentence, or any single auto-capitalised letter, does not
      * shout its replacement.
      */
+    /**
+     * The case for a word that replaces nothing.
+     *
+     * A next-word prediction is offered before a single letter of it has been
+     * typed, so [match] has nothing to take its case from. The only statement
+     * about case at that moment is the shift key, and the typing path already
+     * reads all of it: `applyShift` capitalises a typed letter whenever the
+     * state is anything but NONE.
+     *
+     * The strip read one of the four states. It capitalised its chips under
+     * AUTO and ignored MANUAL and CAPSLOCK, so pressing shift for a name left
+     * the predictions lower-case and tapping one committed the capital away.
+     */
+    fun forShift(
+        candidate: String,
+        capsLock: Boolean,
+        shifted: Boolean,
+        locale: Locale
+    ): String = when {
+        capsLock -> candidate.uppercase(locale)
+        shifted -> candidate.replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase(locale) else it.toString()
+        }
+        else -> candidate
+    }
+
     fun match(typed: String, candidate: String, locale: Locale): String = when {
         typed.length > 1 && typed.all { it.isUpperCase() } -> candidate.uppercase(locale)
         typed.isNotEmpty() && typed.first().isUpperCase() ->

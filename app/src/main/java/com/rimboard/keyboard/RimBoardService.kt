@@ -1693,6 +1693,13 @@ class RimBoardService : InputMethodService(),
             }
         }
         lastShiftTapTime = now
+        // The strip shows next-word predictions cased from this state, and it
+        // is not otherwise redrawn by a shift: the chips kept whatever case
+        // they had when the last letter was typed. Pressing shift at the start
+        // of a sentence to *undo* auto-capitalisation left capitals on the
+        // strip that tapping would then commit. The same call the layout-mode
+        // keys make for the same reason.
+        updateStrip()
     }
 
     private fun handleEnter() {
@@ -1855,14 +1862,21 @@ class RimBoardService : InputMethodService(),
                     mayLoad = false
                 )
             } else emptyList()
-            if (preds.isNotEmpty() &&
-                keyboardView?.shiftState == KeyboardView.ShiftState.AUTO
-            ) {
+            if (preds.isNotEmpty()) {
+                // All four shift states, not just AUTO. A prediction has no
+                // typed letters to take its case from, so the shift key is the
+                // whole of what the user has said about it -- and the typing
+                // path already reads all of it. See WordCase.forShift.
+                val sh = keyboardView?.shiftState
                 val loc = locale()
                 preds = preds.map { p ->
-                    p.replaceFirstChar {
-                        if (it.isLowerCase()) it.titlecase(loc) else it.toString()
-                    }
+                    WordCase.forShift(
+                        p,
+                        capsLock = sh == KeyboardView.ShiftState.CAPSLOCK,
+                        shifted = sh == KeyboardView.ShiftState.AUTO ||
+                            sh == KeyboardView.ShiftState.MANUAL,
+                        locale = loc
+                    )
                 }
             }
             if (preds.isNotEmpty()) {
