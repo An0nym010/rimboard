@@ -16,6 +16,19 @@ package com.rimboard.keyboard.model
  * disclosure the field is making, larger and for the same instant, in the one
  * kind of field whose whole point is that what you type is not on screen.
  *
+ * Measured on a phone, reading the value this computes at each focus change,
+ * against a real password field (the online build's API key row, which the
+ * strip marks "Incognito - not learning") and an ordinary one:
+ *
+ *     password field, Show passwords at its default   ->  true
+ *     password field, Show passwords off              ->  false
+ *     ordinary field, Show passwords off              ->  true
+ *
+ * The first row was also confirmed in pixels: the bubble is there, rendering
+ * the character above the key. The third is the one worth having a row for --
+ * turning the platform setting off must not take the bubble away from ordinary
+ * typing, and it does not.
+ *
  * Deferring to the platform rather than inventing a rule matters here. Somebody
  * who turns *Show passwords* off has said what they want in the place Android
  * provides for saying it, and a keyboard that ignored that would be as wrong
