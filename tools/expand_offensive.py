@@ -71,6 +71,25 @@ def dictionary(lang):
     return out
 
 
+def everyday(lang):
+    """Words the bundled next-word model has an opinion about.
+
+    Both halves of it: a context somebody typed, and a continuation the strip
+    would offer. Either is evidence that ordinary messages use the word, which
+    is what condition 4 is asking.
+    """
+    out = set()
+    p = os.path.join(ASSETS, "predictions", lang + ".txt")
+    with io.open(p, encoding="utf-8") as f:
+        for line in f:
+            if "\t" not in line:
+                continue
+            k, v = line.rstrip("\n").split("\t", 1)
+            out.update(k.split())
+            out.update(v.split())
+    return out
+
+
 def listed(lang):
     p = os.path.join(ASSETS, "offensive", lang + ".txt")
     with io.open(p, encoding="utf-8") as f:
@@ -84,6 +103,7 @@ def main():
         words = listed(lang)
         have = set(words)
         freq = dictionary(lang)
+        common = everyday(lang)
         # To a fixed point. An added form is itself a listed word, and its own
         # inflections are then attested in exactly the same way -- Turkish
         # stacks two endings on one stem often enough that a single pass left
@@ -98,12 +118,17 @@ def main():
                     # Not in the dictionary, so there is nothing to compare a
                     # candidate against and nothing the engine could offer.
                     continue
+                if w in common:
+                    # Ordinary messages use this word, so it carries a sense
+                    # the list is not about, and its inflections belong to that
+                    # sense rather than to this one. Condition 4.
+                    continue
                 for s in SUFFIXES[lang]:
                     form = w + s
                     if form in have or form in added:
                         continue
                     f = freq.get(form, 0)
-                    if f and f <= base:
+                    if f and f <= base and form not in common:
                         added.append(form)
                         nxt.append(form)
             frontier = nxt

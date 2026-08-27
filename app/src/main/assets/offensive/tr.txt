@@ -15,8 +15,6 @@ gerizekalı
 gerizekalılar
 got
 göt
-götler
-götleri
 götveren
 götvereni
 götverenler
@@ -26,13 +24,9 @@ ibneleri
 kahpe
 kahpeler
 mal
-mali
-mallar
-malu
 mk
 orospu
 orospucocugu
-orospular
 oç
 pezevenk
 pezevenkler
@@ -43,7 +37,6 @@ piçi
 piçler
 piçleri
 salak
-salaklar
 serefsiz
 sik
 sikerim
@@ -54,11 +47,8 @@ sikikler
 sikler
 sikleri
 siktir
-siktiri
 surtuk
 sürtük
-sürtükler
-sürtükleri
 yarak
 yarrak
 yavsak

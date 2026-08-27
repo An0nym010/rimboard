@@ -1,5 +1,4 @@
 eikel
-eikels
 flikker
 flikkeren
 flikkers
@@ -8,8 +7,6 @@ godverdomme
 hoer
 hoeren
 kanker
-kankeren
-kankers
 klootzak
 klootzaken
 klootzakken
