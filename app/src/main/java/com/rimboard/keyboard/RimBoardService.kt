@@ -891,6 +891,22 @@ class RimBoardService : InputMethodService(),
      * would ever say otherwise. The typing statistics must not take it twice,
      * because one word was written and not two.
      */
+    /**
+     * What follows a word the keyboard inserted on the user's behalf.
+     *
+     * "Autospace after picking a suggestion" governs it, and three paths write
+     * it -- the swipe commit, tapping a suggestion, and tapping a different
+     * suggestion after a swipe. A fourth place *reads* it: the replacement has
+     * to find the word it is about to replace, and looked for a hard-coded
+     * space. With the setting off that search failed against text the keyboard
+     * had written itself, so correcting a swiped word worked once and then
+     * silently stopped.
+     *
+     * One expression, so what is written and what is expected cannot disagree.
+     */
+    private fun insertedWordTail(): String =
+        if (Prefs.autoSpaceSuggestion(this)) " " else ""
+
     private fun noteCommittedWord(word: String, countAsWord: Boolean = true) {
         if (countAsWord) Stats.word(this)
         val alt = altLangCode() ?: return
@@ -1226,7 +1242,7 @@ class RimBoardService : InputMethodService(),
         }
         val before = ic.getTextBeforeCursor(1, 0)
         val lead = if (!before.isNullOrEmpty() && before[0].isLetterOrDigit()) " " else ""
-        ic.commitText("$lead$best ", 1)
+        ic.commitText(lead + best + insertedWordTail(), 1)
         ic.endBatchEdit()
         val canLearn = Prefs.learnWords(this) && !isIncognito() && !isPassword && !isEmailOrUri
         if (canLearn && Prefs.predictions(this) && (prevWordForBigram.isNotEmpty() || atSentenceStart)) {
@@ -2169,7 +2185,8 @@ class RimBoardService : InputMethodService(),
         val ic = currentInputConnection ?: return
         val loc = locale()
         ic.beginBatchEdit()
-        ic.commitText(if (Prefs.autoSpaceSuggestion(this)) "$word " else word, 1) // replaces the composing region if present
+        // Replaces the composing region if present.
+        ic.commitText(word + insertedWordTail(), 1)
         ic.endBatchEdit()
         composing.setLength(0); touchTrail.clear()
         autoSpace = true
@@ -2192,7 +2209,9 @@ class RimBoardService : InputMethodService(),
         val old = glideWords.firstOrNull() ?: return
         if (word == old) return
         val ic = currentInputConnection ?: return
-        val expect = "$old "
+        // The same expression the commit above used, so this looks for what
+        // was actually written rather than for a space that may not be there.
+        val expect = old + insertedWordTail()
         if (ic.getTextBeforeCursor(expect.length, 0)?.toString() != expect) {
             glideWords = emptyList()
             updateStrip()
@@ -2200,7 +2219,7 @@ class RimBoardService : InputMethodService(),
         }
         ic.beginBatchEdit()
         ic.deleteSurroundingText(expect.length, 0)
-        ic.commitText(if (Prefs.autoSpaceSuggestion(this)) "$word " else word, 1)
+        ic.commitText(word + insertedWordTail(), 1)
         ic.endBatchEdit()
         // The word the user actually meant, which is the evidence that matters:
         // a swipe decodes against whichever language holds the primary slot, so
@@ -2412,7 +2431,12 @@ class RimBoardService : InputMethodService(),
             }
             val gw = glideWords.firstOrNull()
             if (gw != null) {
-                val expect = "$gw "
+                // The third reader of what follows an inserted word, and the
+                // one that made the setting's failure instant rather than
+                // gradual: it runs on the selection change the commit itself
+                // causes, so a mismatch here clears the alternatives before
+                // the strip has drawn them once.
+                val expect = gw + insertedWordTail()
                 val before = currentInputConnection
                     ?.getTextBeforeCursor(expect.length, 0)?.toString()
                 if (before != expect) {
