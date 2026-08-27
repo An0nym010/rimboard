@@ -27,6 +27,7 @@ import com.rimboard.keyboard.engine.UserData
 import com.rimboard.keyboard.model.Codes
 import com.rimboard.keyboard.model.Key
 import com.rimboard.keyboard.model.KeyboardLayout
+import com.rimboard.keyboard.model.WordCase
 import com.rimboard.keyboard.model.GlidePath
 import com.rimboard.keyboard.model.GraphemeDelete
 import com.rimboard.keyboard.model.KeyProximity
@@ -1504,7 +1505,12 @@ class RimBoardService : InputMethodService(),
                 Shortcuts.expansionFor(this, typed, effLocale())
             } else null
         if (shortcutExp != null) {
-            finalWord = shortcutExp
+            // Cased from the trigger, like every other word this keyboard
+            // swaps in. Auto-capitalisation has already made the composing
+            // word "Omw" at the start of a sentence, and committing "on my
+            // way" under it is the one place a replacement used to restyle
+            // itself. See WordCase.
+            finalWord = WordCase.match(typed, shortcutExp, effLocale())
         } else if (allowAutocorrect) {
             if (autocorrectMayCorrect(separator)) {
             // The same evidence the strip used to decide what to put in

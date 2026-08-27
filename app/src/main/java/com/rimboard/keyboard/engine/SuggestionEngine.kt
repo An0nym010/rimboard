@@ -3,6 +3,7 @@ package com.rimboard.keyboard.engine
 import android.content.Context
 import com.rimboard.keyboard.model.GlidePath
 import com.rimboard.keyboard.model.KeyProximity
+import com.rimboard.keyboard.model.WordCase
 import java.util.Locale
 import kotlin.math.ln
 
@@ -1870,14 +1871,12 @@ class SuggestionEngine private constructor(
         return out
     }
 
-    private fun matchCase(typed: String, candidate: String, locale: Locale): String {
-        return when {
-            typed.length > 1 && typed.all { it.isUpperCase() } -> candidate.uppercase(locale)
-            typed.isNotEmpty() && typed.first().isUpperCase() ->
-                candidate.replaceFirstChar {
-                    if (it.isLowerCase()) it.titlecase(locale) else it.toString()
-                }
-            else -> candidate
-        }
-    }
+    /**
+     * Kept as a name the six call sites below already use; the rule itself now
+     * lives in [WordCase], because the one replacement that happens outside
+     * this class -- a text shortcut, looked up by the service -- needs the
+     * same answer and was giving a different one.
+     */
+    private fun matchCase(typed: String, candidate: String, locale: Locale): String =
+        WordCase.match(typed, candidate, locale)
 }
