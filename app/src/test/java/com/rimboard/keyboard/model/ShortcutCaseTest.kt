@@ -90,5 +90,14 @@ class ShortcutCaseTest {
             true,
             svc.contains("WordCase.match(")
         )
+        // Both ends, and for the reason the strip exists: the bold chip is a
+        // promise about what the separator will commit. Casing only the commit
+        // left the strip offering "on my way" while space produced "On my way".
+        assertEquals(
+            "only one of the two shortcut paths cases the expansion, so the " +
+                "chip and the space bar disagree",
+            2,
+            svc.split("WordCase.match(").size - 1
+        )
     }
 }

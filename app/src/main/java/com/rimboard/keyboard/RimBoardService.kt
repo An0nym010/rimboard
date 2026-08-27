@@ -1892,7 +1892,14 @@ class RimBoardService : InputMethodService(),
         var shownWords = res.items
         var shownHi = res.autocorrectIndex
         if (shortcutExp != null) {
-            shownWords = listOf(shortcutExp) + shownWords.take(2)
+            // Cased from the composing word, with the same call the commit
+            // makes, so the chip and the separator cannot disagree. Every
+            // other chip on this strip is cased; this one was not, so after
+            // the commit learned to case itself the strip was left offering
+            // "on my way" in bold while space committed "On my way".
+            shownWords =
+                listOf(WordCase.match(composing.toString(), shortcutExp, effLocale())) +
+                    shownWords.take(2)
             shownHi = 0
         } else {
             val arranged = arrangeUnknownWord(res)
