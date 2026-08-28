@@ -209,6 +209,23 @@ class StripAccuracyTest {
         predictions: String? = null
     ): Savings {
         val engine = if (predictions == null) realEngine(lang) else engineWith(lang, predictions)
+        // Resident before the first keystroke, and not for speed.
+        //
+        // The keystroke path asks for the prediction model with mayLoad =
+        // false, because on a phone it runs on the UI thread: a model that is
+        // not in memory yet is reported absent and fetched on a warm thread for
+        // next time. A harness that builds an engine and immediately starts
+        // typing is therefore measuring the warm-up as well as the engine, and
+        // how much of the corpus goes past before the model lands depends on
+        // how busy the machine is -- which is not a property of the keyboard.
+        //
+        // It showed up as a test that passed alone and failed in the suite:
+        // BilingualTest's cross-language savings read 34.1% run by itself and
+        // 32.7% with 880 other tests competing for the cores. The seeded RNG
+        // below was already there to keep the typos identical on every machine;
+        // this is the same intent applied to the other source of drift.
+        engine.dictionary(lang, locale)
+        engine.predictions("", "x", lang, locale, 1)
         val prox = KeyProximity.forLang(lang)
         // Seeded, so the same slips happen on every machine and every run.
         val rnd = Random(seed = 20260823)
