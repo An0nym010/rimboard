@@ -99,10 +99,36 @@ object ApiKeys {
      * A redacted form for the settings screen, so it can show that a key is
      * present without putting the key itself on a screen someone may be
      * mirroring, screenshotting, or presenting.
+     *
+     * Ends are shown because that is what makes a key identifiable -- the
+     * provider's prefix, and the last few characters the provider's own
+     * dashboard lists it by -- and the middle is the part worth hiding. That
+     * holds for the keys these features actually take: an Anthropic key is
+     * over a hundred characters, a LibreTranslate one is a UUID, so eight
+     * characters is a few per cent of it.
+     *
+     * It stops holding for a short key, and the old boundary let it. Anything
+     * over eight characters got the ends treatment, so a nine-character key
+     * was displayed with eight of its nine characters present and one bullet's
+     * worth of secrecy -- a redaction that redacted nothing, in the one case
+     * where every character counts. The bar is now the length at which the
+     * hidden middle is the majority of the key.
+     *
+     * The bullets are a fixed width rather than the key's, so the screen does
+     * not publish how long the secret is either.
      */
     fun masked(key: String?): String? {
         if (key.isNullOrEmpty()) return null
-        return if (key.length <= 8) "•".repeat(key.length)
+        return if (key.length < MIN_LENGTH_TO_REVEAL) BULLETS
         else key.take(4) + "…" + key.takeLast(4)
     }
+
+    /**
+     * Below this, nothing is shown but bullets: eight revealed characters have
+     * to be the smaller half of the key for showing them to be a redaction at
+     * all, and twelve hidden is the first length where they clearly are.
+     */
+    private const val MIN_LENGTH_TO_REVEAL = 20
+
+    private const val BULLETS = "••••••••••"
 }
