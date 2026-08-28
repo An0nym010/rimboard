@@ -24,10 +24,18 @@ package com.rimboard.keyboard.model
  * typo that happens to peel down to a real stem — mild, and far rarer than the
  * false corrections it prevents.
  *
- * Turkish only. Finnish and Hungarian are agglutinative too, but their suffix
- * inventories are not something to guess at — a wrong list would suppress real
- * corrections — so they are left until someone who knows them can add one. The
- * suffix sets are per-language so that has somewhere to go.
+ * Turkish is the only inventory written by hand. It used to be the only
+ * inventory at all, and this paragraph used to say that Finnish and Hungarian
+ * were "left until someone who knows them can add one" — which stopped being
+ * true when `tools/derive_suffixes.py` started *counting* inventories from each
+ * language's own word list rather than guessing at them. Eighteen languages
+ * ship one now, Finnish and Hungarian among them, and a reader who took this
+ * paragraph at its word would go and write a list that already exists.
+ *
+ * What Turkish still has alone is vowel harmony, which is a fact about the
+ * language that no amount of counting discovers. See [stemIsKnown]'s two
+ * overloads: the hand-written walk uses harmony to filter, and the derived one
+ * cannot, which is why the two are held to different floors.
  */
 object Morphology {
 
@@ -60,12 +68,22 @@ object Morphology {
      * Two things Turkish gets and this does not, both deliberately:
      *
      *  - **Vowel harmony.** It is a fact about Turkish and nothing counted from
-     *    a word list knows it. Without it the walk is more willing, so the
-     *    inventories are held to three characters and up, where Turkish can
-     *    afford one- and two-letter endings because harmony filters them.
-     *    Measured: admitting shorter endings roughly quadruples the rate at
-     *    which a mistyped word is waved through (Turkish 0.3% at three, 2.8% at
-     *    two, 10.2% at one).
+     *    a word list knows it. Without it the walk is more willing, so a
+     *    derived inventory is held to a floor on how short an ending may be,
+     *    where Turkish can afford one- and two-letter endings because harmony
+     *    filters them. Measured: admitting shorter endings roughly quadruples
+     *    the rate at which a mistyped word is waved through (Turkish 0.3% at
+     *    three, 2.8% at two, 10.2% at one).
+     *
+     *    The floor is per language and not three everywhere, which is what this
+     *    said before the sweep that set it: Slavic and Germanic inflection is
+     *    short, so nine languages are measured at two and keep their case
+     *    endings, while Romance and Uralic would pay several times the cost for
+     *    the extra gain and stay at three. `MIN_SUFFIX_BY_LANG` in
+     *    `tools/derive_suffixes.py` is the list, `SuffixInventoryTest` carries
+     *    the table it was chosen from, and one test there holds the shipped
+     *    files to it -- a hand-edited one-letter ending is the 10.2% row, and
+     *    nothing else would notice it.
      *  - **A closed list of two-letter roots.** That is an enumeration of
      *    Turkish, so a derived walk simply requires three characters of stem.
      */

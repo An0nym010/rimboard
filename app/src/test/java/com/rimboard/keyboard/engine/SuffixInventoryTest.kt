@@ -209,6 +209,60 @@ class SuffixInventoryTest {
         return gained * 100.0 / sample.size to wrong * 100.0 / maxOf(asked, 1)
     }
 
+    /**
+     * Every shipped ending clears the floor its language was measured at.
+     *
+     * The floors are in `tools/derive_suffixes.py` -- three by default, two for
+     * the nine Slavic and Germanic languages whose case endings are that short,
+     * from the sweep in the table above. Nothing held the assets to them. The
+     * inventories are generated, but a generated file is still a file somebody
+     * can edit, and the failure would be silent in the worst way: a one-letter
+     * ending puts that language in the 10.2% row, where the walk vouches for a
+     * mistyped word ten times more often and autocorrect stops touching it.
+     *
+     * Read out of the tool rather than restated here, so the two cannot drift
+     * apart. The tool is a declared input of this task, so editing it re-runs
+     * this rather than leaving it to pass against a cached result.
+     */
+    @Test
+    fun `no shipped ending is shorter than its language's measured floor`() {
+        val tool = listOf(File("../tools"), File("tools")).first { it.isDirectory }
+            .resolve("derive_suffixes.py").readText()
+
+        val global = tool.lineSequence()
+            .first { it.startsWith("MIN_SUFFIX = ") }
+            .removePrefix("MIN_SUFFIX = ").trim().toInt()
+
+        val perLang = HashMap<String, Int>()
+        val decl = tool.substringAfter("MIN_SUFFIX_BY_LANG = {").substringBefore("}")
+        for (item in decl.split(",")) {
+            val bits = item.split(":")
+            if (bits.size != 2) continue
+            val lang = bits[0].trim().trim('"')
+            val n = bits[1].trim().toIntOrNull() ?: continue
+            if (lang.isNotEmpty()) perLang[lang] = n
+        }
+        assertTrue("the per-language floors did not parse out of the tool", perLang.isNotEmpty())
+
+        val dir = File(assets(), "suffixes")
+        val files = dir.list().orEmpty().filter { it.endsWith(".txt") }.sorted()
+        assertTrue("no inventories found at all", files.isNotEmpty())
+        for (name in files) {
+            val lang = name.removeSuffix(".txt")
+            val floor = perLang[lang] ?: global
+            val short = dir.resolve(name).readLines()
+                .map { it.trim() }
+                .filter { it.isNotEmpty() && !it.startsWith("#") }
+                .filter { it.length < floor }
+            assertTrue(
+                "$lang ships ${short.size} ending(s) below its floor of $floor: " +
+                    short.take(8) + " -- a shorter ending than the sweep measured " +
+                    "means that language is running at a false-accept rate nobody chose",
+                short.isEmpty()
+            )
+        }
+    }
+
     @Test
     fun `every shipped inventory earns its place`() {
         val lines = StringBuilder()

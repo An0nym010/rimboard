@@ -173,6 +173,12 @@ tasks.withType<Test>().configureEach {
     // above the module, hence the `..`.
     inputs.file("../README.md").withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.file("../CHANGELOG.md").withPathSensitivity(PathSensitivity.RELATIVE)
+    // SuffixInventoryTest reads tools/derive_suffixes.py: it holds the shipped
+    // inventories to the per-language floor the tool declares, and a floor
+    // changed there without the assets being rebuilt is exactly the drift it
+    // exists to catch. Undeclared, the test would go on passing against a
+    // cached result -- the fifth time this project has had to learn that.
+    inputs.dir("../tools").withPathSensitivity(PathSensitivity.RELATIVE)
     // The manifests, because NetGateTest reads all three and they are the
     // repository's most important ratchet: "No INTERNET in the offline build,
     // which is what makes its guarantee a guarantee rather than a promise."
