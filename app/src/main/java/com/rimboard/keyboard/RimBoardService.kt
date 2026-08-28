@@ -1955,7 +1955,14 @@ class RimBoardService : InputMethodService(),
                 (prevWordForBigram.isNotEmpty() || atSentenceStart)
             ) {
                 engine.predictions(
-                    prevWord2, prevWordForBigram, currentLangCode(), locale(), 3,
+                    // effLang()/effLocale(), like the completion call fifteen
+                    // lines below and unlike what stood here. Both halves of
+                    // this strip answer the same question -- what word comes
+                    // next -- and only one of them was following the language
+                    // the user is actually writing. A Turkish keyboard with
+                    // English enabled completed English words and then
+                    // predicted the word after them in Turkish.
+                    prevWord2, prevWordForBigram, effLang(), effLocale(), 3,
                     personalized = !isIncognito(),
                     // The strip is redrawn after every keystroke on the main
                     // thread. A missing prediction model is parsed from assets
@@ -1971,7 +1978,13 @@ class RimBoardService : InputMethodService(),
                 // whole of what the user has said about it -- and the typing
                 // path already reads all of it. See WordCase.forShift.
                 val sh = keyboardView?.shiftState
-                val loc = locale()
+                // The locale of the words being cased, not of the layout they
+                // are drawn on. It has to move with the line above or the fix
+                // introduces a worse bug than it removes: titlecasing an
+                // English "it" under a Turkish locale gives "It" only by
+                // accident of which letter it starts with -- for "i" itself it
+                // gives "İ", because Turkish pairs i with İ and ı with I.
+                val loc = effLocale()
                 preds = preds.map { p ->
                     WordCase.forShift(
                         p,
