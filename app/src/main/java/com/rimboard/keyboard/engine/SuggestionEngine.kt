@@ -679,8 +679,20 @@ class SuggestionEngine private constructor(
         return root != here && listed(root, lang)
     }
 
+    /**
+     * The language's own list first, then English behind it -- except where the
+     * word is ordinary vocabulary in the language being typed.
+     *
+     * The order matters and is the reason the exemption is safe: a word its own
+     * language calls offensive is caught above, so
+     * [com.rimboard.keyboard.model.FalseFriends] can only ever soften the
+     * English fallback, never a native judgement.
+     */
     private fun listed(lower: String, lang: String): Boolean =
-        lower in offensive(lang) || (lang != "en" && lower in offensive("en"))
+        lower in offensive(lang) ||
+            (lang != "en" &&
+                !com.rimboard.keyboard.model.FalseFriends.ordinaryHere(lang, lower) &&
+                lower in offensive("en"))
 
     private val emojiMaps = HashMap<String, Map<String, String>>()
 
