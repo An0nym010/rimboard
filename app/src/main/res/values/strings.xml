@@ -316,6 +316,8 @@
     <string name="a11y_key_letters">Letters</string>
     <string name="a11y_key_more_symbols">More symbols</string>
     <string name="a11y_key_alternatives">Touch and hold for more</string>
+    <string name="a11y_key_hidden">Hidden</string>
+    <string name="a11y_password_quiet">Password field. Key names are not spoken aloud. Connect headphones to hear them.</string>
     <string name="a11y_reorder_handle">Reorder</string>
     <string name="a11y_pin">Pin</string>
     <string name="a11y_unpin">Unpin</string>

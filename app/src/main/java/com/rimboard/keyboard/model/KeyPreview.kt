@@ -48,4 +48,36 @@ object KeyPreview {
         isPassword: Boolean,
         systemShowsPasswords: Boolean
     ): Boolean = enabled && (!isPassword || systemShowsPasswords)
+
+    /**
+     * Whether a screen reader may say which character a key is.
+     *
+     * The bubble is not the only way this keyboard names a key. With a
+     * touch-exploration service running, every key is a virtual view with a
+     * spoken label, and dragging a finger across the keyboard reads them out
+     * one by one -- so in a password field the rule above was being enforced on
+     * the screen and broken through the speaker, which is the louder of the
+     * two. Someone unlocking their banking app on a bus with TalkBack on would
+     * have had the password read to the bus.
+     *
+     * The platform's answer is not *Show passwords* here, and the difference
+     * matters: that setting is about a screen, which only the holder can see,
+     * and this is about a speaker, which anybody nearby can hear. The test
+     * Android applies to speech is whether the audio is private -- a headset,
+     * wired or Bluetooth, or a hearing aid. AOSP's own keyboard obscures typed
+     * password characters unless one is connected, and this is that rule.
+     *
+     * Only the character keys go quiet. Shift, backspace, enter, space and the
+     * mode switches are announced as always: knowing where the delete key is
+     * gives away nothing, and a keyboard that went silent in a password field
+     * would be unusable rather than discreet -- which is why the field is
+     * announced, once, as not speaking its characters. Silence with a reason
+     * is a keyboard; silence without one is a fault.
+     *
+     * @param isPassword   a field whose contents are masked on screen.
+     * @param privateAudio a headset, Bluetooth audio device or hearing aid is
+     *        connected, so only the user hears what is spoken.
+     */
+    fun maySpeak(isPassword: Boolean, privateAudio: Boolean): Boolean =
+        !isPassword || privateAudio
 }

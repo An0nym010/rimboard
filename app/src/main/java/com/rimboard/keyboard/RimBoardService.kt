@@ -555,6 +555,7 @@ class RimBoardService : InputMethodService(),
         // offer itself for the first field and never the second.
         pastedClipAt = 0L
         configureAll(info)
+        announceQuietKeys()
     }
 
     private fun configureAll(info: EditorInfo) {
@@ -754,6 +755,14 @@ class RimBoardService : InputMethodService(),
                 isPassword = isPassword,
                 systemShowsPasswords = systemShowsPasswords()
             )
+            // The same disclosure through the other channel. The bubble is only
+            // half of it: with touch exploration running, every key has a
+            // spoken name, and a finger dragged across the keyboard reads a
+            // password out loud to whoever is standing there.
+            kv.speakCharacters = com.rimboard.keyboard.model.KeyPreview.maySpeak(
+                isPassword = isPassword,
+                privateAudio = privateAudio()
+            )
             // Not merely the setting: a swipe is decoded into a dictionary
             // word and committed, so the fields that refuse a correction have
             // to refuse a swipe. Switched off at the view as well as guarded at
@@ -930,6 +939,56 @@ class RimBoardService : InputMethodService(),
         ) != 0
     } catch (_: Exception) {
         true
+    }
+
+    /**
+     * Whether the only person who can hear this phone is the person holding it.
+     *
+     * A headset, Bluetooth audio or a hearing aid; the platform's own test for
+     * whether a password may be spoken, and the one AOSP's keyboard applies.
+     *
+     * Fails closed, which is the opposite of [systemShowsPasswords] and
+     * deliberately so. A preview that cannot read its setting stays on because
+     * the worst case is a character on a screen the owner is looking at; speech
+     * that cannot tell whether headphones are connected stays quiet because the
+     * worst case is a password in a room. The quiet field says why it is quiet,
+     * so the cost of guessing wrong is an explanation, not a mystery.
+     */
+    /**
+     * Output devices only the wearer hears. Values rather than an SDK check per
+     * entry: these are compile-time constants, and a device that predates one
+     * simply never reports it.
+     */
+    private val PRIVATE_AUDIO = setOf(
+        android.media.AudioDeviceInfo.TYPE_WIRED_HEADSET,
+        android.media.AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
+        android.media.AudioDeviceInfo.TYPE_USB_HEADSET,
+        android.media.AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+        android.media.AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
+        android.media.AudioDeviceInfo.TYPE_HEARING_AID,
+        android.media.AudioDeviceInfo.TYPE_BLE_HEADSET
+    )
+
+    private fun privateAudio(): Boolean = try {
+        val am = getSystemService(AUDIO_SERVICE) as android.media.AudioManager
+        am.getDevices(android.media.AudioManager.GET_DEVICES_OUTPUTS)
+            .any { it.type in PRIVATE_AUDIO }
+    } catch (_: Exception) {
+        false
+    }
+
+    /**
+     * The field is masked and the keys will not be named. Said once, on focus,
+     * and only to a screen reader that is actually reading keys.
+     */
+    private fun announceQuietKeys() {
+        if (!isPassword) return
+        val kv = keyboardView ?: return
+        val am = getSystemService(ACCESSIBILITY_SERVICE)
+            as? android.view.accessibility.AccessibilityManager ?: return
+        if (!am.isTouchExplorationEnabled) return
+        if (privateAudio()) return
+        kv.announceForAccessibility(getString(R.string.a11y_password_quiet))
     }
 
     private fun noteCommittedWord(word: String, countAsWord: Boolean = true) {

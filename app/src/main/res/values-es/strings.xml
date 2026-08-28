@@ -256,6 +256,8 @@
     <string name="a11y_key_letters">Letras</string>
     <string name="a11y_key_more_symbols">Más símbolos</string>
     <string name="a11y_key_alternatives">Mantén pulsado para más opciones</string>
+    <string name="a11y_key_hidden">Oculto</string>
+    <string name="a11y_password_quiet">Campo de contraseña. Los nombres de las teclas no se leen en voz alta. Conecta auriculares para oírlos.</string>
     <string name="tb_all_tools">Todas las herramientas</string>
     <string name="a11y_drawer_open">Mostrar herramientas</string>
     <string name="a11y_drawer_close">Ocultar herramientas</string>

@@ -142,6 +142,15 @@ class KeyboardView(context: Context) : View(context) {
         }
 
     var previewEnabled: Boolean = true
+
+    /**
+     * Whether a screen reader may name the character keys.
+     *
+     * False in a password field with no private audio output; see
+     * [com.rimboard.keyboard.model.KeyPreview.maySpeak], which the service asks
+     * in the same breath as it decides about the preview bubble.
+     */
+    var speakCharacters: Boolean = true
     var glideEnabled: Boolean = true
 
     /**
@@ -1415,7 +1424,15 @@ class KeyboardView(context: Context) : View(context) {
             Codes.NUMPAD -> context.getString(R.string.tb_numpad)
             Codes.HIDE_KB -> context.getString(R.string.tb_hide)
             Codes.IME_PICKER -> context.getString(R.string.tb_settings)
-            else -> displayLabel(key, loc)
+            // The character itself, unless saying it aloud would be reading a
+            // password to the room. Only this branch is withheld: every key
+            // above is named whatever the field, because a keyboard whose
+            // delete key has no name is not usable by the people this whole
+            // path exists for.
+            else ->
+                if (!speakCharacters && key.type == KeyType.CHARACTER)
+                    context.getString(R.string.a11y_key_hidden)
+                else displayLabel(key, loc)
         }
     }
 

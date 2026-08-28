@@ -59,6 +59,39 @@ class KeyPreviewTest {
         )
     }
 
+    @Test
+    fun `a password field does not have its keys read out loud`() {
+        assertFalse(KeyPreview.maySpeak(isPassword = true, privateAudio = false))
+    }
+
+    @Test
+    fun `headphones make it private, so the keys are named again`() {
+        // The rule is about who can hear, not about passwords being secret from
+        // their owner. A screen-reader user with a headset gets a working
+        // keyboard in a password field, which is the whole point of not simply
+        // going silent everywhere.
+        assertTrue(KeyPreview.maySpeak(isPassword = true, privateAudio = true))
+    }
+
+    @Test
+    fun `an ordinary field is spoken with or without headphones`() {
+        assertTrue(KeyPreview.maySpeak(isPassword = false, privateAudio = false))
+        assertTrue(KeyPreview.maySpeak(isPassword = false, privateAudio = true))
+    }
+
+    @Test
+    fun `the two channels are decided separately`() {
+        // Show passwords is about a screen and privateAudio is about a room, so
+        // neither answers the other's question. Pinned because collapsing them
+        // into one flag is the obvious tidy-up and it would be wrong in both
+        // directions: headphones would light up the preview, and turning Show
+        // passwords on would start reading passwords to the bus.
+        assertTrue(
+            KeyPreview.mayShow(enabled = true, isPassword = true, systemShowsPasswords = true)
+        )
+        assertFalse(KeyPreview.maySpeak(isPassword = true, privateAudio = false))
+    }
+
     /** Unit tests run from the module directory; tolerate the project root too. */
     private fun src(): File =
         listOf(File("src/main/java"), File("app/src/main/java")).first { it.isDirectory }
@@ -74,6 +107,49 @@ class KeyPreviewTest {
         assertTrue(
             "the system setting is not read, so the gate can only ever say yes",
             svc.contains("TEXT_SHOW_PASSWORD")
+        )
+    }
+
+    @Test
+    fun `the spoken label asks the rule, and only withholds characters`() {
+        val kv = src().resolve("com/rimboard/keyboard/ui/KeyboardView.kt").readText()
+        val fn = kv.substring(kv.indexOf("private fun spokenLabel("))
+            .substringBefore("    /**")
+        assertTrue("spokenLabel does not consult speakCharacters: $fn",
+            fn.contains("speakCharacters"))
+        assertTrue(
+            "the withheld branch is not limited to character keys, so a password " +
+                "field would lose the names of shift, backspace and enter too: $fn",
+            fn.contains("key.type == KeyType.CHARACTER")
+        )
+        // Every named key must still come from the branches above the gate.
+        // If the gate were moved to the top of the function this would pass on
+        // the string check alone, so pin the order.
+        assertTrue(
+            "the gate is above the named keys, which would silence all of them",
+            fn.indexOf("a11y_key_backspace") < fn.indexOf("speakCharacters")
+        )
+    }
+
+    @Test
+    fun `the service decides speech from audio, not from the screen setting`() {
+        val svc = src().resolve("com/rimboard/keyboard/RimBoardService.kt").readText()
+        assertTrue("the view is never told", svc.contains("kv.speakCharacters ="))
+        assertTrue("the rule is not consulted", svc.contains("KeyPreview.maySpeak("))
+        val fn = svc.substring(svc.indexOf("private fun privateAudio()"))
+            .substringBefore("    /**")
+        assertTrue(
+            "privateAudio does not ask for output devices: $fn",
+            fn.contains("GET_DEVICES_OUTPUTS")
+        )
+        assertTrue(
+            "privateAudio does not fail closed, so an audio lookup that throws " +
+                "would speak the password: $fn",
+            fn.contains("catch") && fn.substringAfter("catch").contains("false")
+        )
+        assertTrue(
+            "a masked field goes quiet without saying so",
+            svc.contains("a11y_password_quiet")
         )
     }
 
