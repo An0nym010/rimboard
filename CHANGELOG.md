@@ -2,6 +2,97 @@
 
 Release notes for every RimBoard version. The current release is summarised in the [README](README.md).
 
+## What's new in 2.9.1
+
+**Your own language, overwritten by English rules**
+
+The keyboard holds a second language for you, and several rules that are right
+for English were being applied to whatever you were actually writing. Each of
+these was measured against the shipped dictionaries rather than guessed at.
+
+- **"im" is German for "in the", and the space bar turned it into "I'm".** The
+  apostrophe-restoring list exists because the word lists come from a corpus
+  that stripped apostrophes, so "dont" and "im" look like misspellings. They are
+  also ordinary words elsewhere: German "im" runs at 2,620 occurrences per
+  million and the French relative pronoun "dont" at 263. The rule now asks
+  whether the word is a bigger share of your other language than of English,
+  which leaves the English fix intact — Turkish holds "dont" 39 times, from
+  English subtitles, and that no longer disables it.
+- **Swedish lost the word for "end".** The offensive-word filter reads your
+  language's own list and then English behind it, and never asked what the word
+  means where you are typing. Swedish and Danish "slut" (end), French "retard"
+  (delay), German "dick" (thick), Swedish "prick" (dot) and Danish and
+  Norwegian "fag" (subject) were all being kept out of your suggestions, with
+  the setting on by default.
+- **Danish "fire" is the number four, and the strip offered a flame.** The emoji
+  keywords have the same fallback. Croatian "sad" means "now" and was offered a
+  crying face, 1,223 times per million words. Fourteen keywords in seven
+  languages now stay quiet instead of guessing, while "ok", "idea", "photo" and
+  the rest — which mean the same thing everywhere — still work.
+- **The strip changed language halfway along its own row.** The word you are
+  typing was completed in the language you are writing, and then the *next*-word
+  suggestions came from the language selected on the space bar. On a Turkish
+  keyboard with English enabled, English completions were followed by Turkish
+  predictions, between one keystroke and the next.
+- **"i" became "I" in Turkish text.** The English pronoun rule asked which
+  language was selected rather than which was being written, so it was wrong in
+  both directions: it stayed silent for English typed on another layout, and it
+  fired on Turkish, where "i" and "ı" are different letters with different
+  capitals.
+
+**Things that could take the keyboard away**
+
+- **A restored backup could stop the keyboard opening at all, permanently.** A
+  backup document carries a type for each setting and the app believed it, so a
+  hand-edited or damaged file could put text where the keyboard expected a
+  yes/no. Reading it then threw, on every field you tapped, and the value was on
+  disk so it survived restarting. Every setting is now read in a way that falls
+  back to its default instead.
+- **Opening the settings screen could change your languages.** The list of
+  enabled languages had a fixed default of English and Turkish written into the
+  screen, while the keyboard itself starts you on your device's language beside
+  English. Anyone whose phone is not set to Turkish saw two languages they had
+  not chosen the first time they opened settings, and touching that dialog saved
+  them.
+
+**Privacy**
+
+- **A screen reader read passwords out loud.** With touch exploration on, every
+  key has a spoken name, so dragging a finger across the keyboard in a password
+  field read the password to the room. Character keys now stay quiet there
+  unless a headset, Bluetooth device or hearing aid is connected — the same test
+  Android applies — and the field says once why it is quiet. Shift, backspace,
+  enter and space keep their names, because a keyboard that goes silent is not
+  discreet, it is unusable.
+- **An image on the clipboard became something you could type.** Copying a
+  picture and then tapping a text field offered you a paste chip reading
+  `content://media/external/images/media/40213`, and tapping it typed those
+  characters into your message. The GIF tool fed the same bug, because its
+  fallback puts the image on the clipboard. Links and text still travel; only
+  the handles are dropped.
+- **A short API key was shown almost in full.** The settings screen redacts a
+  key to its first and last four characters, which is a few per cent of a real
+  one — but a nine-character key came back with eight of its nine characters
+  present. Nothing below twenty characters reveals anything now.
+
+**Suggestions**
+
+- **A denser prediction model.** The bar for keeping a word pair was lowered,
+  which fills in the languages that had the least: prediction coverage rises in
+  all eighteen measured, and keystrokes saved go up for every small-corpus
+  language checked against text the model had never seen (Croatian 28.4% to
+  29.3%, Czech 28.3% to 29.1%, Danish 40.9% to 41.4%, Slovak 29.7% to 30.0%).
+  Turkish keystroke savings go from 38.1% to 39.9%. It costs 1.45 MB of app
+  size, and English — already saturated — gains 0.1 points.
+
+**Under the floorboards**
+
+Fixes with nothing to see, kept short: a measurement harness that was timing the
+model's background warm-up rather than the engine, so its numbers moved with how
+busy the machine was; the suffix inventories are now held to the ending lengths
+they were measured at; and every language's alphabet is checked against its own
+layout, so a letter cannot go missing from a keyboard unnoticed.
+
 ## What's new in 2.9.0
 
 **Nothing leaves a password field**
