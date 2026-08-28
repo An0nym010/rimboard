@@ -167,6 +167,18 @@ TRI_ROWS = 6000
 # than quoted, because a comparison against numbers taken on another day and
 # another corpus is not a comparison.
 #
+#
+# Confirmed on a phone, which is where a coverage figure becomes a keyboard.
+# `millet` is one of 11,781 Turkish one-word contexts the old model had no
+# opinion about at all. Typed into the same field, on the same build of
+# everything else, with the Turkish layout selected:
+#
+#     MIN_PAIR 3   "millet " -> the strip is empty
+#     MIN_PAIR 2   "millet " -> gidelim | bu | devam
+#
+# Which is the whole argument in one line: 3.0 points of coverage is not an
+# abstraction, it is the difference between three suggestions and none, on
+# words people use.
 # What it costs, end to end: Turkish keystroke savings 38.1% -> 39.9%, English
 # 43.8% -> 43.9% (it was already saturated, as the +0.4 coverage said it would
 # be), and 1.45 MB on the release APK -- 30.91 to 32.43. The gain is real for
