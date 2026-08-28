@@ -418,6 +418,19 @@ class StripAccuracyTest {
          *     en blind 33.7%    en context 43.1%
          *     tr blind 29.2%    tr context 38.1%
          *
+         * Re-measured 2026-08-28, after MIN_PAIR fell to 2 and the context
+         * weight to 1.25:
+         *
+         *     en blind 34.4%    en context 43.9%
+         *     tr blind 29.2%    tr context 39.9%
+         *
+         * The blind arms are untouched by that change, as they must be -- they
+         * never consult the prediction model -- and they are the only arms
+         * asserted on. Turkish gained 1.8 points and English 0.1, which is the
+         * held-out coverage measurement showing up end to end: English was
+         * already saturated at three occurrences and had 0.4 points of coverage
+         * to gain, Turkish had 3.0.
+         *
          * Two engine changes moved these: one slot reserved for finishing the
          * word, and generated Turkish inflections anchored below the attested
          * completions instead of above all but one of them. Between the two the

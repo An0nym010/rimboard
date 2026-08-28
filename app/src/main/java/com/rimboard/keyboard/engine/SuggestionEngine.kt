@@ -298,8 +298,27 @@ class SuggestionEngine private constructor(
          */
         const val CONTEXT_COMPLETION_WEIGHT = 6.0
 
-        /** Additive tie-break for corrections; see [contextBonus]. */
-        const val CONTEXT_CORRECTION_WEIGHT = 1.5
+        /**
+         * Additive tie-break for corrections; see [contextBonus].
+         *
+         * Came down from 1.5 on 2026-08-28, alongside `MIN_PAIR` falling to 2
+         * in `tools/build_ngrams.py`. The two are one decision: that constant
+         * decides how many context rows exist, this one decides how loudly they
+         * speak on the correction path, and changing either alone moves the
+         * damage this file's ceiling is set against. Swept jointly, worst
+         * damage across all four arms with the denser model:
+         *
+         *     1.50   25.2%   28 rescued, 7 broken   over the 25% ceiling
+         *     1.25   20.2%   24 rescued, 7 broken   here
+         *     1.00   17.1%   19 rescued, 5 broken
+         *
+         * 1.25 holds the shipped behaviour to within noise -- 19.9% and 22/4
+         * with the sparser model -- so the strip's extra coverage costs the
+         * corrections nothing measurable. 1.0 is quieter still and gives up
+         * five rescues for it; the ceiling has margin at 1.25, which is what
+         * 1.75 was rejected for lacking when this was last swept.
+         */
+        const val CONTEXT_CORRECTION_WEIGHT = 1.25
 
 
         /**

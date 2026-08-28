@@ -142,23 +142,36 @@ TRI_ROWS = 6000
 # and English is the only language whose corpus comfortably is. Croatian, whose
 # Tatoeba export is 6,408 sentences, keeps 419 rows at 3 and 1,174 at 2.
 #
-# **It is still 3, and here is why.** These rows are not only read by the
-# prediction strip. `SuggestionEngine.correctionCandidates(contextRank=)` ranks
-# *corrections* by what the preceding word predicts, so a denser model is a
-# louder context on the typing path -- and context is allowed to settle a
-# near-tie, not to overrule the geometry. Regenerating all twenty-two at 2 and
-# running `AutocorrectAccuracyTest`:
+# **It was 3 until the sweep it was waiting for.** These rows are not only read
+# by the prediction strip. `SuggestionEngine.correctionCandidates(contextRank=)`
+# ranks *corrections* by what the preceding word predicts, so a denser model is
+# a louder context on the typing path -- and context is allowed to settle a
+# near-tie, not to overrule the geometry. At the weight that shipped alongside
+# MIN_PAIR=3, regenerating at 2 broke the ceiling:
 #
 #     tr  a deliberately wrong context overturned 65 of 258 answers (ceiling 64)
 #     tr  true context: rescued 6, broke 5   -- was comfortably net positive
 #
-# So the assets went back. Lowering this needs the context weight re-swept
-# beside it (see the sweep table in that test), not a one-line change; and any
-# narrower version -- relaxing it only for the starved languages -- would be
-# shipping to languages the correction benchmark has no fixtures for. The
-# measurement stands and the harness is in the tree, so the question is
-# answerable rather than open.
-MIN_PAIR = 3
+# That is a statement about the pair of constants, not about this one. Swept
+# jointly on 2026-08-28, worst damage across all four arms of that test:
+#
+#     MIN_PAIR  weight   worst damage   rescued  broken
+#     3         1.50     19.9%          22       4       <- what shipped
+#     2         1.50     25.2%          28       7          over the ceiling
+#     2         1.25     20.2%          24       7       <- here
+#     2         1.00     17.1%          19       5
+#
+# The 1.25 row is the shipped correction behaviour to within noise -- 20.2%
+# against 19.9%, net rescues 17 against 18 -- while the strip gets the coverage
+# in the table above. The baseline row was re-measured in the same run rather
+# than quoted, because a comparison against numbers taken on another day and
+# another corpus is not a comparison.
+#
+# What it costs, end to end: Turkish keystroke savings 38.1% -> 39.9%, English
+# 43.8% -> 43.9% (it was already saturated, as the +0.4 coverage said it would
+# be), and 1.45 MB on the release APK -- 30.91 to 32.43. The gain is real for
+# the agglutinative and small-corpus languages and negligible for English.
+MIN_PAIR = 2
 
 STRIP = ".,!?;:\"'()[]{}\u00ab\u00bb\u2018\u2019\u201c\u201d\u2026-\u2014"
 
