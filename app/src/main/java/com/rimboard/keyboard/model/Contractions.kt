@@ -56,7 +56,12 @@ object Contractions {
     private val suggestEn = mapOf(
         "cant" to "can't", "wont" to "won't", "ill" to "I'll",
         "hell" to "he'll", "shell" to "she'll", "wed" to "we'd",
-        "whod" to "who'd", "youd" to "you'd"
+        // "youd" was here as well as in the auto list above, where it wins.
+        // The two lists disagreed about the same word: one said its bare form
+        // is never an English word (true, and the criterion for auto) and the
+        // other said it was ambiguous. The dead copy is gone and
+        // ContractionLanguageTest keeps the lists disjoint.
+        "whod" to "who'd"
     )
 
     private val auto = mapOf("en" to autoEn)
@@ -68,6 +73,18 @@ object Contractions {
         suggest[lang]?.get(typedLower)?.let { return Expansion(it, auto = false) }
         return null
     }
+
+    /**
+     * The bare forms that auto-correct in [lang].
+     *
+     * Exposed so a test can enumerate them rather than sample them: every one
+     * of these is checked against every other shipped dictionary, because a
+     * bare English contraction is sometimes an ordinary word somewhere else.
+     */
+    internal fun autoForms(lang: String): Set<String> = auto[lang]?.keys.orEmpty()
+
+    /** Every form, either confidence, for the disjointness check. */
+    internal fun suggestForms(lang: String): Set<String> = suggest[lang]?.keys.orEmpty()
 
     /** Whether a bare word is an auto-correctable contraction — used to keep
      *  its unapostrophised form out of the completion suggestions. */

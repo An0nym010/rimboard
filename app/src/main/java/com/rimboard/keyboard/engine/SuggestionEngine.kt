@@ -1214,7 +1214,8 @@ class SuggestionEngine private constructor(
         // An unambiguous contraction fires even though its bare form is
         // (wrongly) in the dictionary, and takes priority over any edit-
         // distance fix: "dont" is a missing apostrophe, not a mistyped word.
-        contractionFor(typed, lang, locale)?.let { if (it.second) return it.first }
+        contractionFor(typed, lang, locale, altLang, altLocale)
+            ?.let { if (it.second) return it.first }
         val best = correctionCandidates(
             typed, lang, locale, altLang, altLocale, 1,
             contextRankFor(
@@ -1273,11 +1274,89 @@ class SuggestionEngine private constructor(
         return matchCase(typed, "$a $b", locale)
     }
 
-    fun contractionFor(typed: String, lang: String, locale: Locale): Pair<String, Boolean>? {
+    /**
+     * The apostrophe form of a bare contraction, and whether it may be
+     * committed without being asked.
+     *
+     * [altLang] and [altLocale] carry no default on purpose. The bare forms
+     * this fires on are English words with the apostrophe missing, and several
+     * of them are ordinary words in somebody else's language -- "im" is German
+     * for "in the" at 2,620 per million, and "dont" is the French relative
+     * pronoun at 263. This ran on the effective language alone, so a bilingual
+     * user with English enabled had those turned into "I'm" and "don't"
+     * whenever the boost was sitting on English, which for anybody who drops a
+     * German phrase into English writing is most of the time.
+     *
+     * The demotion is auto to suggest, never to nothing: the chip still
+     * appears and can be tapped, because somebody typing English on a German
+     * keyboard still means "I'm". What stops is the space bar committing it
+     * for them.
+     *
+     * ## The test, and why it has no constant in it
+     *
+     * A word being *present* in the other dictionary is not enough. These
+     * lists come from subtitle corpora with English in them, so Turkish holds
+     * "dont" at 39 occurrences and Spanish holds it at 41 -- and refusing on
+     * that would break the case the whole feature exists for. A threshold
+     * would work and would be a number somebody had to choose.
+     *
+     * Instead: **is the word more common there than it is here?** Both sides
+     * divided by their own [Dictionary.tokenTotal] first, because the corpora
+     * are different sizes and a raw count across two of them means nothing --
+     * the trap `CORRECTION_TARGET_CAP` and the bilingual blend both document.
+     * The comparison calibrates itself against the very artefact this object
+     * exists to work around: the bare form's own English frequency is the bar,
+     * so a language where the word is real clears it by two orders of
+     * magnitude and one where it is corpus noise does not come close.
+     *
+     * Measured over all 44 auto forms against all 21 other shipped
+     * dictionaries -- 924 pairs. Nine are demoted:
+     *
+     *     de im   2619.63 ppm vs    9.00     hr im    608.63 vs 9.00
+     *     sk im    551.79        vs 9.00     pl im    546.56 vs 9.00
+     *     fr dont  262.69        vs 13.07    tr im     38.47 vs 9.00
+     *     id im     12.66        vs 9.00     da yall    0.11 vs 0.05
+     *     ro hadnt   0.13        vs 0.09
+     *
+     * The first six are the bug. The last three are both sides being noise,
+     * and cost a chip that has to be tapped instead of one that commits
+     * itself.
+     */
+    fun contractionFor(
+        typed: String,
+        lang: String,
+        locale: Locale,
+        altLang: String?,
+        altLocale: Locale?
+    ): Pair<String, Boolean>? {
         if (typed.isEmpty() || typed.any { it.isDigit() }) return null
-        val e = com.rimboard.keyboard.model.Contractions.expand(lang, typed.lowercase(locale))
-            ?: return null
-        return matchCase(typed, e.canonical, locale) to e.auto
+        val lower = typed.lowercase(locale)
+        val e = com.rimboard.keyboard.model.Contractions.expand(lang, lower) ?: return null
+        return matchCase(typed, e.canonical, locale) to
+            (e.auto && !commonerInAlt(lower, lang, locale, altLang, altLocale))
+    }
+
+    /**
+     * Whether [lower] is a bigger share of the other language than of this one.
+     *
+     * Shares, not counts: see [contractionFor] for why, and for the measured
+     * table this rule was checked against.
+     */
+    private fun commonerInAlt(
+        lower: String,
+        lang: String,
+        locale: Locale,
+        altLang: String?,
+        altLocale: Locale?
+    ): Boolean {
+        if (altLang == null || altLocale == null || altLang == lang) return false
+        val here = dictionary(lang, locale)
+        val there = dictionary(altLang, altLocale)
+        if (here.tokenTotal <= 0L || there.tokenTotal <= 0L) return false
+        val thereFreq = there.frequency(lower.lowercase(altLocale))
+        if (thereFreq <= 0) return false
+        return thereFreq.toDouble() / there.tokenTotal >
+            here.frequency(lower).toDouble() / here.tokenTotal
     }
 
     fun suggestionsFor(
@@ -1500,7 +1579,7 @@ class SuggestionEngine private constructor(
         // missing apostrophe, and if it is auto-eligible it is what commits on
         // space. Suggest-only contractions still take the front chip but never
         // become the autocorrect target.
-        val contraction = contractionFor(composing, lang, locale)
+        val contraction = contractionFor(composing, lang, locale, altLang, altLocale)
         val contractionWord = contraction?.first?.takeIf { it != composing }
         val correction = when {
             contraction != null && contraction.second -> contractionWord

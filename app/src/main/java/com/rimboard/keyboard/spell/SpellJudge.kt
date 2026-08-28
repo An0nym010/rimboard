@@ -117,7 +117,7 @@ internal class SpellJudge(
 
         // Contractions first: "dont" is a missing apostrophe rather than a
         // mistyped word, and edit distance does not know that.
-        val contraction = engine.contractionFor(word, lang, loc)?.first
+        val contraction = engine.contractionFor(word, lang, loc, altLang, altLoc)?.first
 
         // What the context predicts, as a rank map, exactly as the keyboard
         // builds it for the word being typed. It re-ranks the dictionary's own
