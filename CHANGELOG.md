@@ -2,7 +2,75 @@
 
 Release notes for every RimBoard version. The current release is summarised in the [README](README.md).
 
-## Unreleased
+## What's new in 2.9.0
+
+**Nothing leaves a password field**
+- **The GIF panel seeded its search from the sixty characters before the cursor
+  and searched on them immediately**, so opening it with a password in the field
+  sent that password to a search service, with no query typed and nothing to
+  confirm. The translate bar did the same with a selection. Both refuse now, and
+  name the field as the reason.
+- **The globe and share keys hand text to another app**, and both fall back to
+  the whole field when nothing is selected — so in a password field they offered
+  the password to whichever translator or share target was installed. Neither is
+  a network call, so neither was covered by the network gate. Closed on the
+  offline build too, whose whole claim is that nothing leaves the phone.
+- **Adaptive tap targeting was re-aiming taps inside addresses.** It nudges an
+  ambiguous touch toward the likelier letter using the language model, and was
+  refused in password fields only. An email local part is not English, and
+  neither is a URL; a letter moved inside one is a wrong address with nothing on
+  screen to explain it. It now follows the same rule as everything else.
+- **The bubble above a pressed key answers to Android's *Show passwords*
+  setting.** Leave it on, which is the platform default, and nothing changes;
+  turn it off and the keyboard stops printing each character above the key in a
+  field that is deliberately showing dots.
+
+**Incognito means it**
+- **The spell checker never got the switch.** It is a second engine with its own
+  way into the same functions, so with incognito on it still offered words from
+  your history in the underline menu, and still ranked its answers by what your
+  own typing predicted.
+- **Corrections were ranked by your history in incognito.** The candidate list
+  was correctly stripped of your vocabulary and then put in an order your own
+  n-grams had chosen — and the word at the top is the one the space bar commits.
+  Nothing about the content escaped; which word came first did.
+- **Correcting a swiped word told the language chooser nothing.** Reaching for
+  the strip after a swipe is the clearest statement there is that the keyboard
+  picked the wrong one of your two languages, and it was the one moment it was
+  not listening.
+
+**The clipboard**
+- **A clip your password manager marked "do not preview" was drawn in full on
+  the clipboard panel**, one row below a suggestion strip that was refusing to
+  show the same string, and read out by TalkBack. It shows as a masked card now,
+  and still pastes.
+
+**Settings that only half worked**
+- **Turning off Auto-correct silently turned off text shortcuts** — and the
+  strip went on offering the expansion in bold while the space bar committed the
+  raw trigger. A shortcut is a phrase you wrote down, not a guess.
+- **"Autospace after picking a suggestion" governed some of the spaces.** With
+  it off, correcting a swiped word worked once and then stopped, taking the
+  alternatives off the strip with it.
+- **"Delete learned words" left the pins behind.** The words went; the marks
+  saying which had been added by hand stayed on disk, so a word came back
+  unevictable the next time it was typed.
+- **A backup restored every word the keyboard had learned and none you had
+  banned.** Blocking a word is the most deliberate thing you can do to its
+  vocabulary, and it was the one thing a restore dropped.
+- **"Block offensive words" did not block the plurals.** The lists held base
+  forms, so the inflections were still offered — 197 of them are covered now,
+  and ordinary words that merely look derived are deliberately left out.
+
+**Typing**
+- **The suggestion strip ignored the shift key it was drawn under.** Predictions
+  were capitalised for auto-capitalisation only, so pressing shift for a name
+  left them lower-case and tapping one committed the capital away. Caps lock did
+  nothing at all. Pressing shift redraws the strip now, in both directions.
+- **A text shortcut was the one replacement that restyled itself.** Every other
+  word this keyboard swaps in takes the case of the word it replaces; at the
+  start of a sentence a shortcut committed its expansion in lower-case where a
+  correction would have capitalised it.
 
 **The keyboard stops rewriting names**
 - **A capital in mid-sentence now means "this is a name", to autocorrect as well
