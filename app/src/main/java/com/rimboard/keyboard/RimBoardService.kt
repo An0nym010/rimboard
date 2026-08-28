@@ -1654,8 +1654,11 @@ class RimBoardService : InputMethodService(),
                 Stats.autocorrect(this)
             }
             }
-            if (finalWord == typed && typed == "i" && currentLangCode() == "en") {
-                finalWord = "I" // standalone English pronoun
+            if (finalWord == typed) {
+                // effLang(), not currentLangCode(): the language being typed
+                // rather than the one selected, which is what every other rule
+                // in this block asks. See WordCase.pronoun.
+                finalWord = WordCase.pronoun(typed, effLang())
             }
         }
         ic.commitText(finalWord + separator, 1)

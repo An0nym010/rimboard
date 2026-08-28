@@ -57,6 +57,35 @@ object WordCase {
         else -> candidate
     }
 
+    /**
+     * The English first-person pronoun, capitalised on the way out.
+     *
+     * The one word in English that is always a capital, and the keyboard has
+     * to supply it because nobody presses shift for a single letter mid
+     * sentence. Gboard does it; so does every phone keyboard worth using.
+     *
+     * [lang] is the language being **typed**, not the one selected, and the
+     * difference is the whole reason this is a function rather than a line at
+     * the commit. The commit path asked `currentLangCode()` while everything
+     * around it -- the correction, the alternate dictionary, the emoji lookup
+     * -- asked the effective language, so the rule was wrong in both
+     * directions at once for anyone with two languages enabled:
+     *
+     *  - Turkish selected, English second, writing English: every other
+     *    English behaviour arrived and the pronoun did not.
+     *  - English selected, Turkish second, writing Turkish: the pronoun rule
+     *    fired on Turkish text, and in Turkish that is not a capitalisation
+     *    but a substitution. "i" and "ı" are separate letters with separate
+     *    capitals, `İ` and `I`; turning a Turkish "i" into "I" does not shout
+     *    the word, it changes which word it is.
+     *
+     * Nothing changes for the great majority of installs, which have one
+     * language enabled and for which the effective language is the selected
+     * one by definition.
+     */
+    fun pronoun(typed: String, lang: String): String =
+        if (lang == "en" && typed == "i") "I" else typed
+
     fun match(typed: String, candidate: String, locale: Locale): String = when {
         typed.length > 1 && typed.all { it.isUpperCase() } -> candidate.uppercase(locale)
         typed.isNotEmpty() && typed.first().isUpperCase() ->
