@@ -173,6 +173,24 @@ tasks.withType<Test>().configureEach {
     // above the module, hence the `..`.
     inputs.file("../README.md").withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.file("../CHANGELOG.md").withPathSensitivity(PathSensitivity.RELATIVE)
+    // The manifests, because NetGateTest reads all three and they are the
+    // repository's most important ratchet: "No INTERNET in the offline build,
+    // which is what makes its guarantee a guarantee rather than a promise."
+    //
+    // Fifth time, and the worst of the five. A manifest lives beside `res`
+    // rather than inside it, so the declarations above did not reach it and a
+    // manifest edit changes no Kotlin. Demonstrated rather than reasoned:
+    // INTERNET was added to src/main/AndroidManifest.xml and the suite was run
+    // without --rerun-tasks. NetGateTest reported six tests and no failures.
+    //
+    // `src/offline` is declared as a directory rather than a file because the
+    // guarantee there is an *absence* -- NetGateTest asserts that the offline
+    // flavor contributes no manifest at all, and a file that does not exist
+    // cannot be declared as an input. A manifest appearing in that directory
+    // marks the task out of date, which is the event worth catching.
+    inputs.file("src/main/AndroidManifest.xml").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.file("src/online/AndroidManifest.xml").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir("src/offline").withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
 dependencies {
