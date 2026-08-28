@@ -132,6 +132,20 @@ class StripAccuracyTest {
     private fun fixtures(): File =
         listOf(File("src/test/fixtures"), File("app/src/test/fixtures")).first { it.isDirectory }
 
+    /**
+     * The same engine, with a prediction model supplied rather than shipped.
+     *
+     * For `heldOutSavings`, which needs a model built from a corpus that
+     * excludes the sentences it is about to be scored on.
+     */
+    private fun engineWith(lang: String, predictions: String): SuggestionEngine {
+        val files = mapOf(
+            "dictionaries/$lang.txt" to File(assets(), "dictionaries/$lang.txt").readText(),
+            "predictions/$lang.txt" to predictions
+        )
+        return SuggestionEngine.forTesting(userData) { p -> files[p]?.byteInputStream() }
+    }
+
     private fun realEngine(lang: String): SuggestionEngine {
         val files = listOf("dictionaries/$lang.txt", "predictions/$lang.txt")
             .associateWith { File(assets(), it).readText() }
@@ -191,9 +205,10 @@ class StripAccuracyTest {
         locale: Locale,
         sentences: List<String>,
         withContext: Boolean,
-        typos: Boolean = false
+        typos: Boolean = false,
+        predictions: String? = null
     ): Savings {
-        val engine = realEngine(lang)
+        val engine = if (predictions == null) realEngine(lang) else engineWith(lang, predictions)
         val prox = KeyProximity.forLang(lang)
         // Seeded, so the same slips happen on every machine and every run.
         val rnd = Random(seed = 20260823)
@@ -406,6 +421,70 @@ class StripAccuracyTest {
             "a language has fallen below the floor.\n$report",
             rows.all { it.second.ksr >= SURVEY_FLOOR }
         )
+    }
+
+    /**
+     * Context savings for languages the shipped fixtures cannot measure.
+     *
+     * The survey above runs blind everywhere, and the reason is contamination:
+     * for every language but English and Turkish the prose fixture and the
+     * n-grams come from the same Tatoeba corpus, so scoring the model on those
+     * sentences would be scoring it on what it counted. That is a mirror, not a
+     * measurement, and twenty-two of those would say less than the two honest
+     * ones.
+     *
+     * A split fixes it. `tools/eval_ngrams.py --fixtures` builds a model from
+     * nine tenths of a corpus and writes the tenth it never saw beside it, so
+     * a keystroke figure taken here means for Croatian what the shipped one
+     * means for English. Two models per language, at MIN_PAIR 3 and 2, because
+     * the question this was added to answer is whether the coverage that
+     * constant bought translates into keystrokes -- 1.45 MB was spent partly on
+     * languages whose end-to-end benefit had only ever been inferred.
+     *
+     * Measured 2026-08-28, four corpora of differing size, 140 held-out
+     * sentences each, keystrokes saved with context:
+     *
+     * ```
+     *      MIN_PAIR 3   MIN_PAIR 2   delta
+     * cs      28.3%        29.1%     +0.8
+     * da      40.9%        41.4%     +0.5
+     * hr      28.4%        29.3%     +0.9
+     * sk      29.7%        30.0%     +0.3
+     * ```
+     *
+     * Every one improves, and the smallest corpus improves most, which is what
+     * the coverage numbers implied but could not show: a denser model helps the
+     * languages that had the least. It is 0.6 points on average, not the 34%
+     * English gets -- worth the 1.45 MB, and worth knowing it is that size and
+     * not larger before someone spends the next megabyte on the same argument.
+     *
+     * Printed rather than asserted. These are small corpora and 140 sentences;
+     * the number is evidence for a decision, not a threshold to defend.
+     */
+    @Test
+    fun `held-out context savings, for languages the fixtures cannot`() {
+        val dir = File(fixtures(), "heldout")
+        if (!dir.isDirectory) return
+        val langs = dir.list().orEmpty()
+            .filter { it.startsWith("prose_") && it.endsWith(".txt") }
+            .map { it.removePrefix("prose_").removeSuffix(".txt") }
+            .sorted()
+        val out = StringBuilder()
+        for (lang in langs) {
+            val locale = Locale.forLanguageTag(lang)
+            val corpus = File(dir, "prose_$lang.txt").readLines().filter { it.isNotBlank() }
+            val sparse = File(dir, "pred3_$lang.txt").readText()
+            val dense = File(dir, "pred2_$lang.txt").readText()
+            val a = measure(lang, locale, corpus, withContext = true, predictions = sparse)
+            val b = measure(lang, locale, corpus, withContext = true, predictions = dense)
+            out.append(
+                "    %-3s held-out context: MIN_PAIR 3 saved %.1f%% (predicted %.0f%%)  ->  MIN_PAIR 2 saved %.1f%% (predicted %.0f%%)%n"
+                    .format(lang, a.ksr * 100, a.predicted * 100.0 / a.words,
+                            b.ksr * 100, b.predicted * 100.0 / b.words)
+            )
+        }
+        println(out)
+        assertTrue("no held-out fixtures found", langs.isNotEmpty())
     }
 
     private companion object {

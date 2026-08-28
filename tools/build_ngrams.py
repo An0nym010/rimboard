@@ -183,6 +183,25 @@ TRI_ROWS = 6000
 # 43.8% -> 43.9% (it was already saturated, as the +0.4 coverage said it would
 # be), and 1.45 MB on the release APK -- 30.91 to 32.43. The gain is real for
 # the agglutinative and small-corpus languages and negligible for English.
+#
+# That last sentence was half-earned when it was written. English and Turkish
+# were measured; the other twenty languages the megabyte was spent on had only
+# a coverage figure, and coverage is an input to keystroke savings, not a
+# synonym for it. The repository could not measure them, and said so: their
+# prose fixtures come from this same corpus, so the model would have been
+# scored on the sentences it counted.
+#
+# `--fixtures` closes that. It builds a model from nine tenths of a corpus and
+# writes the tenth beside it, which is a split the shipped assets cannot offer,
+# and `StripAccuracyTest.held-out context savings` reads the pair. Four corpora
+# of differing size, keystrokes saved with context:
+#
+#     cs  28.3% -> 29.1%    da  40.9% -> 41.4%
+#     hr  28.4% -> 29.3%    sk  29.7% -> 30.0%
+#
+# All four improve, the smallest corpus by the most. 0.6 points on average --
+# smaller than Turkish, larger than English, and now a measurement rather than
+# an inference. The 1.45 MB stands.
 MIN_PAIR = 2
 
 STRIP = ".,!?;:\"'()[]{}\u00ab\u00bb\u2018\u2019\u201c\u201d\u2026-\u2014"
