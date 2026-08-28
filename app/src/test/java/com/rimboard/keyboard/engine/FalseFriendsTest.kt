@@ -154,8 +154,10 @@ class FalseFriendsTest {
         val files = mapOf(
             "dictionaries/$lang.txt" to assets().resolve("dictionaries/$lang.txt").readText(),
             "offensive/$lang.txt" to assets().resolve("offensive/$lang.txt").readText(),
-            "offensive/en.txt" to assets().resolve("offensive/en.txt").readText()
-        )
+            "offensive/en.txt" to assets().resolve("offensive/en.txt").readText(),
+            "emoji/en.txt" to assets().resolve("emoji/en.txt").readText()
+        ) + (assets().resolve("emoji/$lang.txt").takeIf { it.isFile }
+            ?.let { mapOf("emoji/$lang.txt" to it.readText()) } ?: emptyMap())
         return SuggestionEngine.forTesting(userData) { p -> files[p]?.byteInputStream() }
             .also { it.blockOffensive = true }
     }
@@ -192,6 +194,78 @@ class FalseFriendsTest {
         // the job it is there for.
         val out = completions("sv", "nigg")
         assertTrue("the slur came back with the exemption: " + out, "nigger" !in out)
+    }
+
+    // ---- the same fallback in the emoji map ----
+
+    private fun emojiKeywords(lang: String): Set<String> {
+        val f = assets().resolve("emoji/$lang.txt")
+        if (!f.isFile) return emptySet()
+        return f.readLines().mapNotNull {
+            it.split('	').firstOrNull()?.trim()?.lowercase()?.takeIf { w -> w.isNotEmpty() }
+        }.toSet()
+    }
+
+    @Test
+    fun `every emoji exemption is a keyword English would have answered for`() {
+        val en = emojiKeywords("en")
+        for ((lang, words) in FalseFriends.emojiEntries()) {
+            for (w in words) {
+                assertTrue(
+                    "$lang declines \"$w\", which English has no emoji for anyway",
+                    w in en
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `no emoji exemption overrides a keyword written for that language`() {
+        // The language's own map is read first, so an entry here for a word
+        // that language has its own emoji for would be dead -- and a dead
+        // entry is a claim nobody is checking.
+        for ((lang, words) in FalseFriends.emojiEntries()) {
+            val own = emojiKeywords(lang)
+            for (w in words) {
+                assertFalse(
+                    "$lang declines \"$w\" but has its own emoji keyword for it",
+                    w in own
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `every emoji exemption is a word that language actually uses`() {
+        for ((lang, words) in FalseFriends.emojiEntries()) {
+            for (w in words) {
+                val (f, total) = freq(lang, w)
+                val ppm = f.toDouble() * 1e6 / total
+                assertTrue(
+                    "$lang declines \"$w\" at only %.2f per million".format(ppm),
+                    ppm >= 50.0
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `Danish four is not a flame and Danish food is not an angry face`() {
+        val e = engineFor("da")
+        assertEquals(null, e.emojiFor("fire", "da"))
+        assertEquals(null, e.emojiFor("mad", "da"))
+        assertEquals(null, e.emojiFor("gift", "da"))
+    }
+
+    @Test
+    fun `a keyword that means the same thing still travels`() {
+        // The fallback is not being switched off. "ok" is commoner in Italian
+        // than in English and means exactly what it means in English, which is
+        // also why frequency could not have decided this.
+        val it = engineFor("it")
+        assertTrue("the English fallback stopped working entirely",
+            it.emojiFor("ok", "it") != null)
+        assertEquals("Italian camera is a room", null, it.emojiFor("camera", "it"))
     }
 
     @Test

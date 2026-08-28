@@ -82,4 +82,64 @@ object FalseFriends {
 
     /** For the test that walks the population; not used by the keyboard. */
     internal fun entries(): Map<String, Set<String>> = byLang
+
+    /**
+     * The same problem in the emoji map, which has the same fallback.
+     *
+     * `emojiFor` reads the language's keywords and then English behind them,
+     * for the same good reason -- a language with no map of its own still
+     * answers for the English words people mix in. And again it never asked
+     * what the word means where it is being typed:
+     *
+     *     hr  sad     1222.96 ppm   "now"            offered a crying face
+     *     sv  dog      276.79       "died"           offered a dog
+     *     no  fire     272.60       "four"           offered a flame
+     *     da  fire     261.54       "four"
+     *     da  dog      203.86       "however"        offered a dog
+     *     da  mad      203.00       "food"           offered an angry face
+     *     sv  skull    186.19       "sake"           offered a skull
+     *     ro  sun      164.33       "I call"         offered the sun
+     *     da  gift     159.51       "married", "poison"   offered a present
+     *     fr  lit      155.27       "bed"            offered a flame
+     *     no  gift     134.03       "married", "poison"
+     *     it  camera   126.64       "room"           offered a camera
+     *     sv  gift     116.12       "married", "poison"
+     *     da  sad       87.39       "sat"
+     *
+     * A separate map from [byLang] rather than one union, though the predicate
+     * reads the same, because the two carry different risk. An entry here that
+     * is wrong costs a suggestion nobody gets -- no emoji instead of the wrong
+     * emoji, which is an improvement either way. An entry in the offensive
+     * exemptions that is wrong lets a slur through. Merging them would let the
+     * cheap judgement quietly buy the expensive one.
+     *
+     * The keywords that survive the fallback are the ones that mean the same
+     * thing: "ok" is ok in seven of these languages, and "idea", "question",
+     * "photo", "perfect", "wow", "hmm" and "rose" all travel intact. That is
+     * why this is not a rule about frequency either -- "ok" is commoner in
+     * Italian than in English and is perfectly correct there.
+     */
+    private val emojiByLang = mapOf(
+        "hr" to setOf("sad"),
+        "sv" to setOf("dog", "skull", "gift"),
+        "no" to setOf("fire", "gift"),
+        "da" to setOf("fire", "dog", "mad", "gift", "sad"),
+        "ro" to setOf("sun"),
+        "fr" to setOf("lit"),
+        "it" to setOf("camera")
+    )
+
+    /**
+     * Whether the English emoji keyword [wordLower] means something else in
+     * [lang], so the English fallback should not answer for it.
+     *
+     * The language's own map is still read first, so this only ever declines
+     * to guess -- it cannot override a keyword somebody wrote for that
+     * language.
+     */
+    fun emojiMeansSomethingElse(lang: String, wordLower: String): Boolean =
+        emojiByLang[lang]?.contains(wordLower) == true
+
+    /** For the test that walks the population; not used by the keyboard. */
+    internal fun emojiEntries(): Map<String, Set<String>> = emojiByLang
 }

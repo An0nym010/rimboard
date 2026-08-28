@@ -704,8 +704,17 @@ class SuggestionEngine private constructor(
      * so adding a list for a new language is additive rather than a
      * prerequisite.
      */
-    fun emojiFor(wordLower: String, lang: String): String? =
-        emojiMap(lang)[wordLower] ?: if (lang != "en") emojiMap("en")[wordLower] else null
+    fun emojiFor(wordLower: String, lang: String): String? {
+        emojiMap(lang)[wordLower]?.let { return it }
+        if (lang == "en") return null
+        // ...but only for words that do not already mean something here. See
+        // FalseFriends.emojiMeansSomethingElse: Danish "fire" is the number
+        // four and was being offered a flame.
+        if (com.rimboard.keyboard.model.FalseFriends.emojiMeansSomethingElse(lang, wordLower)) {
+            return null
+        }
+        return emojiMap("en")[wordLower]
+    }
 
     /** See [predictionModelLock] for why this is not `@Synchronized`. */
     private fun emojiMap(lang: String): Map<String, String> = synchronized(emojiLock) {
