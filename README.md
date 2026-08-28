@@ -22,7 +22,7 @@ decision:
 The two are separate apps and install side by side under the same name, so
 each launcher icon carries its build written under the keyboard symbol —
 `OFFLINE` or `ONLINE`. Settings → About → Version says the same thing
-(`2.8.0-offline`), which is the one to quote in a bug report.
+(`2.9.0-offline`), which is the one to quote in a bug report.
 
 The split exists because `INTERNET` is a normal, install-time Android
 permission: once an APK declares it, it is granted at install and neither you
@@ -117,7 +117,7 @@ avoid a format that only decodes from API 28.
 
 ## What's new
 
-The latest release is **2.8.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the release notes of this and every earlier version.
+The latest release is **2.9.0**. See **[CHANGELOG.md](CHANGELOG.md)** for the release notes of this and every earlier version.
 
 ## Features
 

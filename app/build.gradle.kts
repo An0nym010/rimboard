@@ -165,6 +165,14 @@ tasks.withType<Test>().configureEach {
     // into here, and the first where the file the test depends on was added in
     // the same commit as the test.
     inputs.dir("src/test/fixtures").withPathSensitivity(PathSensitivity.RELATIVE)
+    // The two documents at the project root, because ReadmeVersionTest reads
+    // the version out of them. Fourth time, and found the same way as the
+    // third: the test was written, the README was staled by hand to watch it
+    // fail, and it passed -- a markdown edit changes no Kotlin, so the task was
+    // up to date across exactly the change the test exists to catch. They are
+    // above the module, hence the `..`.
+    inputs.file("../README.md").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.file("../CHANGELOG.md").withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
 dependencies {
