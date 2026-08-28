@@ -47,7 +47,13 @@ class PrefDefaultsTest {
         val consts = Regex("""const val (KEY_\w+)\s*=\s*"([^"]+)"""")
             .findAll(source).associate { it.groupValues[1] to it.groupValues[2] }
         val code = HashMap<String, String>()
-        Regex("""\.get(?:Boolean|String|Int|Float)\(\s*(KEY_\w+)\s*,\s*("?[^,)]+?"?)\s*\)""")
+        // The reads are boolOr/intOr/stringOr/stringSetOr, not the framework
+        // getters: every preference read in Prefs goes through a helper that
+        // answers with the default rather than throwing when the stored type is
+        // wrong. This scan named the old getters and matched nothing the day
+        // they were replaced -- which the count assertion below caught, doing
+        // exactly the job it was written for.
+        Regex("""\.(?:boolOr|stringOr|intOr|stringSetOr)\(\s*(KEY_\w+)\s*,\s*("?[^,)]+?"?)\s*\)""")
             .findAll(source)
             .forEach { m ->
                 consts[m.groupValues[1]]?.let { code[it] = m.groupValues[2].trim().trim('"') }

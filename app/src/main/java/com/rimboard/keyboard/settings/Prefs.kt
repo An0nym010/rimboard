@@ -131,24 +131,24 @@ object Prefs {
         return PreferenceManager.getDefaultSharedPreferences(dp).also { cached = it }
     }
 
-    fun theme(c: Context): String = get(c).getString(KEY_THEME, "system") ?: "system"
+    fun theme(c: Context): String = get(c).stringOr(KEY_THEME, "system") ?: "system"
 
     fun heightFactor(c: Context): Float =
-        (get(c).getString(KEY_HEIGHT, "1.0") ?: "1.0").toFloatOrNull() ?: 1f
+        (get(c).stringOr(KEY_HEIGHT, "1.0") ?: "1.0").toFloatOrNull() ?: 1f
 
-    fun numberRow(c: Context) = get(c).getBoolean(KEY_NUMBER_ROW, false)
-    fun popupPreview(c: Context) = get(c).getBoolean(KEY_POPUP, true)
-    fun sound(c: Context) = get(c).getBoolean(KEY_SOUND, false)
-    fun haptic(c: Context) = get(c).getBoolean(KEY_HAPTIC, true)
-    fun autocaps(c: Context) = get(c).getBoolean(KEY_AUTOCAPS, true)
-    fun autocorrect(c: Context) = get(c).getBoolean(KEY_AUTOCORRECT, true)
+    fun numberRow(c: Context) = get(c).boolOr(KEY_NUMBER_ROW, false)
+    fun popupPreview(c: Context) = get(c).boolOr(KEY_POPUP, true)
+    fun sound(c: Context) = get(c).boolOr(KEY_SOUND, false)
+    fun haptic(c: Context) = get(c).boolOr(KEY_HAPTIC, true)
+    fun autocaps(c: Context) = get(c).boolOr(KEY_AUTOCAPS, true)
+    fun autocorrect(c: Context) = get(c).boolOr(KEY_AUTOCORRECT, true)
 
     /**
      * Whether autocorrect holds to the stricter bar. Off by default, because
      * the default is the measured point where the gate costs nothing.
      */
     fun cautiousAutocorrect(c: Context) =
-        get(c).getBoolean(KEY_AUTOCORRECT_CAUTIOUS, false)
+        get(c).boolOr(KEY_AUTOCORRECT_CAUTIOUS, false)
 
     /**
      * Whether the strip offers what a password manager wants to fill.
@@ -159,36 +159,36 @@ object Prefs {
      * app, which is a reasonable thing to want from this keyboard in
      * particular.
      */
-    fun inlineAutofill(c: Context) = get(c).getBoolean(KEY_INLINE_AUTOFILL, true)
-    fun suggestions(c: Context) = get(c).getBoolean(KEY_SUGGESTIONS, true)
-    fun predictions(c: Context) = get(c).getBoolean(KEY_PREDICTIONS, true)
-    fun doubleSpace(c: Context) = get(c).getBoolean(KEY_DOUBLE_SPACE, true)
-    fun glide(c: Context) = get(c).getBoolean(KEY_GLIDE, true)
+    fun inlineAutofill(c: Context) = get(c).boolOr(KEY_INLINE_AUTOFILL, true)
+    fun suggestions(c: Context) = get(c).boolOr(KEY_SUGGESTIONS, true)
+    fun predictions(c: Context) = get(c).boolOr(KEY_PREDICTIONS, true)
+    fun doubleSpace(c: Context) = get(c).boolOr(KEY_DOUBLE_SPACE, true)
+    fun glide(c: Context) = get(c).boolOr(KEY_GLIDE, true)
 
     /** 0 = off, 1 = anchored left, 2 = anchored right. */
-    fun oneHanded(c: Context) = get(c).getInt(KEY_ONE_HANDED, 0)
+    fun oneHanded(c: Context) = get(c).intOr(KEY_ONE_HANDED, 0)
     fun setOneHanded(c: Context, v: Int) {
         get(c).edit().putInt(KEY_ONE_HANDED, v).apply()
     }
 
     fun uiLanguage(c: Context): String =
-        get(c).getString(KEY_UI_LANG, "system") ?: "system"
+        get(c).stringOr(KEY_UI_LANG, "system") ?: "system"
 
     fun setUiLanguage(c: Context, v: String) {
         get(c).edit().putString(KEY_UI_LANG, v).apply()
     }
 
 
-    fun floating(c: Context) = get(c).getBoolean(KEY_FLOATING, false)
+    fun floating(c: Context) = get(c).boolOr(KEY_FLOATING, false)
 
-    fun numberRowPasswords(c: Context) = get(c).getBoolean(KEY_NR_PASS, true)
-    fun autoSpacePunct(c: Context) = get(c).getBoolean(KEY_AUTOSPACE, false)
-    fun soundVolume(c: Context): String = get(c).getString(KEY_SOUND_VOL, "normal") ?: "normal"
-    fun hapticStrength(c: Context): String = get(c).getString(KEY_HAPTIC_STR, "medium") ?: "medium"
+    fun numberRowPasswords(c: Context) = get(c).boolOr(KEY_NR_PASS, true)
+    fun autoSpacePunct(c: Context) = get(c).boolOr(KEY_AUTOSPACE, false)
+    fun soundVolume(c: Context): String = get(c).stringOr(KEY_SOUND_VOL, "normal") ?: "normal"
+    fun hapticStrength(c: Context): String = get(c).stringOr(KEY_HAPTIC_STR, "medium") ?: "medium"
     // Off by default: the idle strip stays clean unless the row is asked for.
     // Must match the defaultValue in prefs_general.xml or the switch shows one
     // state while the keyboard obeys the other.
-    fun glideTrail(c: Context) = get(c).getBoolean(KEY_GLIDE_TRAIL, true)
+    fun glideTrail(c: Context) = get(c).boolOr(KEY_GLIDE_TRAIL, true)
 
     /**
      * Swipe left from backspace to delete whole words.
@@ -197,7 +197,7 @@ object Prefs {
      * on, which is the wrong way round for something that deletes: anyone who
      * triggers it by accident had no way to stop it happening again.
      */
-    fun glideDelete(c: Context) = get(c).getBoolean(KEY_GLIDE_DELETE, true)
+    fun glideDelete(c: Context) = get(c).boolOr(KEY_GLIDE_DELETE, true)
     /**
      * Dim overlay for the background image, as a draw alpha (0..230).
      *
@@ -210,8 +210,8 @@ object Prefs {
 
     fun bgDimPct(c: Context): Int {
         val p = get(c)
-        if (p.contains(KEY_BG_DIM_PCT)) return p.getInt(KEY_BG_DIM_PCT, 48).coerceIn(0, 100)
-        return when (p.getString(KEY_BG_DIM, "medium")) {
+        if (p.contains(KEY_BG_DIM_PCT)) return p.intOr(KEY_BG_DIM_PCT, 48).coerceIn(0, 100)
+        return when (p.stringOr(KEY_BG_DIM, "medium")) {
             "light" -> 26
             "strong" -> 72
             else -> 48
@@ -227,26 +227,26 @@ object Prefs {
      * when it is picked. What decides whether keys over the photo scrim dark
      * with light lettering or the reverse.
      */
-    fun bgLuma(c: Context): Int = get(c).getInt(KEY_BG_LUMA, 96)
+    fun bgLuma(c: Context): Int = get(c).intOr(KEY_BG_LUMA, 96)
 
     fun setBgLuma(c: Context, v: Int) {
         get(c).edit().putInt(KEY_BG_LUMA, v.coerceIn(0, 255)).apply()
     }
 
     /** Off means the flat style: bare letter glyphs, caps only on other keys. */
-    fun keyBorders(c: Context) = get(c).getBoolean(KEY_KEY_BORDERS, false)
-    fun narrowGaps(c: Context) = get(c).getBoolean(KEY_NARROW_GAPS, false)
-    fun splitMode(c: Context): String = get(c).getString(KEY_SPLIT, "off") ?: "off"
-    fun sidePadPct(c: Context) = get(c).getInt(KEY_SIDE_PAD, 0)
-    fun bottomPadPct(c: Context) = get(c).getInt(KEY_BOTTOM_PAD, 0)
-    fun labelScalePct(c: Context) = get(c).getInt(KEY_LABEL_PCT, 100)
-    fun longPressMs(c: Context) = get(c).getInt(KEY_LP_MS, 300)
-    fun spaceSwipeH(c: Context): String = get(c).getString(KEY_SPACE_H, "cursor") ?: "cursor"
-    fun spaceSwipeV(c: Context): String = get(c).getString(KEY_SPACE_V, "none") ?: "none"
-    fun spaceLongPress(c: Context): String = get(c).getString(KEY_SPACE_LONG, "language") ?: "language"
-    fun numpadLongPress(c: Context) = get(c).getBoolean(KEY_NUMPAD_LONG, false)
-    fun tldPopupsOn(c: Context) = get(c).getBoolean(KEY_TLD, true)
-    fun langPerApp(c: Context) = get(c).getBoolean(KEY_LANG_PER_APP, false)
+    fun keyBorders(c: Context) = get(c).boolOr(KEY_KEY_BORDERS, false)
+    fun narrowGaps(c: Context) = get(c).boolOr(KEY_NARROW_GAPS, false)
+    fun splitMode(c: Context): String = get(c).stringOr(KEY_SPLIT, "off") ?: "off"
+    fun sidePadPct(c: Context) = get(c).intOr(KEY_SIDE_PAD, 0)
+    fun bottomPadPct(c: Context) = get(c).intOr(KEY_BOTTOM_PAD, 0)
+    fun labelScalePct(c: Context) = get(c).intOr(KEY_LABEL_PCT, 100)
+    fun longPressMs(c: Context) = get(c).intOr(KEY_LP_MS, 300)
+    fun spaceSwipeH(c: Context): String = get(c).stringOr(KEY_SPACE_H, "cursor") ?: "cursor"
+    fun spaceSwipeV(c: Context): String = get(c).stringOr(KEY_SPACE_V, "none") ?: "none"
+    fun spaceLongPress(c: Context): String = get(c).stringOr(KEY_SPACE_LONG, "language") ?: "language"
+    fun numpadLongPress(c: Context) = get(c).boolOr(KEY_NUMPAD_LONG, false)
+    fun tldPopupsOn(c: Context) = get(c).boolOr(KEY_TLD, true)
+    fun langPerApp(c: Context) = get(c).boolOr(KEY_LANG_PER_APP, false)
 
     /**
      * On by default, unlike [langPerApp]: this one only shifts the accent of
@@ -254,7 +254,7 @@ object Prefs {
      * user did not ask for, whereas a remembered *language* silently changes
      * what typing produces.
      */
-    fun themePerApp(c: Context) = get(c).getBoolean(KEY_THEME_PER_APP, true)
+    fun themePerApp(c: Context) = get(c).boolOr(KEY_THEME_PER_APP, true)
 
     /**
      * Which apps the keyboard may read a colour and a polarity from: `all`
@@ -275,7 +275,7 @@ object Prefs {
      * can leave the phone at all.
      */
     fun appColorSource(c: Context): String =
-        get(c).getString(KEY_APP_COLOR_SOURCE, "all") ?: "all"
+        get(c).stringOr(KEY_APP_COLOR_SOURCE, "all") ?: "all"
 
     fun curatedColorsOnly(c: Context) = appColorSource(c) != "all"
 
@@ -288,7 +288,7 @@ object Prefs {
      * that were already following something, and is ignored by every theme
      * chosen outright.
      */
-    fun matchAppMode(c: Context) = get(c).getBoolean(KEY_MATCH_APP_MODE, true)
+    fun matchAppMode(c: Context) = get(c).boolOr(KEY_MATCH_APP_MODE, true)
 
     /**
      * How saturated the tinted surfaces become.
@@ -306,22 +306,22 @@ object Prefs {
      * discover.
      */
     fun liveBackground(c: Context): String =
-        get(c).getString(KEY_LIVE_BG, "none") ?: "none"
+        get(c).stringOr(KEY_LIVE_BG, "none") ?: "none"
 
     fun tintStrength(c: Context): Float =
-        when (get(c).getString(KEY_TINT_STRENGTH, "medium")) {
+        when (get(c).stringOr(KEY_TINT_STRENGTH, "medium")) {
             "subtle" -> 0.04f
             "strong" -> 0.16f
             else -> 0.09f
         }
-    fun symbolsReturn(c: Context) = get(c).getBoolean(KEY_SYM_RETURN, true)
-    fun emojiReturn(c: Context) = get(c).getBoolean(KEY_EMOJI_RETURN, false)
-    fun clipReturn(c: Context) = get(c).getBoolean(KEY_CLIP_RETURN, false)
+    fun symbolsReturn(c: Context) = get(c).boolOr(KEY_SYM_RETURN, true)
+    fun emojiReturn(c: Context) = get(c).boolOr(KEY_EMOJI_RETURN, false)
+    fun clipReturn(c: Context) = get(c).boolOr(KEY_CLIP_RETURN, false)
     fun currencies(c: Context): String {
-        val v = get(c).getString(KEY_CURRENCIES, "") ?: ""
+        val v = get(c).stringOr(KEY_CURRENCIES, "") ?: ""
         return if (v.length >= 2) v.take(6) else "\u0024\u20BA\u20AC\u00A3\u00A5"
     }
-    fun blockOffensive(c: Context) = get(c).getBoolean(KEY_OFFENSIVE, true)
+    fun blockOffensive(c: Context) = get(c).boolOr(KEY_OFFENSIVE, true)
 
     /**
      * Whether names from the address book count as spelled correctly.
@@ -331,7 +331,7 @@ object Prefs {
      * their address book, and the one thing an on-by-default switch cannot do
      * is be a choice. Turning it on is what triggers the permission prompt.
      */
-    fun contactNames(c: Context) = get(c).getBoolean(KEY_CONTACT_NAMES, false)
+    fun contactNames(c: Context) = get(c).boolOr(KEY_CONTACT_NAMES, false)
 
     /** Used when the permission prompt is refused, so the switch cannot lie. */
     fun setContactNames(c: Context, v: Boolean) {
@@ -343,14 +343,14 @@ object Prefs {
      * correctly. Off by default, for the same reason as [contactNames]: a
      * default that reads a permission-gated source is not a choice.
      */
-    fun systemDictionary(c: Context) = get(c).getBoolean(KEY_SYSTEM_DICT, false)
+    fun systemDictionary(c: Context) = get(c).boolOr(KEY_SYSTEM_DICT, false)
 
     fun setSystemDictionary(c: Context, v: Boolean) {
         get(c).edit().putBoolean(KEY_SYSTEM_DICT, v).apply()
     }
-    fun autoSpaceSuggestion(c: Context) = get(c).getBoolean(KEY_AS_SUGG, true)
+    fun autoSpaceSuggestion(c: Context) = get(c).boolOr(KEY_AS_SUGG, true)
     fun toolbarKeys(c: Context): Set<String> =
-        get(c).getStringSet(KEY_TOOLBAR, emptySet()) ?: emptySet()
+        get(c).stringSetOr(KEY_TOOLBAR, emptySet()) ?: emptySet()
 
     /**
      * Tools pinned to the idle strip, in the order the user arranged them.
@@ -364,7 +364,7 @@ object Prefs {
         // is a choice, and must not read as "never configured" and resurrect
         // the old checkbox selection.
         if (p.contains(KEY_PINNED_ORDER)) {
-            return (p.getString(KEY_PINNED_ORDER, "") ?: "")
+            return (p.stringOr(KEY_PINNED_ORDER, "") ?: "")
                 .split(',').map { it.trim() }.filter { it.isNotEmpty() }
         }
         val legacy = toolbarKeys(c)
@@ -387,16 +387,16 @@ object Prefs {
             .apply()
     }
 
-    fun calcChip(c: Context) = get(c).getBoolean(KEY_CALC, true)
+    fun calcChip(c: Context) = get(c).boolOr(KEY_CALC, true)
 
-    fun smartTap(c: Context) = get(c).getBoolean(KEY_SMART_TAP, true)
+    fun smartTap(c: Context) = get(c).boolOr(KEY_SMART_TAP, true)
 
-    fun spaceText(c: Context): String = get(c).getString(KEY_SPACE_TEXT, "") ?: ""
+    fun spaceText(c: Context): String = get(c).stringOr(KEY_SPACE_TEXT, "") ?: ""
 
     fun appLang(c: Context, pkg: String?): String? {
         if (pkg == null) return null
         return try {
-            org.json.JSONObject(get(c).getString("app_langs", "{}") ?: "{}")
+            org.json.JSONObject(get(c).stringOr("app_langs", "{}") ?: "{}")
                 .optString(pkg).takeIf { it.isNotEmpty() }
         } catch (_: Exception) {
             null
@@ -405,7 +405,7 @@ object Prefs {
 
     fun setAppLang(c: Context, pkg: String, code: String) {
         try {
-            val o = org.json.JSONObject(get(c).getString("app_langs", "{}") ?: "{}")
+            val o = org.json.JSONObject(get(c).stringOr("app_langs", "{}") ?: "{}")
             o.put(pkg, code)
             get(c).edit().putString("app_langs", o.toString()).apply()
         } catch (_: Exception) {
@@ -413,9 +413,9 @@ object Prefs {
     }
 
     fun repeatSpeed(c: Context): String =
-        get(c).getString(KEY_REPEAT_SPEED, "normal") ?: "normal"
+        get(c).stringOr(KEY_REPEAT_SPEED, "normal") ?: "normal"
 
-    fun customColor(c: Context, key: String, def: Int): Int = get(c).getInt(key, def)
+    fun customColor(c: Context, key: String, def: Int): Int = get(c).intOr(key, def)
 
     /**
      * The three saveable custom themes.
@@ -454,9 +454,9 @@ object Prefs {
         get(c).edit().putBoolean(KEY_FLOATING, on).apply()
     }
 
-    fun floatX(c: Context) = get(c).getInt(KEY_FLOAT_X, Int.MAX_VALUE)
+    fun floatX(c: Context) = get(c).intOr(KEY_FLOAT_X, Int.MAX_VALUE)
 
-    fun floatY(c: Context) = get(c).getInt(KEY_FLOAT_Y, Int.MAX_VALUE)
+    fun floatY(c: Context) = get(c).intOr(KEY_FLOAT_Y, Int.MAX_VALUE)
 
     fun setFloatPos(c: Context, x: Int, y: Int) {
         get(c).edit().putInt(KEY_FLOAT_X, x).putInt(KEY_FLOAT_Y, y).apply()
@@ -473,24 +473,51 @@ object Prefs {
     fun clipTimeoutMin(c: Context): Int {
         val p = get(c)
         if (p.contains(KEY_CLIP_TIMEOUT_MIN)) {
-            return p.getInt(KEY_CLIP_TIMEOUT_MIN, 0).coerceIn(0, 120)
+            return p.intOr(KEY_CLIP_TIMEOUT_MIN, 0).coerceIn(0, 120)
         }
-        return (p.getString(KEY_CLIP_TIMEOUT, "0") ?: "0").toIntOrNull()?.coerceIn(0, 120) ?: 0
+        return (p.stringOr(KEY_CLIP_TIMEOUT, "0") ?: "0").toIntOrNull()?.coerceIn(0, 120) ?: 0
     }
 
-    fun oneHandedLast(c: Context) = get(c).getInt(KEY_ONE_HANDED_LAST, 2)
+    fun oneHandedLast(c: Context) = get(c).intOr(KEY_ONE_HANDED_LAST, 2)
     fun setOneHandedLast(c: Context, v: Int) {
         get(c).edit().putInt(KEY_ONE_HANDED_LAST, v).apply()
     }
 
     /** "off", "left" or "right". */
-    fun learnWords(c: Context) = get(c).getBoolean(KEY_LEARN, true)
-    fun clipboardSuggest(c: Context) = get(c).getBoolean(KEY_CLIPBOARD, true)
+    fun learnWords(c: Context) = get(c).boolOr(KEY_LEARN, true)
+    fun clipboardSuggest(c: Context) = get(c).boolOr(KEY_CLIPBOARD, true)
 
     fun languages(c: Context): List<String> {
-        val set = get(c).getStringSet(KEY_LANGUAGES, null) ?: defaultLanguages()
+        val set = get(c).stringSetOr(KEY_LANGUAGES, null) ?: defaultLanguages()
         val ordered = Languages.codes.filter { set.contains(it) }
         return if (ordered.isEmpty()) listOf("en") else ordered
+    }
+
+    /**
+     * Writes the computed defaults that a preference screen would otherwise
+     * overwrite with a static one.
+     *
+     * `languages` is the only preference whose default is not a constant: it is
+     * the device's own language beside English, worked out at first use. The
+     * preference XML cannot express that, so it declared `@array/lang_default`
+     * -- literally `en` and `tr` -- and androidx.preference seeds a
+     * MultiSelectListPreference from the XML default when nothing is stored.
+     *
+     * So the settings screen showed a German user English and Turkish ticked
+     * while their keyboard was running German and English, and the first time
+     * they touched that dialog it wrote the lie down. Nothing about it was
+     * visible until then: the keyboard was right until the user looked at it.
+     *
+     * Called before the screen inflates, so the value it reads is the value the
+     * keyboard is using. Absent-only, so it can never overwrite a choice; and
+     * `languages()` still computes the same answer for an install that has
+     * never opened settings, which is most of them.
+     */
+    fun seedComputedDefaults(c: Context) {
+        val p = get(c)
+        if (!p.contains(KEY_LANGUAGES)) {
+            p.edit().putStringSet(KEY_LANGUAGES, defaultLanguages()).apply()
+        }
     }
 
     /** First run: enable the device language (if supported) alongside English. */
@@ -528,7 +555,7 @@ object Prefs {
 
     /** Enabled languages, most recently switched to first. */
     fun langRecency(c: Context): List<String> =
-        (get(c).getString(KEY_LANG_RECENCY, "") ?: "")
+        (get(c).stringOr(KEY_LANG_RECENCY, "") ?: "")
             .split(' ').filter { it.isNotBlank() }
 
     /**
@@ -593,8 +620,8 @@ object Prefs {
         recency.firstOrNull { it != current && it in enabled }
             ?: enabled.firstOrNull { it != current }
 
-    fun incognitoAlways(c: Context) = get(c).getBoolean(KEY_INCOGNITO_ALWAYS, false)
-    fun incognitoSession(c: Context) = get(c).getBoolean(KEY_INCOGNITO_SESSION, false)
+    fun incognitoAlways(c: Context) = get(c).boolOr(KEY_INCOGNITO_ALWAYS, false)
+    fun incognitoSession(c: Context) = get(c).boolOr(KEY_INCOGNITO_SESSION, false)
 
     /**
      * Whether incognito is on, by preference alone.
@@ -612,25 +639,73 @@ object Prefs {
         get(c).edit().putBoolean(KEY_INCOGNITO_SESSION, v).apply()
     }
 
-    fun currentLang(c: Context): String? = get(c).getString(KEY_CURRENT_LANG, null)
+    fun currentLang(c: Context): String? = get(c).stringOr(KEY_CURRENT_LANG, null)
     fun setCurrentLang(c: Context, v: String) {
         get(c).edit().putString(KEY_CURRENT_LANG, v).apply()
     }
 
     fun emojiRecents(c: Context): List<String> =
-        (get(c).getString(KEY_EMOJI_RECENTS, "") ?: "").split(" ").filter { it.isNotBlank() }
+        (get(c).stringOr(KEY_EMOJI_RECENTS, "") ?: "").split(" ").filter { it.isNotBlank() }
 
     fun setEmojiRecents(c: Context, list: List<String>) {
         get(c).edit().putString(KEY_EMOJI_RECENTS, list.joinToString(" ")).apply()
     }
 
-    fun pendingClear(c: Context) = get(c).getBoolean(KEY_PENDING_CLEAR, false)
+    fun pendingClear(c: Context) = get(c).boolOr(KEY_PENDING_CLEAR, false)
     fun setPendingClear(c: Context, v: Boolean) {
         get(c).edit().putBoolean(KEY_PENDING_CLEAR, v).apply()
     }
 
-    fun pendingReload(c: Context) = get(c).getBoolean(KEY_PENDING_RELOAD, false)
+    fun pendingReload(c: Context) = get(c).boolOr(KEY_PENDING_RELOAD, false)
     fun setPendingReload(c: Context, v: Boolean) {
         get(c).edit().putBoolean(KEY_PENDING_RELOAD, v).apply()
+    }
+
+    /**
+     * The four reads above, with the one failure a preferences file can hold.
+     *
+     * `getBoolean` on a key whose stored value is a String does not return the
+     * default -- it throws `ClassCastException`, from a getter nobody wraps,
+     * on a path that runs on every focus change. The value is on disk, so the
+     * throw repeats on every field the user touches and survives a restart:
+     * the keyboard is gone until the app's data is cleared.
+     *
+     * Nothing the app writes can put the wrong type under a key. A restored
+     * backup can. The document carries a type tag per entry -- which is what
+     * makes an honest round trip lossless, and it is the document's word, not
+     * the app's: `BackupDoc.decodeSettings` reads the tag and `Backup` writes
+     * whatever it says. A hand-edited or corrupted file therefore chooses the
+     * type, and the wrong choice is not rejected at import because nothing at
+     * import knows what the key is supposed to be.
+     *
+     * Fixed here rather than there deliberately. Import is one way a bad value
+     * arrives; an OEM's own settings-restore, a `adb`-written preferences file
+     * and a future bug in this app are others, and all of them end at these
+     * four calls. A default is the honest answer: the setting reverts to what
+     * a fresh install would do, which the user can see and change, instead of
+     * a keyboard that will not open.
+     */
+    private fun SharedPreferences.boolOr(key: String, def: Boolean): Boolean = try {
+        getBoolean(key, def)
+    } catch (_: ClassCastException) {
+        def
+    }
+
+    private fun SharedPreferences.intOr(key: String, def: Int): Int = try {
+        getInt(key, def)
+    } catch (_: ClassCastException) {
+        def
+    }
+
+    private fun SharedPreferences.stringOr(key: String, def: String?): String? = try {
+        getString(key, def)
+    } catch (_: ClassCastException) {
+        def
+    }
+
+    private fun SharedPreferences.stringSetOr(key: String, def: Set<String>?): Set<String>? = try {
+        getStringSet(key, def)
+    } catch (_: ClassCastException) {
+        def
     }
 }

@@ -51,11 +51,6 @@
         <item>sk</item>
     </string-array>
 
-    <string-array name="lang_default">
-        <item>en</item>
-        <item>tr</item>
-    </string-array>
-
     <string-array name="live_bg_entries">
         <item>@string/live_bg_none</item>
         <item>@string/live_bg_stars</item>

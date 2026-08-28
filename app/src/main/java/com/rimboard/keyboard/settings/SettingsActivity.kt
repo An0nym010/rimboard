@@ -432,6 +432,11 @@ class SettingsActivity : LocalisedActivity() {
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             preferenceManager.setStorageDeviceProtected()
+            // Before the screen inflates: androidx.preference seeds a widget
+            // from its XML default when nothing is stored, and the enabled
+            // languages are the one default this app computes rather than
+            // declares. See Prefs.seedComputedDefaults.
+            Prefs.seedComputedDefaults(requireContext())
             val xmlRes = arguments?.getInt(ARG_XML, 0)?.takeIf { it != 0 } ?: R.xml.preferences
             setPreferencesFromResource(xmlRes, rootKey)
             val screens = mapOf(

@@ -8,8 +8,7 @@
             android:title="@string/pref_languages_title"
             android:summary="@string/pref_languages_summary"
             android:entries="@array/lang_entries"
-            android:entryValues="@array/lang_values"
-            android:defaultValue="@array/lang_default" />
+            android:entryValues="@array/lang_values" />
 
     <Preference
         android:key="screen_general"
