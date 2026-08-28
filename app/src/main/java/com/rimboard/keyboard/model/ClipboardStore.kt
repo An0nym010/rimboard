@@ -19,6 +19,48 @@ class ClipboardStore(private val cap: Int = 10) {
     /** [sensitive] is the copier's `EXTRA_IS_SENSITIVE`: never preview this. */
     data class Entry(val text: String, val at: Long, val sensitive: Boolean = false)
 
+    companion object {
+
+        /**
+         * Whether what came off the clipboard is text, or a handle to
+         * something that is not.
+         *
+         * Not everything on the clipboard is text, and `coerceToText` never
+         * says so -- it answers with the URI's own string when it cannot read
+         * the thing as text, so an image copied out of a gallery arrives here
+         * looking like a perfectly good clip whose contents are
+         * `content://media/external/images/media/40213`. That went into the
+         * history, onto the paste chip, and into somebody's message the moment
+         * they tapped it: a dead handle typed out as words, pointing at a file
+         * the receiving app has no permission to open.
+         *
+         * This keyboard makes one of those itself. The GIF tool falls back to
+         * the clipboard whenever the field will not take `commitContent`, which
+         * is most fields -- so inserting a GIF put a `content://` URI on the
+         * clipboard, and the next focus change captured it and offered it back
+         * as something to type.
+         *
+         * The test is not the MIME type, which lies in both directions: a
+         * content URI clip declares `text/uri-list` beside its real type, and
+         * "copy link" in a browser produces a bare `text/uri-list` that is
+         * genuinely worth pasting. It is whether coercion produced anything
+         * beyond the handle itself:
+         *
+         *  - text with no URI at all: kept, which is nearly every clip.
+         *  - a URI whose coercion returned something else: kept -- the
+         *    provider really did hand over text.
+         *  - `https://...` returning itself: kept. A URL is text; people paste
+         *    them constantly, and it survives leaving the phone.
+         *  - `content://` or `file://` returning itself: dropped. There is
+         *    nothing there to type, only a pointer that expires.
+         */
+        fun isText(coerced: String, uri: String?): Boolean {
+            if (uri == null || coerced != uri) return true
+            val scheme = uri.substringBefore(':', "").lowercase()
+            return scheme != "content" && scheme != "file"
+        }
+    }
+
     private val history = ArrayDeque<Entry>()
     private val pinned = ArrayList<Entry>()
 

@@ -2943,8 +2943,17 @@ class RimBoardService : InputMethodService(),
             val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = cm.primaryClip ?: return
             if (clip.itemCount == 0) return
-            val text = clip.getItemAt(0).coerceToText(this)?.toString() ?: return
+            val item = clip.getItemAt(0)
+            val text = item.coerceToText(this)?.toString() ?: return
             if (text.isBlank()) return
+            // An image, a file, a GIF this keyboard just inserted: coerceToText
+            // hands back the URI's own string for anything it cannot read as
+            // text, and without this that string went into the history and onto
+            // the paste chip. See ClipboardStore.isText.
+            if (!com.rimboard.keyboard.model.ClipboardStore.isText(
+                    text, item.uri?.toString()
+                )
+            ) return
             val trimmed = if (text.length > 10000) text.substring(0, 10000) else text
             // Recorded when the clip arrives rather than read later: this is
             // the copier saying "do not preview this", and it belongs to the
