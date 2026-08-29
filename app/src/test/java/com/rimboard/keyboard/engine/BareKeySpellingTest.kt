@@ -56,6 +56,15 @@ import java.util.Locale
  * for stopping: 28 takes `cop`, 20 takes `tas`, 15 takes `möchte`, 10 takes
  * `mas`.
  *
+ * Those words are no longer protected by that arithmetic, though, and the
+ * order above is why. `cop` cleared a threshold of thirty by a point and a
+ * half; a dictionary rebuild that moved it would have started rewriting a real
+ * Turkish word with nothing to say so. They are named in
+ * [com.rimboard.keyboard.model.BareWords] now and exempt at every threshold,
+ * so the protection does not move when the corpus does. Croatian `sto` — a
+ * hundred, at 42.2x, wedged between `zasto` at 44.0 and `nista` at 42.1 — is
+ * there for the same reason and could never have been anywhere else.
+ *
  * **Spanish gains least, and that is the interesting part.** The words that
  * prompted all this — `aqui` at 24.9x, `también` 28.3x, `día` 24.5x — sit
  * below thirty and go unmarked, because Turkish `tas` (21.8x) and `cop`

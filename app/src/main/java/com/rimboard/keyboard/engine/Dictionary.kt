@@ -1103,6 +1103,14 @@ class Dictionary(
         val i = foldedFor(bareLower)
         if (i < 0) return null
         if (foldDiacritics(bareLower) != bareLower) return null // already accented
+        // A word of this language in its own right is not a spelling of
+        // anything, at any ratio. Croatian "sto" (a hundred) sits at 42.2x
+        // between "zasto" at 44.0 and "nista" at 42.1, both of which are merely
+        // unaccented -- so no threshold can tell them apart and this one is
+        // named instead. See [com.rimboard.keyboard.model.BareWords].
+        if (com.rimboard.keyboard.model.BareWords.isWordItself(locale.language, bareLower)) {
+            return null
+        }
         if (contains(bareLower) &&
             freqs[i].toLong() < ratio * maxOf(1, freqOf(bareLower)).toLong()
         ) {
