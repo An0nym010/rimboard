@@ -39,13 +39,34 @@ import java.io.File
  * failed, because closing them is a layout decision with a measurable price
  * and this test cannot pay it.
  *
- * As it stands only English, Turkish and Indonesian have every letter of their
- * alphabet on a key of its own. Turkish is the proof it can be done -- it fits
- * ğ ü ş ö ç by running twelve keys to the row -- and the nineteen others put
- * their own letters behind a long press, including ones as ordinary as Swedish
- * å, German ä and Danish ø. Somebody should decide that language by language
- * with the tap-accuracy harness in hand; the numbers below are so the question
- * is at least visible.
+ * Only English, Turkish and Indonesian have every letter of their alphabet on a
+ * key of its own. Turkish is the proof it can be done: it fits ğ ü ş ö ç by
+ * running twelve keys to the row.
+ *
+ * The list alone would be misleading, so each language's gap is weighted by how
+ * often those letters actually occur -- every word counted as many times as the
+ * frequency list says it appears. "ß" is rare in German and "å" is not rare in
+ * Swedish, and a decision about key width needs the difference.
+ *
+ * Read the result in two groups, because they are two different questions:
+ *
+ *  - **Diacritic variants**, where a hold is what every phone keyboard does and
+ *    the number is not an indictment. Greek 13.3%, Czech 13.1%, Slovak 10.7%,
+ *    Hungarian 8.6%, Polish 8.4%, Romanian 6.9%. Their accented vowels are
+ *    variants of a base letter that is on the keyboard, which is exactly what
+ *    long-press is for.
+ *  - **Letters of the alphabet**, where it is a real gap, because these are not
+ *    variants of anything -- they have their own place in the alphabet and
+ *    their own keys on every other keyboard, this project's Turkish included.
+ *    Finnish ä ö at 7.2%, Swedish ä å ö at 6.3%, Danish and Norwegian æ ø å at
+ *    3.0% and 2.9%, German ä ö ü ß at 1.4%.
+ *
+ * That second group is the one worth a decision, and it is not one this test
+ * can make. The price of a wider row is narrower keys and more taps landing on
+ * the wrong one, and nothing here models key width: `KeyProximity` reads the
+ * layout as rows of letters, so adding a key changes which letters are
+ * neighbours but not how often a finger misses. The benefit is measured here;
+ * the cost needs an instrument this project does not have yet.
  */
 class LayoutCoverageTest {
 
@@ -114,13 +135,53 @@ class LayoutCoverageTest {
         )
     }
 
+    /**
+     * How much of the typing those letters are.
+     *
+     * The list of missing letters says nothing about how much it costs. "ß" is
+     * rare in German and "å" is not rare in Swedish, and a decision about key
+     * width needs the difference. So each gap letter is weighted by how often
+     * it actually occurs -- every word in the frequency list counted as many
+     * times as the list says it appears -- and the figure is the share of all
+     * letters typed in that language that need a hold rather than a tap.
+     */
+    private fun heldShare(lang: Languages.Lang): Double {
+        val gaps = alphabet(lang) - onKeys(lang)
+        if (gaps.isEmpty()) return 0.0
+        var held = 0.0
+        var total = 0.0
+        var seen = 0
+        assets().resolve("dictionaries/${lang.code}.txt").useLines { lines ->
+            for (line in lines) {
+                if (seen >= TOP_WORDS) break
+                val parts = line.split(' ')
+                if (parts.size < 2) continue
+                val f = parts[1].trim().toDoubleOrNull() ?: continue
+                seen++
+                for (c in parts[0].lowercase(lang.locale)) {
+                    if (!c.isLetter()) continue
+                    total += f
+                    if (c in gaps) held += f
+                }
+            }
+        }
+        return if (total <= 0.0) 0.0 else held * 100.0 / total
+    }
+
     @Test
     fun `how many of its own letters each language keeps behind a long press`() {
-        val out = StringBuilder("letters of the alphabet not on a key of their own:")
-        for (lang in Languages.all) {
+        val out = StringBuilder(
+            "letters of the alphabet not on a key of their own, " +
+                "and the share of all letters typed that they are:"
+        )
+        for (lang in Languages.all.sortedByDescending { heldShare(it) }) {
             val gaps = (alphabet(lang) - onKeys(lang)).sorted()
-            out.append("%n    %-3s %s".format(lang.code, if (gaps.isEmpty()) "-" else
-                gaps.joinToString("")))
+            out.append(
+                "%n    %-3s %5.2f%%  %s".format(
+                    lang.code, heldShare(lang),
+                    if (gaps.isEmpty()) "-" else gaps.joinToString("")
+                )
+            )
         }
         println(out)
         // Not a threshold, a floor: three languages have none, and if that
