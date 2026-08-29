@@ -104,10 +104,39 @@ MIN_SUFFIX_BY_LANG = {"cs": 2, "de": 2, "id": 2, "nl": 2, "sv": 2, "ru": 2, "no"
 # Finnish 3.7 -> 5.0 at four (1.2%; eight is already over at 1.9%). Their
 # destruction rates go 30.5% -> 28.8% and 29.7% -> 28.3%.
 #
-# Romanian, Spanish and Polish were rejected on the old all-or-nothing basis and
-# have not been re-swept with this cap. They are the next candidates and nobody
-# has measured them.
-SHORT_CAP = {"hr": 16, "hu": 16, "fi": 4}
+# Romanian, Spanish and Polish were the three the old all-or-nothing setting had
+# rejected, and re-swept with the cap only one of them takes it. Polish takes
+# twelve:
+#
+#     added   prevents   wrongly accepted   held-out words accepted
+#         0     3.8         0.4%                57
+#         4     4.7         0.5%                73
+#        12     5.3         0.7%                84      <- here
+#        18     5.3         0.7%                84
+#        20     5.3         1.4%                87
+#
+# Twelve is where the value runs out rather than where the ceiling arrives, and
+# that is a better reason to stop than the one Croatian and Hungarian had:
+# fourteen through eighteen accept not one further word in the sample, and
+# twenty doubles the cost for no gain whatever -- its two endings are
+# -ki and -na, generic enough to take a typo apart as readily as a word. So
+# Polish stops at half the ceiling with the whole gain in hand, rather than
+# trading margin for the last tenth. Destruction 27.8% -> 26.3%.
+#
+# Romanian gains nothing that can be bought at any cap. Acceptance climbs
+# steadily -- 62 held-out words at zero, 72 at six -- while destruction does not
+# move by a tenth of a point (33.2% at every cap from zero to six) and the false
+# accepts run 0.7% -> 1.2%. That is the Slovak result again, this time in a
+# language that already ships an inventory: what the two-letter endings rescue
+# is not what was being rewritten, and acceptance is a proxy rather than the
+# thing. Its first real gain is at eight, by which point it is over the ceiling.
+#
+# Spanish has no room to buy anything with. It already runs at 1.4%, the highest
+# false-accept rate of any shipped inventory, so a tenth of a point is all the
+# headroom there is: two endings buy 0.2 points at no measured cost, four buy
+# 0.5 for 1.7% and are over. 0.2 points is one word in six hundred, which is not
+# a measurement.
+SHORT_CAP = {"hr": 16, "hu": 16, "fi": 4, "pl": 12}
 
 # Longer than this and a "suffix" is really a second word; the compound
 # splitter is the right tool for those and German already has one.
@@ -131,9 +160,9 @@ MIN_STEMS = 150
 #
 # Points of destruction prevented, measured with the inventory and without:
 #
-#     hu 5.8   ro 4.0   fi 3.7   de 3.2   sv 2.5   da 1.8   sk 0.2
-#     es 5.5   cs 3.8   fr 3.5   nl 2.8   hr 2.2   no 1.5
-#     it 4.2   pl 3.8   pt 3.3   id 2.2   ru 1.5
+#     hu 7.5   ro 4.0   fr 3.5   nl 2.8   da 1.8   sk 0.2
+#     es 5.5   cs 3.8   fi 5.0   pt 3.3   id 2.2   no 1.5
+#     pl 5.3   hr 3.8   de 3.2   sv 2.5   ru 1.5   en 1.5
 #
 # Slovak is the only one that derives an inventory and gains nothing from it.
 #
@@ -142,11 +171,16 @@ MIN_STEMS = 150
 # runs at 3.8%. Anything well inside that is a trade this keyboard has already
 # made once and measured.
 #
-#     hu 13.5/0.4   es 11.3/1.4   cs  3.0/0.2   sv  2.7/0.0
-#     ro 10.3/0.7   it  8.3/0.8   hr  4.5/0.4   de  2.2/0.5
-#     fi 10.0/0.9   fr  7.2/0.3   nl  3.8/0.3   da  2.0/0.5
-#     pl  9.5/0.4   en  6.2/0.8   id  2.8/0.7   ru  1.3/0.0
-#     tr 31.3/0.5   pt  6.2/0.7   no  1.8/0.2   sk  0.3/0.0
+#     tr 31.3/0.5   fi 12.0/1.2   it  8.3/0.8   pt  6.2/0.7   sv  5.8/1.2
+#     hu 17.5/1.0   es 11.3/1.4   nl  7.5/0.8   en  6.2/0.8   ru  4.5/0.2
+#     pl 14.0/0.7   hr 10.3/1.2   fr  7.2/0.3   id  6.0/0.8   da  3.8/0.9
+#     cs 12.7/0.6   ro 10.3/0.7   de  7.0/0.9   no  3.3/0.3   sk  2.0/0.0
+#
+# Both tables above are re-measured whenever one of them changes, because they
+# went stale once: they held the three-character figures for cs, de, nl, sv, da,
+# no, ru and id long after those languages moved to a two-character floor, which
+# is a table describing a configuration that no longer shipped. They are what
+# `SuffixInventoryTest` prints, so a disagreement is a run away from settling.
 #
 # Greek and Ukrainian derive nothing at all: their endings are one and two
 # characters, which MIN_SUFFIX excludes for good reason.

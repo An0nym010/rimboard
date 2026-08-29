@@ -53,12 +53,13 @@ import java.util.Locale
  *
  * Points of destruction prevented, with the inventory and without:
  *
- *     hu 7.5   ro 4.0   fi 5.0   de 3.2   sv 2.5   da 1.8   en 1.5
- *     es 5.5   cs 3.8   fr 3.5   nl 2.8   hr 3.8   no 1.5   sk 0.2
- *     it 4.2   pl 3.8   pt 3.3   id 2.2   ru 1.5
+ *     hu 7.5   ro 4.0   fr 3.5   nl 2.8   da 1.8   sk 0.2
+ *     es 5.5   cs 3.8   fi 5.0   pt 3.3   id 2.2   no 1.5
+ *     pl 5.3   hr 3.8   de 3.2   sv 2.5   ru 1.5   en 1.5
  *
- * Hungarian, Finnish and Croatian read 7.5, 5.0 and 3.8 there and used to read
- * 5.8, 3.7 and 2.2; see the note on capped two-letter endings below.
+ * Hungarian, Finnish, Croatian and Polish read 7.5, 5.0, 3.8 and 5.3 there and
+ * used to read 5.8, 3.7, 2.2 and 3.8; see the note on capped two-letter endings
+ * below.
  *
  * **Slovak is why the criterion is the outcome.** It derives a respectable
  * inventory and accepts a fair number of held-out words with it, and it
@@ -142,10 +143,49 @@ import java.util.Locale
  * 28.3%, Croatian 38.3% to 36.7%. Three of the five worst correctors in the
  * app, and the three worst that were not already at two characters.
  *
- * That leaves no shipped language at the three-character default with a known
- * gain going unclaimed. Romanian, Spanish and Polish were swept and rejected on
- * the old all-or-nothing basis and have not been re-swept with the cap; they
- * are the next candidates and nobody has measured them.
+ * ## The three the cap was measured against, and the one that took it
+ *
+ * Romanian, Spanish and Polish were the languages the all-or-nothing setting
+ * had rejected. Re-swept with the cap, only Polish takes one, and the two
+ * refusals are worth as much as the acceptance because they say what the cap
+ * is not: a way of getting every language over the line.
+ *
+ *     polish                            romanian
+ *      added  prevents  cost  accepts    added  prevents  cost  accepts
+ *          0    3.8     0.4%     57          0    4.0     0.7%     62
+ *          4    4.7     0.5%     73          2    4.0     0.9%     66
+ *         12    5.3     0.7%     84   <-     4    4.0     1.2%     68
+ *         18    5.3     0.7%     84          6    4.0     1.2%     72
+ *         20    5.3     1.4%     87          8    4.3     1.6%     75
+ *
+ * **Polish stops where the value stops rather than where the ceiling is**,
+ * which is the first language to have that luxury. Fourteen through eighteen
+ * accept no further word in the sample at all, so twelve holds the entire gain
+ * at 0.7% -- under half the ceiling, against Croatian's 1.2% and Hungarian's
+ * 1.0%. Twenty adds `-ki` and `-na`, generic enough to take a typo apart as
+ * readily as a word, and doubles the cost for nothing. 27.8% -> 26.3%.
+ *
+ * That last step is the one worth being sure of, since it is four words of six
+ * hundred against eight, so it was re-run on five seeds rather than the one
+ * this file reports. Twelve costs 0.7 0.4 0.7 0.4 0.2 and twenty costs
+ * 1.4 0.9 1.1 1.4 1.3: the cliff is in the same place on every draw.
+ *
+ * **Romanian is the Slovak result over again**, and this time in a language
+ * that already ships an inventory. Acceptance climbs the whole way -- 62
+ * held-out words to 72 -- and destruction does not move by a tenth of a point,
+ * 33.2% at every cap from zero to six, while the false accepts go 0.7% to 1.2%.
+ * The
+ * words the short endings rescue are not the words being rewritten. Nothing
+ * here is buyable: the first real gain is at eight, already over the ceiling.
+ * If ever an argument was needed for measuring the outcome rather than the
+ * proxy, a language whose proxy improves 16% for zero outcome is it.
+ *
+ * **Spanish has no headroom to spend.** It ships at 1.4% already, the highest
+ * false-accept rate of any inventory here, so there is a tenth of a point to
+ * play with: two endings buy 0.2 points at no measured cost, four buy 0.5 and
+ * cost 1.7%, over. 0.2 points is one word in six hundred and is not a
+ * measurement. Spanish is the language to watch if the dictionary is ever
+ * rebuilt -- it is the one already sitting where a small drift fails the test.
  *
  * ## English, and a judgement the measurement overruled
  *
