@@ -1624,6 +1624,29 @@ class SuggestionEngine private constructor(
 
         val display = mutableListOf(composing) // slot 0: verbatim
         if (contractionWord != null) display.add(contractionWord)
+        // The accented spelling of what was typed, offered and never taken
+        // automatically -- the same bargain the contraction above makes, for
+        // the same reason.
+        //
+        // [Dictionary.accentedFormOf] can already reject a bare spelling
+        // outright, and where it fires the accented form arrives as an ordinary
+        // correction and this adds nothing. But it is held to a ratio of fifty,
+        // and the languages whose speakers habitually drop accents never reach
+        // it -- the habit is what puts the bare form in the corpus. So Spanish
+        // "aqui" was offered "aqui, aquiles, aquino" and had no route to
+        // "aquí" by any tap, while Turkish "icin" was corrected to "için"
+        // outright. The feature worked in inverse proportion to how much a
+        // language needed it.
+        //
+        // Asked here at a tenth of that ratio, because the cost of being wrong
+        // is one chip rather than a word nobody meant. "sto" is Croatian for a
+        // hundred and still commits as "sto"; it is merely offered "što" too.
+        val accented = dict.accentedSuggestionFor(lower)
+            ?.takeIf { !userData.isBlocked(it) && !isOffensive(it, lang, locale) }
+            ?.let { matchCase(composing, it, locale) }
+        if (accented != null && accented != composing && !display.contains(accented)) {
+            display.add(accented)
+        }
         // A missing space, offered but never taken automatically: "alot" almost
         // certainly wanted "a lot", but adding a word boundary on somebody's
         // behalf is not a thing to do without a tap.

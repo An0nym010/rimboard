@@ -410,6 +410,33 @@ class Dictionary(
          */
         private const val BARE_KEY_RATIO = 50
 
+        /**
+         * How much commoner the accented spelling must be before it is
+         * *offered* beside what was typed.
+         *
+         * A fifth of [BARE_KEY_RATIO], because the two decisions cost
+         * different things. Rejecting a word overrules the person who typed it,
+         * so it is held to fifty. Offering one spends a chip on a strip that
+         * has three, and the typed word keeps slot zero either way -- so the
+         * bar is what makes the accented form the likelier of the two
+         * spellings, not what makes the bare one indefensible.
+         *
+         * Swept against `StripAccuracyTest`, which prices a wasted chip in the
+         * only currency that matters, keystrokes saved. **The cost does not
+         * move with the ratio**: median savings read 32.5% at five, ten and
+         * twenty against 32.8% before, because what costs a slot is the pairs
+         * far above any of those thresholds -- the ones the feature is for.
+         * There is no setting that buys the accents for nothing.
+         *
+         * So the choice was made on the gain side, where the thresholds do
+         * differ. Twenty drops Spanish "mio"/"mío" (12x) and "adios"/"adiós"
+         * (14x) and Croatian "sta"/"šta" (11.8x), which are exactly the words
+         * this exists for; five fires on more marginal pairs and measured no
+         * better, and slightly worse in Hungarian and Romanian. Ten keeps every
+         * case worth having at the same price.
+         */
+        private const val ACCENT_SUGGEST_RATIO = 10
+
         /** Neither half of a split may be rarer than this. */
         private const val SPLIT_MIN_FREQ = 500
 
@@ -958,13 +985,60 @@ class Dictionary(
      * it is for.
      *
      * So the query has to hold its own against its accented counterpart, by
-     * [BARE_KEY_RATIO]. The pairs that must survive protect themselves, because
-     * what the test measures is precisely what makes them safe: "si" and "sí",
-     * "ou" and "où", "schon" and "schön" are distinct words and the bare one is
-     * the *commoner*, so the ratio never comes near. The ones that do not
-     * survive are the ones nobody writes on purpose.
+     * [BARE_KEY_RATIO].
+     *
+     * This used to claim the risky pairs protect themselves by having the bare
+     * form be the commoner of the two. Checked against the shipped lists, that
+     * is true of "schon"/"schön" (0.2x), "el"/"él" (0.1x) and "cam"/"çam"
+     * (0.1x) and false of most of the rest: "sí" outnumbers "si" 1.0x, "está"
+     * beats "esta" 2.3x, "más" beats "mas" 14.5x, "möchte" beats "mochte"
+     * 18.5x, "çöp" beats "cop" 28.3x, "být" beats "byt" 35.4x, "što" beats
+     * "sto" 42.2x. Seventeen of the thirty pairs `BareKeySpellingTest` pins
+     * have the *accented* form ahead.
+     *
+     * What actually protects them is the size of [BARE_KEY_RATIO], and that
+     * matters: a reader who believed the old sentence could conclude the ratio
+     * was belt-and-braces and lower it, which would rewrite "sto" (Croatian for
+     * a hundred) into "što" and "byt" (Czech for a flat) into "být".
+     *
+     * The ratio is high because being wrong here is expensive -- it overrules
+     * what somebody typed. Merely *offering* the accented form costs a chip, so
+     * it is asked separately and at a far lower bar; see
+     * [accentedSuggestionFor].
      */
-    fun accentedFormOf(bareLower: String): String? {
+    fun accentedFormOf(bareLower: String): String? =
+        accentedAbove(bareLower, BARE_KEY_RATIO)
+
+    /**
+     * The accented word this bare spelling is probably a spelling of — asked
+     * only to put a chip on the strip, never to overrule what was typed.
+     *
+     * [accentedFormOf] answers a different and more expensive question: may
+     * this word be *rejected*, underlined, and replaced on the space bar. That
+     * needs [BARE_KEY_RATIO], and at fifty it is met by Turkish and German,
+     * where a bare spelling in the corpus is rare -- "für" outnumbers "fur"
+     * 557x and "için" outnumbers "icin" 300x.
+     *
+     * It is not met by the languages whose speakers habitually drop accents,
+     * because that habit is what puts the bare form in the corpus in the first
+     * place. Spanish "aquí" leads "aqui" by only 25x, "también" by 28x, "día"
+     * by 24x; Croatian "zašto" by 44x. So the feature worked in inverse
+     * proportion to how much a language needed it, and Spanish -- which has
+     * 5,737 bare/accented pairs in the surviving band against Turkish's 241 --
+     * got nothing at all. Typing "aqui" offered "aqui, aquiles, aquino", and
+     * "tambien" offered "tambien, tambie, tambiem": no route to the accented
+     * spelling by any tap.
+     *
+     * Being wrong about a chip costs a chip. So this asks the same question at
+     * [ACCENT_SUGGEST_RATIO], the caller adds the answer as a suggestion that
+     * can never be committed on a separator, and a word that is genuinely
+     * itself keeps slot zero and is never rewritten. "sto" still commits as
+     * "sto"; it is merely offered "što" beside it.
+     */
+    fun accentedSuggestionFor(bareLower: String): String? =
+        accentedAbove(bareLower, ACCENT_SUGGEST_RATIO)
+
+    private fun accentedAbove(bareLower: String, ratio: Int): String? {
         // Cheapest question first, and it is the one that answers almost every
         // call. The index holds only accented words, keyed by their bare form,
         // so an ordinary word misses it outright -- and a correctly accented
@@ -981,7 +1055,7 @@ class Dictionary(
         if (i < 0) return null
         if (foldDiacritics(bareLower) != bareLower) return null // already accented
         if (contains(bareLower) &&
-            freqs[i].toLong() < BARE_KEY_RATIO * maxOf(1, freqOf(bareLower)).toLong()
+            freqs[i].toLong() < ratio * maxOf(1, freqOf(bareLower)).toLong()
         ) {
             return null
         }

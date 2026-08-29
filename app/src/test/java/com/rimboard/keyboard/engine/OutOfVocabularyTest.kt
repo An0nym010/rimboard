@@ -25,10 +25,24 @@ import java.util.Locale
  * success no matter what the keyboard does.
  *
  * So the dictionary is truncated to its commonest [KEEP] entries and the words
- * that were cut are offered to the corrector as if typed. They are real words
- * of the language by construction, and mostly inflections of stems that survive
- * the cut, which is exactly the shape of the words a user reaches past the end
- * of a shipped list.
+ * that were cut are offered to the corrector as if typed. They are mostly
+ * inflections of stems that survive the cut, which is exactly the shape of the
+ * words a user reaches past the end of a shipped list.
+ *
+ * This used to say they are "real words of the language by construction", and
+ * for an accented language that is false. The corpus holds what people type and
+ * people type without accents, so the tail carries "sangeros" beside
+ * "sângeros", "armady" beside "armády", "perderas" beside "perderás". Turning
+ * one into the other is the accent feature doing its job, and it was being
+ * counted as destruction -- which made the languages with the most accents look
+ * like the worst correctors. Romanian's figure was 20.7% of it, Slovak's 18.4%,
+ * Spanish's 13.8%; the direction is almost entirely one way, 37 of Romanian's
+ * 37 and 29 of Slovak's 32 putting accents *back*.
+ *
+ * Both numbers are printed now. The first is every rewrite, which is the figure
+ * the tripwire holds; the second sets the accent restorations aside, and the
+ * gap between them is how much of a language's score is an artefact of its
+ * orthography rather than a fault in its corrector.
  *
  * ## What it found
  *
@@ -39,6 +53,7 @@ import java.util.Locale
  *     shape    21.7  20.7  25.5  31.7  33.3  33.7  33.7  33.3  36.3
  *     endings  20.2  20.7  22.3  26.3  27.8  32.2  29.8  28.3  28.8
  *     prefixes 20.2  20.7  21.0  24.0  27.8  29.5  29.8  28.3  27.0
+ *     accents  20.2  20.2  20.8  22.0  24.0  29.3  27.8  28.3  25.8
  *
  * Three things brought it down. [Dictionary.looksLikeAWord] holds a string
  * shaped like a word of the language to a tighter bar than one that is not,
@@ -51,7 +66,13 @@ import java.util.Locale
  * measurement, and why English very nearly did not, is in
  * [SuffixInventoryTest].
  *
- * The last row is the one that took longest to think of, because every clause
+ * The bottom row is not a change to the keyboard at all: it is the same
+ * measurement with accent restorations no longer scored as damage, and it is
+ * here because the row above it was being read as a ranking of correctors. On
+ * the corrected figures Slovak moves 5.3 points and Spanish 3.8, and Croatian
+ * -- still the worst -- is worst by less than it looked.
+ *
+ * The prefix row is the one that took longest to think of, because every clause
  * in the engine's word-formation check read the *end* of a word. The walk was
  * written for Turkish, which is purely suffixing, and eighteen languages
  * inherited that assumption along with it — so `verschuldigde` and
@@ -205,20 +226,52 @@ class OutOfVocabularyTest {
         )
     }
 
-    /** How often the corrector rewrites a correct word it has not been given. */
-    private fun destructionRate(lang: String): Pair<Double, List<String>>? {
+    /**
+     * Whether [a] and [b] are the same word with different accents.
+     *
+     * The held-out sample is drawn from the tail of the dictionary, and this
+     * file says those words "are real words of the language by construction".
+     * For an accented language that is not true: the corpus holds what people
+     * type and people type without accents, so the tail carries "sangeros"
+     * beside "sângeros" and "armady" beside "armády". Rewriting one into the
+     * other is the accent feature working, not the corrector destroying
+     * anything, and counting it as destruction flatters nothing -- it makes
+     * the languages with the most accents look like the worst correctors.
+     */
+    private fun accentOnly(a: String, b: String): Boolean =
+        a != b && fold(a) == fold(b)
+
+    private fun fold(s: String): String =
+        java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD)
+            .filter { Character.getType(it) != Character.NON_SPACING_MARK.toInt() }
+
+    /**
+     * How often the corrector rewrites a correct word it has not been given,
+     * and how much of that is accents being put back.
+     */
+    private fun destructionRate(lang: String): Triple<Double, Double, List<String>>? {
         val s = split(lang) ?: return null
         val e = engineWith(lang, s.kept)
         val locale = Locale.forLanguageTag(lang)
         var destroyed = 0
+        var accents = 0
         val examples = ArrayList<String>()
         for (w in s.heldOut) {
             val fix = e.correctionFor(w, lang, locale) ?: continue
-            if (fix.lowercase(locale) == w) continue
+            val lower = fix.lowercase(locale)
+            if (lower == w) continue
             destroyed++
+            if (accentOnly(w, lower)) {
+                accents++
+                continue
+            }
             if (examples.size < 4) examples.add("$w->$fix")
         }
-        return destroyed.toDouble() / s.heldOut.size to examples
+        return Triple(
+            destroyed.toDouble() / s.heldOut.size,
+            (destroyed - accents).toDouble() / s.heldOut.size,
+            examples
+        )
     }
 
     @Test
@@ -260,9 +313,12 @@ class OutOfVocabularyTest {
         val lines = StringBuilder()
         val rates = HashMap<String, Double>()
         for (lang in langs) {
-            val (rate, examples) = destructionRate(lang) ?: continue
+            val (rate, netRate, examples) = destructionRate(lang) ?: continue
             rates[lang] = rate
-            lines.append("%-4s %5.1f%%   %s%n".format(lang, rate * 100, examples.joinToString("  ")))
+            lines.append(
+                "%-4s %5.1f%%  (%4.1f%% once accents are set aside)   %s%n"
+                    .format(lang, rate * 100, netRate * 100, examples.joinToString("  "))
+            )
         }
         println(lines)
         assertTrue("too few languages measured to mean anything", rates.size >= 6)
