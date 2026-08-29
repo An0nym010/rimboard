@@ -437,6 +437,41 @@ class Dictionary(
          */
         private const val ACCENT_SUGGEST_RATIO = 10
 
+        /**
+         * How much commoner the accented spelling must be before the bare one
+         * is *underlined*.
+         *
+         * Thirty, and it is not a new number: the note on [BARE_KEY_RATIO]
+         * above already found this boundary and wrote it down. "The band below
+         * thirty holds genuine distinct words -- Turkish `cop` and `çöp` at
+         * 28x, `cami` and `camı` at 3x, `ucu` and `üçü` at 1x -- and above
+         * fifty there is nothing but accents somebody did not type."
+         *
+         * Both ends were characterised and the middle never was. Fifty is the
+         * cautious end of it, chosen because that constant governs *replacing*
+         * a word. A squiggle only asks the reader to look, so it can sit at the
+         * other end of the same band, above every genuine word the sweep found
+         * and below the bar for overruling anyone.
+         *
+         * Measured on the curated list `BareKeySpellingTest` pins as words in
+         * their own right, thirty wrongly underlines none of them. Below it
+         * they start going: 28 takes `cop`, 20 takes `tas`, 15 takes `möchte`,
+         * 10 takes `mas`. Above it nothing more is protected and coverage is
+         * simply lost.
+         *
+         * What it buys, over the prose fixtures with their accents stripped --
+         * which is exactly what somebody typing without them produces:
+         *
+         *     caught     50    30            caught      50    30
+         *     hr         6%   68%            sk         72%   92%
+         *     el        36%   84%            da         77%   87%
+         *     es        15%   33%            cs         90%   91%
+         *
+         * 3,494 words caught to 4,072, for one extra squiggle across 26,000
+         * words of correctly accented prose in twenty languages.
+         */
+        private const val ACCENT_UNDERLINE_RATIO = 30
+
         /** Neither half of a split may be rarer than this. */
         private const val SPLIT_MIN_FREQ = 500
 
@@ -1037,6 +1072,20 @@ class Dictionary(
      */
     fun accentedSuggestionFor(bareLower: String): String? =
         accentedAbove(bareLower, ACCENT_SUGGEST_RATIO)
+
+    /**
+     * The accented word this bare spelling is probably a spelling of, asked
+     * strictly enough to put a red line under it.
+     *
+     * Three questions, three prices, and until this existed there were two.
+     * Replacing a word on the space bar overrules the person typing and stays
+     * at [BARE_KEY_RATIO]. Offering a chip costs a chip, and is asked at
+     * [ACCENT_SUGGEST_RATIO]. Underlining sits between them: it costs the
+     * reader a glance and changes nothing they wrote, so it is asked at
+     * [ACCENT_UNDERLINE_RATIO].
+     */
+    fun accentedUnderlineFor(bareLower: String): String? =
+        accentedAbove(bareLower, ACCENT_UNDERLINE_RATIO)
 
     private fun accentedAbove(bareLower: String, ratio: Int): String? {
         // Cheapest question first, and it is the one that answers almost every

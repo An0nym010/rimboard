@@ -94,7 +94,12 @@ internal class SpellJudge(
             return Verdict(0, emptyList())
         }
 
-        if (engine.acceptedWord(word, lang, loc, altLang, altLoc)) {
+        // `underlining` asks one question more strictly than the space bar
+        // does: a bare spelling of an accented word. A squiggle asks the reader
+        // to look and changes nothing they wrote, so it can suspect words
+        // autocorrect must leave alone -- Spanish "aqui", Croatian "zasto",
+        // Greek "ειναι". See Dictionary.accentedUnderlineFor for the sweep.
+        if (engine.acceptedWord(word, lang, loc, altLang, altLoc, underlining = true)) {
             return Verdict(SuggestionsInfo.RESULT_ATTR_IN_THE_DICTIONARY, emptyList())
         }
 

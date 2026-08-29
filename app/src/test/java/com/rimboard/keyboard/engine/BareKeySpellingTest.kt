@@ -25,6 +25,50 @@ import java.util.Locale
  * a threshold that fixes "gunaydin" and also rewrites "cam" into "çam" has
  * traded one wrong answer for a worse one.
  *
+ * ## Three prices for three acts
+ *
+ * That threshold governs *replacing* a word, and fifty is what overruling
+ * somebody costs. Two cheaper acts were being charged the same price.
+ *
+ * Offering the accented form as a chip costs a chip, and is asked at a fifth
+ * of it — see [AccentSuggestionTest]. **Underlining** costs the reader a
+ * glance and changes nothing they wrote, and is asked at thirty.
+ *
+ * Thirty is not a new number. The note on `BARE_KEY_RATIO` already found this
+ * boundary: "the band below thirty holds genuine distinct words — Turkish
+ * `cop` and `çöp` at 28x, `cami` and `camı` at 3x, `ucu` and `üçü` at 1x — and
+ * above fifty there is nothing but accents somebody did not type." Both ends
+ * were characterised and the middle never was, because one constant was doing
+ * all three jobs. The squiggle lives in that middle.
+ *
+ * Measured on the prose fixtures with their accents stripped, which is exactly
+ * what somebody typing without them produces — words caught, at fifty and at
+ * thirty:
+ *
+ *     hr   6% -> 68%      sk  72% -> 92%      pl  84% -> 88%
+ *     el  36% -> 84%      da  77% -> 87%      hu  91% -> 93%
+ *     es  15% -> 33%      de  83% -> 83%      cs  90% -> 91%
+ *
+ * 3,494 words to 4,072 across twenty languages, for **one** extra squiggle over
+ * 26,000 words of correctly accented prose. And on the curated list below —
+ * the words this file pins as words in their own right — thirty wrongly
+ * underlines none. Below it they start going, and the order is the argument
+ * for stopping: 28 takes `cop`, 20 takes `tas`, 15 takes `möchte`, 10 takes
+ * `mas`.
+ *
+ * **Spanish gains least, and that is the interesting part.** The words that
+ * prompted all this — `aqui` at 24.9x, `también` 28.3x, `día` 24.5x — sit
+ * below thirty and go unmarked, because Turkish `tas` (21.8x) and `cop`
+ * (28.3x) are genuine words at the same ratios. One number cannot separate a
+ * Spanish misspelling from a Turkish noun; what differs is the language, not
+ * the frequency. A per-language table is the shape that would, and calibrating
+ * twenty of them needs ground truth this file has for four. Spanish is not
+ * left empty-handed in the meantime: it gets the chip at ten.
+ *
+ * The strip's quoting of an unrecognised word still asks at fifty. It is the
+ * same cost profile and could reasonably move too, but it was not measured
+ * here and one change at a time is the rule that keeps these honest.
+ *
  * Against the real shipped dictionaries. There is no way to write a fixture
  * for this — the whole question is what the corpus actually contains.
  */
@@ -110,6 +154,91 @@ class BareKeySpellingTest {
             for (w in words) {
                 assertTrue("$lang '$w' is a word and must not be rewritten",
                     eng.acceptedWord(w, lang, loc))
+            }
+        }
+    }
+
+    @Test
+    fun `a squiggle may suspect what the space bar must leave alone`() {
+        // The split, asserted from both sides. Each of these is a bare
+        // spelling nobody writes on purpose, sitting between thirty and fifty
+        // where the old single threshold left it entirely unremarked.
+        for ((lang, words) in listOf(
+            "hr" to listOf("zasto", "jos", "nesto", "vise", "znas"),
+            "sk" to listOf("ked", "velmi", "moj", "este", "mna"),
+            "el" to listOf("ειναι", "αυτο", "εδω")
+        )) {
+            val eng = engine(lang)
+            val loc = Locale.forLanguageTag(lang)
+            for (w in words) {
+                assertFalse(
+                    "$lang '$w' should now be underlined",
+                    eng.acceptedWord(w, lang, loc, underlining = true)
+                )
+                assertTrue(
+                    "$lang '$w' must still be accepted by the space bar -- a " +
+                        "squiggle asks the reader to look, it does not overrule them",
+                    eng.acceptedWord(w, lang, loc)
+                )
+                assertEquals(
+                    "$lang '$w' must not be corrected to anything",
+                    null, eng.correctionFor(w, lang, loc)
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `Spanish is not covered, and the reason is not a missing knob`() {
+        // The words that started this -- "aqui" 24.9x, "tambien" 28.3x, "dia"
+        // 24.5x, "estan" 22.3x -- are all below thirty and stay unmarked.
+        //
+        // Not an oversight, and not fixable by turning the number down.
+        // Spanish's bare spellings sit at 22-28x and Turkish's genuine words
+        // sit at 21.8x ("tas") and 28.3x ("cop"), interleaved: any threshold
+        // low enough to underline "aqui" also underlines a Turkish word that
+        // means "stone". One number cannot separate them, because the thing
+        // that differs is not the frequency but the language.
+        //
+        // A per-language table would -- this file already has the shape of one
+        // in tools/, for suffix and prefix floors -- but calibrating twenty of
+        // them needs ground truth per language, and the curated list here
+        // covers four. That is the honest reason it has not been done, rather
+        // than a claim that it should not be.
+        //
+        // Spanish is not left with nothing meanwhile: it gets the chip at ten,
+        // which is what [AccentSuggestionTest] measures and what a Spanish user
+        // taps to reach "aquí".
+        val eng = engine("es")
+        val es = Locale.forLanguageTag("es")
+        for (w in listOf("aqui", "tambien", "dia", "estan", "ahi", "asi")) {
+            assertTrue(
+                "es '$w' is inside the band Turkish 'cop' and 'tas' live in; " +
+                    "underlining it means underlining those",
+                eng.acceptedWord(w, "es", es, underlining = true)
+            )
+        }
+    }
+
+    @Test
+    fun `the words that are words in their own right are not underlined either`() {
+        // The same curated list as above, asked the stricter question. This is
+        // the cost side of the thirty, and it is why it is thirty: at 28 the
+        // Turkish "cop" goes, at 20 "tas", at 15 the German "mochte", at 10 the
+        // Spanish "mas".
+        for ((lang, words) in listOf(
+            "tr" to listOf("cam", "cop", "tas", "cami", "ucu", "sik", "yas", "bas"),
+            "es" to listOf("si", "mas", "el", "tu", "mi", "se", "esta", "como"),
+            "fr" to listOf("ou", "la", "du", "sur", "mur", "des"),
+            "de" to listOf("schon", "konnte", "mochte", "waren")
+        )) {
+            val eng = engine(lang)
+            val loc = Locale.forLanguageTag(lang)
+            for (w in words) {
+                assertTrue(
+                    "$lang '$w' is a word in its own right and must not be underlined",
+                    eng.acceptedWord(w, lang, loc, underlining = true)
+                )
             }
         }
     }

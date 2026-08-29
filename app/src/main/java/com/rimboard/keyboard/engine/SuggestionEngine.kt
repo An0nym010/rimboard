@@ -803,6 +803,11 @@ class SuggestionEngine private constructor(
         // The accented word this spells, where the corpus actually holds one.
         // Asked once and carried, because three places below want the same
         // answer and each of them was asking again.
+        //
+        // BARE_KEY_RATIO, deliberately: this is the correction path, and a
+        // correction replaces what somebody wrote. The looser thresholds are
+        // for offering a chip and for drawing a squiggle, neither of which
+        // overrules anyone.
         val attested = dict.accentedFormOf(lower)
         // Being in the dictionary is no longer the end of it: a bare-key
         // spelling of a far commoner accented word is in there too, and is not
@@ -989,13 +994,30 @@ class SuggestionEngine private constructor(
      * The exception is a bare-key spelling of an accented word — "gunaydin",
      * "cafe". Those are *not* accepted even when the folding is unambiguous,
      * because they are exactly the case the accent restoration exists to fix.
+     *
+     * That exception, and only that one, is asked at a different threshold when
+     * [underlining]. Everything else here answers identically to both callers.
      */
     fun acceptedWord(
         typed: String,
         lang: String,
         locale: Locale,
         altLang: String? = null,
-        altLocale: Locale? = null
+        altLocale: Locale? = null,
+        /**
+         * Asked by the spell checker, which wants a stricter answer about one
+         * thing only: a bare spelling of an accented word.
+         *
+         * The doc below says the four ways a word can be real are deliberately
+         * the same four that stop autocorrect touching it, "so the keyboard and
+         * the underlines cannot disagree about what counts as a word". That is
+         * still true of all four. What differs is the price of the bare-key
+         * exception, because a squiggle and a replacement are not the same act:
+         * one asks the reader to look, the other overrules them. So the
+         * underline is allowed to suspect a word the space bar will still
+         * commit untouched -- see [Dictionary.accentedUnderlineFor].
+         */
+        underlining: Boolean = false
     ): Boolean {
         val lower = typed.lowercase(locale)
         val dict = dictionary(lang, locale)
@@ -1010,7 +1032,8 @@ class SuggestionEngine private constructor(
         // that this is the word meant. Same order as [correctionCandidates],
         // so the underlines and the keyboard cannot disagree.
         if (userData.isKnown(lower)) return true
-        val attested = dict.accentedFormOf(lower)
+        val attested =
+            if (underlining) dict.accentedUnderlineFor(lower) else dict.accentedFormOf(lower)
         if (dict.contains(lower) && attested == null) return true
         // Before the morphology and the other language, because a name is a
         // name in any of them: "Yilmaz" is not a Turkish stem with a suffix on
