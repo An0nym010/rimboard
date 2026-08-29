@@ -53,12 +53,12 @@ import java.util.Locale
  *
  * Points of destruction prevented, with the inventory and without:
  *
- *     hu 5.8   ro 4.0   fi 3.7   de 3.2   sv 2.5   da 1.8   en 1.5
+ *     hu 7.5   ro 4.0   fi 5.0   de 3.2   sv 2.5   da 1.8   en 1.5
  *     es 5.5   cs 3.8   fr 3.5   nl 2.8   hr 3.8   no 1.5   sk 0.2
  *     it 4.2   pl 3.8   pt 3.3   id 2.2   ru 1.5
  *
- * Croatian reads 3.8 there and used to read 2.2; see the note on capped
- * two-letter endings below.
+ * Hungarian, Finnish and Croatian read 7.5, 5.0 and 3.8 there and used to read
+ * 5.8, 3.7 and 2.2; see the note on capped two-letter endings below.
  *
  * **Slovak is why the criterion is the outcome.** It derives a respectable
  * inventory and accepts a fair number of held-out words with it, and it
@@ -118,9 +118,34 @@ import java.util.Locale
  * for 0.2 more cost and leaves almost no margin, which is not a trade worth
  * making on the edge of a limit.
  *
- * Hungarian at 3.9% and Finnish at 2.3% were rejected at two characters for
- * the same reason Croatian was, and the same knob is now available to them.
- * Neither is measured; this sweep is how.
+ * ## The same knob, for the two languages the sweep had rejected
+ *
+ * Hungarian and Finnish were refused two-letter endings for the same reason
+ * Croatian could not have them: 3.9% and 2.3% wrongly accepted against a 1.5%
+ * ceiling. Both turn out to be the same shape of problem, and both are fixed by
+ * admitting the head of the list and not the tail. Swept the same way:
+ *
+ *     hungarian                        finnish
+ *      added  prevents  cost            added  prevents  cost
+ *          0    5.8      0.4%               0    3.7      -
+ *          8    6.8      0.6%               2    4.8      0.9%
+ *         16    7.5      1.0%   <- here     4    5.0      1.2%   <- here
+ *         20    8.2      1.5%               8    6.0      1.9%
+ *         24    8.8      1.7%              16    6.3      2.3%
+ *
+ * Hungarian stops at sixteen for the reason Croatian stops there: twenty
+ * reaches 8.2 points but sits exactly on the ceiling, and an inventory with no
+ * margin is one a dictionary rebuild can invalidate. Finnish takes only four,
+ * because its endings run out of value fast -- eight is already over.
+ *
+ * What it is worth, as destruction: Hungarian 30.5% to 28.8%, Finnish 29.7% to
+ * 28.3%, Croatian 38.3% to 36.7%. Three of the five worst correctors in the
+ * app, and the three worst that were not already at two characters.
+ *
+ * That leaves no shipped language at the three-character default with a known
+ * gain going unclaimed. Romanian, Spanish and Polish were swept and rejected on
+ * the old all-or-nothing basis and have not been re-swept with the cap; they
+ * are the next candidates and nobody has measured them.
  *
  * ## English, and a judgement the measurement overruled
  *

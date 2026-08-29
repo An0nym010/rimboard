@@ -98,10 +98,16 @@ MIN_SUFFIX_BY_LANG = {"cs": 2, "de": 2, "id": 2, "nl": 2, "sv": 2, "ru": 2, "no"
 # for a dictionary rebuild to move things. Twenty buys 0.2 more points for 0.2
 # more cost and leaves almost no margin.
 #
-# The same knob is now available to every language the original sweep rejected
-# for cost -- Hungarian at 3.9% and Finnish at 2.3% are the obvious candidates.
-# Neither is measured here; the sweep above is how to do it.
-SHORT_CAP = {"hr": 16}
+# Hungarian and Finnish were rejected at two characters for the same reason and
+# are fixed the same way. Swept identically: Hungarian goes 5.8 -> 7.5 points at
+# sixteen (1.0% cost; twenty reaches 8.2 but sits exactly on the ceiling), and
+# Finnish 3.7 -> 5.0 at four (1.2%; eight is already over at 1.9%). Their
+# destruction rates go 30.5% -> 28.8% and 29.7% -> 28.3%.
+#
+# Romanian, Spanish and Polish were rejected on the old all-or-nothing basis and
+# have not been re-swept with this cap. They are the next candidates and nobody
+# has measured them.
+SHORT_CAP = {"hr": 16, "hu": 16, "fi": 4}
 
 # Longer than this and a "suffix" is really a second word; the compound
 # splitter is the right tool for those and German already has one.
