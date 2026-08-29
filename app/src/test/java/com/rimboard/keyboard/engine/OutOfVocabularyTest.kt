@@ -37,18 +37,28 @@ import java.util.Locale
  *                en    tr    de    pl    es    ru    cs    fi    hu
  *     found    25.5  26.0  29.8  40.0  40.7  40.7  41.3  41.7  46.0
  *     shape    21.7  20.7  25.5  31.7  33.3  33.7  33.7  33.3  36.3
- *     endings  20.2  20.7  22.3  27.8  27.8  32.2  29.8  29.7  30.5
+ *     endings  20.2  20.7  22.3  26.3  27.8  32.2  29.8  28.3  28.8
+ *     prefixes 20.2  20.7  21.0  24.0  27.8  29.5  29.8  28.3  27.0
  *
- * Two things brought it down. [Dictionary.looksLikeAWord] holds a string
+ * Three things brought it down. [Dictionary.looksLikeAWord] holds a string
  * shaped like a word of the language to a tighter bar than one that is not,
  * which is worth five to ten points everywhere and costs nothing on the repair
- * side. Then a counted suffix inventory (`tools/derive_suffixes.py`) lets eighteen
- * languages recognise a word built out of parts they know, worth another one
- * and a half to six points each. Only Greek, Ukrainian and Slovak have none:
- * the first two derive nothing at all and the third derives an inventory that
- * prevents nothing. Which languages have one, on what measurement, is in
- * [SuffixInventoryTest]. Which languages have one, and
- * why English does not, is in [SuffixInventoryTest].
+ * side. Then a counted suffix inventory (`tools/derive_suffixes.py`) lets
+ * eighteen languages recognise a word built out of parts they know, worth
+ * another one and a half to eight points each; only Greek, Ukrainian and
+ * Slovak have none, the first two deriving nothing at all and the third an
+ * inventory that prevents nothing. Which languages have one, on what
+ * measurement, and why English very nearly did not, is in
+ * [SuffixInventoryTest].
+ *
+ * The last row is the one that took longest to think of, because every clause
+ * in the engine's word-formation check read the *end* of a word. The walk was
+ * written for Turkish, which is purely suffixing, and eighteen languages
+ * inherited that assumption along with it — so `verschuldigde` and
+ * `angeschlichen`, whose only unusual feature is a prefix, were words no rule
+ * could vouch for. `tools/derive_prefixes.py` counts the other end of the word
+ * the same way, ten languages ship one, and [PrefixInventoryTest] holds each of
+ * them to the same trade. Dutch drops 2.2 points, Russian 2.7, Polish 2.3.
  *
  * `elohopea` becomes `elohopeaa`, `kisegített` becomes `segített`,
  * `zignorowałeś` becomes `zignorował`, `povinnostech` becomes `povinnostem`,
@@ -162,8 +172,16 @@ class OutOfVocabularyTest {
         files["predictions/$lang.txt"] = File(assets(), "predictions/$lang.txt").readText()
         // The suffix inventory is an asset like any other, and leaving it out
         // of the map is how this measured no change at all from adding one.
+        // It then happened a second time, to the prefixes: this file reported
+        // every language unchanged while PrefixInventoryTest measured Russian
+        // 2.7 points better, because the map is built by hand and a new asset
+        // is invisible until it is named here. Any inventory the engine reads
+        // has to be listed, or this test quietly measures the old build.
         File(assets(), "suffixes/$lang.txt").takeIf { it.exists() }?.let {
             files["suffixes/$lang.txt"] = it.readText()
+        }
+        File(assets(), "prefixes/$lang.txt").takeIf { it.exists() }?.let {
+            files["prefixes/$lang.txt"] = it.readText()
         }
         return SuggestionEngine.forTesting(userData) { p -> files[p]?.byteInputStream() }
     }

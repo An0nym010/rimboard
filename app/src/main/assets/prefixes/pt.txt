@@ -1,0 +1,6 @@
+des
+con
+com
+pre
+pro
+sub

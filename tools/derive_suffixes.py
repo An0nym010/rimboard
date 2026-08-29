@@ -160,9 +160,15 @@ MIN_STEMS = 150
 #
 # Points of destruction prevented, measured with the inventory and without:
 #
-#     hu 7.5   ro 4.0   fr 3.5   nl 2.8   da 1.8   sk 0.2
-#     es 5.5   cs 3.8   fi 5.0   pt 3.3   id 2.2   no 1.5
-#     pl 5.3   hr 3.8   de 3.2   sv 2.5   ru 1.5   en 1.5
+#     hu 8.0   ro 5.3   fr 4.0   nl 3.5   ru 1.8   sk 0.2
+#     pl 6.2   fi 5.0   pt 4.0   de 3.3   da 1.8
+#     es 5.5   it 4.2   cs 3.8   sv 3.2   en 1.5
+#     hr 3.8   id 3.0   no 1.5
+#
+# Measured with the prefix inventories present in both arms, which is what
+# ships. They raised these rather than lowering them, because the two walks
+# compose: a prefix is stripped and what is left goes to the ending walk, so
+# the endings are worth more once there are prefixes. See derive_prefixes.py.
 #
 # Slovak is the only one that derives an inventory and gains nothing from it.
 #

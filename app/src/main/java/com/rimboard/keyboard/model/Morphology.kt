@@ -114,6 +114,79 @@ object Morphology {
     }
 
     /**
+     * Whether [wordLower] is a prefix this language builds words with, in front
+     * of something the rest of the walk can vouch for.
+     *
+     * Everything above this reads the end of a word, because Turkish -- the
+     * language the guard was written for -- is purely suffixing, and the note
+     * at the top of this file says so in as many words: "the stem is always
+     * what is left at the front." That is true of Turkish and false of most of
+     * the eighteen languages that inherited the counted walk.
+     *
+     * `OutOfVocabularyTest` prints the consequence in its own output. Dutch
+     * `verschuldigde` is rewritten to `verschuldigd` and German
+     * `angeschlichen` to `geschlichen`: correct words destroyed by having a
+     * prefix taken off them, where the same words with an *ending* stripped
+     * would have been vouched for and left alone. Three of the five real
+     * English words destroyed on a phone lost a derivational prefix.
+     *
+     * So: strip one recognised prefix, and accept if what remains is a known
+     * stem or a word the counted ending walk can build. `ver+schuldigde`,
+     * `по+вернусь`, `fel+ismertél`, `aus+setzte`, `ne+programovala`.
+     *
+     * ## One prefix, and never more
+     *
+     * [stemIsKnown] lets endings stack because stacking is what endings do.
+     * Prefixes are not like that in these languages -- Czech `nevy-` and
+     * `nepo-` are counted as prefixes in their own right precisely because
+     * `ne-` in front of `vy-` is common enough to be one string -- so allowing
+     * a second strip would buy what the inventory already holds while
+     * multiplying the ways a typo comes apart. The composition that does pay
+     * is prefix-then-*ending*, which is what this does.
+     *
+     * ## What it costs, and why the price is read on the whole walk
+     *
+     * A prefix is cheap to be wrong about compared with an ending, and the
+     * reason is worth stating: a mistyped letter usually lands in the middle or
+     * the end of a word, which leaves the prefix intact but breaks the stem,
+     * and a broken stem is not known. Measured, the prefix walk adds 0.0 to
+     * 0.4 percentage points of false accepts on its own.
+     *
+     * That number is never read on its own, though. `PrefixInventoryTest`
+     * prices endings and prefixes *together*, against the ceiling the endings
+     * already answer to, because a user typing a word is exposed to whatever
+     * either half of the walk will wave through. Dutch is the language that
+     * makes the difference matter: its prefix inventory is the best-earning of
+     * any measured, and its ending inventory already spends most of the
+     * budget, so the pair does not fit and Dutch ships no prefixes.
+     */
+    fun prefixedStemIsKnown(
+        wordLower: String,
+        prefixes: List<String>,
+        suffixes: List<String>,
+        known: (String) -> Boolean
+    ): Boolean {
+        // The shortest thing this can accept is a two-letter prefix on a
+        // three-letter stem -- Polish "pobil", "po" + "bil". Twice the stem
+        // floor was the first guess and it is wrong by one letter, which no
+        // measurement here would have caught: every sample in
+        // PrefixInventoryTest is six letters or longer.
+        if (prefixes.isEmpty() || wordLower.length < DERIVED_MIN_STEM + 2) return false
+        for (pre in prefixes) {
+            if (wordLower.length - pre.length < DERIVED_MIN_STEM) continue
+            if (!wordLower.startsWith(pre)) continue
+            val rest = wordLower.substring(pre.length)
+            // A known stem outright, or one the counted endings can build. The
+            // second is where most of the value is: a prefixed word is usually
+            // inflected too, and `aussetzte` is `aus` plus `setzte` plus
+            // nothing the list holds until the ending comes off as well.
+            if (known(rest)) return true
+            if (stemIsKnown(rest, suffixes, known = known)) return true
+        }
+        return false
+    }
+
+    /**
      * Whether [wordLower] is a known word carrying suffixes **after an
      * apostrophe** — "Paris'e", "Türkiye'de", "ABD'de", "Rusya'nın".
      *

@@ -53,13 +53,23 @@ import java.util.Locale
  *
  * Points of destruction prevented, with the inventory and without:
  *
- *     hu 7.5   ro 4.0   fr 3.5   nl 2.8   da 1.8   sk 0.2
- *     es 5.5   cs 3.8   fi 5.0   pt 3.3   id 2.2   no 1.5
- *     pl 5.3   hr 3.8   de 3.2   sv 2.5   ru 1.5   en 1.5
+ *     hu 8.0   ro 5.3   fr 4.0   nl 3.5   ru 1.8   sk 0.2
+ *     pl 6.2   fi 5.0   pt 4.0   de 3.3   da 1.8
+ *     es 5.5   it 4.2   cs 3.8   sv 3.2   en 1.5
+ *     hr 3.8   id 3.0   no 1.5
  *
- * Hungarian, Finnish, Croatian and Polish read 7.5, 5.0, 3.8 and 5.3 there and
+ * Hungarian, Finnish, Croatian and Polish read 8.0, 5.0, 3.8 and 6.2 there and
  * used to read 5.8, 3.7, 2.2 and 3.8; see the note on capped two-letter endings
  * below.
+ *
+ * Ten of these rose again when the prefix inventories landed, and the reason is
+ * worth stating because it was not the expected one. The two walks compose:
+ * [com.rimboard.keyboard.model.Morphology.prefixedStemIsKnown] strips a prefix
+ * and hands what is left to the *ending* walk, so `aussetzte` needs both halves
+ * and neither alone. Adding prefixes therefore made the endings worth more
+ * rather than less — Polish 5.3 to 6.2, Romanian 4.0 to 5.3, Hungarian 7.5 to
+ * 8.0. The figures here are measured with the prefixes present in both arms,
+ * which is the configuration that ships; see [PrefixInventoryTest].
  *
  * **Slovak is why the criterion is the outcome.** It derives a respectable
  * inventory and accepts a fair number of held-out words with it, and it
@@ -256,6 +266,13 @@ class SuffixInventoryTest {
         val files = HashMap<String, String>()
         files["dictionaries/$lang.txt"] = all.take(KEEP).joinToString(NEWLINE)
         files["predictions/$lang.txt"] = File(assets(), "predictions/$lang.txt").readText()
+        // Present in both arms. Ten languages ship a prefix inventory now, and
+        // the question here is what the *endings* are worth on top of what
+        // else the walk can already do -- measuring them against a build with
+        // no prefixes would report the value of a configuration nobody runs.
+        File(assets(), "prefixes/$lang.txt").takeIf { it.exists() }?.let {
+            files["prefixes/$lang.txt"] = it.readText()
+        }
         if (withInventory) {
             File(assets(), "suffixes/$lang.txt").takeIf { it.exists() }?.let {
                 files["suffixes/$lang.txt"] = it.readText()

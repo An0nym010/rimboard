@@ -1073,6 +1073,16 @@ class SuggestionEngine private constructor(
         // free to overwrite.
         com.rimboard.keyboard.model.Morphology.stemIsKnown(lower, suffixesFor(lang)) {
             dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
+        } ||
+        // The same question at the other end of the word. Every clause here
+        // read a word's tail until this one, because the walk was written for
+        // Turkish, which has no prefixes -- so "verschuldigde" and
+        // "angeschlichen" were words no rule could vouch for and autocorrect
+        // was free to overwrite.
+        com.rimboard.keyboard.model.Morphology.prefixedStemIsKnown(
+            lower, prefixesFor(lang), suffixesFor(lang)
+        ) {
+            dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
         } || com.rimboard.keyboard.model.Compounds.splitOf(
             lang, lower, Dictionary.STEM_MIN_FREQ
         ) { dict.frequency(it) } != null ||
@@ -1845,6 +1855,9 @@ class SuggestionEngine private constructor(
     private val suffixSets = java.util.concurrent.ConcurrentHashMap<String, List<String>>()
     private val suffixLock = Any()
 
+    private val prefixSets = java.util.concurrent.ConcurrentHashMap<String, List<String>>()
+    private val prefixLock = Any()
+
     /**
      * Endings [lang] builds words with, counted from its own dictionary by
      * `tools/derive_suffixes.py` and shipped as assets/suffixes/<lang>.txt.
@@ -1870,6 +1883,38 @@ class SuggestionEngine private constructor(
                 }
             } catch (e: Exception) {
                 android.util.Log.w(TAG, "no suffix inventory for $lang", e)
+                emptyList()
+            }
+        }
+    }
+
+    /**
+     * Prefixes [lang] builds words with, counted from its own dictionary by
+     * `tools/derive_prefixes.py` and shipped as assets/prefixes/<lang>.txt.
+     *
+     * Six languages have one against eighteen with endings, and that gap is
+     * the measurement rather than an unfinished job: a prefix inventory is
+     * held to the same point of destruction prevented, and priced together
+     * with the endings against the same ceiling, so a language whose endings
+     * already spend the budget cannot have one however well its prefixes
+     * count. See [com.rimboard.keyboard.model.Morphology.prefixedStemIsKnown].
+     *
+     * Longest first, for the same reason the endings are: strip the most
+     * specific prefix before a shorter one it begins with -- Czech `nevy-`
+     * before `ne-`.
+     */
+    private fun prefixesFor(lang: String): List<String> = synchronized(prefixLock) {
+        prefixSets.getOrPut(lang) {
+            try {
+                val stream = assets.open("prefixes/$lang.txt") ?: return@getOrPut emptyList()
+                stream.bufferedReader().useLines { lines ->
+                    lines.map { it.trim() }
+                        .filter { it.isNotEmpty() }
+                        .sortedByDescending { it.length }
+                        .toList()
+                }
+            } catch (e: Exception) {
+                android.util.Log.w(TAG, "no prefix inventory for $lang", e)
                 emptyList()
             }
         }
