@@ -1067,6 +1067,30 @@ class SuggestionEngine private constructor(
         if (altLang == null || altLocale == null) return false
         val altLower = typed.lowercase(altLocale)
         val altDict = dictionary(altLang, altLocale)
+        // ...including the bare-key exception, which this did not ask and the
+        // paragraph above claimed it did.
+        //
+        // The fix that comment describes reached `wellFormedWord` -- compounds,
+        // morphology, elision, apostrophes -- and stopped short of the accent
+        // rule, because that one is asked further up, in the part of this
+        // function that only ever sees the primary language. So the second
+        // language really did keep a bare `contains`, for exactly one rule.
+        //
+        // What that cost: "icin" is corrected to "için" and "fur" to "für" when
+        // Turkish or German is the language on the space bar, and both were
+        // waved through untouched when the same language sat in the second
+        // slot. The spell checker takes its primary from the *system* locale
+        // rather than the keyboard, so for anyone whose phone is in a different
+        // language than they type in, the second slot is the only slot -- and
+        // accent restoration was switched off for them entirely.
+        //
+        // Only words the primary language does not hold reach here at all, so
+        // a word that is real where it was typed is unaffected: English "cote"
+        // returns true above and never meets French "côte".
+        val altAttested =
+            if (underlining) altDict.accentedUnderlineFor(altLower)
+            else altDict.accentedFormOf(altLower)
+        if (altAttested != null) return false
         return altDict.contains(altLower) || wellFormedWord(altLower, altLang, altDict)
     }
 

@@ -92,8 +92,9 @@ class BareKeySpellingTest {
     private fun assets(): File =
         listOf(File("src/main/assets"), File("app/src/main/assets")).first { it.isDirectory }
 
-    private fun engine(lang: String): SuggestionEngine {
-        val files = listOf("dictionaries/$lang.txt", "predictions/$lang.txt")
+    private fun engine(vararg langs: String): SuggestionEngine {
+        val files = langs
+            .flatMap { l -> listOf("dictionaries/$l.txt", "predictions/$l.txt") }
             .filter { File(assets(), it).exists() }
             .associateWith { File(assets(), it).readText() }
         return SuggestionEngine.forTesting(userData) { p -> files[p]?.byteInputStream() }
@@ -240,6 +241,56 @@ class BareKeySpellingTest {
                     eng.acceptedWord(w, lang, loc, underlining = true)
                 )
             }
+        }
+    }
+
+    @Test
+    fun `the rule follows the language, not the slot it was put in`() {
+        // `acceptedWord` says the second language is "asked the *same* question
+        // the primary was asked -- not merely whether the word is in its list",
+        // and names the fault it fixed: "the second language got a bare
+        // `contains` and the first got five rules." That fix reached
+        // `wellFormedWord` and stopped short of this one, because the accent
+        // rule is asked further up, where only the primary language is in hand.
+        // So there really was a sixth rule the second language never got.
+        //
+        // It matters more than a second slot usually does. The spell checker
+        // takes its primary from the *system* locale, not from the keyboard --
+        // so for anyone whose phone is set to a language they do not type in,
+        // the second slot is the only slot, and accent restoration was off.
+        //
+        // Found on a phone: Croatian "zasto" with the device in English would
+        // not underline, however loudly the Croatian dictionary disagreed.
+        val eng = engine("hr", "en")
+        val hr = Locale.forLanguageTag("hr")
+        val en = Locale.ENGLISH
+        // Two conditions on a word used here, and both are the design rather
+        // than an inconvenience. It must be above the underline ratio -- "cemo"
+        // is 22x and correctly stays unmarked -- and English must not hold it,
+        // which rules out "jos", "nesto", "sta" and "vise", all four in the
+        // English list as names or words. English claiming a word is the veto
+        // working, not failing.
+        for (w in listOf("zasto", "znas", "mozda", "nista")) {
+            assertFalse(
+                "hr '$w' must be underlined whichever slot Croatian is in",
+                eng.acceptedWord(w, "en", en, "hr", hr, underlining = true)
+            )
+            assertFalse(
+                "...and it is, when Croatian is primary",
+                eng.acceptedWord(w, "hr", hr, "en", en, underlining = true)
+            )
+        }
+        // The other direction, which is what stops this being a way to reject
+        // ordinary words: only a word the primary language does *not* hold
+        // reaches the second at all. English "cote" is an English word, so it
+        // never meets French "côte", and English "fur" never meets German
+        // "für".
+        val fr = engine("en", "fr")
+        for (w in listOf("cote", "fur", "mas")) {
+            assertTrue(
+                "en '$w' is an English word and the second language cannot veto it",
+                fr.acceptedWord(w, "en", en, "fr", Locale.FRENCH, underlining = true)
+            )
         }
     }
 
