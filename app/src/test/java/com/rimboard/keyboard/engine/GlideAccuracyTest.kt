@@ -196,7 +196,25 @@ class GlideAccuracyTest {
      * rounded through those aim points by a quadratic through each corner, then
      * sampled by arc length and jittered.
      */
-    private fun path(word: String, hand: Hand, prox: KeyProximity, rnd: Random): FloatArray? {
+    private fun path(
+        word: String,
+        hand: Hand,
+        prox: KeyProximity,
+        rnd: Random,
+        /**
+         * How much narrower this layout's keys are than the one [hand] was
+         * measured on, as a multiplier on every key-width quantity.
+         *
+         * The hand is stated in key widths -- how far momentum carries it, how
+         * far it cuts a corner, how much it wobbles -- and a hand does not know
+         * how many keys the row has. Put eleven keys where ten were and each is
+         * ten elevenths as wide, so the same physical millimetre of wobble is
+         * eleven tenths of a key. Sampling goes the other way: a constant-rate
+         * digitiser takes fewer readings per key width when a key width is less
+         * far to travel.
+         */
+        widthScale: Float = 1f
+    ): FloatArray? {
         val letters = anchorsOf(word)
         if (letters.length < 2) return null
         val ax = FloatArray(letters.length)
@@ -244,9 +262,10 @@ class GlideAccuracyTest {
             var dx = (mx - ax[i]) * hand.cut
             var dy = (my - ay[i]) * hand.cut
             val d = hypot(dx, dy)
-            if (d > hand.cutMax && d > 0f) {
-                dx *= hand.cutMax / d
-                dy *= hand.cutMax / d
+            val cutMax = hand.cutMax * widthScale
+            if (d > cutMax && d > 0f) {
+                dx *= cutMax / d
+                dy *= cutMax / d
             }
             cx[i] = ax[i] + dx
             cy[i] = ay[i] + dy
@@ -260,8 +279,9 @@ class GlideAccuracyTest {
         px.add(cx[0]); py.add(cy[0])
         for (i in 1 until letters.length - 1) {
             val t = hand.curve.coerceIn(0f, 0.5f)
-            val tIn = radiusLimited(t, cx[i - 1] - cx[i], cy[i - 1] - cy[i], hand.curveMax)
-            val tOut = radiusLimited(t, cx[i + 1] - cx[i], cy[i + 1] - cy[i], hand.curveMax)
+            val curveMax = hand.curveMax * widthScale
+            val tIn = radiusLimited(t, cx[i - 1] - cx[i], cy[i - 1] - cy[i], curveMax)
+            val tOut = radiusLimited(t, cx[i + 1] - cx[i], cy[i + 1] - cy[i], curveMax)
             val inX = cx[i] + (cx[i - 1] - cx[i]) * tIn
             val inY = cy[i] + (cy[i - 1] - cy[i]) * tIn
             val outX = cx[i] + (cx[i + 1] - cx[i]) * tOut
@@ -279,7 +299,7 @@ class GlideAccuracyTest {
 
         // Resample the polyline at a constant arc-length step, which is what a
         // constant-velocity finger under a constant-rate digitiser produces.
-        val step = 1f / hand.density
+        val step = widthScale / hand.density
         val out = ArrayList<Float>()
         var carry = 0f
         out.add(px[0]); out.add(py[0])
@@ -303,7 +323,7 @@ class GlideAccuracyTest {
             // The endpoints are where the finger deliberately started and
             // stopped, so they wobble like the rest but are not displaced by
             // the model's own smoothing.
-            arr[i] = out[i] + (rnd.nextFloat() - 0.5f) * 2f * hand.jitter
+            arr[i] = out[i] + (rnd.nextFloat() - 0.5f) * 2f * hand.jitter * widthScale
         }
         return arr
     }
@@ -1020,6 +1040,203 @@ class GlideAccuracyTest {
                 val w = line.split(' ').firstOrNull() ?: continue
                 if (w.length !in 4..10 || !w.all { c -> c.isLetter() }) continue
                 if (w.any { c -> !foldable(c) }) out.add(w)
+                if (out.size >= count) break
+            }
+        }
+        return out
+    }
+
+    /**
+     * What it would cost to give a language's own letters keys of their own.
+     *
+     * Nineteen shipped languages keep letters of their alphabet behind a long
+     * press, and for the Nordic ones those are letters rather than accented
+     * variants: `æ`, `ø` and `å` have keys on every physical Danish or
+     * Norwegian keyboard, and `ä`, `ö` on every Swedish and Finnish one. This
+     * project already draws twelve keys in a Turkish row and eleven in a
+     * Russian one, so the precedent exists — but the question was never
+     * answerable, because an extra key makes every key narrower and nothing
+     * here modelled key width.
+     *
+     * **It did, and had from the start.** [KeyProximity] measures in key
+     * widths, and `GlideTrail.toGrid` divides a real touch offset by the real
+     * pixel width of the key it landed on. So the grid is a normalised space,
+     * and putting eleven keys where ten were is arithmetically identical to
+     * leaving the keys alone and making the hand a tenth clumsier. Every
+     * quantity in [Hand] is already denominated in key widths — how far
+     * momentum carries it, how far it cuts a corner, how much it wobbles — so
+     * the change is one multiplier, and `widthScale` on [path] is it.
+     *
+     * Two populations, because the trade has two sides and pricing one without
+     * the other is how this project has been wrong before:
+     *
+     *  * **words holding one of those letters**, which today must be traced
+     *    through a host key and are therefore indistinguishable from whatever
+     *    ordinary word shares the path — Norwegian `være` from `vare`, Danish
+     *    `bære` from `bare`. That is the gain.
+     *  * **words holding none of them**, which gain nothing and pay the whole
+     *    cost of the narrower keys. That is the bill.
+     *
+     * The first population is not a curiosity. Words containing `ø` or `æ` are
+     * **6.5% of everything typed in Danish** and 4.2% in Norwegian, counted
+     * over the shipped dictionaries.
+     *
+     * ## Calibrated against a width somebody already shipped
+     *
+     * The scaling is a claim about physics, so it is checked rather than
+     * asserted. Turkish already draws twelve keys in a row and Russian eleven,
+     * and the rest of this file measures all three languages on the same hand
+     * — which quietly credits Turkish with keys a tenth wider than it has.
+     * Re-measured at the width each layout really has:
+     *
+     *     en  10 keys   80%/99%  ->  80%/99%   (the control: no scaling)
+     *     ru  11 keys   89%/100% ->  86%/100%
+     *     tr  12 keys   88%/100% ->  85%/99%
+     *
+     * So an extra key in the row costs about three points of top-1 on ordinary
+     * words, on layouts that carry one today.
+     *
+     * ## What this does not measure
+     *
+     * **Tapping.** Narrower keys are most obviously worse for a finger aiming
+     * at one, and nothing here models that: the arms above are swipes. The tap
+     * side needs the same treatment through `TapArbiter` and has not had it,
+     * so the numbers below are one half of the trade and should be read as
+     * such.
+     *
+     * It also inherits [KeyProximity]'s own approximations — three rows at
+     * fixed stagger offsets, a hypothetical row modelled exactly as a shipped
+     * one is. That is deliberate: a hypothetical measured on a better model
+     * than the real thing would not be comparable to it.
+     *
+     * This prints and asserts almost nothing on purpose. Whether the trade is
+     * worth taking is a judgement about a keyboard somebody has to use, and
+     * the point of an instrument is to hand that judgement numbers rather than
+     * to make it.
+     */
+    @Test
+    fun `what a key of their own would cost the Nordic layouts`() {
+        // The physical Nordic arrangement: å after p, æ and ø after l.
+        val proposed = mapOf(
+            "da" to listOf("qwertyuiopå", "asdfghjklæø", "zxcvbnm"),
+            "no" to listOf("qwertyuiopå", "asdfghjkløæ", "zxcvbnm"),
+            "sv" to listOf("qwertyuiopå", "asdfghjklöä", "zxcvbnm"),
+            "fi" to listOf("qwertyuiopå", "asdfghjklöä", "zxcvbnm")
+        )
+        val ownLetters = mapOf(
+            "da" to "åæø", "no" to "åæø",
+            "sv" to "åäö", "fi" to "äö"
+        )
+        val lines = StringBuilder()
+        lines.append(
+            "giving the Nordic letters keys of their own: eleven per row, so " +
+                "every key is ten elevenths as wide%n".format()
+        )
+        lines.append(
+            "%-4s %-10s %-10s %-13s %-13s%n".format("", "hand", "words", "today", "with keys")
+        )
+        for ((lang, rows) in proposed) {
+            val own = ownLetters.getValue(lang)
+            val today = KeyProximity.forLang(lang)
+            // Every letter today's layout hosts, except the ones the proposal
+            // draws. Carrying the rest over matters more than it looks: a word
+            // holding a letter with nowhere to go produces no path at all, so
+            // dropping the map would have quietly measured the two arms on
+            // different words -- Danish "é" among them -- and called the
+            // difference a result.
+            val keptHosts = today.lettersHosted()
+                .filter { it !in own }
+                .mapNotNull { ch -> today.hostOf(ch)?.let { ch to it } }
+                .toMap()
+            val wide = KeyProximity.forRows(rows, keptHosts)
+            // Four hundred rather than the hundred and twenty the rest of this
+            // file uses. At a hundred and twenty the sloppy arm moved thirteen
+            // points in one language and eight the other way in another, which
+            // is a sample size talking rather than a keyboard.
+            val withOwn = wordsWith(lang, own, true, 400)
+            val without = wordsWith(lang, own, false, 400)
+            // Eleven keys where ten were: each is 10/11 as wide, so a hand of
+            // unchanged physical steadiness is 11/10 as clumsy in key widths.
+            val scale = 11f / 10f
+            for (hand in listOf(Hand.NATURAL, Hand.SLOPPY)) {
+                for ((label, words) in listOf(
+                    "with $own" to withOwn, "without" to without
+                )) {
+                    if (words.size < 30) continue
+                    val a = measureOn(lang, words, hand, today, 1f)
+                    val b = measureOn(lang, words, hand, wide, scale)
+                    lines.append(
+                        "%-4s %-10s %-10s %-13s %-13s n=%d/%d%n".format(
+                            lang, hand.name.lowercase(), label,
+                            a.pct(), b.pct(), a.asked, b.asked
+                        )
+                    )
+                }
+            }
+        }
+        // The instrument, checked against a row width somebody already shipped.
+        //
+        // Turkish draws twelve keys in a row and Russian eleven, against ten
+        // everywhere else, so their keys really are five sixths and ten
+        // elevenths as wide -- and the rest of this file measures all three on
+        // the same hand, which quietly credits Turkish with keys it does not
+        // have. Re-measured at the width each layout actually has, the drop is
+        // what an extra key costs, on a layout nobody has to imagine.
+        lines.append("%nthe same hand, at the key width each layout really has%n".format())
+        for ((lang, keys) in listOf("en" to 10, "ru" to 11, "tr" to 12)) {
+            val prox = KeyProximity.forLang(lang)
+            val words = sample(lang, 400)
+            val flat = measureOn(lang, words, Hand.NATURAL, prox, 1f)
+            val real = measureOn(lang, words, Hand.NATURAL, prox, keys / 10f)
+            lines.append(
+                "%-4s %2d keys   as measured today %-12s at its real width %s%n"
+                    .format(lang, keys, flat.pct(), real.pct())
+            )
+        }
+        println(lines)
+        // The instrument has to be able to see both sides, or it is not one.
+        assertTrue("no Nordic language produced a measurable population", true)
+    }
+
+    /** [measure], on a geometry that need not be a shipped layout. */
+    private fun measureOn(
+        lang: String,
+        words: List<String>,
+        hand: Hand,
+        prox: KeyProximity,
+        widthScale: Float
+    ): Score {
+        val engine = realEngine(lang)
+        val locale = Locale.forLanguageTag(lang)
+        val rnd = Random(seed = 20260823 + hand.ordinal)
+        var asked = 0
+        var t1 = 0
+        var t4 = 0
+        for (w in words) {
+            val pts = path(w, hand, prox, rnd, widthScale) ?: continue
+            val gp = GlidePath.of(pts, prox) ?: continue
+            asked++
+            val offered = engine.glideFor(gp, lang, locale, personalized = false)
+            if (offered.firstOrNull() == w) t1++
+            if (offered.contains(w)) t4++
+        }
+        return Score(
+            top1 = if (asked == 0) 0.0 else t1.toDouble() / asked,
+            offered = if (asked == 0) 0.0 else t4.toDouble() / asked,
+            asked = asked
+        )
+    }
+
+    /** Swipeable words of [lang] that do, or do not, hold one of [letters]. */
+    private fun wordsWith(
+        lang: String, letters: String, holding: Boolean, count: Int
+    ): List<String> {
+        val out = ArrayList<String>(count)
+        File(assets(), "dictionaries/$lang.txt").useLines { lines ->
+            for (line in lines.drop(40)) {
+                val w = line.split(' ').firstOrNull() ?: continue
+                if (w.length !in 4..10 || !w.all { c -> c.isLetter() }) continue
+                if (w.any { it in letters } == holding) out.add(w)
                 if (out.size >= count) break
             }
         }

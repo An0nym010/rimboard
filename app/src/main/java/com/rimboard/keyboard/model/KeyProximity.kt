@@ -222,5 +222,24 @@ class KeyProximity private constructor(
             val (rows, hosts) = geometry(lang)
             KeyProximity(rows, hosts)
         }
+
+        /**
+         * A geometry that is not any shipped layout, for asking what a layout
+         * change would cost before making one.
+         *
+         * Nineteen languages keep letters of their own alphabet behind a long
+         * press, and whether to give them keys has been an open question with
+         * no way to price it: an extra key in a row makes every key narrower,
+         * and narrower keys are mis-tapped more often. The grid this class
+         * builds is the instrument, and it was there all along -- it measures
+         * in key widths, and `GlideTrail.toGrid` divides real touch offsets by
+         * the real key width, so a row of eleven keys is arithmetically the
+         * same thing as a hand whose wobble is a tenth larger.
+         *
+         * Not cached: a hypothetical is asked about once, and caching it under
+         * a language code would let it be served to the keyboard.
+         */
+        internal fun forRows(rows: List<String>, hosts: Map<Char, Char>): KeyProximity =
+            KeyProximity(rows, hosts)
     }
 }
