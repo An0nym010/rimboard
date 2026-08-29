@@ -67,7 +67,41 @@ MIN_SUFFIX = 3
 #
 # The left column takes two; the right column would pay several times the cost
 # for its extra gain and keeps three.
-MIN_SUFFIX_BY_LANG = {"cs": 2, "de": 2, "id": 2, "nl": 2, "sv": 2, "ru": 2, "no": 2, "sk": 2, "da": 2}
+MIN_SUFFIX_BY_LANG = {"cs": 2, "de": 2, "id": 2, "nl": 2, "sv": 2, "ru": 2, "no": 2,
+                      "sk": 2, "da": 2}
+
+# How many two-letter endings a language may admit on top of its longer ones.
+#
+# The setting above is all-or-nothing: a language either takes every two-letter
+# ending its own words support, or none. That is the wrong shape for Croatian,
+# which had the worst destruction rate of any shipped language -- 38.3% of
+# correct words outside the list were being rewritten -- and could not be fixed
+# either way round. At three characters it prevents 2.2 points of that. At two
+# it prevents 6.3, which is the largest gain measured for any language, and
+# costs 3.2% of damaged words wrongly waved through: more than twice the 1.5%
+# ceiling SuffixInventoryTest holds every inventory to.
+#
+# The cost is not spread evenly across those endings. Croatian's two-letter
+# endings are its case and verb inflections and they fall off steeply -- -om
+# appears in 2,244 words, the sixteenth in a few hundred, the seventy-fourth in
+# barely more than the floor. Admitting the head of that list and not the tail:
+#
+#     added   prevents   wrongly accepted
+#         0     2.2         0.4%      (what shipped)
+#         8     3.0         1.1%
+#        16     3.8         1.2%
+#        20     4.0         1.4%
+#        26     4.7         2.1%      over the ceiling
+#
+# Sixteen: 1.6 points better than shipping, at a cost equal to the highest any
+# inventory already carries (Swedish, 1.2%), with room left under the ceiling
+# for a dictionary rebuild to move things. Twenty buys 0.2 more points for 0.2
+# more cost and leaves almost no margin.
+#
+# The same knob is now available to every language the original sweep rejected
+# for cost -- Hungarian at 3.9% and Finnish at 2.3% are the obvious candidates.
+# Neither is measured here; the sweep above is how to do it.
+SHORT_CAP = {"hr": 16}
 
 # Longer than this and a "suffix" is really a second word; the compound
 # splitter is the right tool for those and German already has one.
@@ -186,6 +220,14 @@ def main():
         words = load(lang)
         found = derive(words, MIN_SUFFIX_BY_LANG.get(lang, MIN_SUFFIX))
         keep = chosen(found)
+        cap = SHORT_CAP.get(lang)
+        if cap:
+            # The best few two-letter endings, in front of the longer ones the
+            # language already had. Order in the file is presentation only --
+            # both the engine and the test sort by length before walking -- so
+            # this puts the commonest first for anyone reading it.
+            short = [s for s in chosen(derive(words, 2)) if len(s) == 2][:cap]
+            keep = short + [s for s in keep if s not in short]
         if report:
             top = ", ".join("-%s(%d)" % (s, found[s]) for s in keep[:14])
             print("%-4s %3d endings   %s" % (lang, len(keep), top))

@@ -54,8 +54,11 @@ import java.util.Locale
  * Points of destruction prevented, with the inventory and without:
  *
  *     hu 5.8   ro 4.0   fi 3.7   de 3.2   sv 2.5   da 1.8   en 1.5
- *     es 5.5   cs 3.8   fr 3.5   nl 2.8   hr 2.2   no 1.5   sk 0.2
+ *     es 5.5   cs 3.8   fr 3.5   nl 2.8   hr 3.8   no 1.5   sk 0.2
  *     it 4.2   pl 3.8   pt 3.3   id 2.2   ru 1.5
+ *
+ * Croatian reads 3.8 there and used to read 2.2; see the note on capped
+ * two-letter endings below.
  *
  * **Slovak is why the criterion is the outcome.** It derives a respectable
  * inventory and accepts a fair number of held-out words with it, and it
@@ -86,6 +89,38 @@ import java.util.Locale
  * Greek and Ukrainian derive nothing whatever. Their endings are one character,
  * and one is where the derivation stops believing anything without the vowel
  * harmony that only Turkish has.
+ *
+ * ## Croatian, which fits in neither column
+ *
+ * It was in neither, because it was never swept -- and it had the worst
+ * destruction of any shipped language, 38.3% of correct words outside the list
+ * rewritten. Swept late, it turned out to be a language the all-or-nothing
+ * setting cannot serve. At three characters its inventory prevents 2.2 points.
+ * At two it prevents 6.3, the largest gain measured anywhere, for 3.2% wrongly
+ * accepted -- more than twice the ceiling.
+ *
+ * The cost is not spread evenly across those endings. Croatian's two-letter
+ * endings are its case and verb inflections, and they fall off steeply: `-om`
+ * appears in 2,244 words and the seventy-fourth ending in barely more than the
+ * floor. So the tool now takes a per-language cap on how many of them a
+ * language may admit on top of its longer ones, and Croatian takes sixteen:
+ *
+ *     added   prevents   wrongly accepted
+ *         0     2.2         0.4%      (what shipped)
+ *         8     3.0         1.1%
+ *        16     3.8         1.2%      <- here
+ *        20     4.0         1.4%
+ *        26     4.7         2.1%      over the ceiling
+ *
+ * 1.6 points better than shipping, at a cost equal to the highest any
+ * inventory already carries (Swedish at 1.2%) and with room left under the
+ * ceiling for a dictionary rebuild to move things. Twenty buys 0.2 more points
+ * for 0.2 more cost and leaves almost no margin, which is not a trade worth
+ * making on the edge of a limit.
+ *
+ * Hungarian at 3.9% and Finnish at 2.3% were rejected at two characters for
+ * the same reason Croatian was, and the same knob is now available to them.
+ * Neither is measured; this sweep is how.
  *
  * ## English, and a judgement the measurement overruled
  *
@@ -247,9 +282,20 @@ class SuffixInventoryTest {
         val dir = File(assets(), "suffixes")
         val files = dir.list().orEmpty().filter { it.endsWith(".txt") }.sorted()
         assertTrue("no inventories found at all", files.isNotEmpty())
+        // A language may also admit a capped number of two-letter endings on
+        // top of its longer ones -- see SHORT_CAP in the tool, and Croatian,
+        // which is the reason it exists. Read from the same file so the floor
+        // this enforces is the floor the tool applied.
+        val capped = HashSet<String>()
+        val capDecl = tool.substringAfter("SHORT_CAP = {").substringBefore("}")
+        for (item in capDecl.split(",")) {
+            val lang = item.split(":").firstOrNull()?.trim()?.trim('"') ?: continue
+            if (lang.isNotEmpty()) capped.add(lang)
+        }
+
         for (name in files) {
             val lang = name.removeSuffix(".txt")
-            val floor = perLang[lang] ?: global
+            val floor = if (lang in capped) 2 else perLang[lang] ?: global
             val short = dir.resolve(name).readLines()
                 .map { it.trim() }
                 .filter { it.isNotEmpty() && !it.startsWith("#") }
