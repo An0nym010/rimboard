@@ -224,10 +224,10 @@ object Layouts {
 
     fun qwertyPt(numberRow: Boolean, showGlobe: Boolean): KeyboardLayout {
         val pops = mapOf(
-            'a' to "\u00E1\u00E2\u00E3\u00E0",
+            'a' to "\u00E3\u00E1\u00E0\u00E2",
             'e' to "\u00E9\u00EA",
             'i' to "\u00ED",
-            'o' to "\u00F3\u00F4\u00F5",
+            'o' to "\u00F3\u00F5\u00F4",
             'u' to "\u00FA",
             'c' to "\u00E7"
         )
@@ -348,7 +348,7 @@ object Layouts {
     )
 
     fun qwertySv(numberRow: Boolean, showGlobe: Boolean) = latin(
-        mapOf('a' to "\u00E5\u00E4", 'o' to "\u00F6", 'e' to "\u00E9"),
+        mapOf('a' to "\u00E4\u00E5", 'o' to "\u00F6", 'e' to "\u00E9"),
         "sv", numberRow, showGlobe
     )
 
@@ -387,7 +387,7 @@ object Layouts {
     fun qwertzHu(numberRow: Boolean, showGlobe: Boolean) = qwertz(
         mapOf(
             'a' to "\u00E1", 'e' to "\u00E9", 'i' to "\u00ED",
-            'o' to "\u00F3\u00F6\u0151", 'u' to "\u00FA\u00FC\u0171"
+            'o' to "\u00F6\u00F3\u0151", 'u' to "\u00FC\u00FA\u0171"
         ),
         "hu", numberRow, showGlobe
     )
@@ -403,10 +403,10 @@ object Layouts {
     fun qwertzSk(numberRow: Boolean, showGlobe: Boolean) = qwertz(
         mapOf(
             'a' to "\u00E1\u00E4", 'e' to "\u00E9", 'i' to "\u00ED",
-            'o' to "\u00F3\u00F4", 'u' to "\u00FA", 'y' to "\u00FD",
+            'o' to "\u00F4\u00F3", 'u' to "\u00FA", 'y' to "\u00FD",
             'c' to "\u010D", 's' to "\u0161", 'z' to "\u017E",
             't' to "\u0165", 'd' to "\u010F", 'n' to "\u0148",
-            'l' to "\u013A\u013E", 'r' to "\u0155"
+            'l' to "\u013E\u013A", 'r' to "\u0155"
         ),
         "sk", numberRow, showGlobe
     )
@@ -456,9 +456,9 @@ object Layouts {
 
     fun qwertyCs(numberRow: Boolean, showGlobe: Boolean) = latin(
         mapOf(
-            'e' to "\u00E9\u011B", 's' to "\u0161", 'c' to "\u010D", 'r' to "\u0159",
+            'e' to "\u011B\u00E9", 's' to "\u0161", 'c' to "\u010D", 'r' to "\u0159",
             'z' to "\u017E", 'y' to "\u00FD", 'a' to "\u00E1", 'i' to "\u00ED",
-            'u' to "\u00FA\u016F", 'o' to "\u00F3", 'd' to "\u010F",
+            'u' to "\u016F\u00FA", 'o' to "\u00F3", 'd' to "\u010F",
             't' to "\u0165", 'n' to "\u0148"
         ), "cs", numberRow, showGlobe
     )
