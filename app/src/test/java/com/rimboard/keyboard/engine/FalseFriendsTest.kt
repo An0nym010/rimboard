@@ -250,6 +250,26 @@ class FalseFriendsTest {
     }
 
     @Test
+    fun `French because is not a car and a Romanian room is not a camera`() {
+        // Both found by sweeping all 138 English keywords against every
+        // language the fallback answers for, rather than by noticing them.
+        //
+        // "car" is the commonest French conjunction in the whole keyword list
+        // at 304.67 per million, and the same fault as "lit" sitting beside it
+        // in the map. "camera" is worse than missed: it was already listed for
+        // Italian, for the same word and the same wrong meaning, and Romanian
+        // was not -- which is what a list assembled from sightings does.
+        val fr = engineFor("fr")
+        assertEquals("French car means because", null, fr.emojiFor("car", "fr"))
+        val ro = engineFor("ro")
+        assertEquals("Romanian camera means the room", null, ro.emojiFor("camera", "ro"))
+        // Still answered for the language that has neither meaning, which is
+        // what says this declines rather than deletes.
+        assertEquals("🚗", fr.emojiFor("car", "de"))
+        assertEquals("📷", ro.emojiFor("camera", "de"))
+    }
+
+    @Test
     fun `Danish four is not a flame and Danish food is not an angry face`() {
         val e = engineFor("da")
         assertEquals(null, e.emojiFor("fire", "da"))

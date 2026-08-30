@@ -118,14 +118,48 @@ object FalseFriends {
      * "photo", "perfect", "wow", "hmm" and "rose" all travel intact. That is
      * why this is not a rule about frequency either -- "ok" is commoner in
      * Italian than in English and is perfectly correct there.
+     *
+     * # Swept, four added
+     *
+     * The list above was written from the cases somebody noticed. Asked of the
+     * whole population instead -- all 138 English keywords against every one of
+     * the seventeen languages the fallback answers for -- 190 pairs clear 20
+     * occurrences per million, and reading them is quick because a wrong entry
+     * here is cheap. Most are words that travel: "ok", "stop", "wow", "hmm",
+     * "hello", "star", and Indonesian's loanwords for "robot" and "game".
+     *
+     *     fr  car     304.67   "because". The commonest conjunction in the
+     *                          list, and the same fault as "lit" beside it.
+     *     ro  camera  280.10   "the room" -- the same word and the same false
+     *                          meaning already listed for Italian, missed in
+     *                          Romanian because the list was written from
+     *                          sightings rather than from a sweep.
+     * Romanian is the one worth taking the lesson from: an entry was right for
+     * one language and the same entry was missing for another, which a list
+     * assembled from what anybody happened to see will always do.
+     *
+     * Two more were written and then removed, by the floor `FalseFriendsTest`
+     * holds this map to: Dutch "boom" (a tree, offered an explosion) at 48.99
+     * per million and Swedish "hot" (a threat, offered a hot face) at 46.16,
+     * against a bar of fifty. Both are real, and neither is common enough to
+     * be worth a claim nobody is checking -- which is the bar doing its job on
+     * entries I was otherwise happy with.
+     *
+     * Seen and deliberately not added, because each needs somebody who speaks
+     * the language rather than somebody reading a frequency table: Croatian
+     * "time" (122.8/M, an instrumental pronoun, offered a clock), Romanian
+     * "cat" (112.2/M, but that is the unaccented spelling of "cat" rather than
+     * a word), Dutch "lol" (42.9/M, "fun", and a laughing face is not far
+     * wrong), and Danish and Norwegian "time" (156.3 and 140.0/M, "hour", where
+     * a clock is arguably right).
      */
     private val emojiByLang = mapOf(
         "hr" to setOf("sad"),
         "sv" to setOf("dog", "skull", "gift"),
         "no" to setOf("fire", "gift"),
         "da" to setOf("fire", "dog", "mad", "gift", "sad"),
-        "ro" to setOf("sun"),
-        "fr" to setOf("lit"),
+        "ro" to setOf("sun", "camera"),
+        "fr" to setOf("lit", "car"),
         "it" to setOf("camera")
     )
 
