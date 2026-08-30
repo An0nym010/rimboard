@@ -81,6 +81,50 @@ class PredictionFootprintTest {
         return (after - before) to rows
     }
 
+    /**
+     * No shipped model has grown past what the builder caps a fresh one at.
+     *
+     * `tools/build_ngrams.py` bounds a freshly counted model at
+     * `MAX_ROWS + TRI_ROWS` = 36,000 rows, and the note on that constant says
+     * it is there so "a future corpus cannot silently produce a five-megabyte
+     * asset". It cannot do that, because `merge` unions the new rows onto the
+     * asset already on disk and never drops one — that is deliberate, so
+     * hand-written entries survive a rebuild, but it means the cap binds each
+     * run and not the file.
+     *
+     * Russian is already past it, at 39,226, and nothing said so. It is not too
+     * big — 6.6 MB of heap against the 12 MB budget asserted below — it merely
+     * arrived there unobserved, which is the part worth fixing. The builder now
+     * warns, and this fails.
+     *
+     * Russian's overrun is pinned rather than removed: trimming it would throw
+     * away rows that are earning their place, to satisfy a comment. What must
+     * not happen is that it grows, or that a second language joins it quietly.
+     */
+    @Test
+    fun `no shipped model has drifted past the builder's own cap`() {
+        val cap = 36_000
+        val known = mapOf("ru" to 39_226)
+        val dir = listOf(File("src/main/assets"), File("app/src/main/assets"))
+            .first { it.isDirectory }.resolve("predictions")
+        val over = ArrayList<String>()
+        val out = StringBuilder()
+        for (f in dir.list().orEmpty().sorted()) {
+            val lang = f.removeSuffix(".txt")
+            val rows = dir.resolve(f).readLines().count { it.contains('\t') }
+            val allowed = known[lang] ?: cap
+            if (rows > allowed) over.add("$lang $rows (allowed $allowed)")
+            if (rows > cap) out.append("    %-3s %6d rows, %d past the cap%n".format(
+                lang, rows, rows - cap))
+        }
+        println(if (out.isEmpty()) "    every model within $cap rows" else out)
+        assertTrue(
+            "a prediction model has grown past what tools/build_ngrams.py caps a " +
+                "fresh build at, which merge() cannot undo: $over",
+            over.isEmpty()
+        )
+    }
+
     @Test
     fun `what a loaded prediction model costs`() {
         val out = StringBuilder()

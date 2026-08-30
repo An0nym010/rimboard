@@ -95,6 +95,19 @@ PER_CONTEXT = 6
 # not kept, whatever the cap says. 30000 is above every language the corpus
 # supports today (Russian, the largest, reaches 25,536) and exists so that a
 # future corpus cannot silently produce a five-megabyte asset.
+#
+# **It does not do that, and Russian is already past it.** This bounds `rows`,
+# which is the freshly counted model, and [merge] then unions that with whatever
+# the asset already held -- it "only ever adds", by design, so that hand-written
+# entries survive. Two rebuilds against a growing corpus can therefore approach
+# twice this number without either of them exceeding it. Counted on the shipped
+# assets, `ru` holds 39,226 rows against a cap of 30000 + TRI_ROWS = 36,000.
+#
+# Silence was the part worth fixing rather than the size: 39,226 rows cost 6.6
+# MB of heap against a 12 MB budget, so Russian is not too big, it merely got
+# there without anybody being told. [merge] now says so, and
+# `PredictionFootprintTest` holds every asset to a ceiling so the next one is a
+# failing test rather than a discovery.
 MAX_ROWS = 30000
 # Two-word contexts kept per language, on top of the one-word ones.
 #
@@ -202,6 +215,38 @@ TRI_ROWS = 6000
 # All four improve, the smallest corpus by the most. 0.6 points on average --
 # smaller than Turkish, larger than English, and now a measurement rather than
 # an inference. The 1.45 MB stands.
+# **Swept again at 1, and not taken.** The sentence above -- that the gain runs
+# inversely with corpus size -- keeps being true below two. Held out the same
+# way, coverage and top-3 at MIN_PAIR 2 against 1:
+#
+#     hr +13.4 / +3.7    ro  +6.8 / +1.6    uk +3.6 / +0.9    fr +1.0 / +0.3
+#     sk  +7.4 / +3.2    id  +6.8 / +1.5    da +3.4 / +1.6    de +0.8 / +0.1
+#     no  +6.9 / +2.1    cs  +6.5 / +1.3    nl +2.4 / +0.5    it +0.6 / +0.3
+#     pl  +6.7 / +1.3    fi  +6.3 / +1.5    hu +2.1 / +0.4    en +0.2 / +0.1
+#     el  +5.7 / +2.0    sv  +3.9 / +1.3    pt +1.5 / +0.4    ru +0.1 / -0.0
+#                        es  +1.4 / +0.4    tr +1.1 / +0.1
+#
+# Every language gains, in coverage and in precision *given* coverage, and
+# Croatian -- the smallest corpus in the set at 6,280 sentences and the weakest
+# model in the app at 1,354 rows -- gains four times what anything else does.
+# Several of the largest gains cost nothing at all in size, because those
+# languages are already at MAX_ROWS and a lower bar merely picks better rows:
+# Polish gains 6.7 points and Finnish 6.3 at an identical row count.
+#
+# Two things stop it, both about the tooling rather than the number:
+#
+#  1. [merge] only ever adds, so lowering this and re-running does not *build*
+#     the model below -- it unions it onto the old one, past MAX_ROWS. One run
+#     took Turkish from 35,246 rows to 42,775. A clean MIN_PAIR=1 asset needs a
+#     regenerating builder, which is a different contract from the one the
+#     hand-written entries rely on.
+#  2. These rows also rank corrections, and the last time this constant moved it
+#     broke the ceiling in the table above and had to be paid for by dropping
+#     the context weight. That sweep was run on English and Turkish, which gain
+#     0.2 and 1.1 points here -- so the languages that would gain are the ones
+#     the ceiling was never measured on.
+#
+# Neither is a reason it is wrong. Both are reasons it is not a one-line change.
 MIN_PAIR = 2
 
 STRIP = ".,!?;:\"'()[]{}\u00ab\u00bb\u2018\u2019\u201c\u201d\u2026-\u2014"
@@ -453,6 +498,15 @@ def merge(lang, rows, starts):
             f.write(k + "\t" + " ".join(existing[k]) + "\n")
     print("  %s: +%d rows, +%d continuations, %d rows total"
           % (lang, added_rows, added_words, len(order)))
+    # The cap above bounds the freshly counted rows and nothing else, so a
+    # merge can carry the asset past it without any single run doing so. Said
+    # out loud, because the constant's own note promised it could not happen.
+    if len(order) > MAX_ROWS + TRI_ROWS:
+        print("  WARNING: %s now holds %d rows, %d past the %d this tool caps a "
+              "fresh build at. merge() only adds, so this cannot come back down "
+              "without regenerating the asset from scratch."
+              % (lang, len(order), len(order) - (MAX_ROWS + TRI_ROWS),
+                 MAX_ROWS + TRI_ROWS))
 
 
 if __name__ == "__main__":
