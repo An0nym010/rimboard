@@ -80,6 +80,37 @@ class Dictionary(
          * makes the whole usable range of shape worth roughly four log-units
          * of frequency — enough to overturn a fifty-fold difference in how
          * common two words are, and not enough to overturn a thousand-fold one.
+         *
+         * ## Re-swept over all twenty-two languages, 2026-08-30
+         *
+         * Because "swept on two languages" is a shape this project keeps
+         * finding wrong. Here it was right. Pooled over 10,559 swipes:
+         *
+         *     w=      3    4    5    6    7    9   12
+         *     mean 78.1 80.2 81.2 81.3 81.1 79.9 77.0
+         *
+         * Six is the peak, and five and seven are within 0.2 of it, so the
+         * plateau is real rather than a two-language accident.
+         * `GlideAccuracyTest` asserts it now instead of printing it for
+         * someone to read.
+         *
+         * **The languages barely disagree; the hands do**, and that is the new
+         * thing this says. Every language's own curve is flat from five to
+         * seven and their best values run 4 to 7 with no pattern. Split by how
+         * steady the swipe is, the answers are far apart:
+         *
+         *     hand         3    4    5    6    7    9   12    best
+         *     DELIBERATE  94   96   97   98   98   98   98    12
+         *     NATURAL     83   86   88   89   90   90   89     7
+         *     SLOPPY      66   67   68   68   67   64   58     5
+         *     HURRIED     70   72   72   72   71   68   64     5
+         *
+         * A careful swipe wants the shape trusted almost absolutely; a hurried
+         * one wants frequency to carry it. Six is the compromise, and the
+         * compromise is cheap: adapting the weight to an estimate of steadiness
+         * could win at most 0.8 points on deliberate swipes and 0.2 on sloppy
+         * ones, against the risk of misreading which kind a swipe was. Not
+         * worth building, and now measured rather than assumed.
          */
         const val GLIDE_SHAPE_WEIGHT = 6.0
 
