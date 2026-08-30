@@ -304,6 +304,51 @@ class BareKeySpellingTest {
     }
 
     @Test
+    fun `an accent that took a long press is not undone on the space bar`() {
+        // The exemption in `autoCommitConfident` says two words that are the
+        // same word written differently do not face the cost bar, and gives one
+        // direction as its reason: "gunaydin" for "günaydın" is the word typed
+        // the easy way. It was applied in both directions, so the accented form
+        // could be silently replaced by the bare one as cheaply as the reverse.
+        //
+        // Those are not the same act. On nineteen shipped layouts an accented
+        // letter has no key at all, so reaching one costs a long press and a
+        // second aimed tap -- about as deliberate as typing gets. NameSafetyTest
+        // is where it showed: "Papá" committing as "papa", "Noël" as "noel",
+        // "César" as "cesar", "Japán" as "japan".
+        val eng = engine("en")
+        val en = Locale.ENGLISH
+        val dict = eng.dictionary("en", en)
+        val prox = com.rimboard.keyboard.model.KeyProximity.forLang("en")
+        for ((typed, bare) in listOf(
+            "papá" to "papa", "noël" to "noel", "césar" to "cesar", "japán" to "japan"
+        )) {
+            assertFalse(
+                "'$typed' would still be committed as '$bare', throwing away a " +
+                    "long press",
+                dict.autoCommitConfident(typed, bare, prox)
+            )
+        }
+        // The direction the exemption was written for is untouched.
+        val tr = engine("tr")
+        val trLoc = Locale.forLanguageTag("tr")
+        val trDict = tr.dictionary("tr", trLoc)
+        val trProx = com.rimboard.keyboard.model.KeyProximity.forLang("tr")
+        assertTrue(
+            "the bare spelling must still commit as the accented word",
+            trDict.autoCommitConfident("gunaydin", "günaydın", trProx)
+        )
+        // And a layout that draws its own letters keeps the exemption both ways,
+        // because there the premise is false: Turkish puts ç, ş, ı, ö, ü and ğ
+        // on keys, so an accent there really can be a slip of the thumb.
+        assertTrue(
+            "Turkish draws ç on a key, so 'saç' for 'sac' is an ordinary typo " +
+                "and must keep the exemption",
+            trDict.autoCommitConfident("saç", "sac", trProx)
+        )
+    }
+
+    @Test
     fun `restoration is not a Turkish-only feature`() {
         // "fur" and "uber" are in the German list because subtitles are full of
         // English, not because German has those words.

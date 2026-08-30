@@ -1517,7 +1517,7 @@ class Dictionary(
         typedLower: String, candidate: String, prox: KeyProximity?, cautious: Boolean = false
     ): Boolean {
         if (typedLower.isEmpty() || candidate.isEmpty()) return false
-        if (sameWordDifferentlyWritten(typedLower, candidate)) return true
+        if (sameWordDifferentlyWritten(typedLower, candidate, prox)) return true
         // Deliberately blind to the touch trail, where [correctionsScored] is
         // not. A marginal tap makes its neighbour a cheaper *reading*, which is
         // evidence about what was meant and belongs in the ranking; letting it
@@ -1562,12 +1562,56 @@ class Dictionary(
      * somebody leaning on a key. "naberr" does not need the exemption and does
      * not get it — one deletion in a six-letter word clears the bar on cost.
      */
-    private fun sameWordDifferentlyWritten(a: String, b: String): Boolean {
+    private fun sameWordDifferentlyWritten(
+        a: String, b: String, prox: KeyProximity?
+    ): Boolean {
         val fa = foldDiacritics(a)
         val fb = foldDiacritics(b)
-        if (fa == fb) return true
+        if (fa == fb) return !dropsAnAccentThatWasReachedFor(a, b, prox)
         if (!hasRunOfThree(fa) && !hasRunOfThree(fb)) return false
         return collapseRuns(fa) == collapseRuns(fb)
+    }
+
+    /**
+     * Whether [b] takes off an accent that [a] could only have got by holding a
+     * key down.
+     *
+     * The exemption above is stated in one direction and was applied in both.
+     * Typing "gunaydin" for "günaydın" is the word written the easy way, and
+     * nobody needs protecting from having it completed — that is the case the
+     * note describes. Going the other way is not the same act. On nineteen of
+     * the shipped layouts an accented letter has no key: reaching one costs a
+     * long press and a second aimed tap at a popup, which is about as
+     * deliberate as typing gets. Undoing that silently on the space bar throws
+     * away the clearest statement of intent the keyboard ever receives.
+     *
+     * `NameSafetyTest` is where it showed: "Papá" committing as "papa",
+     * "Noël" as "noel", "César" as "cesar", "Japán" as "japan".
+     *
+     * Only for letters the layout does not draw. Turkish draws ı, ö, ü, ş, ç
+     * and ğ on keys of their own, so a Turkish accent really can be a slip of
+     * the thumb and "saç" for "sac" is an ordinary typo — it keeps the
+     * exemption, because there the premise of this rule is false.
+     *
+     * And this bounds only what commits silently. The unaccented spelling is
+     * still ranked, still shown, still one tap away.
+     */
+    private fun dropsAnAccentThatWasReachedFor(
+        a: String, b: String, prox: KeyProximity?
+    ): Boolean {
+        if (prox == null || a.length != b.length) return false
+        for (i in a.indices) {
+            val typed = a[i]
+            if (typed == b[i]) continue
+            // The candidate has this letter's base where the typed word had the
+            // letter itself, and the layout offers no key for it.
+            if (foldDiacritics(typed.toString()) == b[i].toString() &&
+                prox.gridX(typed) == null
+            ) {
+                return true
+            }
+        }
+        return false
     }
 
     private fun hasRunOfThree(s: String): Boolean {
