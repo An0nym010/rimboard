@@ -403,6 +403,33 @@ class AutocorrectAccuracyTest {
      * matters more than usual here: the whole output is a comparison between
      * them.
      */
+    /**
+     * Which languages the context ceiling is guarded for.
+     *
+     * English and Turkish for a long time, because they are the two the rest of
+     * this file measures. That was the wrong set for the one thing this arm
+     * defends. The ceiling is a statement about how loud the prediction model
+     * is allowed to be on the typing path, and loudness is a property of the
+     * model -- so the languages worth watching are the ones whose models are
+     * about to change, and those are never English and Turkish, whose corpora
+     * are large enough that the counting knobs barely move them.
+     *
+     * `measureContext` was language-general the whole time; only this list was
+     * not.
+     */
+    private val CONTEXT_LANGS = listOf(
+        "en" to Locale.ENGLISH,
+        "tr" to Locale.forLanguageTag("tr"),
+        "hr" to Locale.forLanguageTag("hr"),
+        "sk" to Locale.forLanguageTag("sk"),
+        "no" to Locale.forLanguageTag("no"),
+        "ro" to Locale.forLanguageTag("ro"),
+        "id" to Locale.forLanguageTag("id"),
+        "el" to Locale.forLanguageTag("el"),
+        "da" to Locale.forLanguageTag("da"),
+        "sv" to Locale.forLanguageTag("sv")
+    )
+
     private fun measureContext(
         lang: String, locale: Locale, words: Int, twoWord: Boolean = false
     ): ContextScore {
@@ -508,10 +535,8 @@ class AutocorrectAccuracyTest {
 
     @Test
     fun `the n-grams help when they are right and cost little when they are wrong`() {
-        val results = listOf(
-            "en" to Locale.ENGLISH,
-            "tr" to Locale.forLanguageTag("tr")
-        ).map { (lang, locale) -> lang to measureContext(lang, locale, 150) }
+        val results = CONTEXT_LANGS
+            .map { (lang, locale) -> lang to measureContext(lang, locale, 150) }
 
         val lines = results.joinToString("\n") { (lang, s) -> contextReport(lang, s) }
         println(lines)
@@ -609,10 +634,8 @@ class AutocorrectAccuracyTest {
 
     @Test
     fun `a two-word context helps and costs no more than a one-word one`() {
-        val results = listOf(
-            "en" to Locale.ENGLISH,
-            "tr" to Locale.forLanguageTag("tr")
-        ).map { (lang, locale) -> lang to measureContext(lang, locale, 150, twoWord = true) }
+        val results = CONTEXT_LANGS
+            .map { (lang, locale) -> lang to measureContext(lang, locale, 150, twoWord = true) }
 
         val lines = results.joinToString("\n") { (lang, s) -> contextReport(lang, s) }
         println("two-word context:\n" + lines)

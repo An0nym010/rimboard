@@ -249,6 +249,49 @@ TRI_ROWS = 6000
 # Neither is a reason it is wrong. Both are reasons it is not a one-line change.
 MIN_PAIR = 2
 
+# ...except where the corpus is small enough that two is most of what it has.
+#
+# The sweep above is the argument: every language gains at 1, and the gain runs
+# inversely with corpus size, so one number cannot serve both ends of a set that
+# runs from 6,280 Croatian sentences to 2,025,506 English ones. These are the
+# languages where the gain is worth having *and* the merged asset stays inside
+# the cap, which is the constraint that decides the list -- Polish and Finnish
+# gain 6.7 and 6.3 and are excluded only because they already sit at MAX_ROWS,
+# so a merge at 1 would carry them past it and merge() cannot take that back.
+#
+#     hr +13.4   sk +7.4   no +6.9   ro +6.8   id +6.8
+#     cs  +6.5   el +5.7   sv +3.9   uk +3.6   da +3.4   nl +2.4
+#
+# English, Turkish, Russian, German, Spanish, French, Italian, Hungarian and
+# Portuguese keep 2: they gain between 0.1 and 2.1 points and every one of them
+# is at or near the cap.
+#
+# Coverage is an input to keystrokes saved and not a synonym for it, which is
+# the criticism the 3->2 move earned and `--fixtures` was written to answer. So
+# the same four held-out corpora, keystrokes saved with context, at each floor:
+#
+#     cs  28.2  ->  29.0  ->  29.6        hr  28.3  ->  29.2  ->  30.0
+#     da  40.8  ->  41.3  ->  42.1        sk  29.5  ->  29.8  ->  31.7
+#
+# A point on average, where 3->2 bought 0.6, for the same 1.43 MB on the
+# release APK. The four are the corpora small enough to have held-out fixtures
+# built for them, which is also to say the four this helps most.
+#
+# And the thing that had to be checked before any of it: these rows rank
+# corrections, and the last move broke that ceiling. `AutocorrectAccuracyTest`
+# now runs its two context arms over all eleven of these languages rather than
+# English and Turkish -- it was general the whole time and only the list was
+# not -- and every ceiling holds with margin, with true context rescuing 4 to
+# 16 answers per language and breaking at most one.
+MIN_PAIR_BY_LANG = {
+    "hr": 1, "sk": 1, "no": 1, "ro": 1, "id": 1, "cs": 1,
+    "el": 1, "sv": 1, "uk": 1, "da": 1, "nl": 1,
+}
+
+
+def min_pair(lang):
+    return MIN_PAIR_BY_LANG.get(lang, MIN_PAIR)
+
 STRIP = ".,!?;:\"'()[]{}\u00ab\u00bb\u2018\u2019\u201c\u201d\u2026-\u2014"
 
 
@@ -336,6 +379,8 @@ def build(lang):
             trigram[(a, b)][c] += 1
             tri_seen[(a, b)] += 1
 
+    floor = min_pair(lang)
+
     def ordinary(w):
         """Not a corpus artifact, and a word the app already knows."""
         d = freq.get(w, 0)
@@ -353,7 +398,7 @@ def build(lang):
         if not ordinary(prev):
             continue
         keep = [w for w, n in nexts.most_common(PER_CONTEXT * 4)
-                if n >= MIN_PAIR and ordinary(w)][:PER_CONTEXT]
+                if n >= floor and ordinary(w)][:PER_CONTEXT]
         if keep:
             rows[prev] = keep
     # Two-word contexts, commonest first, appended behind the one-word rows.
@@ -367,13 +412,13 @@ def build(lang):
         if not (ordinary(a) and ordinary(b)):
             continue
         keep = [w for w, n in nexts.most_common(PER_CONTEXT * 4)
-                if n >= MIN_PAIR and ordinary(w)][:PER_CONTEXT]
+                if n >= floor and ordinary(w)][:PER_CONTEXT]
         if keep:
             rows[a + " " + b] = keep
             tri_kept += 1
 
     starts = [w for w, n in opener.most_common(PER_CONTEXT * 8)
-              if n >= MIN_PAIR and ordinary(w)][:20]
+              if n >= floor and ordinary(w)][:20]
 
     merge(lang, rows, starts)
 

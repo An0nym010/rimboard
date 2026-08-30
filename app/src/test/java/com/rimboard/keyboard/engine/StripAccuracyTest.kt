@@ -490,15 +490,25 @@ class StripAccuracyTest {
         for (lang in langs) {
             val locale = Locale.forLanguageTag(lang)
             val corpus = File(dir, "prose_$lang.txt").readLines().filter { it.isNotBlank() }
-            val sparse = File(dir, "pred3_$lang.txt").readText()
-            val dense = File(dir, "pred2_$lang.txt").readText()
-            val a = measure(lang, locale, corpus, withContext = true, predictions = sparse)
-            val b = measure(lang, locale, corpus, withContext = true, predictions = dense)
-            out.append(
-                "    %-3s held-out context: MIN_PAIR 3 saved %.1f%% (predicted %.0f%%)  ->  MIN_PAIR 2 saved %.1f%% (predicted %.0f%%)%n"
-                    .format(lang, a.ksr * 100, a.predicted * 100.0 / a.words,
-                            b.ksr * 100, b.predicted * 100.0 / b.words)
-            )
+            // Three models per language now, because the constant they sweep
+            // is per-language and these four all sit on the low side of it.
+            // Coverage is an input to keystrokes saved and not a synonym for
+            // it, which is the whole reason this arm exists, so a change that
+            // only ever quoted coverage would be quoting the wrong number.
+            val scores = listOf(3, 2, 1).map { mp ->
+                mp to measure(
+                    lang, locale, corpus, withContext = true,
+                    predictions = File(dir, "pred${mp}_$lang.txt").readText()
+                )
+            }
+            out.append("    %-3s held-out context:".format(lang))
+            for ((mp, sc) in scores) {
+                out.append(
+                    "  MIN_PAIR %d saved %.1f%% (predicted %.0f%%)"
+                        .format(mp, sc.ksr * 100, sc.predicted * 100.0 / sc.words)
+                )
+            }
+            out.append("%n".format())
         }
         println(out)
         assertTrue("no held-out fixtures found", langs.isNotEmpty())

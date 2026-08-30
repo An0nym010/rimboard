@@ -119,7 +119,7 @@ def write_fixtures(langs, held_sentences=140):
         with io.open(os.path.join(root, "prose_%s.txt" % lang), "w",
                      encoding="utf-8", newline="\n") as f:
             f.write("\n".join(held) + "\n")
-        for mp in (3, 2):
+        for mp in (3, 2, 1):
             rows = build(train, freq, mp)
             path = os.path.join(root, "pred%d_%s.txt" % (mp, lang))
             with io.open(path, "w", encoding="utf-8", newline="\n") as f:
