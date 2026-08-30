@@ -1210,6 +1210,28 @@ class SuggestionEngine private constructor(
         com.rimboard.keyboard.model.Elongation.collapsed(lower)
             .filter { dict.contains(it) }
             .maxByOrNull { dict.frequency(it) }
+            // ...and the corpus has to agree that the collapsed spelling is the
+            // real one. Being *a* word was the whole test, and that is the same
+            // mistake the bare-key rule made before [Dictionary.accentedFormOf]
+            // started asking whether the bare form holds its own: a rule that
+            // overrules what somebody typed, deciding on presence rather than
+            // on evidence.
+            //
+            // It fires against its own evidence in German, where the 1996
+            // reform *created* trebled letters by ending the rule that dropped
+            // one of three. Both spellings sit in a corpus that spans the
+            // change, and the modern one is commoner:
+            //
+            //     helllichten  339 : hellichten   52
+            //     volllaufen   175 : vollaufen    30
+            //     brennnesseln  39 : brennesseln   8
+            //     rollladen     42 : rolladen     10
+            //
+            // Each of those was underlined and committed as the spelling that
+            // stopped being correct thirty years ago. Nothing the feature is
+            // for needs that: "hello" outnumbers "hellooo" thousands to one,
+            // which is what an elongation looks like from the corpus's side.
+            ?.takeIf { dict.frequency(it) > dict.frequency(lower) }
 
     /**
      * Additive score bonus for a word the preceding context predicts, fading
