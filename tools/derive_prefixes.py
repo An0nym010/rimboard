@@ -108,6 +108,25 @@ def chosen(found):
 # prefixes together, because that is what the user is exposed to.
 #
 # The table this was chosen from is in PrefixInventoryTest.
+# English is absent, and not because the counting produced junk -- though it
+# did. Its counted list holds `the-`, `mar-`, `man-`, `car-` and `your-`, for
+# the reason the suffix tool's own note gives: English builds names out of whole
+# words. The obvious answer is a curated list of the prefixes that are really
+# productive, and that was measured rather than assumed:
+#
+#     prefixes                                        prevents   cost
+#     none                                                0.0    0.8%
+#     un                                                  0.2    0.8%
+#     un mis non                                          0.2    0.8%
+#     un mis non over under pre anti semi inter counter   0.3    1.2%
+#     ...plus dis out sub                                 0.5    1.2%
+#     the counted list                                    0.5    1.7%
+#
+# The bar is one point. The best curated list reaches half of it, so the fault
+# was never the counting: English destruction is not prefix-shaped. The word
+# that prompted the attempt -- "unhelpfully", which a phone silently rewrote to
+# "unhelpful" -- is not rescued by any of these anyway, because it needs
+# "helpfully" to be a frequent stem and it is not.
 ENABLED = {"de", "fr", "hu", "id", "nl", "pl", "pt", "ro", "ru", "sv"}
 
 

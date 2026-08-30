@@ -136,6 +136,27 @@ MIN_SUFFIX_BY_LANG = {"cs": 2, "de": 2, "id": 2, "nl": 2, "sv": 2, "ru": 2, "no"
 # headroom there is: two endings buy 0.2 points at no measured cost, four buy
 # 0.5 for 1.7% and are over. 0.2 points is one word in six hundred, which is not
 # a measurement.
+# English was swept too and takes none, which is worth writing down because the
+# shape of its list argues loudly for one. Its two-letter endings begin -ed
+# (2,543 stems), -er (1,933), -ly (1,619), -es (1,249) -- the four productive
+# endings of the language, and then a cliff into name fragments: -ie, -ka, -ya,
+# -na. A cap of exactly four looks made for it.
+#
+#     added   prevents   wrongly accepted   held-out words accepted
+#         0     0.0         0.8%                37
+#         2     0.7         1.4%                47
+#         4     1.5         1.5%                53
+#         6     1.7         1.7%                58
+#
+# Four is the first row to clear the one-point bar, and it lands on 1.5% --
+# which is the ceiling itself, not a place under it. Across five seeds it reads
+# 1.5 1.5 0.8 1.3 1.7, so one draw is already over. Croatian stopped at sixteen
+# rather than twenty and Hungarian at sixteen rather than twenty for exactly
+# this reason; English has no better claim to the edge of the limit than they
+# had. Two and three are affordable and buy 0.7 and 0.8, under the bar.
+#
+# So the answer is no, and it is no because of where the cost lands rather than
+# because English lacks the endings.
 SHORT_CAP = {"hr": 16, "hu": 16, "fi": 4, "pl": 12}
 
 # Longer than this and a "suffix" is really a second word; the compound
