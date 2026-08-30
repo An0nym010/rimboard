@@ -130,6 +130,13 @@ class GlideAccuracyTest {
         lang: String, target: List<Pair<String, Int>>
     ): List<String> {
         val prox = KeyProximity.forLang(lang)
+        return rankMatchedControlOf(lang, target) { prox.gridX(it[0]) != null }
+    }
+
+    /** Words satisfying [ok], taken from the same depths as [target]. */
+    private fun rankMatchedControlOf(
+        lang: String, target: List<Pair<String, Int>>, ok: (String) -> Boolean
+    ): List<String> {
         val drawn = ArrayList<Pair<String, Int>>()
         var rank = 0
         File(assets(), "dictionaries/$lang.txt").useLines { lines ->
@@ -138,7 +145,7 @@ class GlideAccuracyTest {
                 rank++
                 if (rank <= 40) continue
                 if (w.length !in 4..10 || !w.all { c -> c.isLetter() }) continue
-                if (prox.gridX(w[0]) != null) drawn.add(w to rank)
+                if (ok(w)) drawn.add(w to rank)
             }
         }
         val used = HashSet<String>()
@@ -1134,16 +1141,23 @@ class GlideAccuracyTest {
      * Words from [lang]'s list holding a letter that folding cannot place —
      * one that is neither drawn nor an accented form of anything drawn.
      */
-    private fun hostedOnlyWords(lang: String, count: Int): List<String> {
+    private fun hostedOnlyWords(lang: String, count: Int): List<String> =
+        hostedOnlyRanked(lang, count).map { it.first }
+
+    /** The same words, each with its place in the frequency list. */
+    private fun hostedOnlyRanked(lang: String, count: Int): List<Pair<String, Int>> {
         val prox = KeyProximity.forLang(lang)
         fun foldable(ch: Char) = prox.gridX(ch) != null ||
             prox.gridX(com.rimboard.keyboard.model.Diacritics.fold(ch)) != null
-        val out = ArrayList<String>(count)
+        val out = ArrayList<Pair<String, Int>>(count)
+        var rank = 0
         File(assets(), "dictionaries/$lang.txt").useLines { lines ->
-            for (line in lines.drop(40)) {
+            for (line in lines) {
                 val w = line.split(' ').firstOrNull() ?: continue
+                rank++
+                if (rank <= 40) continue
                 if (w.length !in 4..10 || !w.all { c -> c.isLetter() }) continue
-                if (w.any { c -> !foldable(c) }) out.add(w)
+                if (w.any { c -> !foldable(c) }) out.add(w to rank)
                 if (out.size >= count) break
             }
         }
@@ -1180,6 +1194,15 @@ class GlideAccuracyTest {
      *    `bære` from `bare`. That is the gain.
      *  * **words holding none of them**, which gain nothing and pay the whole
      *    cost of the narrower keys. That is the bill.
+     *
+     * **Read down a column, never across.** The two populations are not equally
+     * rare: a Danish word holding one of those letters sits at median rank
+     * 1,232 and one holding none at 371, because this sampler scans until it
+     * finds four hundred of each. So the gap between the rows is mostly that,
+     * exactly as it was in the two arms above, and the pair "44% against 73%"
+     * is not evidence about hosted letters. What the rarity cannot touch is the
+     * today-against-proposed comparison, because both arms of it are the same
+     * four hundred words.
      *
      * The first population is not a curiosity. Words containing `ø` or `æ` are
      * **6.5% of everything typed in Danish** and 4.2% in Norwegian, counted
@@ -1418,17 +1441,45 @@ class GlideAccuracyTest {
         val silent = ArrayList<String>()
         val byLang = HashMap<String, Double>()
         var sum = 0.0
+        var gap = 0.0
         var counted = 0
+        lines.append(
+            "%-4s %-16s %-16s %s%n".format(
+                "lang", "holds one", "control, same rank", "median rank"
+            )
+        )
         for (lang in langs) {
-            val words = hostedOnlyWords(lang, 120)
+            val pairs = hostedOnlyRanked(lang, 120)
             // Most layouts draw every letter their language spells, or draw a
             // base for each. Only six ship a letter that neither describes.
-            if (words.size < 40) continue
+            if (pairs.size < 40) continue
+            val words = pairs.map { it.first }
             val n = measure(lang, Locale.forLanguageTag(lang), words, Hand.NATURAL)
-            lines.append("%-4s %s (n=%d)%n".format(lang, n.pct(), n.asked))
+            // The same control the undrawn-initial arm above needed, for the
+            // same reason and to a far greater degree: this sampler scans until
+            // it finds a hundred and twenty, and a French word holding "oe" is
+            // rare enough that it ends at **median rank 106,876**. Read without
+            // a control, French's 2% said the decoder could not manage the
+            // ligature. It says the sampler reached the part of the list where
+            // nothing is decodable.
+            val ctrl = rankMatchedControlOf(lang, pairs) { w ->
+                val prox = KeyProximity.forLang(lang)
+                w.all { c ->
+                    prox.gridX(c) != null ||
+                        prox.gridX(com.rimboard.keyboard.model.Diacritics.fold(c)) != null
+                }
+            }
+            val c = measure(lang, Locale.forLanguageTag(lang), ctrl, Hand.NATURAL)
+            val median = pairs.map { it.second }.sorted()[pairs.size / 2]
+            lines.append(
+                "%-4s %-16s %-16s %d%n".format(
+                    lang, "${n.pct()} n=${n.asked}", "${c.pct()} n=${c.asked}", median
+                )
+            )
             byLang[lang] = n.offered
             if (n.offered <= 0.0) silent.add(lang)
             sum += n.offered
+            gap += n.offered - c.offered
             counted++
         }
         println(lines)
@@ -1455,6 +1506,16 @@ class GlideAccuracyTest {
             "words holding such a letter reach the strip much less often than " +
                 "measured (mean offered ${"%.2f".format(sum / counted)}).\n$lines",
             sum / counted >= 0.40
+        )
+        // The figure that survives a dictionary rebuild, for the reason the
+        // sibling arm above gives: the absolute one is measured at whatever
+        // depth the sampler reached, and here that is French at rank 106,876.
+        assertTrue(
+            "holding a letter that folds onto nothing now costs " +
+                "${"%.0f".format(-gap / counted * 100)} points of offered against " +
+                "words of the same rarity, against about five when it was " +
+                "measured. || $lines",
+            gap / counted >= -0.18
         )
     }
 
