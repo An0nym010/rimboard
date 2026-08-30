@@ -1482,10 +1482,29 @@ class Dictionary(
      * rather than a frequency cut-off, so it means the same thing in a corpus
      * of a different size — the same reason the correction floor is by rank.
      *
-     * Single-letter halves are allowed, since "a lot" is the example everyone
-     * reaches for first, but held to a much higher frequency bar: corpora are
-     * full of stray single letters at low counts, and "u", "s" and "t" as
-     * "words" would turn every unrecognised typing into a split.
+     * A single-letter *first* half is allowed, since "a lot" is the example
+     * everyone reaches for first, but held to a much higher frequency bar:
+     * corpora are full of stray single letters at low counts, and "u", "s" and
+     * "t" as "words" would turn every unrecognised typing into a split.
+     *
+     * A single-letter *second* half is refused outright, and the paragraph
+     * above is why: it argues for a leading one and the rule was applied in
+     * both directions. What sits at the end of a word in these languages is
+     * not a word whose space went missing, it is an inflection -- the
+     * Portuguese and Romanian -a/-e/-o, the Danish and Swedish passive -s, the
+     * German genitive -s, the Indonesian -i, the Croatian and Slovak case
+     * endings, the Dutch -t and -n.
+     *
+     * Swept over the top 20,000 words of all twenty-two shipped lists: **185
+     * splits had a one-letter tail and not one of them was right.** English
+     * offered "the a", "her a", "should a", "could a", "person a", "dad a";
+     * German "keine s", "war s", "sein s", "wissen s", "mutter s"; Dutch
+     * "maar t" for March, "zal m" for salmon, "die n", "toch t"; Danish
+     * "huske s", "klare s", "hele s"; Romanian "fost a", "spus e", "vazut e";
+     * Portuguese "com a", "ver a", "melhor a", "tens o"; Indonesian "tepat i",
+     * "duduk i", "membunuh i". The leading half is a genuine mix by
+     * comparison, and keeps the allowance: "a lot", Danish "i gar", Czech
+     * "v poradku", Swedish "i fraga".
      */
     fun splitInto(typedLower: String): Pair<String, String>? {
         if (typedLower.length < 3) return null
@@ -1495,6 +1514,10 @@ class Dictionary(
         for (i in 1 until typedLower.length) {
             val a = typedLower.substring(0, i)
             val b = typedLower.substring(i)
+            // A one-letter *second* half is an inflectional ending, and the
+            // allowance below was only ever argued for the first. See
+            // [SPLIT_SINGLE_MIN_FREQ].
+            if (b.length == 1) continue
             if (!contains(a) || !contains(b)) continue
             val fa = freqOf(a)
             val fb = freqOf(b)
@@ -1520,7 +1543,12 @@ class Dictionary(
         return best
     }
 
-    /** A one-letter half has to be a genuinely common word, not corpus dust. */
+    /**
+     * A one-letter half has to be a genuinely common word, not corpus dust.
+     *
+     * Only ever asked of the first half now; [splitInto] refuses a one-letter
+     * second half outright.
+     */
     private fun floorFor(half: String): Int =
         if (half.length == 1) SPLIT_SINGLE_MIN_FREQ else SPLIT_MIN_FREQ
 
