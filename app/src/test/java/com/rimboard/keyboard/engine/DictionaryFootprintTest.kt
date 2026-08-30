@@ -59,6 +59,28 @@ import java.util.Locale
  * language despite having a third fewer words than English, and it cost two
  * megabytes of Turkish and none at all of English.
  *
+ * ## All twenty-two, 2026-08-30
+ *
+ * Measured on four languages and reasoned about as though that settled it. It
+ * does now: **English is the largest at 9.1 MB and nothing else reaches eight**,
+ * so the ceiling below is a real bound rather than a bound on the four that
+ * happened to be listed.
+ *
+ *     el 7.6   hu 7.5   tr 7.5   pl 6.8   sv 6.6   es 6.5   fi 6.5   uk 6.5
+ *     de 6.4   ru 6.4   da 6.4   no 6.4   it 6.3   nl 6.3   cs 6.0   sk 6.0
+ *     ro 5.6   fr 5.6   pt 5.5   hr 5.5   id 5.2
+ *
+ * The diacritic-index column now says something the four could not. Greek
+ * holds 52,131 folded forms, half again as many as Turkish's 31,475, with
+ * Hungarian at 35,571 and Slovak at 31,779 -- so the structure that briefly
+ * made Turkish the largest language would have made *Greek* the largest, and
+ * by more. It is flat now and Greek costs 7.6 MB, which is the whole point of
+ * having flattened it.
+ *
+ * The two languages carrying no accented words at all, English and Indonesian,
+ * hold an index of zero, and Indonesian is the cheapest language that ships at
+ * 5.2 MB. Nothing here is anomalous; that is the result.
+ *
  * English at 9.1 MB is now close to the floor of this design: about 5 MB of it
  * is the characters themselves, and the rest is one offset and one frequency
  * per word. Storing Latin-1 languages one byte to a character would save
@@ -96,7 +118,7 @@ class DictionaryFootprintTest {
 
     @Test
     fun `what a loaded language costs`() {
-        val langs = listOf("en", "tr", "de", "ru")
+        val langs = com.rimboard.keyboard.model.Languages.codes
         val lines = StringBuilder()
         var worstMb = 0.0
         for (lang in langs) {
@@ -132,9 +154,11 @@ class DictionaryFootprintTest {
         /**
          * Above the largest language measured, with room for a noisy heap.
          *
-         * English measures 9.1 MB and is the largest. Twelve is close enough
-         * to catch something being added back and loose enough not to fail on
-         * a heap that settled differently.
+         * English measures 9.1 MB and is the largest -- checked against all
+         * twenty-two now rather than the four this test used to load, with
+         * Greek the next heaviest at 7.6. Twelve is close enough to catch
+         * something being added back and loose enough not to fail on a heap
+         * that settled differently.
          */
         const val PER_LANGUAGE_CEILING_MB = 12.0
     }
