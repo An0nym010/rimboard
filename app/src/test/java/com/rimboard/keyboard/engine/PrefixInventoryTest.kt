@@ -61,6 +61,7 @@ import java.util.Locale
  *     cs      +1.7 / 1.9%        +0.2 / 0.8%             0.6%
  *     da      +1.5 / 1.6%        +0.8 / 1.4%             0.9%
  *     de      +2.3 / 2.1%      * +1.3 / 1.2%             0.9%
+ *     el      +0.8 / 0.0%        +0.5 / 0.0%             0.0%
  *     en      +1.5 / 2.5%        +0.7 / 1.7%             0.8%
  *     es      +1.8 / 1.9%        +0.8 / 1.4%             1.4%
  *     fi      +0.0 / 1.2%        +0.0 / 1.2%             1.2%
@@ -75,7 +76,9 @@ import java.util.Locale
  *     pt      +1.7 / 1.2%      * +1.5 / 0.7%             0.7%
  *     ro    * +3.3 / 0.9%        +0.3 / 0.7%             0.7%
  *     ru    * +2.7 / 0.8%        +0.8 / 0.5%             0.2%
+ *     sk    * +1.7 / 0.8%        +0.5 / 0.4%             0.0%
  *     sv      +1.3 / 1.4%      * +1.2 / 1.2%             1.2%
+ *     uk    * +2.7 / 1.2%        +1.0 / 0.8%             0.2%
  *
  * **The floor splits these languages differently than it splits them for
  * endings**, and that is a fact about where each language keeps its grammar
@@ -94,10 +97,32 @@ import java.util.Locale
  *
  * **Croatian is what the ceiling cost.** It has the worst destruction of any
  * shipped language at 36.7%, it counts perfectly good prefixes — `pre-`,
- * `pro-`, `pri-`, `raz-`, `pod-` — and it gains 2.7 points from them, the
- * third-best figure measured. It ships none, because its endings already run
- * at 1.2% and the pair reaches 3.3%. That is the ceiling doing its job on the
- * language that would most like it not to.
+ * `pro-`, `pri-`, `raz-`, `pod-` — and it gains 2.7 points from them, tied
+ * with Russian and Ukrainian for the best figure after Romanian. It ships
+ * none, because its endings already run at 1.2% and the pair reaches 3.3%.
+ * That is the ceiling doing its job on the language that would most like it
+ * not to.
+ *
+ * **Slovak and Ukrainian had never been measured here at all**, and the reason
+ * was not this table. The stem floor a prefix is counted in front of is a flat
+ * 500 occurrences, and their corpora are far too small for that to mean what
+ * it means elsewhere — Ukrainian had 833 stems to look behind. Scaled to their
+ * own corpora (see [Dictionary.stemFloorFor]) they count ordinary Slavic
+ * verbal prefixes and both take two characters, like Polish and Russian.
+ * Ukrainian's +2.7 ties Russian for the best measured.
+ *
+ * **Greek was never measured here either, and it is refused.** It was starved
+ * by nothing — 22,238 stems at the flat floor — and it counts real Greek
+ * morphology: `ξανα-`, `ανα-`, `απο-`, `παρα-`, `δια-`, `προ-`, `κατα-`,
+ * `επι-`, `υπο-`, `συν-`. It costs **nothing at all**, 0.0% wrongly accepted,
+ * the only inventory ever measured at zero here and a better ratio than
+ * Swedish, German or Hungarian. It misses only because the bar is written as a
+ * minimum gain rather than a ratio, and moving a bar to admit the thing just
+ * measured is a move this project has refused before. Greek is also the one
+ * language with no ending inventory — its stems are never words on their own,
+ * so the counting method cannot find one — which makes this the only
+ * morphology it could have, and the first thing to re-measure if the
+ * dictionaries are rebuilt.
  *
  * ## What the counting gets wrong, and why it ships anyway
  *
@@ -300,7 +325,9 @@ class PrefixInventoryTest {
             "hu" to listOf("meg", "fel", "vissza"),
             "pl" to listOf("po", "za", "wy", "prze"),
             "de" to listOf("ver", "aus", "auf", "ein"),
-            "nl" to listOf("ver", "uit", "aan", "over")
+            "nl" to listOf("ver", "uit", "aan", "over"),
+            "sk" to listOf("pre", "pri", "roz", "vy"),
+            "uk" to listOf("пере", "роз", "під", "від")
         )
         for ((lang, want) in expected) {
             if (lang !in shipped()) continue
@@ -308,6 +335,18 @@ class PrefixInventoryTest {
             val missing = want.filter { it !in have }
             assertTrue("$lang no longer derives $missing", missing.isEmpty())
         }
+        // Ukrainian's counted list also holds "от", "под", "со" and "ро" -- the
+        // first three are Russian prefixes rather than Ukrainian ones
+        // (Ukrainian writes "від", "під" and "з"), and the fourth is not a
+        // morpheme at all. A subtitle corpus for a language with a large
+        // Russian-speaking audience contains Russian, and counting cannot tell
+        // the difference.
+        //
+        // Deliberately not stripped here. The cost of carrying them is already
+        // priced -- Ukrainian's whole walk reads 1.2% wrongly accepted, inside
+        // the ceiling -- and hand-editing a counted list is the thing this tool
+        // exists to avoid. It is the same standing gap as the other curated
+        // lists: it wants a speaker, not a guess.
     }
 
     @Test
@@ -353,9 +392,17 @@ class PrefixInventoryTest {
             !Morphology.prefixedStemIsKnown("anything", emptyList(), emptyList()) { true }
         )
         // The ones the sweep turned down stay out, so the set is a decision
-        // rather than a leftover. Croatian is the first to re-check if the
-        // dictionaries are ever rebuilt: it gains the most of any refusal.
-        for (lang in listOf("cs", "da", "en", "es", "fi", "hr", "it", "no", "tr")) {
+        // rather than a leftover.
+        //
+        // Greek is the first to re-check if the dictionaries are ever rebuilt,
+        // and it displaced Croatian for the job. Croatian gains more (2.7
+        // points) but spends its budget on endings, so the pair reaches 3.3%.
+        // Greek reads 0.8 points for **0.0% wrongly accepted** -- the only
+        // inventory ever measured at zero cost here -- and misses only because
+        // the bar is a minimum gain and not a ratio. It is also the one
+        // language with no ending inventory either, so this is the only
+        // morphology it could have.
+        for (lang in listOf("cs", "da", "el", "en", "es", "fi", "hr", "it", "no", "tr")) {
             assertTrue(
                 "$lang ships a prefix inventory now; it was left out on " +
                     "measurement, so the table in this file wants revisiting",

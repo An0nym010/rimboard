@@ -39,6 +39,19 @@ OUT = os.path.join(ASSETS, "prefixes")
 # different opinions about what counts as a word.
 STEM_MIN_FREQ = 500
 
+# ...scaled to the corpus for the two languages whose lists are far too small
+# for a flat count to mean the same thing. Identical to the rule in
+# derive_suffixes.py and Dictionary.stemFloorFor; all three must agree about
+# what a stem is, and Ukrainian has 910 stems at the flat floor.
+TURKISH_TOKENS = 215064959.0
+SCALED_STEM_LANGS = {"sk", "uk"}
+
+
+def stem_floor(lang, words):
+    if lang not in SCALED_STEM_LANGS:
+        return STEM_MIN_FREQ
+    return max(2, round(STEM_MIN_FREQ * sum(words.values()) / TURKISH_TOKENS))
+
 # What is left after the prefix comes off has to be a word, not a syllable.
 MIN_STEM = 3
 
@@ -54,7 +67,7 @@ MIN_PREFIX = 3
 # ...except where the language's prefixes really are two characters long, which
 # is a fact about the language rather than a knob. See the sweep in
 # PrefixInventoryTest.
-MIN_PREFIX_BY_LANG = {"fr": 2, "pl": 2, "ro": 2, "ru": 2}
+MIN_PREFIX_BY_LANG = {"fr": 2, "pl": 2, "ro": 2, "ru": 2, "sk": 2, "uk": 2}
 
 # Longer than this and a "prefix" is really a first word; that is a compound,
 # and Compounds is the right tool for it.
@@ -83,9 +96,10 @@ def load(lang):
     return words
 
 
-def derive(words, min_prefix):
+def derive(lang, words, min_prefix):
     """Prefixes, and how many distinct stems each was found in front of."""
-    stems = {w for w, f in words.items() if f >= STEM_MIN_FREQ and len(w) >= MIN_STEM}
+    floor = stem_floor(lang, words)
+    stems = {w for w, f in words.items() if f >= floor and len(w) >= MIN_STEM}
     found = Counter()
     for w in words:
         n = len(w)
@@ -127,7 +141,34 @@ def chosen(found):
 # that prompted the attempt -- "unhelpfully", which a phone silently rewrote to
 # "unhelpful" -- is not rescued by any of these anyway, because it needs
 # "helpfully" to be a frequent stem and it is not.
-ENABLED = {"de", "fr", "hu", "id", "nl", "pl", "pt", "ro", "ru", "sv"}
+#
+# Slovak, Ukrainian and Greek were the three that had never been measured here
+# at all. The first two were starved by the stem floor -- Ukrainian had 833
+# stems to count prefixes in front of -- and derive ordinary Slavic verbal
+# prefixes once it is scaled to their corpus. Both take two characters like
+# their siblings Polish and Russian, and the sweep is why rather than the
+# family resemblance:
+#
+#              min 3        min 2
+#     sk    0.5 / 0.4%   1.7 / 0.8%
+#     uk    1.0 / 0.8%   2.7 / 1.2%
+#     el    0.5 / 0.0%   0.8 / 0.0%   <- refused
+#
+# Slovak does not reach the bar at three and clears it comfortably at two.
+# Ukrainian's 2.7 ties Russian for the best measured.
+#
+# **Greek is refused and is the one to revisit first.** It was starved by
+# nothing -- 22,238 stems at the flat floor -- and its counted list is real
+# Greek morphology (xana-, ana-, apo-, para-, dia-, pro-, kata-, epi-, ypo-,
+# syn-). It costs *nothing*: 0.0% wrongly accepted, the only inventory measured
+# at zero, and a better ratio than sv (1.2/1.2), de (1.3/1.2) or hu (1.8/1.2).
+# It simply does not reach a bar that is written as a minimum gain rather than
+# a ratio. Do not move the bar to admit it; that is the same move this project
+# has refused elsewhere. Greek has no ending inventory either -- its stems are
+# never words on their own, so the counting method cannot find one -- so this
+# is the only morphology it could have, and it is the first thing to re-measure
+# if the dictionaries are rebuilt.
+ENABLED = {"de", "fr", "hu", "id", "nl", "pl", "pt", "ro", "ru", "sv", "sk", "uk"}
 
 
 def main():
@@ -138,7 +179,7 @@ def main():
         os.makedirs(OUT, exist_ok=True)
     for lang in langs:
         words = load(lang)
-        found = derive(words, MIN_PREFIX_BY_LANG.get(lang, MIN_PREFIX))
+        found = derive(lang, words, MIN_PREFIX_BY_LANG.get(lang, MIN_PREFIX))
         keep = chosen(found)
         if report:
             top = ", ".join("%s-(%d)" % (p, found[p]) for p in keep[:14])
