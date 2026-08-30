@@ -1940,6 +1940,36 @@ class Dictionary(
         // and transpositions and neighbour slips pay for it. The cliff is
         // immediately under the answer, which is worth knowing before anyone
         // rounds this down.
+        //
+        // **Re-swept over all twenty-two languages, 2026-08-30**, because "two
+        // languages said it clearly" is the shape this project keeps finding
+        // wrong. It holds, and why it holds is more interesting than the
+        // number. Means of the contested figures across the twenty-two:
+        //
+        //          0.55   0.60   0.65   0.70   0.75
+        //   DROP   88.1   87.7   87.2   86.9   86.5
+        //   SWAP   98.0   98.5   98.5   99.0   99.3
+        //   FIRST  95.3   95.7   95.8   96.4   96.7
+        //   NEIGH  98.1   98.1   98.2   98.3   98.4
+        //   DOUB   99.0   99.2   99.2   99.0   99.0
+        //
+        // A cheaper insertion buys dropped letters and sells transpositions
+        // and first-letter slips, monotonically and in both directions, so
+        // there is no free move here — only a choice about which slip to
+        // favour. Averaged over the five kinds it is flat from 0.60 to 0.75
+        // and very slightly *rises* with the cost, so the case for lowering
+        // rests entirely on the worst cell: at 0.60 no language falls under
+        // 78% on any kind, and at 0.70 Finnish reads 77% on dropped letters.
+        // One point in one cell of a hundred and ten, against half a point of
+        // transposition accuracy in all of them. Not taken.
+        //
+        // **Dropped letters are the weak kind in every language**, by fifteen
+        // to twenty points — fi 77, cs 78, no 78, sv 79, de 80 against 96-100
+        // for the other four kinds. That is not this constant failing. A
+        // dropped letter is the one slip the geometry cannot speak to at all:
+        // there is no touch point near the right key, because the key was
+        // never struck. Anything that improves it comes from the language
+        // model, not from the cost table.
         val ins = 0.7
         // Transposition. **Swept 2026-08-20 and kept**: flat from 0.20 to
         // 0.50 on every figure, with the cliff immediately above — at 0.70 the
