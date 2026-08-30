@@ -309,7 +309,7 @@ class OutOfVocabularyTest {
     @Test
     fun `a correct word outside the dictionary is often rewritten, and the figure is here`() {
         val langs = listOf("tr", "fi", "hu", "pl", "cs", "de", "en", "es", "ru",
-            "no", "sk", "da", "hr", "nl", "sv", "id")
+            "no", "sk", "da", "hr", "nl", "sv", "id", "uk")
         val lines = StringBuilder()
         val rates = HashMap<String, Double>()
         for (lang in langs) {
@@ -387,17 +387,19 @@ class OutOfVocabularyTest {
         // says the acceptance above comes from the inventory rather than from
         // something that would have happened anyway.
         //
-        // Slovak is the control, and is the third language to hold the job:
+        // Greek is the control, and is the fourth language to hold the job:
         // Czech lost it when its endings turned out to be short rather than
-        // absent, and Russian when the criterion moved from how much an
-        // inventory accepts to how much destruction it prevents. A control that
-        // keeps being promoted is worth re-checking after every change to the
-        // derivation.
-        val sk = split("sk")!!
-        val skEngine = engineWith("sk", sk.kept)
+        // absent, Russian when the criterion moved from how much an inventory
+        // accepts to how much destruction it prevents, and Slovak when its
+        // stem floor turned out to be measuring the size of its corpus. A
+        // control that keeps being promoted is worth re-checking after every
+        // change to the derivation -- and the next promotion has to be Turkish
+        // or nothing, which is a good sign that the job is nearly done.
+        val el = split("el")!!
+        val elEngine = engineWith("el", el.kept)
         assertTrue(
-            "Slovak has no shipped inventory and should still accept nothing",
-            sk.heldOut.none { skEngine.acceptedWord(it, "sk", Locale.forLanguageTag("sk")) }
+            "Greek has no shipped inventory and should still accept nothing",
+            el.heldOut.none { elEngine.acceptedWord(it, "el", Locale.forLanguageTag("el")) }
         )
     }
 

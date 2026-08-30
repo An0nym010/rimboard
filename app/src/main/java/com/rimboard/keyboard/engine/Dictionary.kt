@@ -391,6 +391,102 @@ class Dictionary(
         internal const val STEM_MIN_FREQ = 500
 
         /**
+         * The corpus [STEM_MIN_FREQ] was measured against.
+         *
+         * The sample in the note above -- junk at 37-98 occurrences, roots from
+         * 1,261 -- is Turkish, and Turkish was built from 215 million tokens.
+         * That matters because 500 is a *count*, and the corpora behind these
+         * lists differ by a factor of a hundred and fifty:
+         *
+         *     en   728M tokens   500 is   0.7 per million   25,845 stems
+         *     tr   215M          500 is   2.3               29,412
+         *     da    88M          500 is   5.7                7,746
+         *     id    55M          500 is   9.2                6,504
+         *     no    52M          500 is   9.6                5,189
+         *     sk    50M          500 is  10.0                7,136
+         *     uk     4.7M        500 is 106.8                  910
+         *
+         * So a flat count is not one bar in twenty-two languages, it is
+         * twenty-two bars. Ukrainian has nine hundred stems in a
+         * two-hundred-thousand-word list, and the bar sits where Turkish "sor"
+         * (14,056) would fall -- well above the roots the number was chosen to
+         * keep. This is the third time this trap has been found in this file;
+         * see [CORRECTION_TARGET_CAP] ("a flat frequency cutoff kept a quarter
+         * of English and a scrap of a smaller language, and the fix was to
+         * count by rank instead") and [tokenTotal].
+         *
+         * ## Why it is not simply divided out everywhere
+         *
+         * Because that was measured too, and it is close to zero-sum. The
+         * floor was swept as `500 * (tokens / TURKISH_TOKENS) ^ k`, from k = 0
+         * (today's flat count) to k = 1 (a fixed rank), regenerating every
+         * inventory at each step -- mean destruction across the sixteen
+         * measured languages, and how many inventories then broke
+         * `SuffixInventoryTest`'s ceiling of 1.5% wrongly accepted:
+         *
+         *     k        0.0    0.25    0.5    0.75    1.0
+         *     mean   26.16   26.08  25.82   25.66  25.49
+         *     broken     0       0      1       4      5
+         *
+         * The mean moves because small-corpus languages gain (id -3.3, da
+         * -2.4, no -2.1, sv -2.0 at k = 1) and large-corpus ones lose by
+         * almost as much (es +1.7, nl +0.8, en +0.6, cs +0.5), which is one
+         * trade seen from both ends: loosening the floor vouches for more
+         * words and waves through more typos. Past k = 0.25 the German, Danish,
+         * Finnish and Indonesian inventories stop paying for themselves. The
+         * per-language caps in `tools/derive_suffixes.py` were all swept at
+         * k = 0 as well, so moving it invalidates them.
+         *
+         * ## Which leaves the two languages that have nothing to trade
+         *
+         * Slovak and Ukrainian ship no inventory at all, so for them this is
+         * not a trade -- there is no tuning to invalidate and no acceptance to
+         * lose. Both were left out on measurement taken at the flat floor, and
+         * both were being measured against nine hundred to seven thousand
+         * stems. Given a floor scaled to their own corpus they derive ordinary
+         * Slavic inflection and pay better than most of what ships:
+         *
+         *     sk   prevents 3.0 points of destruction for 0.0% wrongly accepted
+         *     uk   prevents 2.3                          for 0.2%
+         *
+         * against es 5.3/1.4, hr 3.8/1.2 and sv 3.2/1.2 already shipping.
+         * Slovak's out-of-vocabulary destruction goes 28.7% to 25.7%.
+         *
+         * Named rather than derived from a size threshold, because no
+         * threshold separates them: Slovak's corpus is 50M and Norwegian's is
+         * 52M, and Norwegian's inventory is tuned at the flat floor. The set is
+         * "languages whose inventory was never tuned at 500", which is a fact
+         * about this project's history and not about the languages.
+         */
+        private const val TURKISH_TOKENS = 215_064_959.0
+
+        /**
+         * Languages whose stem floor is scaled to their own corpus.
+         *
+         * See the note on [TURKISH_TOKENS]. Adding a language here is a
+         * measurement, not a preference: it changes what the morphology walk
+         * will vouch for, and `SuffixInventoryTest` prices it.
+         */
+        private val SCALED_STEM_LANGS = setOf("sk", "uk")
+
+        /**
+         * The stem floor for [lang]'s list, built from [tokens] occurrences.
+         *
+         * Public because `SuffixInventoryTest` and `PrefixInventoryTest` build
+         * their own "is this a stem" predicate over a raw word list rather
+         * than over a [Dictionary], and a benchmark holding a different floor
+         * from the one that ships measures nothing. Three hand-built asset
+         * maps have hidden a change in this project already; a hand-built
+         * predicate is the same fault.
+         */
+        fun stemFloorFor(lang: String, tokens: Long): Int =
+            if (lang !in SCALED_STEM_LANGS) STEM_MIN_FREQ
+            else maxOf(
+                CORRECTION_MIN_FREQ,
+                Math.round(STEM_MIN_FREQ * tokens / TURKISH_TOKENS).toInt()
+            )
+
+        /**
          * How much commoner an accented word must be before a bare spelling
          * of it that is *also* in the corpus stops counting as a word.
          *
@@ -664,6 +760,15 @@ class Dictionary(
      * smaller language, and the fix was to count by rank instead.
      */
     val tokenTotal: Long
+
+    /**
+     * [stemFloorFor] applied to this list, computed once.
+     *
+     * Every caller that used to read [STEM_MIN_FREQ] directly reads this
+     * instead. They are all asking the same question -- is this string a word
+     * people actually write -- and two floors would be two answers.
+     */
+    val stemMinFreq: Int
     /**
      * Bare-letter forms, sorted, concatenated -- the same shape as [blob] and
      * for the same reason.
@@ -785,6 +890,7 @@ class Dictionary(
         var tokens = 0L
         for (f in freqs) tokens += f
         tokenTotal = tokens
+        stemMinFreq = stemFloorFor(locale.language, tokens)
         // Character-transition model for adaptive tap targeting: how likely is
         // letter b to follow letter a in this language, weighted by ln(freq) so
         // common words dominate without drowning everything else. ' ' marks

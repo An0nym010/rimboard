@@ -197,7 +197,14 @@ class PrefixInventoryTest {
             val p = l.split(' ')
             if (p.size > 1) freq[p[0]] = p[1].toIntOrNull() ?: 0
         }
-        val known: (String) -> Boolean = { (freq[it] ?: 0) >= Dictionary.STEM_MIN_FREQ }
+        // The floor the shipped dictionary computes for this list, not the
+        // constant. Two of these are scaled to their own corpus now -- see
+        // [Dictionary.stemFloorFor] -- and a benchmark holding the flat number
+        // would price an inventory the keyboard does not walk.
+        val floor = Dictionary.stemFloorFor(
+            lang, all.sumOf { it.substringAfterLast(' ').toLongOrNull() ?: 0L }
+        )
+        val known: (String) -> Boolean = { (freq[it] ?: 0) >= floor }
         val sufs = suffixesOf(lang)
         val pres = if (withPrefixes) inventory(lang) else emptyList()
         val real = all.mapNotNull { it.split(' ').firstOrNull() }.toHashSet()

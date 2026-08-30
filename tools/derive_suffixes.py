@@ -40,6 +40,22 @@ OUT = os.path.join(ASSETS, "suffixes")
 # counts as a word.
 STEM_MIN_FREQ = 500
 
+# ...except for the two languages whose corpora are far too small for a flat
+# count to mean the same thing. 500 occurrences is 2.3 per million of Turkish,
+# where the number was measured, and 106.8 per million of Ukrainian -- which
+# leaves 910 stems in a 200,000-word list and nothing for this to count endings
+# on. Dictionary.stemFloorFor holds the same rule and the same set; the two
+# must not disagree about what a stem is. The note there records why it is
+# these two and not every language.
+TURKISH_TOKENS = 215064959.0
+SCALED_STEM_LANGS = {"sk", "uk"}
+
+
+def stem_floor(lang, words):
+    if lang not in SCALED_STEM_LANGS:
+        return STEM_MIN_FREQ
+    return max(2, round(STEM_MIN_FREQ * sum(words.values()) / TURKISH_TOKENS))
+
 # Shorter than this and a "stem" is a syllable, not a word.
 MIN_STEM = 3
 
@@ -68,7 +84,7 @@ MIN_SUFFIX = 3
 # The left column takes two; the right column would pay several times the cost
 # for its extra gain and keeps three.
 MIN_SUFFIX_BY_LANG = {"cs": 2, "de": 2, "id": 2, "nl": 2, "sv": 2, "ru": 2, "no": 2,
-                      "sk": 2, "da": 2}
+                      "sk": 2, "da": 2, "uk": 2}
 
 # How many two-letter endings a language may admit on top of its longer ones.
 #
@@ -181,17 +197,21 @@ MIN_STEMS = 150
 #
 # Points of destruction prevented, measured with the inventory and without:
 #
-#     hu 8.0   ro 5.3   fr 4.0   nl 3.5   ru 1.8   sk 0.2
-#     pl 6.2   fi 5.0   pt 4.0   de 3.3   da 1.8
-#     es 5.5   it 4.2   cs 3.8   sv 3.2   en 1.5
-#     hr 3.8   id 3.0   no 1.5
+#     hu 8.0   ro 5.3   fr 4.0   nl 3.5   sk 3.0   da 1.8
+#     pl 6.2   fi 5.0   pt 4.0   de 3.3   uk 2.3   ru 1.8
+#     es 5.5   it 4.2   cs 3.8   sv 3.2   no 1.5   en 1.5
+#     hr 3.8   id 3.0
 #
 # Measured with the prefix inventories present in both arms, which is what
 # ships. They raised these rather than lowering them, because the two walks
 # compose: a prefix is stripped and what is left goes to the ending walk, so
 # the endings are worth more once there are prefixes. See derive_prefixes.py.
 #
-# Slovak is the only one that derives an inventory and gains nothing from it.
+# Slovak read 2.0/0.0 here and gained nothing, and Ukrainian derived nothing at
+# all. Both were being measured against a stem floor their corpora cannot
+# reach -- see STEM_MIN_FREQ. Scaled to their own corpora they read sk 3.0/0.0
+# and uk 2.3/0.2, and Slovak's out-of-vocabulary destruction goes 28.7% to
+# 25.7%.
 #
 # That ceiling is the one already in the product rather than a number chosen
 # here: the hand-written Turkish inventory, which has shipped from the start,
@@ -201,7 +221,8 @@ MIN_STEMS = 150
 #     tr 31.3/0.5   fi 12.0/1.2   it  8.3/0.8   pt  6.2/0.7   sv  5.8/1.2
 #     hu 17.5/1.0   es 11.3/1.4   nl  7.5/0.8   en  6.2/0.8   ru  4.5/0.2
 #     pl 14.0/0.7   hr 10.3/1.2   fr  7.2/0.3   id  6.0/0.8   da  3.8/0.9
-#     cs 12.7/0.6   ro 10.3/0.7   de  7.0/0.9   no  3.3/0.3   sk  2.0/0.0
+#     cs 12.7/0.6   ro 10.3/0.7   de  7.0/0.9   no  3.3/0.3   sk  3.0/0.0
+#                                                                  uk  2.3/0.2
 #
 # Both tables above are re-measured whenever one of them changes, because they
 # went stale once: they held the three-character figures for cs, de, nl, sv, da,
@@ -209,15 +230,25 @@ MIN_STEMS = 150
 # is a table describing a configuration that no longer shipped. They are what
 # `SuffixInventoryTest` prints, so a disagreement is a run away from settling.
 #
-# Greek and Ukrainian derive nothing at all: their endings are one and two
-# characters, which MIN_SUFFIX excludes for good reason.
+# Greek derives nothing at all: its endings are one and two characters, which
+# MIN_SUFFIX excludes for good reason, and it is not on the Slavic-and-Germanic
+# list below that would admit two.
+#
+# Ukrainian read the same way and for a different reason. It is Slavic, so it
+# takes two characters like Czech, Russian and Slovak -- and it derives nothing
+# even at two until its stem floor is scaled, because 910 stems cannot support
+# an ending on 150 of them. Swept both ways once it could derive at all:
+# three characters gives 10 endings and prevents 0.2 points, under the bar this
+# file holds every inventory to; two gives 42 and prevents 2.3 for 0.2% wrongly
+# accepted. The two-character floor is not a concession here, it is the
+# language.
 #
 # Turkish is absent because it already has a hand-written inventory checked
 # against vowel harmony, and that one is better -- 46% for 3.8% against 31% for
 # 0.5%. Harmony is doing real work there and nothing counted here knows it.
 ENABLED = {
     "cs", "de", "es", "fi", "fr", "hu", "id", "it", "nl", "pl", "pt", "ro", "sv",
-    "ru", "no", "da", "hr", "en",
+    "ru", "no", "da", "hr", "en", "sk", "uk",
 }
 
 # English was held out for a while on a judgement rather than a measurement: its
@@ -254,9 +285,10 @@ def load(lang):
     return words
 
 
-def derive(words, min_suffix):
+def derive(lang, words, min_suffix):
     """Endings, and how many distinct stems each was found on."""
-    stems = {w for w, f in words.items() if f >= STEM_MIN_FREQ and len(w) >= MIN_STEM}
+    floor = stem_floor(lang, words)
+    stems = {w for w, f in words.items() if f >= floor and len(w) >= MIN_STEM}
     found = Counter()
     for w in words:
         n = len(w)
@@ -285,7 +317,7 @@ def main():
         os.makedirs(OUT, exist_ok=True)
     for lang in langs:
         words = load(lang)
-        found = derive(words, MIN_SUFFIX_BY_LANG.get(lang, MIN_SUFFIX))
+        found = derive(lang, words, MIN_SUFFIX_BY_LANG.get(lang, MIN_SUFFIX))
         keep = chosen(found)
         cap = SHORT_CAP.get(lang)
         if cap:
@@ -293,7 +325,7 @@ def main():
             # language already had. Order in the file is presentation only --
             # both the engine and the test sort by length before walking -- so
             # this puts the commonest first for anyone reading it.
-            short = [s for s in chosen(derive(words, 2)) if len(s) == 2][:cap]
+            short = [s for s in chosen(derive(lang, words, 2)) if len(s) == 2][:cap]
             keep = short + [s for s in keep if s not in short]
         if report:
             top = ", ".join("-%s(%d)" % (s, found[s]) for s in keep[:14])

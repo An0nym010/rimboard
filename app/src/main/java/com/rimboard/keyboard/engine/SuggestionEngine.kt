@@ -1150,7 +1150,7 @@ class SuggestionEngine private constructor(
         // below has anything to add. See [Dictionary.withoutForeignAccents].
         dict.withoutForeignAccents(lower) != null ||
         com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) {
-            dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
+            dict.frequency(it) >= dict.stemMinFreq
         } ||
         // The same question of a language whose endings were counted rather
         // than written. Turkish answers above and never reaches here; every
@@ -1158,7 +1158,7 @@ class SuggestionEngine private constructor(
         // existed, and a word it cannot vouch for is a word autocorrect is
         // free to overwrite.
         com.rimboard.keyboard.model.Morphology.stemIsKnown(lower, suffixesFor(lang)) {
-            dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
+            dict.frequency(it) >= dict.stemMinFreq
         } ||
         // The same question at the other end of the word. Every clause here
         // read a word's tail until this one, because the walk was written for
@@ -1168,19 +1168,19 @@ class SuggestionEngine private constructor(
         com.rimboard.keyboard.model.Morphology.prefixedStemIsKnown(
             lower, prefixesFor(lang), suffixesFor(lang)
         ) {
-            dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
+            dict.frequency(it) >= dict.stemMinFreq
         } || com.rimboard.keyboard.model.Compounds.splitOf(
-            lang, lower, Dictionary.STEM_MIN_FREQ
+            lang, lower, dict.stemMinFreq
         ) { dict.frequency(it) } != null ||
         com.rimboard.keyboard.model.Elision.splitOf(
-            lower, Dictionary.STEM_MIN_FREQ
+            lower, dict.stemMinFreq
         ) { dict.frequency(it) } != null ||
         // "Paris'e", "ABD'de" — a proper noun carrying its case ending across
         // an apostrophe. A fourth shape of the same question and so a fourth
         // clause here, rather than a fourth opinion somewhere else about
         // whether something is a word.
         com.rimboard.keyboard.model.Morphology.apostropheSuffixed(lang, lower) {
-            dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
+            dict.frequency(it) >= dict.stemMinFreq
         } ||
         // "комп'ютер" — Ukrainian, where the apostrophe is a letter and the
         // word is indivisible. A fifth shape of the same question.
@@ -1564,7 +1564,7 @@ class SuggestionEngine private constructor(
             // this said the same thing by asking byPrefix for an empty prefix
             // and breaking out of a loop that could never run, which is a
             // harder way to read it.
-            if (tail.isNotEmpty() && dict.frequency(head) >= Dictionary.STEM_MIN_FREQ) {
+            if (tail.isNotEmpty() && dict.frequency(head) >= dict.stemMinFreq) {
                 for ((w, f) in dict.byPrefix(tail, COMPLETION_FETCH)) {
                     val joined = head + w
                     if (userData.isBlocked(joined)) continue
