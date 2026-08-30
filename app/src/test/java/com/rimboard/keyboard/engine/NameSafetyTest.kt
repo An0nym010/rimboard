@@ -48,6 +48,32 @@ import java.util.Locale
  * nothing. "César" was committed as "Cesar", "Noël" as "Noel", "Parijs" as
  * "Paris", "Sundays" as "Sunday" — while the spell checker, reading the same
  * capital, had been declining to underline those very words all along.
+ *
+ * ## All twenty-one, 2026-08-30
+ *
+ * The guard was measured on English and Turkish and asserted for them. It is
+ * now asked of every language that ships, and **it holds in all of them: not
+ * one capitalised name is overwritten anywhere.** The lowercase column, which
+ * is what the same words suffer without the capital, runs 7.5% to 15.3% --
+ * no 15.3, cs 13.4, sv 12.9, tr 12.4, pl 12.4, fr 11.3, fi 11.0, hr 10.9,
+ * id 10.8, it 10.7, da 10.4, sk 10.3, es 10.1, hu 10.1, pt 9.7, ro 9.3,
+ * en 9.2, nl 7.5. So the risk this guards against is real in every one of
+ * them and about as large as it is in English.
+ *
+ * **German is excluded from the sweep as it is from the rule**, and the cost
+ * of that exclusion is now measured rather than assumed: asked anyway,
+ * German overwrites 25 of its 205 capitalised names. That is the price of
+ * SpellCandidacy`s CAPITALS_ARE_ORDINARY, which exists because German
+ * capitalises every noun and reading a mid-sentence capital as "this is a
+ * name" there would stop the keyboard checking most of a German sentence.
+ * The trade is deliberate; the number is what it costs.
+ *
+ * **Russian, Ukrainian and Greek cannot express this failure at all** and are
+ * pinned by name below rather than quietly passing. The pooled corpus is
+ * overwhelmingly Latin names, and a Latin string is not within any edit
+ * budget of a Cyrillic or Greek word, so nothing in it is at risk for them.
+ * An assertion that is true because the question was never askable is the
+ * exact fault this file was rewritten to avoid.
  */
 class NameSafetyTest {
 
@@ -148,8 +174,11 @@ class NameSafetyTest {
     fun `a name typed with its capital is not silently rewritten`() {
         val nouns = properNouns()
         val report = StringBuilder()
+        val weak = mutableListOf<String>()
         for ((lang, locale) in listOf(
-            "en" to Locale.ENGLISH, "tr" to Locale.forLanguageTag("tr")
+            *com.rimboard.keyboard.model.Languages.all
+                .filter { it.code != "de" }
+                .map { it.code to it.locale }.toTypedArray()
         )) {
             val engine = realEngine(lang)
             val unknown = nouns.filter { !engine.acceptedWord(it, lang, locale) }
@@ -178,17 +207,29 @@ class NameSafetyTest {
             // below is vacuous. The first version of this measurement scored
             // 0 of 304 because every name in a language's own fixture is one
             // its dictionary already holds; that mistake must not pass again.
-            assertTrue(
-                "the name corpus stopped containing anything at risk in $lang, " +
-                    "so the guard below proves nothing.\n$report",
-                exposed.size >= 8
-            )
+            // Collected rather than asserted per language, because three of
+            // the twenty-one genuinely cannot hold anything at risk -- see
+            // below the loop.
+            if (exposed.size < AT_RISK_FLOOR) weak.add(lang)
             assertEquals(
                 "the keyboard silently overwrote a capitalised name in $lang.\n$report",
                 emptyList<String>(), destroyed
             )
         }
         println(report)
+        // Three languages cannot express this failure and it is not a fault
+        // in them. The pooled corpus is overwhelmingly Latin names, and a
+        // Latin string is not within any edit budget of a Cyrillic or Greek
+        // word -- so nothing in it is at risk, and for those three the
+        // assertion above is true without being evidence. Pinned by name so
+        // that a *fourth* language falling into the set says so: the floor
+        // caught English at seven once already, when a real fix took the
+        // accented names out of the corpus.
+        assertEquals(
+            "which languages the pooled name corpus can and cannot put at " +
+                "risk has changed.\n" + report,
+            listOf("ru", "uk", "el"), weak
+        )
     }
 
     @Test
@@ -198,19 +239,27 @@ class NameSafetyTest {
         // autocorrect off, and every figure in AutocorrectAccuracyTest would
         // still pass while the keyboard did nothing.
         val nouns = properNouns()
+        // The same twenty-one, for the same reason: a rule that fires where
+        // it should not would fire in some language other than the two this
+        // used to ask about.
+        val weak = mutableListOf<String>()
         for ((lang, locale) in listOf(
-            "en" to Locale.ENGLISH, "tr" to Locale.forLanguageTag("tr")
+            *com.rimboard.keyboard.model.Languages.all
+                .filter { it.code != "de" }
+                .map { it.code to it.locale }.toTypedArray()
         )) {
             val engine = realEngine(lang)
             val lower = nouns.map { it.lowercase(locale) }
                 .filter { !engine.acceptedWord(it, lang, locale) }
             val corrected = lower.count { committed(engine, it, lang, locale) != null }
-            assertTrue(
-                "lowercase words stopped being corrected in $lang ($corrected of ${lower.size}), " +
-                    "which means the name guard is firing where it should not.",
-                corrected >= 8
-            )
+            if (corrected < AT_RISK_FLOOR) weak.add(lang)
         }
+        assertEquals(
+            "lowercase words stopped being corrected somewhere, which means " +
+                "the name guard is firing where it should not -- or the three " +
+                "languages whose corpus cannot express this have changed.",
+            listOf("ru", "uk", "el"), weak
+        )
     }
 
     @Test
@@ -270,4 +319,20 @@ class NameSafetyTest {
             engine.correctionFor("helko", "en", Locale.ENGLISH)?.lowercase() == "hello"
         )
     }
+
+    private companion object {
+        /**
+         * How many names the pooled corpus must actually put at risk in a
+         * language before the guard measured on it means anything.
+         *
+         * Eight, unchanged, and it has already earned its keep twice: the
+         * first version of this measurement scored 0 of 304 because a
+         * language's own fixture holds only the names its dictionary already
+         * knows, and English later fell to seven when a real fix took the
+         * accented names out of the corpus. Both times this number is what
+         * said so.
+         */
+        const val AT_RISK_FLOOR = 8
+    }
+
 }
