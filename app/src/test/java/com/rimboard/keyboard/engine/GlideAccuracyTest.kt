@@ -98,16 +98,56 @@ class GlideAccuracyTest {
      * it: they are common in Greek and rare in Italian, so a sample deep enough
      * for one is nowhere near deep enough for the other.
      */
-    private fun undrawnInitials(lang: String, count: Int): List<String> {
+    private fun undrawnInitials(lang: String, count: Int): List<String> =
+        undrawnInitialsRanked(lang, count).map { it.first }
+
+    /** The same words, each with its place in the frequency list. */
+    private fun undrawnInitialsRanked(lang: String, count: Int): List<Pair<String, Int>> {
         val prox = KeyProximity.forLang(lang)
-        val out = ArrayList<String>(count)
+        val out = ArrayList<Pair<String, Int>>(count)
+        var rank = 0
         File(assets(), "dictionaries/$lang.txt").useLines { lines ->
-            for (line in lines.drop(40)) {
+            for (line in lines) {
                 val w = line.split(' ').firstOrNull() ?: continue
+                rank++
+                if (rank <= 40) continue
                 if (w.length !in 4..10 || !w.all { c -> c.isLetter() }) continue
-                if (prox.gridX(w[0]) == null) out.add(w)
+                if (prox.gridX(w[0]) == null) out.add(w to rank)
                 if (out.size >= count) break
             }
+        }
+        return out
+    }
+
+    /**
+     * Words whose initial the layout *does* draw, taken from the same depths
+     * in the list as [target].
+     *
+     * Without this the comparison is against the commonest words in the
+     * language, and rarity is doing most of the work.
+     */
+    private fun rankMatchedControl(
+        lang: String, target: List<Pair<String, Int>>
+    ): List<String> {
+        val prox = KeyProximity.forLang(lang)
+        val drawn = ArrayList<Pair<String, Int>>()
+        var rank = 0
+        File(assets(), "dictionaries/$lang.txt").useLines { lines ->
+            for (line in lines) {
+                val w = line.split(' ').firstOrNull() ?: continue
+                rank++
+                if (rank <= 40) continue
+                if (w.length !in 4..10 || !w.all { c -> c.isLetter() }) continue
+                if (prox.gridX(w[0]) != null) drawn.add(w to rank)
+            }
+        }
+        val used = HashSet<String>()
+        val out = ArrayList<String>(target.size)
+        for ((_, r) in target) {
+            val pick = drawn.filter { it.first !in used }
+                .minByOrNull { kotlin.math.abs(it.second - r) } ?: continue
+            used.add(pick.first)
+            out.add(pick.first)
         }
         return out
     }
@@ -981,6 +1021,35 @@ class GlideAccuracyTest {
      */
     @Test
     fun `a word can begin with a letter the layout does not draw`() {
+        // ## What the second column is for
+        //
+        // This printed one number per language, and it was read as a decoder
+        // that cannot manage an accented initial. Most of it was the sampler.
+        //
+        // These words are found by scanning until a hundred and twenty turn up,
+        // so where an accented initial is rare the scan ends a long way down
+        // the list -- Italian at rank 151,267, Dutch at 135,795 -- while every
+        // other arm in this file samples the commonest words in the language.
+        // Rare words glide badly whatever they begin with. Against words of the
+        // same rarity:
+        //
+        //     it   1%/3%   control  1%/9%      nothing here was real
+        //     nl   3%/7%   control  2%/14%     nor here
+        //     es  17%/38%  control 18%/40%     nor here
+        //
+        // What survives the control is real, and it splits along the line the
+        // set below already draws. Where the accented spelling is the only
+        // spelling an undrawn initial is *easier* than an ordinary word of the
+        // same rarity -- sk +12, ro +12, cs +8, hr +8 points of top-1 --
+        // because there is no unaccented twin to lose to. Where both spellings
+        // are real words it costs: fi -19, da -15, pt -14, hu -10, no -9,
+        // sv -6.
+        //
+        // That is the hosted-letter finding at the other end of the word, and
+        // the same argument for drawing these letters rather than hosting them.
+        // Both halves of that trade are priced in "what a key of their own
+        // would cost the Nordic layouts" below and in KeyWidthTapTest.
+
         // Languages where an accented initial is the normal spelling rather
         // than a variant of a commoner one, so the word has no twin to lose to.
         val accentIsTheSpelling = setOf("el", "cs", "sk", "hr", "pl", "ro", "hu")
@@ -990,19 +1059,42 @@ class GlideAccuracyTest {
         val silent = ArrayList<String>()
         val weak = ArrayList<String>()
         var sum = 0.0
+        var gap = 0.0
         var counted = 0
+        lines.append(
+            "%-4s %-16s %-16s %s%n".format(
+                "lang", "undrawn initial", "drawn, same rank", "median rank"
+            )
+        )
         for (lang in langs) {
-            val words = undrawnInitials(lang, 120)
+            val pairs = undrawnInitialsRanked(lang, 120)
             // en, id and tr draw their whole alphabet, so there is no such word
             // and nothing to measure.
-            if (words.size < 40) continue
+            if (pairs.size < 40) continue
+            val words = pairs.map { it.first }
             val n = measure(lang, Locale.forLanguageTag(lang), words, Hand.NATURAL)
-            lines.append("%-4s %s (n=%d)%n".format(lang, n.pct(), n.asked))
+            // The control this went without, and needed. These words are found
+            // by scanning until a hundred and twenty turn up, so in a language
+            // where an accented initial is rare the sampler ends up deep in the
+            // list -- Spanish at rank 14,822, Finnish at 12,272 -- while the
+            // rest of this file samples the commonest words there are. Rare
+            // words glide worse whatever letter they start with, so the low
+            // numbers here read as a decoder that cannot manage accented
+            // initials and are mostly a sampler that went looking.
+            val ctrl = rankMatchedControl(lang, pairs)
+            val c = measure(lang, Locale.forLanguageTag(lang), ctrl, Hand.NATURAL)
+            val median = pairs.map { it.second }.sorted()[pairs.size / 2]
+            lines.append(
+                "%-4s %-16s %-16s %d%n".format(
+                    lang, "${n.pct()} n=${n.asked}", "${c.pct()} n=${c.asked}", median
+                )
+            )
             if (n.offered <= 0.0) silent.add(lang)
             if (lang in accentIsTheSpelling && n.offered < 0.80) {
                 weak.add("$lang ${n.pct()}")
             }
             sum += n.offered
+            gap += n.offered - c.offered
             counted++
         }
         println(lines)
@@ -1023,6 +1115,18 @@ class GlideAccuracyTest {
             "words beginning with an undrawn letter reach the strip much less " +
                 "often than measured (mean offered ${"%.2f".format(sum / counted)}).\n$lines",
             sum / counted >= 0.55
+        )
+        // The tripwire the figure above cannot be. That one is measured on
+        // whatever depth the sampler had to reach, so it moves whenever the
+        // dictionary does. The gap against words of the same rarity does not.
+        // It runs at about five points today and would have to treble before
+        // this fires.
+        assertTrue(
+            "an undrawn initial now costs " +
+                "${"%.0f".format(-gap / counted * 100)} points of offered against " +
+                "words of the same rarity, against about five when it was " +
+                "measured. || $lines",
+            gap / counted >= -0.15
         )
     }
 
