@@ -156,8 +156,14 @@ class FalseFriendsTest {
             "offensive/$lang.txt" to assets().resolve("offensive/$lang.txt").readText(),
             "offensive/en.txt" to assets().resolve("offensive/en.txt").readText(),
             "emoji/en.txt" to assets().resolve("emoji/en.txt").readText()
-        ) + (assets().resolve("emoji/$lang.txt").takeIf { it.isFile }
-            ?.let { mapOf("emoji/$lang.txt" to it.readText()) } ?: emptyMap())
+        ) + listOf("emoji/$lang.txt", "emoji/search_$lang.txt")
+            // Both, because the strip reads the keyword file and falls back to
+            // the picker's search index. Naming only the first is how this
+            // helper reported a language having no emoji at all while the file
+            // sat beside it -- the same fault OutOfVocabularyTest's hand-built
+            // map has had twice.
+            .filter { assets().resolve(it).isFile }
+            .associateWith { assets().resolve(it).readText() }
         return SuggestionEngine.forTesting(userData) { p -> files[p]?.byteInputStream() }
             .also { it.blockOffensive = true }
     }
@@ -247,6 +253,25 @@ class FalseFriendsTest {
                 )
             }
         }
+    }
+
+    @Test
+    fun `three languages had their own emoji vocabulary and the strip ignored it`() {
+        // emoji/<lang>.txt is what the strip reads and five languages have one.
+        // emoji/search_<lang>.txt is what the picker's search box reads and
+        // eight do. French, Italian and Portuguese were in the second set and
+        // not the first, so the strip answered them out of the English list --
+        // words a French user does not type -- while their own vocabulary sat
+        // in the same directory, in the same format, unread.
+        assertEquals("❤️", engineFor("fr").emojiFor("coeur", "fr"))
+        assertEquals("🐶", engineFor("fr").emojiFor("chien", "fr"))
+        assertEquals("🎁", engineFor("fr").emojiFor("cadeau", "fr"))
+        assertEquals("🍕", engineFor("it").emojiFor("pizza", "it"))
+        assertEquals("🐶", engineFor("pt").emojiFor("cachorro", "pt"))
+        // The five that already had a keyword file read it, not the search
+        // index, so nothing about them moves.
+        assertEquals("❤️", engineFor("de").emojiFor("liebe", "de"))
+        assertEquals("🔥", engineFor("de").emojiFor("feuer", "de"))
     }
 
     @Test

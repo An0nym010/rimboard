@@ -716,20 +716,46 @@ class SuggestionEngine private constructor(
         return emojiMap("en")[wordLower]
     }
 
-    /** See [predictionModelLock] for why this is not `@Synchronized`. */
+    /**
+     * See [predictionModelLock] for why this is not `@Synchronized`.
+     *
+     * Two files can answer, and the second was already in the APK doing
+     * nothing for this. `emoji/<lang>.txt` is the keyword list the strip was
+     * written against, and five languages have one. `emoji/search_<lang>.txt`
+     * is what the picker's search box reads, and eight do -- so French,
+     * Italian and Portuguese have shipped their own emoji vocabulary all
+     * along, while the strip went on offering them English keywords they never
+     * type.
+     *
+     * They are the same kind of list. Set the German keyword file beside the
+     * French search index and there is nothing to choose between them:
+     *
+     *     de.txt          liebe love      herz heart     feuer fire
+     *     search_fr.txt   amour love      coeur heart    chien dog
+     *
+     * The search index maps a word to several emoji because a picker shows a
+     * row of them; the strip wants one, so it takes the first, which is the
+     * order the file already puts them in.
+     */
     private fun emojiMap(lang: String): Map<String, String> = synchronized(emojiLock) {
         emojiMaps.getOrPut(lang) {
-            try {
-                (assets.open("emoji/$lang.txt") ?: return@getOrPut emptyMap())
-                    .bufferedReader().readLines()
-                    .mapNotNull { line ->
-                        val p = line.split('\t')
-                        if (p.size == 2) p[0] to p[1] else null
-                    }.toMap()
-            } catch (_: Exception) {
-                emptyMap()
-            }
+            keywordsFrom("emoji/$lang.txt")
+                ?: keywordsFrom("emoji/search_$lang.txt")
+                ?: emptyMap()
         }
+    }
+
+    /** A word-to-emoji file, or null when the asset is not there. */
+    private fun keywordsFrom(path: String): Map<String, String>? = try {
+        assets.open(path)?.bufferedReader()?.readLines()?.mapNotNull { line ->
+            val p = line.split('\t')
+            // The search index carries several emoji per word and the keyword
+            // files carry one; taking the first reads both.
+            val first = p.getOrNull(1)?.trim()?.substringBefore(' ')?.takeIf { it.isNotEmpty() }
+            if (p.size >= 2 && first != null) p[0] to first else null
+        }?.toMap()
+    } catch (_: Exception) {
+        null
     }
 
     /**
