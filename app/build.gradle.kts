@@ -197,6 +197,30 @@ tasks.withType<Test>().configureEach {
     inputs.file("src/main/AndroidManifest.xml").withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.file("src/online/AndroidManifest.xml").withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.dir("src/offline").withPathSensitivity(PathSensitivity.RELATIVE)
+    // The published dictionaries, because ExtendedDictManifestTest holds
+    // assets/extended.json to the files it describes -- sizes, hashes and the
+    // word counts the download screen shows. Sixth time, and the same shape as
+    // all five above: dist/ is above the module and is not a source set, so a
+    // regenerated dictionary changes no Kotlin and the task would stay
+    // UP-TO-DATE across exactly the drift the test exists to catch. Checked
+    // the way this file insists on: a byte of dist/dictionaries/cs.txt.gz was
+    // corrupted and the suite run *without* --rerun-tasks, and it failed.
+    // Declared only when it is there, and that condition is load-bearing.
+    // dist/ is gitignored -- the archives live on the `dictionaries` branch --
+    // so a fresh clone and every CI runner has no copy, and Gradle refuses to
+    // *run* a task whose declared input directory is missing: "An input file
+    // was expected to be present but it doesn't exist". An unconditional line
+    // here broke the build everywhere the files are absent, which is almost
+    // everywhere, and `.optional(true)` does not help because AGP validates
+    // the property regardless. Both were found by moving dist/ aside and
+    // running, rather than by reading the documentation.
+    //
+    // Absent, there is nothing for the test to check and it returns early;
+    // present, this is what makes it notice a regenerated archive.
+    val published = file("../dist")
+    if (published.isDirectory) {
+        inputs.dir(published).withPathSensitivity(PathSensitivity.RELATIVE)
+    }
 }
 
 dependencies {
