@@ -92,12 +92,28 @@ class NameSafetyTest {
         return out
     }
 
+    /**
+     * Every prose fixture, the held-out ones included.
+     *
+     * The held-out six were pooled in when the corpus ran out of headroom: the
+     * at-risk count below is a *sample size*, and every real improvement to the
+     * keyboard shrinks it -- the accented names ("Cézar", "Papá", "Noël") left
+     * it for [ForeignAccentTest], and English fell to seven, one under the
+     * floor that keeps this test honest. Drawing more sample is the answer to
+     * that; moving the floor down to meet it is not, because the floor is the
+     * only thing standing between this measurement and the vacuous one it
+     * started as.
+     */
+    private fun proseFiles(): List<File> =
+        (fixtures().listFiles().orEmpty().toList() +
+            File(fixtures(), "heldout").listFiles().orEmpty().toList())
+            .filter { it.name.startsWith("prose_") && it.name != "prose_de.txt" }
+            .sortedBy { it.path }
+
     /** `drop(1)` is the sentence-initial word, which carries no evidence. */
     private fun properNouns(): List<String> {
         val out = LinkedHashSet<String>()
-        fixtures().listFiles().orEmpty()
-            .filter { it.name.startsWith("prose_") && it.name != "prose_de.txt" }
-            .sortedBy { it.name }
+        proseFiles()
             .forEach { f ->
                 f.readLines().filter { it.isNotBlank() }.forEach { line ->
                     tokens(line).drop(1).forEach { w ->

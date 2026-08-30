@@ -1123,10 +1123,16 @@ class SuggestionEngine private constructor(
     /**
      * Whether the language's own word-building rules make [lower] one word.
      *
-     * Two rules, one per shape of language, and neither is about the word
-     * being *in* the list: Turkish stacks suffixes on a stem the list holds,
-     * German joins two words the list holds. Both mean the same thing — this
-     * is a word the list could not have been expected to contain.
+     * Rules about shape rather than about membership: Turkish stacks suffixes
+     * on a stem the list holds, German joins two words the list holds. Each
+     * means the same thing — this is a word the list could not have been
+     * expected to contain.
+     *
+     * The first clause is the one exception and belongs here for that same
+     * reason. "café" is not built out of anything; it is a word the list was
+     * *filtered* out of holding, because every dictionary here is filtered to
+     * one language's orthography and every language borrows outside its own.
+     * The list could not have been expected to contain it either.
      *
      * It is one function because two callers need the same answer.
      * [acceptedWord] uses it to decide not to underline, and [splitFor] uses
@@ -1136,6 +1142,13 @@ class SuggestionEngine private constructor(
      * `fixtures/tr_unlisted.txt` that the underline had just accepted.
      */
     private fun wellFormedWord(lower: String, lang: String, dict: Dictionary): Boolean =
+        // A known word wearing an accent this language does not use: "café",
+        // "fiancé", "piñata", "José". First because it is the cheapest test
+        // here by a distance -- a scan for a byte over 0x7F, which every
+        // ordinary English word fails on its first letter -- and because an
+        // accent no key draws cannot be a slip, so none of the morphology
+        // below has anything to add. See [Dictionary.withoutForeignAccents].
+        dict.withoutForeignAccents(lower) != null ||
         com.rimboard.keyboard.model.Morphology.stemIsKnown(lang, lower) {
             dict.frequency(it) >= Dictionary.STEM_MIN_FREQ
         } ||

@@ -472,6 +472,17 @@ class Dictionary(
          */
         private const val ACCENT_UNDERLINE_RATIO = 30
 
+        /**
+         * Where the scan for [nativeAccents] stops looking.
+         *
+         * Latin Extended-B ends at U+024F, Greek at U+03FF and Cyrillic at
+         * U+04FF, so every letter any shipped list is written with is well
+         * below this. The limit exists only to bound the bitset that
+         * deduplicates the scan; a character above it is not an accented Latin,
+         * Greek or Cyrillic letter and nothing here has an opinion about it.
+         */
+        private const val ACCENT_SCAN_LIMIT = 0x2000
+
         /** Neither half of a split may be rarer than this. */
         private const val SPLIT_MIN_FREQ = 500
 
@@ -669,6 +680,25 @@ class Dictionary(
     private val foldedBlob: CharArray
     private val foldedStarts: IntArray
     private val foldedTo: IntArray
+
+    /**
+     * The accented letters this language actually writes with, taken from its
+     * own word list.
+     *
+     * The alphabet as the keyboard models it, not as a table declares it --
+     * the same source [com.rimboard.keyboard.model.LayoutCoverageTest] uses,
+     * and for the same reason: a letter is part of a language here if the
+     * shipped vocabulary is written with it.
+     *
+     * Tiny -- twenty entries at most, and empty for English and Indonesian.
+     * What it is *for* is the emptiness: it is how [withoutForeignAccents]
+     * knows that an acute on an "e" is a letter of French and a long press on
+     * an English keyboard.
+     */
+    private val nativeAccents: Set<Char>
+
+    /** [nativeAccents], for the test that pins it against the layouts. */
+    internal val nativeAccentLetters: Set<Char> get() = nativeAccents
     /**
      * Kept from the build, because [correctionFloor] copies and sorts the whole
      * frequency array and this is asked per correction.
@@ -852,6 +882,22 @@ class Dictionary(
             foldedTo[k] = foldedPairs[key]!!
         }
         foldedStarts[foldedKeys.size] = fat
+
+        // One pass over the letters, deduplicated as it goes, because folding
+        // is a Unicode normalisation and a Cyrillic or Greek list is entirely
+        // non-ASCII -- normalising every character of it would be two million
+        // normalisations for an answer with twenty entries. The bitset costs a
+        // kilobyte and lives only as long as this loop.
+        val seenChar = java.util.BitSet(ACCENT_SCAN_LIMIT)
+        val accented = HashSet<Char>()
+        for (c in blob) {
+            val code = c.code
+            if (code < 0x80 || code >= ACCENT_SCAN_LIMIT) continue
+            if (seenChar.get(code)) continue
+            seenChar.set(code)
+            if (com.rimboard.keyboard.model.Diacritics.fold(c) != c) accented.add(c)
+        }
+        nativeAccents = accented
     }
 
     /**
@@ -1117,6 +1163,92 @@ class Dictionary(
             return null
         }
         return wordAt(i)
+    }
+
+    /**
+     * The dictionary word [lower] spells once accents this language does not
+     * use are taken off, or null.
+     *
+     * The fourth question in the accent family, and the only one asked in the
+     * other direction. [accentedFormOf], [accentedSuggestionFor] and
+     * [accentedUnderlineFor] all start from a bare spelling and ask what
+     * accented word it stands for. This starts from an accented spelling
+     * nothing in the list matches and asks whether it is a word at all.
+     *
+     * ## Why it has to be asked
+     *
+     * Every dictionary here is filtered to one orthography -- `tools/
+     * fetch_dictionaries.py` keeps `[a-z']` for English, `[a-zäöüß]` for
+     * German -- and every language borrows outside its own. So the English
+     * list holds none of "café", "fiancé", "cliché", "résumé", "naïve",
+     * "piñata", "déjà", "façade", "señor", "touché", nor any of "José",
+     * "André", "Renée", "Beyoncé". All of them were underlined, and four of
+     * them were silently overwritten on the space bar: "fiancée" committed as
+     * "fiance", "touché" as "touch", "jalapeño" as "jalapeno", "purée" as
+     * "pure".
+     *
+     * Measured on the English corpus the list is built from, an accented word
+     * whose bare spelling *is* a shipped English word occurs 302 times per
+     * million -- one word in every 3,300, every one of them underlined.
+     *
+     * ## Why it is safe
+     *
+     * Because of what it costs to type one. An accent this language does not
+     * use is on no key of its layout: reaching it takes a long press and a
+     * second aimed tap at a popup, which is about as deliberate as typing
+     * gets. It cannot be a slip of the thumb, so there is no typo here to
+     * repair -- which is the same premise, in the same file, that
+     * [dropsAnAccentThatWasReachedFor] already uses to stop the space bar
+     * undoing one. That rule bounded only what commits silently; the squiggle
+     * was never covered, and neither was the space bar's ordinary correction
+     * path, which is how "fiancée" was getting through.
+     *
+     * The premise is checked rather than assumed: `ForeignAccentTest` pins
+     * that no shipped layout draws an accented letter its language's word list
+     * does not contain, so "foreign accent" really does imply "long press" on
+     * all twenty-two.
+     *
+     * And it is exactly *not* the bare-key case. A word gets here only by
+     * carrying an accent; "cafe" and "gunaydin" carry none, reach none of
+     * this, and are still corrected to "café" and "günaydın".
+     *
+     * ## What it will not do
+     *
+     * Vouch for a letter that is not an accent over a base -- "ß", "æ", "þ"
+     * come back from [Diacritics.fold] unchanged, and a word holding one gets
+     * null. Nor for a word whose bare form the list does not hold: "nköö" and
+     * "öèëid" are the corpus's own OCR damage, they fold to nothing, and they
+     * go on being underlined. Requiring the fold to land on a real word is the
+     * whole of the filtering, and it is enough -- of the 48,152 accented types
+     * the English corpus contains, it accepts 13,737.
+     *
+     * A word may mix the two, and then only the foreign accents come off. This
+     * is not a refinement -- it is most of the Turkish half. `tr.txt` is
+     * filtered to `[a-zçğıöşü]` and holds no â, so the circumflex Turkish
+     * genuinely writes with is foreign by this test, and "kâğıt" is a foreign
+     * accent sitting between two native ones. Folding the word flat gives
+     * "kagit", which is nothing; folding only the â gives "kağıt", which is
+     * the word. The native letters are left exactly as typed, so they still
+     * have to be right -- "kâğit" folds to "kağit" and goes on being
+     * corrected.
+     */
+    fun withoutForeignAccents(lower: String): String? {
+        var foreign = false
+        for (c in lower) {
+            if (c.code < 0x80 || c in nativeAccents) continue
+            // Not an accent over a base letter, so there is nothing to take
+            // off and no claim to make about it.
+            if (com.rimboard.keyboard.model.Diacritics.fold(c) == c) return null
+            foreign = true
+        }
+        if (!foreign) return null
+        val sb = StringBuilder(lower.length)
+        for (c in lower) {
+            if (c.code < 0x80 || c in nativeAccents) sb.append(c)
+            else sb.append(com.rimboard.keyboard.model.Diacritics.fold(c))
+        }
+        val bare = sb.toString()
+        return if (bare != lower && contains(bare)) bare else null
     }
 
     /**
