@@ -272,10 +272,11 @@ MIN_PAIR = 2
 #
 #     cs  28.2  ->  29.0  ->  29.6        hr  28.3  ->  29.2  ->  30.0
 #     da  40.8  ->  41.3  ->  42.1        sk  29.5  ->  29.8  ->  31.7
+#     fi  31.2  ->  31.6  ->  32.5        pl  32.9  ->  33.5  ->  34.3
 #
-# A point on average, where 3->2 bought 0.6, for the same 1.43 MB on the
-# release APK. The four are the corpora small enough to have held-out fixtures
-# built for them, which is also to say the four this helps most.
+# A point on average, where 3->2 bought 0.6. Six of the thirteen, because six
+# is how many have held-out fixtures; the rest have coverage only, which is an
+# input to this and not a synonym for it.
 #
 # And the thing that had to be checked before any of it: these rows rank
 # corrections, and the last move broke that ceiling. `AutocorrectAccuracyTest`
@@ -286,6 +287,15 @@ MIN_PAIR = 2
 MIN_PAIR_BY_LANG = {
     "hr": 1, "sk": 1, "no": 1, "ro": 1, "id": 1, "cs": 1,
     "el": 1, "sv": 1, "uk": 1, "da": 1, "nl": 1,
+    # Polish and Finnish were held back a round on the reading that MAX_ROWS
+    # forbade them, and it does not: it caps a *fresh* build, and the merged
+    # asset has never been bound by it -- Russian has shipped 3,226 rows past
+    # it for some time at 6.6 MB of heap against a 12 MB budget. What actually
+    # bounds the file is memory and the APK, and at 38,402 and 38,702 rows
+    # these two land under Russian on both. They gain 6.7 and 6.3 points of
+    # coverage, which is what Slovak and Norwegian gained, so refusing them
+    # would have been deferring to a number rather than to what it measures.
+    "pl": 1, "fi": 1,
 }
 
 

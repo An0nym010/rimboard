@@ -427,7 +427,9 @@ class AutocorrectAccuracyTest {
         "id" to Locale.forLanguageTag("id"),
         "el" to Locale.forLanguageTag("el"),
         "da" to Locale.forLanguageTag("da"),
-        "sv" to Locale.forLanguageTag("sv")
+        "sv" to Locale.forLanguageTag("sv"),
+        "pl" to Locale.forLanguageTag("pl"),
+        "fi" to Locale.forLanguageTag("fi")
     )
 
     private fun measureContext(

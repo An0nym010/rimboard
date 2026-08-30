@@ -104,7 +104,13 @@ class PredictionFootprintTest {
     @Test
     fun `no shipped model has drifted past the builder's own cap`() {
         val cap = 36_000
-        val known = mapOf("ru" to 39_226)
+        // Three languages sit past what the builder caps a fresh build at, each
+        // deliberately and each pinned to the row it stands on. Russian arrived
+        // there by accumulated merges and nobody noticed until this test
+        // existed; Polish and Finnish were put there on purpose, because the
+        // cap bounds a fresh build and what bounds the file is memory and the
+        // APK, and all three sit under the 12 MB asserted below.
+        val known = mapOf("ru" to 39_226, "pl" to 38_402, "fi" to 38_702)
         val dir = listOf(File("src/main/assets"), File("app/src/main/assets"))
             .first { it.isDirectory }.resolve("predictions")
         val over = ArrayList<String>()
@@ -129,7 +135,7 @@ class PredictionFootprintTest {
     fun `what a loaded prediction model costs`() {
         val out = StringBuilder()
         var worstMb = 0.0
-        for (lang in listOf("en", "tr", "ru", "hr")) {
+        for (lang in listOf("en", "tr", "ru", "pl", "fi", "hr")) {
             val (bytes, rows) = costOf(lang)
             val mb = bytes / 1024.0 / 1024.0
             if (mb > worstMb) worstMb = mb
