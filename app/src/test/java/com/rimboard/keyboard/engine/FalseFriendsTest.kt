@@ -1,6 +1,7 @@
 package com.rimboard.keyboard.engine
 
 import com.rimboard.keyboard.model.FalseFriends
+import com.rimboard.keyboard.model.Languages
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -120,6 +121,75 @@ class FalseFriendsTest {
                 slur in listOf_("offensive", lang)
             )
         }
+    }
+
+    /**
+     * The population, walked, which the emoji half of this file already does
+     * and this half did not.
+     *
+     * Every test above starts from the seven exemptions and checks each one.
+     * That can only ever confirm what is there; it cannot say whether an
+     * eighth is missing, and a list assembled from sightings is shaped like
+     * what somebody happened to notice. So: every word of the English list,
+     * against every language that falls back to it, weighted by how often that
+     * language's own corpus uses it.
+     *
+     * Above 50 per million and not already accounted for, there are three, and
+     * all three are the English expletive borrowed whole rather than a false
+     * friend -- Danish "fuck" (86/M), Dutch "shit" (82/M), Slovak "bastard"
+     * (59/M). Blocking them is right. They are named here rather than exempted
+     * because the assertion has to distinguish "we looked and it is fine" from
+     * "nobody looked".
+     *
+     * **The interesting result is that frequency cannot find these at all**,
+     * and that is worth knowing before anyone tries to automate the list. The
+     * seven real exemptions run from Swedish "slut" at 362 per million down to
+     * Norwegian "fag" below 5, and the band in between is full of pure noise:
+     * "dick" appears at 12-23 per million in sixteen languages, which is the
+     * English word leaking through subtitle corpora and the given name, not
+     * vocabulary. German "dick" -- a real word meaning thick -- sits at 33,
+     * barely above that noise, and Swedish "prick" at 10 sits below most of
+     * it. No threshold separates them. This list is a speaker's judgement and
+     * has to stay one; what this test can do is prove that nothing large is
+     * being missed.
+     */
+    @Test
+    fun `no common word in any language is blocked by the English fallback`() {
+        val en = listOf_("offensive", "en")
+        // The English expletive borrowed wholesale: offensive where it lands,
+        // and absent from that language's own short list only because the
+        // lists are short.
+        val borrowed = setOf("da fuck", "nl shit", "sk bastard")
+        val surprises = StringBuilder()
+        val report = StringBuilder()
+        for (lang in Languages.codes) {
+            if (lang == "en") continue
+            val own = listOf_("offensive", lang)
+            for (w in en) {
+                if (w in own) continue
+                val (f, total) = freq(lang, w)
+                if (f == 0L) continue
+                val perMillion = f * 1_000_000.0 / total
+                if (perMillion < COMMON_PER_MILLION) continue
+                report.append("    %-3s %-12s %6.1f/M%n".format(lang, w, perMillion))
+                if (FalseFriends.ordinaryHere(lang, w)) continue
+                if ("$lang $w" in borrowed) continue
+                surprises.append(" $lang \"$w\" at %.0f/M".format(perMillion))
+            }
+        }
+        println(report)
+        assertEquals(
+            "the English offensive list is withholding a common word somewhere " +
+                "and nothing accounts for it. Either it is a false friend and " +
+                "wants an exemption with a speaker's evidence, or it is that " +
+                "language's own expletive and wants naming here.$surprises",
+            "", surprises.toString()
+        )
+        assertTrue(
+            "the sweep found nothing at all, so it is measuring an empty " +
+                "population rather than a clean one",
+            report.isNotEmpty()
+        )
     }
 
     @Test
@@ -320,4 +390,18 @@ class FalseFriendsTest {
         assertFalse(FalseFriends.ordinaryHere("en", "slut"))
         assertFalse(FalseFriends.ordinaryHere("en", "dick"))
     }
+
+    private companion object {
+        /**
+         * How common a word has to be in a language before withholding it
+         * from that language's suggestions is a thing worth accounting for.
+         *
+         * The same fifty per million the emoji half of this file holds its
+         * additions to, and for the same reason: below it a word is corpus
+         * traffic rather than vocabulary. It is emphatically *not* the bar for
+         * being a false friend -- four of the seven exemptions sit under it.
+         */
+        const val COMMON_PER_MILLION = 50.0
+    }
+
 }

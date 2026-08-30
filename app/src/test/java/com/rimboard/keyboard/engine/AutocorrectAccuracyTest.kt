@@ -1002,10 +1002,9 @@ class AutocorrectAccuracyTest {
 
     @Test
     fun `a word outside the commonest few thousand can still be corrected`() {
-        val results = listOf(
-            "en" to Locale.ENGLISH,
-            "tr" to Locale.forLanguageTag("tr")
-        ).map { (lang, locale) -> lang to measureBands(lang, locale, 40) }
+        val results = com.rimboard.keyboard.model.Languages.all
+            .map { it.code to it.locale }
+            .map { (lang, locale) -> lang to measureBands(lang, locale, 40) }
 
         val lines = results.joinToString("\n") { (lang, s) -> bandReport(lang, s) }
         println(lines)
@@ -1023,6 +1022,19 @@ class AutocorrectAccuracyTest {
         // is genuinely a less likely thing to have meant, and the ranking is
         // supposed to say so. What matters is that the word stays *reachable*,
         // and it does right down to the cap.
+        //
+        // **Swept to all twenty-two, 2026-08-30.** The cap is expressed as a
+        // rank and behaves like one: every language is offered a correction
+        // 89-100% of the time at rank 30,000 and 0% at 80,000, with the cliff
+        // in the same place. Nothing is anomalous, which is the answer worth
+        // having about a constant that governs every language identically
+        // while their lists cover very different amounts of each language.
+        //
+        // The fix rate at rank 30,000 spreads more than the offer rate does --
+        // hu 94, uk 90, ru 90, sk 89, hr 85 at one end and el 61, ro 63, de 64,
+        // no 66, en 69 at the other. That ordering is roughly how much of the
+        // language a 200,000-word list still covers at that depth, which is a
+        // fact about the corpora rather than about this cap.
         results.forEach { (lang, s) ->
             s.filter { it.rank <= FLOORED_TO }.forEach { b ->
                 assertTrue(
