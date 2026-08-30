@@ -135,7 +135,7 @@ class PredictionFootprintTest {
     fun `what a loaded prediction model costs`() {
         val out = StringBuilder()
         var worstMb = 0.0
-        for (lang in listOf("en", "tr", "ru", "pl", "fi", "hr")) {
+        for (lang in com.rimboard.keyboard.model.Languages.codes) {
             val (bytes, rows) = costOf(lang)
             val mb = bytes / 1024.0 / 1024.0
             if (mb > worstMb) worstMb = mb
@@ -151,5 +151,79 @@ class PredictionFootprintTest {
                 .format(worstMb, "IME should hold for one language:\n$out"),
             worstMb < 12.0
         )
+    }
+
+    /**
+     * What a language costs when both halves of it are loaded.
+     *
+     * The two footprint tests each weigh one structure and neither adds them
+     * up, and the sentence the project quotes came from the dictionary half
+     * alone -- "two languages plus the spell checker sharing neither: 27 MB",
+     * which is three times the largest *dictionary* and no model at all. A
+     * loaded language is both. Models are 30-45% of one, so the quoted figure
+     * understated an ordinary configuration by about a third.
+     *
+     * This is the arm that owns that question. Per language, dictionary and
+     * model in one engine, then the worst realistic configuration: the two
+     * heaviest languages a user could enable at once, plus the spell checker,
+     * which shares neither and holds its own copy of one of them.
+     */
+    @Test
+    fun `what an ordinary configuration costs`() {
+        val out = StringBuilder()
+        val totals = LinkedHashMap<String, Double>()
+        for (lang in com.rimboard.keyboard.model.Languages.codes) {
+            val locale = Locale.forLanguageTag(lang)
+            val dictText = File(assets(), "dictionaries/$lang.txt").readText()
+            val predText = File(assets(), "predictions/$lang.txt").readText()
+            val before = used()
+            val e = SuggestionEngine.forTesting(userData) { p ->
+                when (p) {
+                    "dictionaries/$lang.txt" -> dictText.byteInputStream()
+                    "predictions/$lang.txt" -> predText.byteInputStream()
+                    else -> null
+                }
+            }
+            e.dictionary(lang, locale)
+            e.predictions("", "the", lang, locale, 3)
+            held = e
+            val mb = (used() - before) / 1024.0 / 1024.0
+            totals[lang] = mb
+            out.append("    %-3s %5.1f MB loaded%n".format(lang, mb))
+            held = null
+            settle()
+        }
+        println(out)
+        val ranked = totals.entries.sortedByDescending { it.value }
+        val pair = ranked.take(2)
+        // The spell checker resolves its own locale from the field and shares
+        // nothing with the keyboard, so at worst it holds another copy of the
+        // heaviest of the two.
+        val configuration = pair.sumOf { it.value } + pair.first().value
+        println(
+            "worst configuration: %s + %s enabled, spell checker on %s = %.1f MB"
+                .format(pair[0].key, pair[1].key, pair[0].key, configuration)
+        )
+        assertTrue("nothing was measured:%n$out".format(), configuration > 5.0)
+        assertTrue(
+            ("an ordinary configuration now costs %.1f MB, which is more than " +
+                "an IME should be while the user can still see it:%n%s")
+                .format(configuration, out),
+            configuration < CONFIGURATION_CEILING_MB
+        )
+    }
+
+    private companion object {
+        /**
+         * Two languages and a spell checker, both halves of each loaded.
+         *
+         * Measured at 41 MB on a desktop JVM, where object headers are larger
+         * than Android's, so the figure on a phone is somewhat lower. Fifty is
+         * far enough above to survive a heap that settled differently and
+         * close enough to notice a structure being added back -- which is the
+         * failure this whole file exists to catch, since an input method is
+         * the lowest-priority process the user can still see.
+         */
+        const val CONFIGURATION_CEILING_MB = 50.0
     }
 }

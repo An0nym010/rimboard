@@ -14,6 +14,12 @@ import java.util.Locale
  * thing in the running-apps list. Two dictionaries and a spell checker are an
  * ordinary configuration, and until this file nothing had said what that costs.
  *
+ * **This file weighs dictionaries.** A loaded language is a dictionary and a
+ * prediction model, and the model is 30-45% of it, so the configuration figure
+ * lives in `PredictionFootprintTest` where both halves can be loaded at once.
+ * It reads 41.5 MB; three dictionaries alone read 27, which is what this file
+ * used to print under the configuration's name.
+ *
  * ## Reading these figures
  *
  * Measured by settling the heap, loading a dictionary, settling again and
@@ -140,8 +146,15 @@ class DictionaryFootprintTest {
             if (d != null) throw IllegalStateException()
         }
         println(lines)
-        println("Two languages plus the spell checker sharing neither: " +
-            "%.0f MB".format(worstMb * 3))
+        // Dictionaries only, and labelled so. This line used to say "two
+        // languages plus the spell checker sharing neither", which is the
+        // configuration but not the cost: a loaded language is a dictionary
+        // *and* a prediction model, and the model is 30-45% of it. Three
+        // dictionaries came to 27 MB and the real configuration to 41.5.
+        // `PredictionFootprintTest.what an ordinary configuration costs` owns
+        // that question now and loads both halves; this one keeps weighing the
+        // structure it was written to weigh.
+        println("Three dictionaries, models excluded: %.0f MB".format(worstMb * 3))
 
         assertTrue("nothing was measured:\n$lines", worstMb > 0.5)
         assertTrue(
