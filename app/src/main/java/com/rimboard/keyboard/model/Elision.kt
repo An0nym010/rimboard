@@ -44,8 +44,16 @@ package com.rimboard.keyboard.model
  * between accepting a few non-words and underlining every real contraction. The
  * cost of the first is that a nonsense word goes unmarked; the cost of the
  * second was every French sentence. It also takes a deliberately misplaced
- * apostrophe to reach, which is not a slip a thumb makes: the key is not on the
- * letter layer.
+ * apostrophe to reach, which is not a slip a thumb makes -- on most layouts.
+ *
+ * The last clause used to read "the key is not on the letter layer", and that
+ * is true of every layout here except the one this feature exists for: French
+ * AZERTY draws the apostrophe as a letter-row key, because AZERTY puts `m` on
+ * the home row and leaves the slot free. So on French a misplaced apostrophe
+ * costs one tap rather than a layer switch, and the argument is weaker exactly
+ * where it is load-bearing. It still holds -- the cost of being wrong is a
+ * nonsense word going unmarked, not a word being rewritten -- but on a
+ * different footing than the sentence claimed.
  */
 object Elision {
 

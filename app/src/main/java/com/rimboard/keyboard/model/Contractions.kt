@@ -30,6 +30,37 @@ package com.rimboard.keyboard.model
  * "l'eau") that turn ambiguous quickly, and inventing a list per language is
  * the same unreviewed-content trap as the translations — they want a native
  * pass, not a guess. The maps are per-language so that pass has somewhere to go.
+ *
+ * # What that pass would be looking at, measured
+ *
+ * The gap is real and the same shape as the English one. Typed into the French
+ * engine today, every one of these is accepted as spelled and commits as
+ * itself, and the apostrophe form is offered nowhere — not on the strip, not
+ * as a correction. What the strip offers instead is the tail of the word list:
+ *
+ *     cest     -> cest, cestus, cesternino          j'ai     never offered
+ *     jai      -> jai, jaime, jaillir               c'est    never offered
+ *     quon     -> quon, quonsett, quong             qu'on    never offered
+ *     daccord  -> daccord                           d'accord never offered
+ *
+ * The frequencies sit in the same band as English entries that do ship, so the
+ * bar is not the question — per million of their own corpus, French "jai" runs
+ * at 5.64 and "cest" at 4.44, against English "cant" at 5.40 and "thats" at
+ * 5.31.
+ *
+ * **A rule cannot do it, and that is worth knowing before anyone tries.** The
+ * obvious one — split at an elided article the list holds, require both halves
+ * to be frequent, which is exactly what [Elision] asks of the apostrophe form
+ * — fires on 3,900 French entries and 6,272 Italian ones, and the ones it
+ * fires hardest on are the commonest words in the language: "pas" to "p'as",
+ * "les" to "l'es", "mais" to "m'ais", "dans" to "d'ans". The elided articles
+ * are single letters, so nearly everything splits. Which is the same reason
+ * this object is a list rather than a rule for English.
+ *
+ * And the trap the list will have to handle is already visible: "quelle" runs
+ * at 412.96 per million and is an ordinary French word, so it belongs in
+ * [suggest] and never in [auto] — the "cant" and "wont" case, in a language
+ * where it is easier to miss.
  */
 object Contractions {
 
