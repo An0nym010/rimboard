@@ -667,6 +667,50 @@ class SuggestionEngine private constructor(
      * on. English, Spanish and Russian never showed it because their case
      * mapping happens to be locale-independent.
      */
+    /**
+     * Offensive in *either* language the user has enabled.
+     *
+     * [isOffensive] takes one language, and every caller handed it the
+     * effective one. So a word the second language calls offensive and English
+     * does not was offered on the strip, and committed on the glide path,
+     * with "Block offensive words" on. Every shipped language has between 36
+     * and 63 such words, all of them in its own dictionary and several among
+     * the commonest words it has: French "merde" at 121,318 per its own
+     * corpus, Spanish "mierda" at 221,567, Polish "kurwa" at 80,388, German
+     * "scheiße" at 61,982.
+     *
+     * Asking by provenance -- judging a chip by the list of the dictionary it
+     * came out of -- was tried first and is not enough: an English corpus
+     * built from subtitles holds "merde", "mierda", "kurwa" and "verdomme"
+     * too, so those chips are not foreign by that test and go on being judged
+     * by a list that has never heard of them.
+     *
+     * So: either language, which is also what [isOffensive]'s own note asks
+     * for -- "this filter may only ever err strict".
+     *
+     * **The exemption is the one thing that must not be widened**, and it is
+     * why this is a function rather than an `||` at each call site. A Swede
+     * writing Swedish has to get "slut" back, because there it means end, and
+     * that lives in the effective language's answer. Asking English as well
+     * would take it straight back off them, undoing the fix that put it there.
+     * So the effective language's judgement that a word is ordinary here wins
+     * over the other list, and only the other direction can add.
+     */
+    private fun isOffensiveEither(
+        word: String,
+        lang: String,
+        locale: Locale,
+        altLang: String?,
+        altLocale: Locale?
+    ): Boolean {
+        if (isOffensive(word, lang, locale)) return true
+        if (!blockOffensive || altLang == null || altLocale == null) return false
+        if (com.rimboard.keyboard.model.FalseFriends
+                .ordinaryHere(lang, word.lowercase(locale))
+        ) return false
+        return isOffensive(word, altLang, altLocale)
+    }
+
     private fun isOffensive(word: String, lang: String, locale: Locale): Boolean {
         if (!blockOffensive) return false
         val here = word.lowercase(locale)
@@ -1850,10 +1894,12 @@ class SuggestionEngine private constructor(
             // Slot 0 is the verbatim word and is never filtered: the point is to
             // stop the keyboard *offering* offensive words, not to censor one
             // the user deliberately typed and can already see in the field.
-            outWords = listOf(display.first()) +
-                display.drop(1).filter { !isOffensive(it, lang, locale) }
-            outAc = if (acWord != null && !isOffensive(acWord, lang, locale))
-                outWords.indexOf(acWord) else -1
+            outWords = listOf(display.first()) + display.drop(1).filter {
+                !isOffensiveEither(it, lang, locale, altLang, altLocale)
+            }
+            outAc = if (acWord != null &&
+                !isOffensiveEither(acWord, lang, locale, altLang, altLocale)
+            ) outWords.indexOf(acWord) else -1
         }
         return SuggestionsResult(outWords, outAc)
     }
@@ -1948,7 +1994,10 @@ class SuggestionEngine private constructor(
             // being asked was, until this, the one that ignored both "Block
             // offensive words" -- whose own summary reads "Never suggest or
             // autocorrect to profanity" -- and the user's own blocked list.
-            .filter { !userData.isBlocked(it.key) && !isOffensive(it.key, lang, locale) }
+            .filter {
+                !userData.isBlocked(it.key) &&
+                    !isOffensiveEither(it.key, lang, locale, altLang, altLocale)
+            }
             .take(GLIDE_OFFERED)
             .map { it.key }
     }

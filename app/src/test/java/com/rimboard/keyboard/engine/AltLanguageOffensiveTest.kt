@@ -1,0 +1,200 @@
+package com.rimboard.keyboard.engine
+
+import com.rimboard.keyboard.model.GlidePath
+import com.rimboard.keyboard.model.KeyProximity
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+import java.io.File
+import java.util.Locale
+
+/**
+ * "Block offensive words" asked one language, and users have two.
+ *
+ * `isOffensive` takes a single language and every caller handed it the
+ * effective one — the language the user is detected to be writing. The other
+ * enabled dictionary contributes candidates to both the strip and the glide
+ * decoder, and those candidates were judged by a list that has never heard of
+ * them. Every shipped language has between 36 and 63 words on its own
+ * offensive list that English's does not carry, all of them present in its own
+ * dictionary and several among the commonest words it has: French "merde" at
+ * 121,318 per million-scaled corpus counts, Spanish "mierda" at 221,567,
+ * Polish "kurwa" at 80,388, German "scheiße" at 61,982.
+ *
+ * **The glide half is the serious one.** A completion is offered and waits to
+ * be chosen; a swipe's first candidate is committed on the lift with no
+ * keystroke in between. Swiping the shape of "merde" with English effective
+ * and French second put it in the message, with the setting on.
+ *
+ * ## Provenance was tried first and is not enough
+ *
+ * The obvious fix is to judge a chip by the dictionary it came out of, which
+ * is what the strip already does for casing. It fixes German, Swedish and
+ * Turkish and leaves French, Spanish, Polish and Dutch leaking, because an
+ * English corpus built from subtitles holds "merde" (393), "mierda" (120),
+ * "verdomme" (61) and "kurwa" (22) as well. Those chips are not foreign by
+ * that test and go on being judged by the English list.
+ *
+ * So the rule is *either* language, which is what `isOffensive`'s own note
+ * asks for: "this filter may only ever err strict."
+ *
+ * ## Except that it may not widen the exemption
+ *
+ * A Swede writing Swedish has to get "slut" back — there it means end — and a
+ * German writing German has to get "dick". Those live in
+ * [com.rimboard.keyboard.model.FalseFriends] and in the effective language's
+ * answer, and asking English as well would take them straight back off, undoing
+ * the fix that put them there. So the effective language's judgement that a
+ * word is ordinary *here* wins over the other list, and only the other
+ * direction can add. Both halves are pinned below, because a fix to one that
+ * breaks the other is the failure mode this seam actually has.
+ */
+class AltLanguageOffensiveTest {
+
+    private lateinit var dir: File
+    private lateinit var userData: UserData
+
+    @Before
+    fun setUp() {
+        dir = File.createTempFile("rimboard-altoff", "").let { it.delete(); it.mkdirs(); it }
+        userData = UserData.inDir(dir)
+    }
+
+    @After
+    fun tearDown() {
+        userData.shutdown()
+        dir.deleteRecursively()
+    }
+
+    private fun assets(): File =
+        listOf(File("src/main/assets"), File("app/src/main/assets")).first { it.isDirectory }
+
+    private fun engine(vararg langs: String): SuggestionEngine {
+        val files = HashMap<String, String>()
+        for (l in langs) {
+            for (p in listOf("dictionaries/$l.txt", "offensive/$l.txt", "predictions/$l.txt")) {
+                val f = assets().resolve(p)
+                if (f.isFile) files[p] = f.readText()
+            }
+        }
+        files["offensive/en.txt"] = assets().resolve("offensive/en.txt").readText()
+        return SuggestionEngine.forTesting(userData) { p -> files[p]?.byteInputStream() }
+            .also { it.blockOffensive = true }
+    }
+
+    private fun strip(primary: String, alt: String, prefix: String): List<String> =
+        engine(primary, alt).suggestionsFor(
+            prefix, primary, Locale.forLanguageTag(primary),
+            allowAutocorrect = false, personalized = false,
+            altLang = alt, altLocale = Locale.forLanguageTag(alt)
+        ).items.map { it.lowercase(Locale.ROOT) }
+
+    /** A deliberate swipe through each letter's key centre on [lang]'s layout. */
+    private fun pathOf(word: String, lang: String): GlidePath? {
+        val prox = KeyProximity.forLang(lang)
+        val pts = ArrayList<Float>()
+        var px: Float? = null
+        var py: Float? = null
+        for (c in word) {
+            val x = prox.gridX(c) ?: return null
+            val y = prox.gridY(c) ?: return null
+            val lx = px
+            val ly = py
+            if (lx != null && ly != null) {
+                for (k in 1..6) {
+                    val t = k / 6f
+                    pts.add(lx + (x - lx) * t)
+                    pts.add(ly + (y - ly) * t)
+                }
+            } else {
+                pts.add(x)
+                pts.add(y)
+            }
+            px = x
+            py = y
+        }
+        return GlidePath.of(pts.toFloatArray(), prox)
+    }
+
+    private fun glide(primary: String, alt: String, word: String): List<String> {
+        val gp = pathOf(word, primary) ?: return emptyList()
+        return engine(primary, alt).glideFor(
+            gp, primary, Locale.forLanguageTag(primary), personalized = false,
+            altLang = alt, altLocale = Locale.forLanguageTag(alt)
+        ).map { it.lowercase(Locale.ROOT) }
+    }
+
+    /**
+     * Each case is a word its own language lists and English does not, with a
+     * prefix that reaches it. The English layout draws every letter of these
+     * four, so the swipe can be made on it — which is the configuration the
+     * fault needs.
+     */
+    private val cases = listOf(
+        Triple("fr", "mer", "merde"),
+        Triple("es", "mier", "mierda"),
+        Triple("pl", "kurw", "kurwa"),
+        Triple("nl", "verdom", "verdomme")
+    )
+
+    @Test
+    fun `the other language's list is read when it is the second one`() {
+        val leaks = StringBuilder()
+        for ((lang, prefix, slur) in cases) {
+            if (strip("en", lang, prefix).contains(slur)) leaks.append(" strip en+$lang: $slur")
+            if (glide("en", lang, slur).contains(slur)) leaks.append(" glide en+$lang: $slur")
+        }
+        assertEquals(
+            "a word the second language calls offensive was offered, or swiped " +
+                "into the message, with the setting on.$leaks",
+            "", leaks.toString()
+        )
+    }
+
+    /** The control: with that language effective, the filter always worked. */
+    @Test
+    fun `and it was already read when it is the first one`() {
+        val leaks = StringBuilder()
+        for ((lang, prefix, slur) in cases) {
+            if (strip(lang, "en", prefix).contains(slur)) leaks.append(" strip $lang+en: $slur")
+            if (glide(lang, "en", slur).contains(slur)) leaks.append(" glide $lang+en: $slur")
+        }
+        assertEquals("the filter stopped working in its own language.$leaks", "", leaks.toString())
+    }
+
+    /**
+     * The half that must not be lost to fix the half above.
+     *
+     * "slut" is Swedish for end and English profanity; "dick" is German for
+     * thick. Both are on the English list, and the exemption that gives them
+     * back is a claim about the language being written, not about the pair of
+     * languages enabled.
+     */
+    @Test
+    fun `the false-friend exemption survives having English as the other language`() {
+        val missing = StringBuilder()
+        for ((lang, prefix, word) in listOf(
+            Triple("sv", "slu", "slut"),
+            Triple("de", "dic", "dick")
+        )) {
+            if (!strip(lang, "en", prefix).contains(word)) missing.append(" $lang: $word")
+        }
+        assertEquals(
+            "a word that is ordinary vocabulary in the language being written " +
+                "was withheld because the other language calls it profanity.$missing",
+            "", missing.toString()
+        )
+    }
+
+    /** And the same word is still filtered for somebody writing English. */
+    @Test
+    fun `writing English, the English judgement is the one that applies`() {
+        assertTrue(
+            "\"slut\" was offered to somebody writing English because Swedish " +
+                "is their other language",
+            !strip("en", "sv", "slu").contains("slut")
+        )
+    }
+}
