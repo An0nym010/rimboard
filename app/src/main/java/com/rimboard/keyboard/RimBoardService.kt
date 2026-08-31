@@ -1969,7 +1969,11 @@ class RimBoardService : InputMethodService(),
                     // by the loading path, and waiting for that here would
                     // stall typing to decorate it — the model arrives on the
                     // warm thread and the strip picks it up on the next word.
-                    mayLoad = false
+                    mayLoad = false,
+                    // For the offensive filter and nothing else: the learned
+                    // n-grams are one map for both languages, so a word learned
+                    // while the other one was effective is predicted here.
+                    altLang = effAlt(), altLocale = effAltLocale()
                 )
             } else emptyList()
             if (preds.isNotEmpty()) {

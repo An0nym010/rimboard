@@ -2156,7 +2156,25 @@ class SuggestionEngine private constructor(
     fun predictions(
         prevWord2: String, prevWord: String, lang: String, locale: Locale, limit: Int,
         personalized: Boolean = true,
-        mayLoad: Boolean = true
+        mayLoad: Boolean = true,
+        /**
+         * The user's other enabled language, for the offensive filter alone.
+         *
+         * This path had no notion of a second language and did not need one:
+         * the curated model is the effective language's and nothing else
+         * reaches here from the other list. The *learned* n-grams do, because
+         * they are the user's own history and carry no language with them --
+         * somebody who writes French and English has both in one map. So a
+         * slur learned while French was effective was predicted, unfiltered,
+         * while they were writing English, and predictions are the strip
+         * before a single letter is typed.
+         *
+         * Only the filter uses it. Nothing here ranks or sources from the
+         * other language, which is the difference between this and
+         * [suggestionsFor].
+         */
+        altLang: String? = null,
+        altLocale: Locale? = null
     ): List<String> {
         // No preceding word means the start of a message or of a new sentence,
         // which is a context in its own right rather than the absence of one:
@@ -2207,7 +2225,10 @@ class SuggestionEngine private constructor(
         // be a way past either of them.
         return scores.entries
             .asSequence()
-            .filter { !userData.isBlocked(it.key) && !isOffensive(it.key, lang, locale) }
+            .filter {
+                !userData.isBlocked(it.key) &&
+                    !isOffensiveEither(it.key, lang, locale, altLang, altLocale)
+            }
             .sortedByDescending { it.value }
             .take(limit)
             .map { surface[it.key] ?: it.key }

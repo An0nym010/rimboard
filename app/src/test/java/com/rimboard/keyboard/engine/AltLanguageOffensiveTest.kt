@@ -153,6 +153,53 @@ class AltLanguageOffensiveTest {
         )
     }
 
+    /**
+     * The third path, which had no notion of a second language at all.
+     *
+     * [SuggestionEngine.predictions] takes one language and needed to: the
+     * curated model is the effective language's and nothing else reaches it
+     * from the other list. The **learned** n-grams do. They are the user's own
+     * history and carry no language with them -- somebody who writes French
+     * and English has both in one map -- so a slur learned while French was
+     * effective was predicted while they wrote English, unfiltered, and
+     * predictions are the strip *before a single letter is typed*.
+     *
+     * Threaded through for the filter alone; nothing here ranks or sources
+     * from the other language, which is what separates it from the strip.
+     *
+     * **The boundary this leaves is deliberate.** A word learned in a language
+     * the user does not have enabled is judged by the lists of the ones they
+     * do, and can survive. Widening to all twenty-two would block "mal",
+     * "slut", "dick", "prick" and "cock" for everybody, which is the
+     * [com.rimboard.keyboard.model.FalseFriends] problem multiplied by
+     * twenty-two. The enabled languages are what the user has told the
+     * keyboard they write, and they are the scope all three paths now use.
+     */
+    @Test
+    fun `a slur learned in the other language is not predicted in this one`() {
+        for (w in listOf("merde", "verdomme")) {
+            repeat(3) { userData.recordBigram("oh", w) }
+        }
+        val leaks = StringBuilder()
+        for ((primary, alt, slur) in listOf(
+            Triple("en", "fr", "merde"),
+            Triple("fr", "en", "merde"),
+            Triple("en", "nl", "verdomme")
+        )) {
+            val out = engine(primary, alt).predictions(
+                "", "oh", primary, Locale.forLanguageTag(primary), 5,
+                personalized = true,
+                altLang = alt, altLocale = Locale.forLanguageTag(alt)
+            ).map { it.lowercase(Locale.ROOT) }
+            if (out.contains(slur)) leaks.append(" $primary+$alt: $slur")
+        }
+        assertEquals(
+            "a slur the user typed in their other language was predicted, with " +
+                "the setting on, before they had typed a letter.$leaks",
+            "", leaks.toString()
+        )
+    }
+
     /** The control: with that language effective, the filter always worked. */
     @Test
     fun `and it was already read when it is the first one`() {
