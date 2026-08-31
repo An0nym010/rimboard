@@ -630,6 +630,73 @@ class Dictionary(
         private const val ACCENT_SUGGEST_RATIO = 10
 
         /**
+         * How much commoner the untransposed spelling must be before the
+         * typed one is offered as a chip.
+         *
+         * The corpus contains its own typos. `recieve` is in the English list
+         * at 125, `thier` at 127, `seperate` at 166, `becuase` at 132, `teh`
+         * at 124 -- and a word in the list is a word, so the correction path
+         * returns nothing for them and the strip fills with completions of the
+         * misspelling instead:
+         *
+         *     recieve   -> recieve, recieved, recieves
+         *     seperate  -> seperate, seperated, seperately
+         *     thier     -> thier, thierry, thiers
+         *
+         * The right spelling appeared nowhere: not committed, not offered, not
+         * underlined. Nine of seventeen common English misspellings behaved
+         * that way.
+         *
+         * ## Only a transposition, and only a chip
+         *
+         * Three wider rules were measured first and all three fail, because
+         * the population of "in the list and much rarer than a near neighbour"
+         * is mostly ordinary vocabulary:
+         *
+         *  - **any edit at distance 1, 150x**: 58,242 of 298,946 English
+         *    entries, led by `top`, `hat`, `band`, `add`, `wet`, `tie`.
+         *  - **the same, restricted to length 6 and up**: still 23,764, led by
+         *    `batter`, `frying`, `latter`, `trough`, `patents`, `abound`.
+         *  - **either of those, filtered by [looksLikeAWord]**: fails in both
+         *    directions at once -- it drops `becuase`, `thier`, `beleive` and
+         *    `konw`, which are built from ordinary English letter patterns, and
+         *    keeps `acme`, `toady`, `snog` and `clod`, which are words.
+         *
+         * A transposition is the narrow case, and this file already holds that
+         * opinion: `spatialCost` prices one at 0.35 against 1.0 for a
+         * substitution, because two adjacent letters arriving in the wrong
+         * order is the commonest slip there is. It is also what most of these
+         * misspellings are -- eleven of the seventeen, including every one of
+         * the nine the keyboard had nothing at all to say about.
+         *
+         * At 1,000 the English list has 710 such entries of four letters or
+         * more. They are still not all typos -- `acme`, `toady`, `mien` and
+         * `bene` are words and `Greta`, `Enver` and `Romo` are names -- which
+         * is why this **only ever offers a chip**. Slot 0 is the verbatim word
+         * and the space bar commits nothing here, so being wrong costs one
+         * chip, and that is the price the accent rule already pays at
+         * [ACCENT_SUGGEST_RATIO] for the same reason.
+         *
+         * Three letters is included, and was checked separately because that
+         * is where a chance transposition is likeliest to be another word.
+         * At this ratio it is not: English has 202 and they are `rae`, `ese`,
+         * `fro`, `lal`, `gto`, `oto`, `woh`, `wto`, `abd`; German 32, French
+         * 81, Spanish 53, Turkish 11, Russian 27, and the only arguable
+         * entries in any of them are Spanish `pro` offered `por` and French
+         * `set` offered `est`. Without it `teh`, `adn` and `hte` -- at
+         * 183,562, 391,590 and 1,138,083 times rarer than what they are
+         * transpositions of -- would go on being vouched for.
+         *
+         * **`recieve` is out of reach and stays there.** It runs at 125 against
+         * `receive` at 18,100, which is 145 times: people say "get" in
+         * subtitles. Reaching it means a ratio near 150, and at 150 the head of
+         * the English list is `greta`, `hera`, `veer`, `odor`, `acre` and
+         * `bale` -- ordinary words and names, offered a correction each. The
+         * bar stays where the evidence is.
+         */
+        private const val TRANSPOSE_SUGGEST_RATIO = 1000L
+
+        /**
          * How much commoner the accented spelling must be before the bare one
          * is *underlined*.
          *
@@ -912,6 +979,17 @@ class Dictionary(
      */
     val splitMinFreq: Int
     val splitSingleMinFreq: Int
+
+    /**
+     * The commonest word's count, so [transposedCommoner] can decline in one
+     * comparison instead of one binary search per letter.
+     *
+     * Nothing can be a thousand times commoner than a word that is already
+     * within a thousandth of the top, which is every word anybody types often.
+     * The check runs on the composing prefix at every keystroke, so the case
+     * it must be cheap for is the one where the answer is no.
+     */
+    val maxFreq: Int
     /**
      * Bare-letter forms, sorted, concatenated -- the same shape as [blob] and
      * for the same reason.
@@ -1031,8 +1109,13 @@ class Dictionary(
         starts[entries.size] = at
         freqs = IntArray(entries.size) { entries[it].second }
         var tokens = 0L
-        for (f in freqs) tokens += f
+        var top = 0
+        for (f in freqs) {
+            tokens += f
+            if (f > top) top = f
+        }
         tokenTotal = tokens
+        maxFreq = top
         stemMinFreq = stemFloorFor(locale.language, tokens)
         splitMinFreq = scaledDown(SPLIT_MIN_FREQ, tokens)
         splitSingleMinFreq = scaledDown(SPLIT_SINGLE_MIN_FREQ, tokens)
@@ -1369,6 +1452,41 @@ class Dictionary(
      */
     fun accentedSuggestionFor(bareLower: String): String? =
         accentedAbove(bareLower, ACCENT_SUGGEST_RATIO)
+
+    /**
+     * The spelling [lower] would have if two adjacent letters were swapped
+     * back, when the corpus prefers that one overwhelmingly. Null otherwise.
+     *
+     * Only asked of words the list already vouches for -- a word it does not
+     * have is corrected by the ordinary path, which prices a transposition at
+     * 0.35 and needs no help. See [TRANSPOSE_SUGGEST_RATIO] for what this
+     * costs and for the three wider rules that were measured and rejected.
+     */
+    fun transposedCommoner(lower: String): String? {
+        if (lower.length < 3) return null
+        val own = freqOf(lower)
+        if (own <= 0) return null
+        val floor = TRANSPOSE_SUGGEST_RATIO * own
+        // Nothing in this list can clear that, so do not go looking. This is
+        // the common word being typed correctly, which is most keystrokes.
+        if (floor > maxFreq) return null
+        var best: String? = null
+        var bestFreq = 0L
+        val sb = StringBuilder(lower)
+        for (i in 0 until lower.length - 1) {
+            if (lower[i] == lower[i + 1]) continue
+            sb[i] = lower[i + 1]
+            sb[i + 1] = lower[i]
+            val f = freqOf(sb.toString()).toLong()
+            if (f >= floor && f > bestFreq) {
+                bestFreq = f
+                best = sb.toString()
+            }
+            sb[i] = lower[i]
+            sb[i + 1] = lower[i + 1]
+        }
+        return best
+    }
 
     /**
      * The accented word this bare spelling is probably a spelling of, asked

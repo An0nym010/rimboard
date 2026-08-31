@@ -1869,6 +1869,20 @@ class SuggestionEngine private constructor(
         if (accented != null && accented != composing && !display.contains(accented)) {
             display.add(accented)
         }
+        // The same offer for a word the corpus holds only because somebody
+        // typed it wrong: "recieve" is in the English list at 125, so the
+        // correction path returns nothing and the strip filled with
+        // "recieved" and "recieves". A chip, never a commit -- see
+        // [Dictionary.TRANSPOSE_SUGGEST_RATIO] for why the rule is this narrow
+        // and what the three wider ones cost.
+        val untransposed = dict.transposedCommoner(lower)
+            ?.takeIf { !userData.isBlocked(it) && !isOffensive(it, lang, locale) }
+            ?.let { matchCase(composing, it, locale) }
+        if (untransposed != null && untransposed != composing &&
+            !display.contains(untransposed)
+        ) {
+            display.add(untransposed)
+        }
         // A missing space, offered but never taken automatically: "alot" almost
         // certainly wanted "a lot", but adding a word boundary on somebody's
         // behalf is not a thing to do without a tap.
