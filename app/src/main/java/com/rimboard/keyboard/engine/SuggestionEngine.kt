@@ -996,8 +996,16 @@ class SuggestionEngine private constructor(
             // Never correct one word *toward* a corpus bare form: "don" must
             // not be fixed to "dont" (an insertion away), because "dont" is not
             // a word — its apostrophe form is what the contraction path offers.
+            //
+            // [isOffensiveEither], not [isOffensive]: this is the fourth and
+            // last path that puts a word in front of somebody, and it is the
+            // one that does it without being chosen. The strip, the glide
+            // decoder and the predictions all read the second language; here
+            // "merdr" with English effective and French second was corrected
+            // to "merde" and committed on the space bar, with the setting on.
             .filter {
-                !isOffensive(it, lang, locale) && !userData.isBlocked(it) &&
+                !isOffensiveEither(it, lang, locale, altLang, altLocale) &&
+                    !userData.isBlocked(it) &&
                     !com.rimboard.keyboard.model.Contractions.isAutoBareForm(lang, it)
             }
             .map { matchCase(typed, it, locale) }

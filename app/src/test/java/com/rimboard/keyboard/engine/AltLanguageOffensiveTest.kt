@@ -339,6 +339,78 @@ class AltLanguageOffensiveTest {
     }
 
     /**
+     * The fourth path, and the only one that acts without being chosen.
+     *
+     * The strip offers, the glide decoder offers on a lift, predictions offer
+     * before a letter is typed -- and [SuggestionEngine.correctionCandidates]
+     * is what the **space bar commits**. It filtered with the single-language
+     * [SuggestionEngine.isOffensive] while the other three had moved on, so a
+     * typo whose repair is a word only the second language calls offensive
+     * went straight into the message.
+     *
+     * Enumerated rather than sampled: every word on another shipped list that
+     * English's does not carry and that the English dictionary holds, one
+     * neighbour-key substitution at each position, asked of the commit path
+     * with that language second. **64 of 707 typos committed a slur** across
+     * eleven languages -- "merdr" to "merde", "mierfa" to "mierda", "pendrjo"
+     * to "pendejo", "curvr" to "curve", six spellings of "pedal", fifteen of
+     * "piranha".
+     *
+     * Which is also why this test could not simply be "nothing commits": half
+     * of those sixty-four are ordinary English words that Romanian, Polish,
+     * Portuguese and Danish happen to list, and taking them away is the bug
+     * [Dictionary.ORDINARY_HERE_PER_MILLION] fixes. The two halves are asserted
+     * together here because they are one seam.
+     */
+    @Test
+    fun `the space bar does not commit what the other language calls offensive`() {
+        val en = Locale.ENGLISH
+        val enOff = offensiveList("en").toSet()
+        val enDict = engine("en").dictionary("en", en)
+        val prox = KeyProximity.forLang("en")
+        var typos = 0
+        val committed = ArrayList<String>()
+        val lost = ArrayList<String>()
+        for (lang in shippedLanguages()) {
+            if (lang == "en") continue
+            val words = offensiveList(lang)
+                .filter { it !in enOff && enDict.contains(it) && it.length >= 3 }
+            if (words.isEmpty()) continue
+            val e = engines.getOrPut(lang) { engine("en", lang) }
+            e.blockOffensive = true
+            val altLoc = Locale.forLanguageTag(lang)
+            for (w in words) {
+                val ordinaryHere = enDict.ordinaryVocabulary(w)
+                for (i in w.indices) {
+                    val n = prox.neighbours(w[i]).firstOrNull() ?: continue
+                    val typo = w.substring(0, i) + n + w.substring(i + 1)
+                    if (typo == w || enDict.contains(typo)) continue
+                    typos++
+                    val c = e.correctionFor(typo, "en", en, altLang = lang, altLocale = altLoc)
+                        ?.lowercase(Locale.ROOT)
+                    if (c != w) continue
+                    if (ordinaryHere) lost.add("$lang:$typo->$w") else committed.add("$lang:$typo->$w")
+                }
+            }
+        }
+        println("neighbour-key typos tried: $typos; still repaired to an ordinary English word: ${lost.size}")
+        assertTrue("the enumeration found nothing to try", typos >= 500)
+        assertEquals(
+            "a word only the other language calls offensive was committed on the " +
+                "space bar, with the setting on: $committed",
+            emptyList<String>(), committed
+        )
+        // And the other half of the same seam: a typo of an ordinary English
+        // word still gets repaired. "curve", "pedal", "pike" and "piranha" are
+        // on somebody's list and are not English's business.
+        assertTrue(
+            "the commit path stopped repairing typos of ordinary English words " +
+                "because another language lists them",
+            lost.isNotEmpty()
+        )
+    }
+
+    /**
      * The two words that found this, named because they are the whole point.
      *
      * Turkish lists "got" -- the bare-key spelling of "göt" -- and "am". They
