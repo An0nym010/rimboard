@@ -171,6 +171,48 @@ class SuggestionEngine private constructor(
          * near the function words. It still has to fit the path: this moves a
          * learned word up the frequency axis, it does not exempt it from the
          * shape one.
+         *
+         * # Every number above is English's, and this is deliberately still flat
+         *
+         * The percentile 7.0 lands on differs by list, because the corpora do:
+         *
+         *     es 91.7   tr 92.0   pl 92.5   ro 92.8   cs 93.0   hu 93.2
+         *     el 93.7   it 94.3   fr 94.3   en 94.5   pt 95.1   ru 95.1
+         *     fi 95.3   nl 95.3   de 96.5   sv 97.4   da 97.9   id 98.2
+         *     sk 98.2   no 98.6   **uk 99.79**
+         *
+         * Ukrainian's 99th percentile is `ln(freq + 1)` = 5.38, so 7.0 sits
+         * above its whole dictionary and a word typed twice outranks every
+         * word Ukrainian has — which is the "add a billion" rule again in
+         * smaller print. The branch immediately above this one, for the second
+         * language, *does* scale one list's counts onto the other's before
+         * comparing them, so the inconsistency is real and one line away.
+         *
+         * **It was fixed, measured, and put back.** Replacing 7.0 with the
+         * value at [Dictionary]'s own 94.5th percentile — which computes to
+         * exactly 7.00 for English, and to 3.52 for Ukrainian — was built and
+         * run both ways over 300 sloppy swipes and 150 learned words per
+         * language:
+         *
+         *                      dictionary words      learned words (top-1)
+         *     uk   flat 7.0        91.7%                    99.3%
+         *          percentile      94.0%                    69.3%
+         *     sk   flat 7.0        89.3%                    92.0%
+         *          percentile      89.3%                    78.0%
+         *     no   flat 7.0        86.0%                    82.0%
+         *          percentile      86.0%                    61.3%
+         *
+         * It buys 2.3 points of dictionary accuracy in one language, and only
+         * that one — every other language moved by a single swipe or none —
+         * and it costs 30 points of learned-word recall there, 14 in Slovak,
+         * 21 in Norwegian, 16 in Danish, 11 in Indonesian, 13 in Swedish. Both
+         * errors are committed on the lift and cost the same to undo, so this
+         * is a straight trade of a large loss for a small gain, and the flat
+         * number wins it.
+         *
+         * What is left is a stated risk rather than a fixed bug: if a rebuilt
+         * or added list puts 7.0 above *everything*, the trade changes. That is
+         * what `PersonalAnchorTest` watches.
          */
         private const val PERSONAL_GLIDE_LN_FREQ = 7.0
         /**
