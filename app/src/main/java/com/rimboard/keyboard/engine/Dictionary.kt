@@ -567,6 +567,14 @@ class Dictionary(
          * maps have hidden a change in this project already; a hand-built
          * predicate is the same fault.
          */
+        /**
+         * A count floor read against the corpus it is asked of, and never
+         * raised above the flat value. See [splitMinFreq] for why the trap is
+         * one-sided and for what each direction measured.
+         */
+        internal fun scaledDown(flat: Int, tokens: Long): Int =
+            maxOf(1, minOf(flat, Math.round(flat * tokens / TURKISH_TOKENS).toInt()))
+
         fun stemFloorFor(lang: String, tokens: Long): Int =
             if (lang !in SCALED_STEM_LANGS) STEM_MIN_FREQ
             else maxOf(
@@ -857,6 +865,53 @@ class Dictionary(
      * people actually write -- and two floors would be two answers.
      */
     val stemMinFreq: Int
+
+    /**
+     * [SPLIT_MIN_FREQ] and [SPLIT_SINGLE_MIN_FREQ] as *this* corpus reads them.
+     *
+     * The same trap [STEM_MIN_FREQ] documents, one rule along and unfixed: a
+     * count is not one bar in twenty-two languages, it is twenty-two bars.
+     * 500 occurrences is 0.69 per million of English's 728-million-token
+     * corpus and 106.78 per million of Ukrainian's 4.7 million, and the split
+     * rule was asking both to clear the same number.
+     *
+     * What that cost, measured by joining every adjacent word pair in each
+     * language's own prose fixture and asking [splitInto] to put the space
+     * back:
+     *
+     *     uk  32.1% -> 84.1%     no  84.6% -> 94.3%     da  88.8% -> 92.5%
+     *     sk  84.8% -> 96.1%     fi  85.6% -> 91.0%     sv  91.2% -> 94.1%
+     *     id  89.9% -> 98.2%     ru  76.6% -> 78.7%     de  57.1% -> 57.6%
+     *
+     * Ukrainian recovered a third of its missing spaces where every other
+     * language recovered between a half and nineteen twentieths. Twelve
+     * languages are unchanged and **none is worse**.
+     *
+     * ## Scaled down and never up
+     *
+     * Scaling in both directions was tried first and is not the answer: it
+     * raises English's floor to 1,693 and takes 95.0% down to 91.8%, Spanish
+     * 93.1% to 89.2%, French 88.3% to 85.5%. The floor is a minimum
+     * credibility bar -- "is this a word people write" -- and 500 already
+     * clears that in a large corpus, so raising it discards good splits to
+     * buy nothing. The trap is entirely on the small side.
+     *
+     * ## And it costs nothing, which is worth understanding
+     *
+     * False splits of real running prose -- every distinct word of four
+     * letters or more in the 22 fixtures -- are **identical to the entry,
+     * language by language**: 3 of 565 in English, 4 of 518 in Dutch, 0 in
+     * eleven languages, before and after. [SPLIT_DOMINANCE] is what stops a
+     * real word being split, and it is a *ratio*, so it never had this
+     * problem. The floor was not doing that work; it was only excluding
+     * genuine splits in the corpora too small to reach it.
+     *
+     * Note this is a different answer from [stemFloorFor], which is scoped to
+     * two languages because rescaling it globally measured near zero-sum.
+     * Two floors, two populations, two measurements.
+     */
+    val splitMinFreq: Int
+    val splitSingleMinFreq: Int
     /**
      * Bare-letter forms, sorted, concatenated -- the same shape as [blob] and
      * for the same reason.
@@ -979,6 +1034,8 @@ class Dictionary(
         for (f in freqs) tokens += f
         tokenTotal = tokens
         stemMinFreq = stemFloorFor(locale.language, tokens)
+        splitMinFreq = scaledDown(SPLIT_MIN_FREQ, tokens)
+        splitSingleMinFreq = scaledDown(SPLIT_SINGLE_MIN_FREQ, tokens)
         // Character-transition model for adaptive tap targeting: how likely is
         // letter b to follow letter a in this language, weighted by ln(freq) so
         // common words dominate without drowning everything else. ' ' marks
@@ -1744,7 +1801,7 @@ class Dictionary(
      * second half outright.
      */
     private fun floorFor(half: String): Int =
-        if (half.length == 1) SPLIT_SINGLE_MIN_FREQ else SPLIT_MIN_FREQ
+        if (half.length == 1) splitSingleMinFreq else splitMinFreq
 
     /** Corpus frequency of [wordLower], or 0. Used to choose between two
      *  spellings that are both in the list — see [SuggestionEngine.elongationBase]. */
