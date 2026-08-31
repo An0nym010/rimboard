@@ -52,7 +52,12 @@ SUFFIXES = {
     "sv": ["ar", "er", "en", "et", "s"],
     "da": ["er", "en", "et", "e", "s"],
     "no": ["er", "en", "et", "e", "s"],
-    "pl": ["y", "i", "a", "e", "ow"],
+    # "ow" was here and is not a Polish ending; the genitive plural is -ów.
+    # Spelled in ASCII it matched nothing at all, while the real one is on four
+    # attested plurals of listed words -- pedałów, kutasów, skurwysynów,
+    # chujów. An ending that cannot fire is indistinguishable from one that is
+    # merely strict, which is how it sat here.
+    "pl": ["y", "i", "a", "e", "ów"],
     "tr": ["ler", "lar", "i", "u"],
 }
 
