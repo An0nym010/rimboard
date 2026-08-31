@@ -1,5 +1,6 @@
 package com.rimboard.keyboard
 
+import com.rimboard.keyboard.model.Languages
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -120,6 +121,43 @@ class ReadmeVersionTest {
                 "exists to force rather than prevent.")
                 .format(mb, ASSET_CEILING_MB),
             mb <= ASSET_CEILING_MB
+        )
+    }
+
+    /**
+     * The languages the README names, against the ones that ship.
+     *
+     * "22 languages built in" appears three times and the full list of names
+     * appears once, in `Languages.all` order. Nothing checked any of it, so
+     * adding a language would leave a reader three stale counts and a list
+     * missing the language they came looking for -- and the person adding it
+     * has no reason to think about the README at all, because everything else
+     * about a new language is code and assets.
+     *
+     * The names come from the JDK rather than from a table here, so this
+     * cannot drift into being its own opinion about what Croatian is called.
+     */
+    @Test
+    fun `the README names every language that ships, and counts them right`() {
+        val readme = File(root(), "README.md").readText()
+        val n = Languages.codes.size
+        val counts = Regex("""(\d+) languages""").findAll(readme).map { it.groupValues[1] }.toList()
+        assertTrue(
+            "the README no longer says how many languages ship; it said it in " +
+                "three places and a reader counts on all three",
+            counts.isNotEmpty()
+        )
+        assertEquals(
+            "the README's language count is not the number that ship",
+            List(counts.size) { n.toString() }, counts
+        )
+        val missing = Languages.all
+            .map { it.locale.getDisplayLanguage(java.util.Locale.ENGLISH) }
+            .filterNot { readme.contains(it) }
+        assertEquals(
+            "these languages ship and the README's list does not name them, so " +
+                "somebody looking for their own language is told it is absent",
+            emptyList<String>(), missing
         )
     }
 
