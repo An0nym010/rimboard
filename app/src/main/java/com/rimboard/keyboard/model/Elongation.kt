@@ -17,6 +17,9 @@ package com.rimboard.keyboard.model
  * "hello", so it is one. "brrr" collapses to "br" and "brr", and if neither is
  * a known word then "brrr" is simply an unknown word, which is a different and
  * much safer thing to call it.
+ *
+ * And when there is a word underneath it at all: "www" is not "w" held down,
+ * it is "www". See [collapsed].
  */
 object Elongation {
 
@@ -47,6 +50,22 @@ object Elongation {
      */
     fun collapsed(word: String): List<String> {
         if (!hasRun(word)) return emptyList()
+        // A word that is one letter over and over is not a word with a letter
+        // held down -- there is nothing underneath it to recover. "www" was
+        // the case that showed it: absent from every shipped dictionary,
+        // collapsing to "w" (9,179 in English) and to "ww" (215), so the
+        // corrector replaced it with a single letter and typing "www." into a
+        // message came out as "W.". Nineteen of the 22 languages did it, and
+        // so did "zzz", "mmm", "aaa" and "ooo" -- every one of them a thing
+        // people type on purpose. The three that did not are Greek, Russian
+        // and Ukrainian, whose alphabets have no w to begin with.
+        //
+        // Length is the wrong test here and was tried first: "www" collapses
+        // to "ww" as well, which is in the English list, so a floor on the
+        // base would have turned "www" into "ww" instead of into "w".
+        // A loop rather than `toSet()`: this sits on the keystroke path and
+        // the set was an allocation per call.
+        if (word.all { it == word[0] }) return emptyList()
         return listOf(collapseTo(word, 1), collapseTo(word, 2))
             .filter { it != word }
             .distinct()

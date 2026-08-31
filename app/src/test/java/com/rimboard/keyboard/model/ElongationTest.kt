@@ -42,9 +42,26 @@ class ElongationTest {
     }
 
     @Test
-    fun `a run at the start or the whole word is handled`() {
-        assertEquals(listOf("a", "aa"), Elongation.collapsed("aaa"))
+    fun `a run at the start is handled`() {
         assertEquals(listOf("ah", "aah"), Elongation.collapsed("aaah"))
+    }
+
+    /**
+     * A word that is one letter over and over has nothing underneath it.
+     *
+     * This used to answer "aaa" with "a" and "aa", and the caller took the
+     * commoner of the two and committed it. On the device that turned "www."
+     * into "W." -- see `ElongationEngineTest`. Neither answer is wrong as a
+     * string operation, which is why it was written this way; both are wrong
+     * as a claim about what somebody meant.
+     */
+    @Test
+    fun `the whole word being one letter is not an elongation`() {
+        assertEquals(emptyList<String>(), Elongation.collapsed("aaa"))
+        assertEquals(emptyList<String>(), Elongation.collapsed("www"))
+        assertEquals(emptyList<String>(), Elongation.collapsed("ooooo"))
+        // Two distinct letters is enough to have something underneath.
+        assertEquals(listOf("br", "brr"), Elongation.collapsed("brrr"))
     }
 
     @Test

@@ -157,6 +157,96 @@ class ElongationEngineTest {
         assertTrue(engine().acceptedWord("hellooo", "en", en))
     }
 
+    /**
+     * "www" is not "w" held down.
+     *
+     * Found on the device: typing "www." into a field gave **"W."**. "www" is
+     * in none of the 22 shipped dictionaries, and it collapses onto "w" --
+     * 9,179 in the English list -- so the corrector called it an elongation,
+     * underlined it, and committed a single letter on the separator. Every URL
+     * anyone types starts that way. It is also the one URL shape the rest of
+     * the app cannot protect: [com.rimboard.keyboard.model.ProseContext]
+     * declines to correct inside an address on the evidence of "@", "/" and
+     * ":", and "www." has none of those, only the full stop it deliberately
+     * ignores.
+     *
+     * **And it was never only "www".** The cases below are enumerated from the
+     * shipped word lists rather than from what somebody happened to notice:
+     * **756** entries across all 22 languages are one letter repeated, and
+     * **751** of them collapse onto a spelling the corpus ranks above them,
+     * which is exactly what [SuggestionEngine.elongationBase] asks before it
+     * overrules anybody. English "mmm" runs at 49,655, Greek "εεε" at 12,158,
+     * Turkish "eee" at 12,100, Hungarian "ööö" at 6,866 -- every one of them
+     * called a misspelling of a shorter run of itself. Greek, Russian and
+     * Ukrainian have no "w" and so were untouched by the case that found this;
+     * they were not untouched by the rule.
+     *
+     * A floor on the length of the base does not fix it, which is why the rule
+     * is about the word instead: "www" collapses to "ww" as well, and "ww" is
+     * in the English list at 215, so a length floor would have committed
+     * "ww" -- the same bug one letter longer.
+     *
+     * **One correction of this shape survives and should.** Hungarian answers
+     * "ooo" with "ööö", which is not the elongation rule: o and ö are the same
+     * key, the corpus holds 6,866 of the accented spelling against 127 of the
+     * bare one, and [Dictionary.accentedFormOf] asks for a ratio of 50 before
+     * it will say so. That is a skipped long press, not a held-down key, and
+     * the two rules are told apart here by folding the accents off the answer
+     * -- which is the whole of what makes it a different rule.
+     */
+    @Test
+    fun `no word that is one letter repeated is corrected to a shorter run of it`() {
+        val casualties = StringBuilder()
+        var population = 0
+        for (lang in shippedLanguages()) {
+            val loc = Locale.forLanguageTag(lang)
+            val e = realEngine(lang)
+            // "www" is in no list at all, so it has to be added by hand; the
+            // rest come from the language's own dictionary.
+            for (w in oneLetterEntries(lang) + "www") {
+                population++
+                val c = e.correctionFor(w, lang, loc) ?: continue
+                if (com.rimboard.keyboard.model.Diacritics.fold(c.lowercase(loc)) == w) continue
+                casualties.append(" $lang: $w->$c")
+            }
+        }
+        println("one-letter-repeated entries checked: $population")
+        assertTrue("no entries found; the enumeration is broken", population >= 700)
+        assertEquals(
+            "the keyboard replaced what was typed with a shorter run of the " +
+                "same letter, on the space bar.$casualties",
+            "", casualties.toString()
+        )
+    }
+
+    /** Every entry in [lang]'s shipped list that is one letter over and over. */
+    private fun oneLetterEntries(lang: String): List<String> =
+        File(assetDir(), "dictionaries/$lang.txt").readLines()
+            .mapNotNull { it.substringBefore(' ').ifEmpty { null } }
+            .filter { w -> w.length >= 3 && w[0].isLetter() && w.all { it == w[0] } }
+
+    /** And the rule it exists for still fires, in the languages that hold it. */
+    @Test
+    fun `a real word with a letter held down is still collapsed`() {
+        val missed = StringBuilder()
+        for (lang in shippedLanguages()) {
+            val e = realEngine(lang)
+            val loc = Locale.forLanguageTag(lang)
+            // Only where the collapsed spelling is actually in that language's
+            // list -- "hello" is not Greek vocabulary and this is not a claim
+            // that it should be.
+            if (!e.dictionary(lang, loc).contains("hello")) continue
+            if (e.correctionFor("hellooo", lang, loc) != "hello") {
+                missed.append(" $lang: ${e.correctionFor("hellooo", lang, loc)}")
+            }
+        }
+        assertEquals("elongation stopped being collapsed.$missed", "", missed.toString())
+    }
+
+    private fun shippedLanguages(): List<String> =
+        File(assetDir(), "dictionaries").listFiles().orEmpty()
+            .map { it.name.removeSuffix(".txt") }.sorted()
+
     @Test
     fun `a trebled letter that collapses to nothing known is just an unknown word`() {
         // "brrr" collapses to "br" and "brr"; only "brr" is a word here, so it
