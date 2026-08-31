@@ -1,5 +1,6 @@
 package com.rimboard.keyboard
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -57,4 +58,84 @@ class ReadmeVersionTest {
             log.contains("## What's new in $v")
         )
     }
+
+    /**
+     * The download size the README quotes, against the assets that make it up.
+     *
+     * The README's first bullet tells a reader what they are about to download,
+     * and it said 29 MB while the release APK was 32.95 -- four megabytes and
+     * fourteen per cent understated, on the one number somebody decides with.
+     * It drifted because the assets grew: the prediction models were made
+     * denser for thirteen languages and put two megabytes on, and before that
+     * the dictionaries were widened.
+     *
+     * Nothing had bounded the sum. Every asset family has a cap of its own --
+     * `TOP` words per dictionary, `MAX_ROWS` per prediction model, a per-file
+     * count for the inventories -- and every one of them was respected while
+     * the total went up by four megabytes. Which is the same shape as the
+     * footprint tests weighing a dictionary and a model separately and nobody
+     * adding them: the parts were all in bounds and the whole was never asked
+     * about.
+     *
+     * So the sum is what is pinned, and the README figure is pinned to the
+     * constant beside it. Growing the assets past the ceiling fails here, and
+     * the message says to re-measure the APK and move both numbers together --
+     * which is the moment at which somebody is thinking about the trade
+     * anyway.
+     *
+     * Assets are 75.1 MB uncompressed and the APK is 32.95, measured
+     * 2026-08-31 with `assembleOfflineRelease`; both flavours are the same
+     * size to two decimals.
+     */
+    @Test
+    fun `the README's download size is the one the assets add up to`() {
+        val readme = File(root(), "README.md").readText()
+        val m = Regex("""(\d+) MB, nearly all of it dictionaries""").find(readme)
+        assertTrue(
+            "the README no longer states a download size in the form " +
+                "\"NN MB, nearly all of it dictionaries\"; a reader decides " +
+                "on that number and nothing else here can check it",
+            m != null
+        )
+        assertEquals(
+            "the README's download size and the figure recorded here have " +
+                "come apart. One of them is a measurement of the release APK " +
+                "and the other is a claim to a reader; they have to move " +
+                "together.",
+            README_APK_MB, m!!.groupValues[1].toInt()
+        )
+
+        var bytes = 0L
+        File(root(), "app/src/main/assets").walkTopDown()
+            .filter { it.isFile }
+            .forEach { bytes += it.length() }
+        val mb = bytes / 1048576.0
+        println("shipped assets: %.2f MB against a ceiling of %.0f".format(mb, ASSET_CEILING_MB))
+        assertTrue("no assets were found at all", mb > 10.0)
+        assertTrue(
+            ("the shipped assets are now %.1f MB, past the %.0f the APK size in " +
+                "the README was measured against. Rebuild a release APK, put " +
+                "its real size in the README and in README_APK_MB, and raise " +
+                "this ceiling deliberately -- that is the decision this test " +
+                "exists to force rather than prevent.")
+                .format(mb, ASSET_CEILING_MB),
+            mb <= ASSET_CEILING_MB
+        )
+    }
+
+    private companion object {
+        /** What the README tells a reader they are downloading. */
+        const val README_APK_MB = 33
+
+        /**
+         * Room for a language or a denser model, not for a second corpus.
+         *
+         * 75.1 MB today. Eighty is about one more prediction model's worth of
+         * growth, which is enough that ordinary work does not trip it and
+         * little enough that four megabytes of drift cannot happen unnoticed
+         * again.
+         */
+        const val ASSET_CEILING_MB = 80.0
+    }
+
 }

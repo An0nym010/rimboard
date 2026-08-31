@@ -32,7 +32,7 @@ is a fact about the APK that you can check without trusting anyone — see
 [Proving it](#proving-it).
 
 - Kotlin, no heavyweight dependencies, one APK with everything in it —
-  29 MB, nearly all of it dictionaries and language models
+  33 MB, nearly all of it dictionaries and language models
 - 22 languages built in — English, Turkish, German, Spanish, French, Italian,
   Portuguese, Russian, Dutch, Polish, Swedish, Indonesian, Romanian, Czech,
   Danish, Norwegian, Finnish, Hungarian, Ukrainian, Greek, Croatian, Slovak —
