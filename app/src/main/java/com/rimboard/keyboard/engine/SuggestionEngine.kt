@@ -695,6 +695,17 @@ class SuggestionEngine private constructor(
      * would take it straight back off them, undoing the fix that put it there.
      * So the effective language's judgement that a word is ordinary here wins
      * over the other list, and only the other direction can add.
+     *
+     * **And the exemption shipped too narrow**, which is the other half of the
+     * same sentence. It asked only
+     * [com.rimboard.keyboard.model.FalseFriends], and that list holds no
+     * English entry -- it exists for English words that mean something else
+     * abroad, not for the reverse. So an English writer with Turkish enabled
+     * lost "got" and "am", both of which are on Turkish's list as bare-key
+     * spellings and both of which are among the commonest words in English.
+     * A language's own corpus answers that where a curated list cannot; see
+     * [Dictionary.ORDINARY_HERE_PER_MILLION] for the measurement and for the
+     * two entries it deliberately gives back.
      */
     private fun isOffensiveEither(
         word: String,
@@ -705,10 +716,19 @@ class SuggestionEngine private constructor(
     ): Boolean {
         if (isOffensive(word, lang, locale)) return true
         if (!blockOffensive || altLang == null || altLocale == null) return false
-        if (com.rimboard.keyboard.model.FalseFriends
-                .ordinaryHere(lang, word.lowercase(locale))
-        ) return false
-        return isOffensive(word, altLang, altLocale)
+        // The other list first, because it is a set lookup and almost always
+        // says no. Everything below only runs for the handful of words it
+        // does object to.
+        if (!isOffensive(word, altLang, altLocale)) return false
+        val here = word.lowercase(locale)
+        if (com.rimboard.keyboard.model.FalseFriends.ordinaryHere(lang, here)) return false
+        // ...and the same question asked of the corpus rather than of a list.
+        // FalseFriends holds no English entry -- it was written for English
+        // words that mean something else abroad -- so nothing stopped the
+        // other language's list from deleting English words. Turkish lists
+        // "got" and "am". See [Dictionary.ORDINARY_HERE_PER_MILLION] for the
+        // thirteen words this gives back and the 135 it still withholds.
+        return !dictionary(lang, locale).ordinaryVocabulary(here)
     }
 
     private fun isOffensive(word: String, lang: String, locale: Locale): Boolean {

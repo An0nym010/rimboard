@@ -422,6 +422,63 @@ class Dictionary(
         internal const val STEM_MIN_FREQ = 500
 
         /**
+         * How common a word must be in the language being written before the
+         * *other* enabled language's offensive list stops being allowed to
+         * remove it. Per million tokens of this list's own corpus.
+         *
+         * The either-language rule is right and this is the guard it shipped
+         * without. [com.rimboard.keyboard.model.FalseFriends] answers the same
+         * question in the other direction -- English words that are ordinary
+         * vocabulary somewhere else -- and it has no English entry at all, so
+         * nothing stopped somebody else's list from deleting English words.
+         *
+         * ## What it was deleting
+         *
+         * Enumerated, not sampled: 148 words sit on some other shipped
+         * language's offensive list, are absent from English's, and are in the
+         * English dictionary. Ranked by their rate in English, the top of that
+         * list is not close:
+         *
+         *     got       2702.32 /M   (Turkish, the bare spelling of "göt")
+         *     am        1078.83      (Turkish)
+         *     bite        38.05      (French)
+         *     bastards    23.15      (German)
+         *     con         11.63      (French)
+         *     bites        5.50      negro 4.44   curve 4.42   pike 4.10
+         *     mal          3.99      pedal 2.86   ami   2.36   pic   1.42
+         *     ---------------------------------------------------- 1.0 -----
+         *     suki         0.89      piranha 0.79  puta 0.72   merde 0.54
+         *     kuk          0.47      geri 0.45     mierda 0.16 putain 0.14
+         *     verdomme     0.08      kurwa 0.03
+         *
+         * There is a real gap there -- 1.42 to 0.89 -- and one is inside it.
+         * Above the line are thirteen words; below it are the other 135,
+         * which is every word the either-language rule was written for.
+         *
+         * Two of the thirteen are worth naming rather than hiding. "bastards"
+         * and "negro" come back for an English writer, and both arguably
+         * belong on English's own list -- but they are *not on it*, so they
+         * were never blocked before the either-language rule either. Restoring
+         * them restores what shipped for years; what it exposes is a gap in
+         * `offensive/en.txt`, which is a different thing to fix and wants the
+         * same native pass FalseFriends does.
+         *
+         * ## Why a count and not a ratio
+         *
+         * FalseFriends rejects a frequency rule, and this is not that rule.
+         * There the question was cross-language -- is this slur commoner in
+         * Danish than in English -- and it has no answer, because the slur is
+         * the same imported English word in both corpora. Here the question is
+         * about one language on its own: is this a word people writing this
+         * language use. A frequency list is exactly the instrument for that.
+         * The ratio was tried and it fails: French "con" runs at 82.38 to
+         * English's 11.63, Romanian "curve" at 6.64 to 4.42, Danish "pike" at
+         * 4.83 to 4.10 -- so a ratio deletes "con", "curve" and "pike" from
+         * English, which is the bug this exists to fix.
+         */
+        const val ORDINARY_HERE_PER_MILLION = 1.0
+
+        /**
          * The corpus [STEM_MIN_FREQ] was measured against.
          *
          * The sample in the note above -- junk at 37-98 occurrences, roots from
@@ -1692,6 +1749,28 @@ class Dictionary(
     /** Corpus frequency of [wordLower], or 0. Used to choose between two
      *  spellings that are both in the list — see [SuggestionEngine.elongationBase]. */
     internal fun frequency(wordLower: String): Int = freqOf(wordLower)
+
+    /**
+     * Whether [wordLower] is ordinary vocabulary in *this* language.
+     *
+     * Asked when the user's **other** enabled language calls a word offensive
+     * and this one does not. The other list may add to this one's judgement;
+     * it may not take away a word people here write all the time.
+     *
+     * The case that needed it: Turkish's list holds "got" (the bare-key
+     * spelling of "göt") and "am". Both are ordinary English words -- "got"
+     * runs at 2,702 per million of the English corpus and "am" at 1,079 --
+     * and an English writer with Turkish as their second language stopped
+     * being offered either of them, on the strip, on the glide path and in
+     * predictions. Thirteen words in all; see [ORDINARY_HERE_PER_MILLION].
+     *
+     * Per million rather than a count, because [tokenTotal] differs by a
+     * factor of a hundred and fifty across these lists and the note on that
+     * field says what a raw count is worth on its own.
+     */
+    fun ordinaryVocabulary(wordLower: String): Boolean =
+        tokenTotal > 0 &&
+            1e6 * frequency(wordLower) / tokenTotal >= ORDINARY_HERE_PER_MILLION
 
     /**
      * Whether the corpus has this word and thinks it too rare to offer.
