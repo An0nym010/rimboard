@@ -1839,9 +1839,28 @@ class SuggestionEngine private constructor(
         // chip while somebody is plainly still typing "airport" is noise in the
         // most prominent slot on the strip.
         //
-        // A word that really is two words run together has no continuations to
-        // lose to: nothing in the dictionary follows "alot", so the split still
-        // gets its chip in exactly the case it exists for.
+        // That was argued as costing nothing -- "a word that really is two words
+        // run together has no continuations to lose to; nothing in the
+        // dictionary follows alot" -- and the dictionary holds "alots" and
+        // "alotta". So "alot", the word this feature is named for, filled its
+        // three slots with [alot, alots, alotta] and the split was computed and
+        // thrown away. Measured over every adjacent word pair in the 22 prose
+        // fixtures, joined: the rule found 24,981 splits and **9,952 of them
+        // never reached the strip**, 40% of the total.
+        //
+        // And it failed hardest exactly where it was most warranted. A
+        // run-together the corpus actually holds is a word, so it has
+        // completions, so it loses its slot: of the attested ones, English
+        // showed 203 of 514, Spanish 19 of 107, Romanian 10 of 73. The more
+        // real the run-together, the less likely the split was offered.
+        //
+        // So an attested one claims a slot rather than waiting for a spare.
+        // Attested is the line because it is what gives [Dictionary.splitInto]
+        // its evidence: SPLIT_DOMINANCE asks that the typed word be 150 times
+        // rarer than both halves, and that test is *skipped* when the word has
+        // no count at all -- which is exactly how "airpo" reaches "air po".
+        // Where the guard had a say, the split is a finding; where it did not,
+        // it goes on taking only a chip nobody else wanted.
         val split = if (contractionWord == null) splitFor(composing, lang, locale) else null
         for (w in ranked) {
             // Case foreign words with their own locale (Turkish dotted I, etc.)
@@ -1851,7 +1870,19 @@ class SuggestionEngine private constructor(
             if (display.size >= 3) break
         }
 
-        if (split != null && display.size < 3 && !display.contains(split)) display.add(split)
+        if (split != null && !display.contains(split)) {
+            if (display.size < 3) {
+                display.add(split)
+            } else if (dict.frequency(lower) > 0) {
+                // The last chip that is not what the space bar will commit:
+                // a chip that is not on the strip cannot be the one the
+                // separator silently applies, which is the same rule the
+                // continuation below is held to.
+                display.indices.reversed()
+                    .firstOrNull { it > 0 && display[it] != correction }
+                    ?.let { display[it] = split }
+            }
+        }
 
         // One of the two free slots is kept for finishing the word.
         //
