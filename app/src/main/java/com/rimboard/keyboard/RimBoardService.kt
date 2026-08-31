@@ -1490,7 +1490,8 @@ class RimBoardService : InputMethodService(),
     private fun isSeparator(c: Char): Boolean = c == ' ' || c in ".,;:!?)]}\u2026"
 
     /**
-     * Whether the cursor really does sit straight after sentence punctuation.
+     * Whether the mark behind the cursor is sentence punctuation that wants a
+     * space after it.
      *
      * [pendingPunctSpace] is armed by typing punctuation and cleared by typing
      * something else or backspacing — and by nothing else at all. Not the space
@@ -1504,16 +1505,24 @@ class RimBoardService : InputMethodService(),
      * path — at most once a sentence, never per keystroke. The alternative was
      * clearing the flag in the ten-odd places that commit text by another
      * route, which is the arrangement that produced this in the first place.
+     *
+     * It reads back [ProseContext.LOOKBACK] characters rather than one,
+     * because "is there a full stop behind me" was never the whole question:
+     * a full stop inside "example.com" is not the end of a sentence, and the
+     * space this arms was going through it. Still one call. See
+     * [ProseContext.punctuationTakesSpace] for what disqualifies a mark and
+     * what that costs.
      */
-    private fun cursorFollowsPunctuation(): Boolean {
-        val before = currentInputConnection?.getTextBeforeCursor(1, 0) ?: return false
-        return before.length == 1 && before[0] in AUTO_SPACE_PUNCT
-    }
+    private fun punctuationTakesSpace(): Boolean =
+        ProseContext.punctuationTakesSpace(
+            currentInputConnection?.getTextBeforeCursor(ProseContext.LOOKBACK, 0),
+            AUTO_SPACE_PUNCT
+        )
 
     private fun typeText(raw: String) {
         if (raw.length == 1) {
             val ch = raw[0]
-            if (pendingPunctSpace && ch.isLetter() && cursorFollowsPunctuation()) {
+            if (pendingPunctSpace && ch.isLetter() && punctuationTakesSpace()) {
                 currentInputConnection?.commitText(" ", 1)
             }
             pendingPunctSpace = Prefs.autoSpacePunct(this) && ch in AUTO_SPACE_PUNCT

@@ -134,6 +134,99 @@ object ProseContext {
      * recognised. Anything with a slash, an at-sign, a colon or a query in it
      * is, which is most of what people paste.
      */
+    /**
+     * Whether a mark just typed at the end of [textBefore] is the end of a
+     * sentence, or part of a token that inserting a space would break.
+     *
+     * "Auto-space after punctuation" saves the space keystroke after a full
+     * stop, and it had no idea what the full stop belonged to. Typing
+     * "example.com" on the device produced **"example. com"**, and "e.g."
+     * produced **"e. g."** -- an address cut in half and the commonest
+     * abbreviation in written English pulled apart, with no chip and no
+     * underline to say what happened. The keyboard already declines to
+     * *autocorrect* inside an address ([isIdentifierPrefix], read by
+     * [AutocorrectGate]) on the grounds that "a URL is not language"; the same
+     * keyboard was editing that URL itself one function away.
+     *
+     * Two things disqualify the mark, and the run they are read from is the
+     * one since the last whitespace with its trailing punctuation removed --
+     * so "example." asks about "example" and "page.html?" asks about
+     * "page.html".
+     *
+     * 1. **The run is an identifier prefix**: it holds a digit or one of
+     *    [MARKS]. That is [isIdentifierPrefix] unchanged, which is the point
+     *    -- one definition of "not language" for both halves of the app. It
+     *    catches "user@example.", "www.example.", "docs.gogle.com/a.",
+     *    "page.html?", "v2." and "192.168.1.".
+     * 2. **One distinct letter before a full stop**: "e.", "i.", "U." and
+     *    also "www.". A sentence whose last word has one letter in it barely
+     *    exists -- nought of the 1165 below, for a token of two letters or
+     *    more, and two for a token of one. An abbreviation written that way
+     *    is everywhere, and so is the commonest URL prefix there is.
+     *    Restricted to the full stop, because the comma after Turkish "o," is
+     *    a real sentence comma and there are eight of those in the corpus.
+     *
+     *    It is the same predicate [com.rimboard.keyboard.model.Elongation]
+     *    uses to decide "www" is not "w" held down, for the same reason: a
+     *    token of one repeated letter has no word inside it.
+     *
+     * An empty run -- the mark with whitespace straight behind it -- is
+     * neither, and is left to take its space. That is French typography,
+     * which writes a narrow no-break space (U+202F) before ? ! ; and : and so
+     * leaves the mark standing alone as its own run. An earlier draft of this
+     * refused all five of them in the corpus.
+     *
+     * ## What it costs, measured
+     *
+     * The population is every place in the 22 prose fixtures (and the six
+     * held-out ones) where a mark is followed by a space and a letter -- 1165
+     * of them -- because those are exactly the keystrokes this feature exists
+     * to save. Suppressing one costs the user the space they were typing
+     * anyway; inserting one wrongly costs them a broken address they have to
+     * notice first. The two are not the same price, which is why this errs
+     * towards leaving text alone.
+     *
+     * Rule 1 suppresses **1** of the 1165 (0.09%): Croatian "20.", an ordinal
+     * date. Rule 2 suppresses **2** (0.17%): Polish "P. Smith" and "P. Brown",
+     * the honorific. Three in total, 0.26%, and each of the three is a space
+     * the writer had typed for themselves.
+     *
+     * ## The hole that is left, deliberately
+     *
+     * A bare two-label domain -- "example.com", no scheme, no path, no "www"
+     * -- still takes a space after its *first* dot, because at that moment the
+     * text reads "example." and nothing here distinguishes that from the end
+     * of a sentence. It is the same hole [separatorEndsIdentifier] names from
+     * the other side, and closing it needs lookahead the keyboard does not
+     * have. Every later dot in the run is protected by rule 1, and "www." by
+     * rule 2, so what is left is a domain whose first label is an ordinary
+     * word.
+     */
+    fun punctuationTakesSpace(textBefore: CharSequence?, marks: String): Boolean {
+        if (textBefore.isNullOrEmpty()) return false
+        if (textBefore[textBefore.length - 1] !in marks) return false
+        var lo = textBefore.length
+        while (lo > 0 && !textBefore[lo - 1].isWhitespace()) lo--
+        var hi = textBefore.length
+        while (hi > lo && textBefore[hi - 1] in marks) hi--
+        // A mark standing alone as its own run is prose punctuation, and
+        // French says so five times in the corpus: it writes a narrow
+        // no-break space (U+202F) before ? ! ; and :, which leaves the mark
+        // as its own run. Refusing those cost five real French sentences to
+        // protect a leading ".hidden" nobody was typing.
+        val core = textBefore.subSequence(lo, hi)
+        if (isIdentifierPrefix(core)) return false
+        // Case-insensitively, because auto-capitalisation gets there first:
+        // at the start of a field "www" is committed as "Www", which has two
+        // distinct characters in it and slipped through this on the device.
+        if (textBefore[textBefore.length - 1] == '.' && core.isNotEmpty() &&
+            core[0].isLetter() && core.all { it.equals(core[0], ignoreCase = true) }
+        ) {
+            return false
+        }
+        return true
+    }
+
     fun insideIdentifier(text: CharSequence, start: Int, end: Int): Boolean {
         var lo = start
         while (lo > 0 && !text[lo - 1].isWhitespace()) lo--
