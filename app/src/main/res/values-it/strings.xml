@@ -141,7 +141,7 @@
     <string name="pref_nr_pass_title">Fila numeri per password</string>
     <string name="pref_nr_pass_summary">Mostra sempre la fila dei numeri nei campi password</string>
     <string name="pref_autospace_title">Spazio dopo punteggiatura</string>
-    <string name="pref_autospace_summary">Inserisci uno spazio quando una lettera segue . , ! ?</string>
+    <string name="pref_autospace_summary">Inserisci uno spazio quando una lettera segue . , ! ? ; :</string>
     <string name="pref_haptic_strength_title">Intensità vibrazione</string>
     <string name="hs_light">Leggera</string>
     <string name="hs_medium">Media</string>

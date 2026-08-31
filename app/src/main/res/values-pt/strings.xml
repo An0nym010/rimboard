@@ -141,7 +141,7 @@
     <string name="pref_nr_pass_title">Linha de números para senhas</string>
     <string name="pref_nr_pass_summary">Sempre mostrar a linha de números em campos de senha</string>
     <string name="pref_autospace_title">Espaço após pontuação</string>
-    <string name="pref_autospace_summary">Inserir espaço quando uma letra segue . , ! ?</string>
+    <string name="pref_autospace_summary">Inserir espaço quando uma letra segue . , ! ? ; :</string>
     <string name="pref_haptic_strength_title">Intensidade da vibração</string>
     <string name="hs_light">Leve</string>
     <string name="hs_medium">Média</string>

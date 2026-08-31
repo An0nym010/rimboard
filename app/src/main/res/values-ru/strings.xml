@@ -141,7 +141,7 @@
     <string name="pref_nr_pass_title">Ряд цифр для паролей</string>
     <string name="pref_nr_pass_summary">Всегда показывать ряд цифр в полях пароля</string>
     <string name="pref_autospace_title">Пробел после знаков</string>
-    <string name="pref_autospace_summary">Вставлять пробел, когда буква идёт после . , ! ?</string>
+    <string name="pref_autospace_summary">Вставлять пробел, когда буква идёт после . , ! ? ; :</string>
     <string name="pref_haptic_strength_title">Сила вибрации</string>
     <string name="hs_light">Слабая</string>
     <string name="hs_medium">Средняя</string>
