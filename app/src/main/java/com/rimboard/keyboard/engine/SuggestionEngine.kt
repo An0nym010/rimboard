@@ -2084,15 +2084,46 @@ class SuggestionEngine private constructor(
             }
         }
 
-        // A run-together typing suppresses autocorrect entirely.
+        // This used to read `split == null && correction != null`, on the
+        // grounds that a run-together typing suppresses autocorrect entirely:
+        // "alot" is edit-distance 1 from "lot", so the keyboard would silently
+        // delete a word on the space bar.
         //
-        // "alot" is edit-distance 1 from "lot", so without this the keyboard
-        // silently deleted a word on the space bar — the correction was not
-        // merely worse than "a lot", it destroyed information. Whenever two
-        // explanations this different both fit, neither is confident enough to
-        // apply without a tap, and both are on the strip to choose from.
+        // **It suppressed the bold and not the commit.** The separator asks
+        // [correctionFor], which has no such clause and never had one, so the
+        // word was rewritten anyway with nothing on the strip to say so — the
+        // exact promise the comment at that call site exists to keep, broken in
+        // the direction that matters. Measured over the prose fixtures, one
+        // neighbour slip per word: **en 162 of 599 commits went unmarked, id
+        // 213 of 738, ro 140 of 624**, and not one language was clean.
+        //
+        // Three measurements say the clause was protecting nothing:
+        //
+        //  - The words it is named for do not need it. "alot", "infact",
+        //    "thankyou", "aswell" and "eachother" all return null from
+        //    [correctionFor] already, because [autoCommitConfident] refuses
+        //    them. That gate is what stopped the silent deletion; this one only
+        //    hid the evidence.
+        //  - Where both a split and a correction fire, the correction is the
+        //    word that was meant: **2,054 right against 107 wrong** across the
+        //    twenty-two fixtures, and **zero** cases of a correctly typed word
+        //    being rewritten, which is the harm the clause names.
+        //  - Over the attested run-togethers -- the ones the splitter fires on
+        //    in the shipped lists -- almost none autocorrect at all, and the
+        //    handful that do are accent restorations that are simply right:
+        //    5 of 910 in German (`naher` -> `näher`, `manner` -> `männer`),
+        //    5 of 94 in Turkish, 1 of 626 in Spanish.
+        //
+        // And its own last clause was false besides: "both are on the strip to
+        // choose from". The split is added only if a slot is spare, so typing
+        // "helko" showed [hello, "helko", helo] -- no split, no bold, and
+        // "hello" committed on space.
+        //
+        // Nothing about what is committed changes here. [SuggestionsResult]'s
+        // index is read only by the strip; the separator has always asked
+        // [correctionFor] and still does.
         var acIndex = -1
-        if (allowAutocorrect && split == null && correction != null) {
+        if (allowAutocorrect && correction != null) {
             val idx = display.indexOf(correction)
             if (idx >= 0) acIndex = idx
         }
