@@ -495,6 +495,13 @@ class EmojiView(context: Context) : LinearLayout(context) {
                 } catch (_: Exception) {
                 }
             }
+            // Flags name themselves -- see [EmojiData.flagKeywords]. Added
+            // after the assets so a hand-written keyword still wins the slot
+            // if one ever names a country.
+            for ((kw, flags) in EmojiData.flagKeywords(Languages.byCode(searchLang).locale)) {
+                val list = merged.getOrPut(kw) { ArrayList() }
+                for (f in flags) if (f !in list) list.add(f)
+            }
             merged.entries.map { it.key to it.value.toList() }
         }
 
