@@ -185,6 +185,52 @@ KEEP = 120
 # An ending has to be pulled off this many distinct stems before it is believed.
 MIN_STEMS = 150
 
+# ...and 150 is a count, which is the trap this project keeps walking into.
+#
+# STEM_MIN_FREQ carries the same warning in the engine: a flat number applied to
+# corpora that differ by a factor of a hundred and fifty is that many different
+# thresholds wearing one number. Here it is quieter, because every shipped list
+# is truncated to 200k entries so the *vocabulary* is level -- but a small
+# corpus fills those 200k with rarer words, so a genuine ending is pulled off
+# fewer distinct stems and is disbelieved for a reason about the corpus rather
+# than about the language. It shows in the Germanic inventories, which take
+# two-letter endings on identical terms: sv 39 from 100M tokens, da 29 from
+# 88M, no 20 from 52M.
+#
+# Swept per language on the same two numbers as everything else here -- points
+# of destruction prevented, against % of damaged words wrongly waved through:
+#
+#            150       130       115       100        85
+#     ru  1.8/0.2   2.3/0.2   2.5/0.2   2.8/0.2   3.2/0.3
+#     uk  3.2/0.2   3.2/0.2   3.5/0.3   3.8/0.5   4.3/0.5
+#     fi  5.0/1.2   5.5/1.2   5.5/1.2   5.7/1.2   6.5/1.2
+#     fr  4.0/0.3   4.7/0.3   5.0/0.7   5.0/0.9   5.0/0.9
+#     pl  6.2/0.7   6.5/0.7   6.5/0.7   6.8/0.7   6.8/0.7
+#     pt  4.0/0.7   4.2/0.7   4.2/0.7   4.2/0.7   4.7/0.7
+#     no  1.5/0.3   1.8/0.3   1.8/0.3   2.2/0.5   2.2/0.9
+#     de  3.3/0.9   3.7/1.6   4.0/2.6   4.2/3.1   4.7/3.1
+#
+# **Almost all of that is noise, and only two things found it.** Ten languages
+# looked affordable on the shipped seed. Re-measured on five:
+#
+#  - **The seed check.** Finnish at 85 reads 1.2% on the shipped seed -- no
+#    worse than it already costs -- and 1.6, 0.9, 2.0, 1.8 on four others: over
+#    the 1.5% ceiling on two draws in five. Slovak at 100 touches 1.5% on one,
+#    Italian at 115 reaches 1.4% with nothing spare. All three keep 150. This is
+#    the same standard the English note above applies to itself.
+#  - **The joint walk.** Endings and prefixes compose -- a prefix comes off and
+#    what is left goes to the ending walk -- so more endings cost more *through
+#    the prefixes too*, and the bill is multiplicative rather than additive.
+#    Ukrainian's endings at 85 cost 0.5% alone and put the whole walk on 1.5%
+#    exactly, failing PrefixInventoryTest outright; at 115 its endings drop to
+#    0.3% and the whole walk is still 1.5%. Russian at 85 and French at 130
+#    pass on the shipped seed and reach 1.7% and 1.6% on another. All three keep
+#    150, and the two largest apparent gains in the table are among them.
+#
+# What is left is three languages whose worst draw of five still leaves room,
+# and their destruction rates move: no 26.5% -> 25.8%, pl 22.0% -> 21.7%.
+MIN_STEMS_BY_LANG = {"pt": 85, "no": 100, "pl": 130}
+
 # Languages whose derived inventory earns its place, and only those.
 #
 # An inventory buys coverage -- words outside the shipped list that are
@@ -304,8 +350,9 @@ def derive(lang, words, min_suffix):
     return found
 
 
-def chosen(found):
-    return [s for s, c in found.most_common(KEEP) if c >= MIN_STEMS]
+def chosen(found, min_stems=None):
+    floor = MIN_STEMS if min_stems is None else min_stems
+    return [s for s, c in found.most_common(KEEP) if c >= floor]
 
 
 def main():
@@ -318,14 +365,16 @@ def main():
     for lang in langs:
         words = load(lang)
         found = derive(lang, words, MIN_SUFFIX_BY_LANG.get(lang, MIN_SUFFIX))
-        keep = chosen(found)
+        keep = chosen(found, MIN_STEMS_BY_LANG.get(lang, MIN_STEMS))
         cap = SHORT_CAP.get(lang)
         if cap:
             # The best few two-letter endings, in front of the longer ones the
             # language already had. Order in the file is presentation only --
             # both the engine and the test sort by length before walking -- so
             # this puts the commonest first for anyone reading it.
-            short = [s for s in chosen(derive(lang, words, 2)) if len(s) == 2][:cap]
+            short = [s for s in chosen(
+                derive(lang, words, 2), MIN_STEMS_BY_LANG.get(lang, MIN_STEMS)
+            ) if len(s) == 2][:cap]
             keep = short + [s for s in keep if s not in short]
         if report:
             top = ", ".join("-%s(%d)" % (s, found[s]) for s in keep[:14])
