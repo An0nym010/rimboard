@@ -1950,6 +1950,29 @@ class Dictionary(
     internal fun frequency(wordLower: String): Int = freqOf(wordLower)
 
     /**
+     * How often the commonest apostrophe ending was counted, or 1.
+     *
+     * The corpus behind these lists split at the apostrophe, so the tail of
+     * every contraction is an ordinary entry with an ordinary count -- in
+     * English `'s` at 14,291,013, `'t` at 9,628,970, `'d` at 1,109,205. That
+     * is the only thing the lists know about which contraction is likelier
+     * than which, and it is worth a denominator so a caller can turn it into
+     * a share rather than a raw count it cannot compare to anything.
+     *
+     * Computed once. A language whose corpus never split that way -- Turkish
+     * has no apostrophe entries at all -- answers 1, which makes the share a
+     * plain zero for every ending and leaves callers where they were.
+     */
+    private val commonestEnding: Int by lazy {
+        // One binary search, not a scan: [byPrefix] already answers "the
+        // commonest entry starting with this", and an apostrophe sorts ahead
+        // of every letter, so the run is where the array begins.
+        maxOf(1, byPrefix("'", 1).firstOrNull()?.second ?: 0)
+    }
+
+    internal fun commonestEnding(): Int = commonestEnding
+
+    /**
      * Whether [wordLower] is ordinary vocabulary in *this* language.
      *
      * Asked when the user's **other** enabled language calls a word offensive

@@ -1765,8 +1765,25 @@ class SuggestionEngine private constructor(
                 // leaves "I'" offering nothing at all.
                 val stem = canonical.substringBefore('\'').lowercase(locale)
                 val f = dict.frequency(stem).toLong()
+                // Weighted by how common the *ending* is, which the corpus
+                // counted and nothing here was asking. Every candidate at a
+                // given prefix shares one stem, so scoring them all by that
+                // stem gave them all the same number and left the order to be
+                // whichever table they were listed in: typing "i'" offered
+                // I'm, I've, I'll in that order, though the corpus holds `'ll`
+                // at 2,913,428 against `'ve` at 1,991,871.
+                //
+                // A share of the commonest ending rather than a raw count, so
+                // the leading candidate keeps the score it had and only the
+                // ones behind it move. A contraction on a rare ending has less
+                // claim on a chip than an attested completion of the same
+                // prefix, which is what the scale it sits on already means.
+                val ending = canonical.substring(canonical.indexOf('\''))
+                    .lowercase(locale)
+                val share = dict.frequency(ending).toDouble() / dict.commonestEnding()
                 if (f > 0 && merged[canonical] == null) {
-                    merged[canonical] = maxOf(1L, (f * ELISION_PENALTY).toLong())
+                    merged[canonical] =
+                        maxOf(1L, (f * ELISION_PENALTY * share).toLong())
                 }
             }
         }

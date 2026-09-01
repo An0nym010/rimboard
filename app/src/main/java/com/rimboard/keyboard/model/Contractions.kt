@@ -95,8 +95,52 @@ object Contractions {
         "whod" to "who'd"
     )
 
+    /**
+     * Contractions that may be *completed* but never *restored*.
+     *
+     * The two tables above are indexed by the risk of putting an apostrophe
+     * into a word somebody typed without one, and the class comment names the
+     * third class that risk creates: "its", "were" and "well" appear in neither
+     * list, because their bare form is not only a real word but an extremely
+     * common and usually-correct one.
+     *
+     * That is the right call about restoration and it says nothing whatever
+     * about completion. [completionsFor] reads the same tables backwards, and
+     * so inherited an exclusion whose entire reason has already been settled by
+     * the time it is asked: **somebody who has typed `it'` cannot have meant
+     * the word "its"**. The apostrophe is the disambiguation.
+     *
+     * So `it's`, `let's`, `we're` and `we'll` — four of the commonest
+     * contractions in English — were typed out in full, letter by letter, while
+     * `don't` and `you're` were offered at the mark.
+     *
+     * The membership rule is the one the class comment already states, turned
+     * into a test rather than a taste: **the bare form is an ordinary English
+     * word**, which is why it is not in [auto] or [suggest]. Measured on the
+     * shipped list, that draws the line by itself:
+     *
+     *     its 180,594   were 1,315,964   well 2,159,909
+     *     lets 14,876   id 16,835        shed 10,791
+     *     ------------------------------------------------ in
+     *     hed 129       itd 13                              out
+     *
+     * `he'd` and `it'd` are missing from the tables above for a different
+     * reason — nobody added them, and their bare forms are not words at all —
+     * so they are not this list's business. `ContractionCompletionTest` holds
+     * the rule.
+     */
+    private val completeOnlyEn = listOf(
+        "it's",   // its
+        "we're",  // were
+        "we'll",  // well
+        "let's",  // lets
+        "I'd",    // id
+        "she'd"   // shed
+    )
+
     private val auto = mapOf("en" to autoEn)
     private val suggest = mapOf("en" to suggestEn)
+    private val completeOnly = mapOf("en" to completeOnlyEn)
 
     /** The contraction for a lowercased bare word, or null if there is none. */
     fun expand(lang: String, typedLower: String): Expansion? {
@@ -125,7 +169,12 @@ object Contractions {
      * pronoun and obvious across all of them.
      */
     internal fun allCanonical(lang: String): List<String> =
-        auto[lang]?.values.orEmpty().toList() + suggest[lang]?.values.orEmpty().toList()
+        auto[lang]?.values.orEmpty().toList() +
+            suggest[lang]?.values.orEmpty().toList() +
+            completeOnly[lang].orEmpty()
+
+    /** The completion-only forms, so a test can hold the rule that admits them. */
+    internal fun completeOnlyForms(lang: String): List<String> = completeOnly[lang].orEmpty()
 
     /** Whether a bare word is an auto-correctable contraction — used to keep
      *  its unapostrophised form out of the completion suggestions. */
@@ -150,9 +199,12 @@ object Contractions {
     fun completionsFor(lang: String, prefixLower: String): List<String> {
         if (prefixLower.length < 2) return emptyList()
         val out = LinkedHashSet<String>()
-        for (m in listOf(auto[lang], suggest[lang])) {
+        val tables = listOf(
+            auto[lang]?.values, suggest[lang]?.values, completeOnly[lang]
+        )
+        for (m in tables) {
             m ?: continue
-            for (canonical in m.values) {
+            for (canonical in m) {
                 // Case-insensitively, because three of these canonical forms
                 // carry a capital that is part of the spelling rather than a
                 // position in a sentence -- "I'm", "I've", "I'll" -- and the
