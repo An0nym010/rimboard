@@ -502,6 +502,13 @@ class EmojiView(context: Context) : LinearLayout(context) {
                 val list = merged.getOrPut(kw) { ArrayList() }
                 for (f in flags) if (f !in list) list.add(f)
             }
+            // ...and the rest of the palette from the platform's Unicode name
+            // table, for the same reason and at the same cost of nothing. See
+            // [EmojiData.unicodeNameKeywords].
+            for ((kw, emojis) in EmojiData.unicodeNameKeywords()) {
+                val list = merged.getOrPut(kw) { ArrayList() }
+                for (e in emojis) if (e !in list) list.add(e)
+            }
             merged.entries.map { it.key to it.value.toList() }
         }
 
