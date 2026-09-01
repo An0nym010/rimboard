@@ -501,6 +501,100 @@ class GlideAccuracyTest {
      * being blind to its benefit — it scored Greek on 7 words out of 120 and
      * called it 86%.
      */
+    /**
+     * A doubled letter is a class of its own, and one number per language hid
+     * it.
+     *
+     * A finger cannot stop twice on the same key, so the path for "hello" is
+     * the path for "helo" -- which is why [anchorsOf] exists and why every
+     * measurement in this file already uses it. What none of them did was ask
+     * how the words on the *other* side of that collapse do, and they do
+     * measurably worse:
+     *
+     *     natural hand, 600 words, top-1/offered
+     *                doubled          the rest         n(doubled)
+     *     da        55% / 86%        70% / 93%             80
+     *     no        62% / 92%        72% / 93%            187
+     *     fi        62% / 90%        72% / 90%            255
+     *     fr        63% / 97%        73% / 94%            101
+     *     it        66% / 91%        70% / 94%            141
+     *     de        71% / 97%        77% / 97%            109
+     *     sv        72% / 96%        75% / 97%            167
+     *     nl        74% / 97%        83% / 98%            184
+     *     hu        83% /100%        84% / 98%            124
+     *     en        81% / 98%        79% / 99%            108
+     *
+     * Between a seventh and two fifths of ordinary vocabulary in these
+     * languages has a doubled letter, so this is not a corner. **Danish is the
+     * weakest by a distance** and is the reason this arm exists: at 55% top-1
+     * and 86% offered, a doubled Danish word is not merely ranked second, it
+     * is missing from the list one time in seven -- and the whole-sample
+     * number for Danish clears every floor in this file.
+     *
+     * English is the language that made this invisible: it is the only one
+     * where the doubled words score *better* than the rest, and English is one
+     * of the two languages the older arms report in detail.
+     *
+     * ## It is a limit, not a bug, and that is why this only measures it
+     *
+     * The losses split in two and neither has a repair in the ranking:
+     *
+     *  - **The path cannot tell them apart at all.** German "denn" and "den",
+     *    Finnish "tulee" and "tule", English "soon" and "son" have the same
+     *    anchors, so the shape term is identical for both and only frequency
+     *    is left. It picks the commoner, which is the best available answer to
+     *    a question with no other evidence in it. Finnish has the most of
+     *    these because its doubled vowels are grammar rather than spelling.
+     *  - **A far commoner short word wins on frequency.** Dutch "zeer" loses
+     *    to "ze" at 2,456,905 against 46,111; Swedish "inne" to "inte" at
+     *    2,298,512 against 29,164. That is [Dictionary.GLIDE_SHAPE_WEIGHT]
+     *    doing what the sweep in `the weight between frequency and fit`
+     *    settled it at.
+     *
+     * The right word is **offered** in every one of these cases -- the second
+     * or third chip -- so what it costs is a tap, not the word.
+     *
+     * Context recovers a little of it and not much: swiping these words out of
+     * the prose fixtures with their real preceding word takes Finnish from
+     * 74.0% to 78.0% and German from 76.7% to 78.3%, rescuing "hän leikki"
+     * from "leiki" and "röda hatten" from "hästen".
+     */
+    @Test
+    fun `a doubled letter is measured on its own, not hidden in the average`() {
+        val langs = File(assets(), "dictionaries").list().orEmpty()
+            .map { it.removeSuffix(".txt") }.sorted()
+        val lines = StringBuilder()
+        val weak = ArrayList<String>()
+        for (lang in langs) {
+            val locale = Locale.forLanguageTag(lang)
+            val words = sample(lang, 600)
+            val doubled = words.filter { anchorsOf(it).length != it.length }
+            val rest = words.filter { anchorsOf(it).length == it.length }
+            if (doubled.size < 40 || rest.size < 40) continue
+            val d = measure(lang, locale, doubled, Hand.NATURAL)
+            val r = measure(lang, locale, rest, Hand.NATURAL)
+            lines.append(
+                "%-4s doubled %s (n=%d)   rest %s (n=%d)%n"
+                    .format(lang, d.pct(), d.asked, r.pct(), r.asked)
+            )
+            // A floor on the class, not on the gap: the gap is the frequency
+            // prior and is allowed to be what the sweep made it. What must not
+            // happen is a language where swiping a doubled word stops working.
+            // Tripwires under the measured floor, not targets. Danish sits
+            // lowest at 55%/86%, so these leave it ten points of room and
+            // would fire if a language's doubled words stopped being found.
+            if (d.top1 < 0.45 || d.offered < 0.76) weak.add("$lang ${d.pct()}")
+        }
+        println(lines)
+        assertTrue("no language had enough doubled words to measure", lines.isNotEmpty())
+        assertTrue(
+            "swiping a word with a doubled letter has stopped working in these " +
+                "languages, which the one-number-per-language arms above would " +
+                "not have shown: " + weak.toString() + " || " + lines,
+            weak.isEmpty()
+        )
+    }
+
     @Test
     fun `every shipped language can be swiped`() {
         val langs = File(assets(), "dictionaries").list().orEmpty()
