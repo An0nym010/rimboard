@@ -117,6 +117,16 @@ object Contractions {
     /** Every form, either confidence, for the disjointness check. */
     internal fun suggestForms(lang: String): Set<String> = suggest[lang]?.keys.orEmpty()
 
+    /**
+     * Every canonical spelling in [lang], both confidences.
+     *
+     * So a test can enumerate what the table promises rather than sample it —
+     * the case bug this exists to watch for was invisible in a sample of one
+     * pronoun and obvious across all of them.
+     */
+    internal fun allCanonical(lang: String): List<String> =
+        auto[lang]?.values.orEmpty().toList() + suggest[lang]?.values.orEmpty().toList()
+
     /** Whether a bare word is an auto-correctable contraction — used to keep
      *  its unapostrophised form out of the completion suggestions. */
     fun isAutoBareForm(lang: String, wordLower: String): Boolean =
@@ -143,7 +153,15 @@ object Contractions {
         for (m in listOf(auto[lang], suggest[lang])) {
             m ?: continue
             for (canonical in m.values) {
-                if (canonical.startsWith(prefixLower) && canonical != prefixLower) {
+                // Case-insensitively, because three of these canonical forms
+                // carry a capital that is part of the spelling rather than a
+                // position in a sentence -- "I'm", "I've", "I'll" -- and the
+                // prefix arrives lower-cased. `"I'm".startsWith("i'")` is
+                // false, so the one English word that is always a capital was
+                // the one word whose contractions could not be completed.
+                if (canonical.startsWith(prefixLower, ignoreCase = true) &&
+                    !canonical.equals(prefixLower, ignoreCase = true)
+                ) {
                     out.add(canonical)
                 }
             }

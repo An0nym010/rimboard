@@ -1739,7 +1739,12 @@ class SuggestionEngine private constructor(
             for (canonical in
                 com.rimboard.keyboard.model.Contractions.completionsFor(lang, lower)) {
                 if (userData.isBlocked(canonical)) continue
-                val stem = canonical.substringBefore('\'')
+                // Lower-cased, because [Dictionary.frequency] takes a
+                // lower-case word and the stem of "I'm" is "I". It read
+                // zero, and the guard below reads `f > 0`, so this was the
+                // second half of the same bug -- repairing either one alone
+                // leaves "I'" offering nothing at all.
+                val stem = canonical.substringBefore('\'').lowercase(locale)
                 val f = dict.frequency(stem).toLong()
                 if (f > 0 && merged[canonical] == null) {
                     merged[canonical] = maxOf(1L, (f * ELISION_PENALTY).toLong())
