@@ -994,8 +994,33 @@ class SuggestionEngine private constructor(
         }
         // Bilingual typing: never "correct" a word that is valid in the
         // user's other enabled language (e.g. English words in Turkish mode).
+        //
+        // **Valid**, which is what this sentence always said and not what the
+        // line under it asked. It asked `contains`, and being in a word list is
+        // a strictly narrower thing than being a word: a German compound, a
+        // Turkish stem carrying suffixes, an English contraction and a
+        // Ukrainian word spelled with an apostrophe are every one of them valid
+        // and none of them contained. So the other language was asked to repair
+        // words this engine can vouch for elsewhere, and answered.
+        //
+        // It shows up hardest through the cross-language fallback below, where
+        // the roles swap and the second language is handed a word the first has
+        // already accepted. English second, German or Turkish first:
+        //
+        //     doesn't -> doesn   don't -> donut   he's -> hess   i'm -> im
+        //     you're  -> your    it's  -> its     i'll -> ill    we'll -> well
+        //
+        // and with English second and French first, the whole of French
+        // elision: l'impossible -> impossible, j'avais -> jamais, qu'elle ->
+        // quelle. The word lists split at the apostrophe, so no list holds a
+        // contraction and `contains` is guaranteed to say no about every one.
+        //
+        // [acceptedWord] is the one definition of a word this engine has, and
+        // asking it here is the same move as the [FUZZY_TRIGGER] guard in
+        // `suggestionsFor`: a fourth caller of one definition rather than a
+        // fourth opinion.
         if (altLang != null && altLocale != null &&
-            dictionary(altLang, altLocale).contains(typed.lowercase(altLocale))
+            acceptedWord(typed, altLang, altLocale)
         ) return emptyList()
         // A pool, not the answer. Everything below still has to survive the
         // offensive list, the blocked list and the apostrophe-less contraction
