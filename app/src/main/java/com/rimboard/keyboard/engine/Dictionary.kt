@@ -1795,7 +1795,9 @@ class Dictionary(
 
     /**
      * Near-misses of [prefix]: one adjacent-key slip, one transposition, one
-     * doubled letter, or one dropped letter.
+     * doubled letter, or one dropped letter. Letters throughout — see the
+     * dropped-letter loop for the one character that is not one and what it
+     * cost.
      *
      * Substitutions are limited to the last [FUZZY_EDIT_WINDOW] characters. A
      * typo in the first letter of a word is both rare and expensive to chase —
@@ -1824,6 +1826,28 @@ class Dictionary(
         for (i in from until n) {
             // A letter typed twice, and a letter missed: both leave the prefix
             // the wrong length, which an exact search can never recover from.
+            //
+            // A **letter**, which is what the four typos above are all about
+            // and what this loop did not check. The only non-letter that ever
+            // reaches here is the apostrophe -- the composing buffer takes
+            // letters and, mid-word, `'` -- and it is not on the letter layer
+            // at all: reaching it means a long-press on the full stop or a
+            // switch to the symbol layer. Deleting it models no slip a thumb
+            // can make, and every word that contains one arrives here, because
+            // no entry in a list built by a tokeniser that split at the
+            // apostrophe can be reached by an exact prefix search through one.
+            //
+            // So the recovery meant for a mistyped prefix fired on every
+            // correctly typed contraction and answered about a different word:
+            // "i'm" was completed to *important* and *imagine*, "i've" to
+            // *ives* and *iverson*, "don't" to *donte* and *dontcha*.
+            //
+            // The other two edits need no such guard, for different reasons.
+            // A substitution comes from [KeyProximity.neighbours], and the
+            // apostrophe is not a key in that model, so it has none. And a
+            // transposition across one -- "dont'" for "don't" -- is a real
+            // slip with a real repair, so it stays.
+            if (!prefix[i].isLetter()) continue
             out.add(prefix.substring(0, i) + prefix.substring(i + 1))
         }
         return out
