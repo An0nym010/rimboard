@@ -1133,7 +1133,26 @@ class SuggestionEngine private constructor(
         return com.rimboard.keyboard.model.TurkishMorph.accentedInflection(
             lower,
             fold = { Dictionary.foldDiacritics(it) },
-            accentedStem = { bare -> dict.accentedFormOf(bare) ?: bare.takeIf(dict::contains) }
+            // The same floor every other path that builds a word out of a stem
+            // asks for -- [Morphology.prefixedStemIsKnown], [Compounds.splitOf],
+            // [Elision.splitOf] and [Morphology.apostropheSuffixed] all use
+            // [Dictionary.stemMinFreq], and this one asked only whether the
+            // stem existed at all.
+            //
+            // It went unnoticed while the generator could not build the forms
+            // that collide. Turkish "bişi" is in the list 379 times; the
+            // 1sg possessive of it is "bişim", which folds onto "bisim" --
+            // and "bisim" is a thumb's width from "bizim", which the corpus
+            // counted 149,991 times. A form generated from a stem seen 379
+            // times has no business displacing a word seen four hundred times
+            // as often.
+            // Whichever branch answers, because the accented one answered here:
+            // `accentedFormOf("bisi")` returns "bişi" long before the fallback
+            // is reached.
+            accentedStem = { bare ->
+                (dict.accentedFormOf(bare) ?: bare)
+                    .takeIf { dict.frequency(it) >= dict.stemMinFreq }
+            }
         )
     }
 

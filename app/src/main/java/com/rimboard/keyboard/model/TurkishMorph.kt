@@ -40,22 +40,61 @@ object TurkishMorph {
     /**
      * Inflection templates, in rough order of how often they turn up.
      *
-     * `A` and `I` are the harmony archiphonemes above, `D` the assimilating
-     * stop, and `Y` a buffer consonant that appears only after a vowel — "ev-e"
-     * but "kitap-a" versus "araba-ya". Order matters: it is the ranking of the
-     * completions offered, and a plural should be proposed before an ablative
-     * possessive.
+     * `A` and `I` are the harmony archiphonemes above and `D` the assimilating
+     * stop. The rest are about the seam where a suffix meets the stem, because
+     * Turkish never lets two vowels collide there and never lets two consonants
+     * collide either — every marker below is one half of that one rule:
+     *
+     *  - **`Y`, `N`, `S` — a buffer consonant, only after a vowel.** "ev-e" but
+     *    "araba-**y**a", "ev-in" but "araba-**n**ın", "ev-i" but "araba-**s**ı".
+     *    Which consonant is a property of the suffix, not of the stem, which is
+     *    why there are three of them and not one.
+     *  - **`J` — a linking vowel, only after a consonant.** The mirror image:
+     *    "ev-**i**m" but "araba-m", "ev-**i**niz" but "araba-nız".
+     *
+     * Markers are upper case and literal letters lower case, throughout.
+     *
+     * **Only `Y` existed**, so the five templates that attach straight to the
+     * stem and need one of the other two produced nothing usable for any stem
+     * ending in a vowel — roughly a third of Turkish, and including the two
+     * commonest case endings in the language. Measured against the shipped
+     * list, over stems the corpus counted at least three thousand times:
+     *
+     *                  vowel-final       consonant-final (the control)
+     *     accusative     0 of  344         1046 of 1046
+     *     poss 3sg       0 of  429         1046 of 1046
+     *     genitive       0 of  629          817 of  817
+     *     poss 1sg       0 of  683          561 of  561
+     *     poss 1pl       0 of  298          122 of  122
+     *     poss 2pl       0 of  391           94 of   94
+     *
+     * Zero of 2,345 against 2,640 of 2,640, and the control says the harmony
+     * rules themselves were never the problem. The forms in that table are all
+     * *in* the word list, so the strip could reach them by prefix anyway; the
+     * number that matters is the one this generator exists for. At the
+     * [Dictionary.STEM_MIN_FREQ] floor of 500 there are **62,027 well-formed
+     * inflections of vowel-final stems that the list does not contain**, and it
+     * produced none of them. For consonant-final stems: 71,897, all produced.
+     *
+     * Nothing in the `lAr` family needed touching, and that is worth saying
+     * rather than leaving to be rediscovered: they attach after the plural,
+     * which ends in `r`, so the seam is always consonant-to-suffix and the
+     * markers would be inert.
+     *
+     * Order matters: it is the ranking of the completions offered, and a plural
+     * should be proposed before an ablative possessive.
      */
     private val TEMPLATES: List<String> = listOf(
         "lAr",          // plural: kitaplar
-        "I",            // accusative / 3sg possessive: kitabı, evi
-        "YA",           // dative: eve, kitaba
-        "DA",           // locative: evde, kitapta
-        "DAn",          // ablative: evden, kitaptan
-        "In",           // genitive / 2sg possessive: evin
-        "Im",           // 1sg possessive: evim
-        "ImIz",         // 1pl possessive: evimiz
-        "InIz",         // 2pl possessive: eviniz
+        "YI",           // accusative: kitabı, evi, arabayı
+        "SI",           // 3sg possessive: kitabı, evi, arabası
+        "YA",           // dative: eve, kitaba, arabaya
+        "DA",           // locative: evde, kitapta, arabada
+        "DAn",          // ablative: evden, kitaptan, arabadan
+        "NIn",          // genitive / 2sg possessive: evin, arabanın
+        "Jm",           // 1sg possessive: evim, arabam
+        "JmIz",         // 1pl possessive: evimiz, arabamız
+        "JnIz",         // 2pl possessive: eviniz, arabanız
         "lArI",         // plural + possessive: kitapları
         "lArA",         // plural + dative: kitaplara
         "lArDA",        // plural + locative: kitaplarda
@@ -140,9 +179,25 @@ object TurkishMorph {
         return prefix.dropLast(1) + hard
     }
 
-    /** Whether a template's first sound is a vowel, which is what triggers softening. */
+    /**
+     * Whether a template's first *sound* is a vowel, which is what triggers
+     * softening.
+     *
+     * Sound, not character, and every marker in the set is here for that
+     * reason. `A` and `I` are vowels outright. `Y`, `N` and `S` are buffer
+     * consonants that exist only after a vowel — so in the case that matters
+     * here, where the stem ends in the consonant being softened, they are not
+     * there at all and the suffix begins with its vowel. `J` is the mirror: a
+     * linking vowel that appears *only* after a consonant, which is exactly
+     * when softening applies.
+     *
+     * Adding the three new markers without adding them here was a real
+     * regression and the probe caught it: "kitap" generated `kitapın`,
+     * `kitapım` and `kitapımız` beside the correct `kitabı`, because `NIn` and
+     * `Jm` no longer looked like they began with a vowel.
+     */
     private fun startsWithVowel(template: String): Boolean =
-        template.firstOrNull() in setOf('A', 'I', 'Y')
+        template.firstOrNull() in setOf('A', 'I', 'Y', 'N', 'S', 'J')
 
     /**
      * Attaches one template to a stem, resolving harmony left to right.
@@ -160,8 +215,16 @@ object TurkishMorph {
                 'I' -> sb.append(fourWay(lastVowel(sb) ?: return null))
                 'D' -> sb.append(if (sb.isNotEmpty() && sb.last() in VOICELESS) 't' else 'd')
                 // Buffer consonant: only where a vowel would otherwise collide
-                // with the suffix's own vowel.
+                // with the suffix's own vowel. Which one is the suffix's own
+                // business -- dative takes y, genitive n, 3sg possessive s.
                 'Y' -> if (sb.isNotEmpty() && sb.last() in VOWELS) sb.append('y')
+                'N' -> if (sb.isNotEmpty() && sb.last() in VOWELS) sb.append('n')
+                'S' -> if (sb.isNotEmpty() && sb.last() in VOWELS) sb.append('s')
+                // Linking vowel: the mirror, for a suffix that begins with a
+                // consonant and would otherwise collide with the stem's.
+                'J' -> if (sb.isNotEmpty() && sb.last() !in VOWELS) {
+                    sb.append(fourWay(lastVowel(sb) ?: return null))
+                }
                 else -> sb.append(ch)
             }
         }
