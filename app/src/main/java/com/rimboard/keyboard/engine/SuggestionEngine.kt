@@ -1759,7 +1759,35 @@ class SuggestionEngine private constructor(
         // the prefix itself probably has a typo in it. Exact prefix search can
         // never recover from that, so the strip stays blank for the rest of the
         // word — which is exactly when suggestions are wanted most.
-        if (merged.size < FUZZY_TRIGGER && lower.length >= 3) {
+        //
+        // **Unless the silence has the other cause**, which the sentence above
+        // and [FUZZY_TRIGGER]'s own comment both forgot: the word is finished.
+        // A complete word with no continuations leaves [merged] just as empty
+        // as a mistyped prefix does, so the recovery meant for typos fired on
+        // words that were exactly right, and offered a different word for them:
+        //
+        //     siblings -> sibling, siblington     don't  -> don'
+        //     einem    -> eine, einen             sunday -> sundae
+        //     będę     -> będzie, będziesz        gördüm -> gördün
+        //
+        // Measured over the prose fixtures, of the words the engine itself
+        // accepts as correctly spelled: **English 137 of 677, Polish 358 of
+        // 744** -- nearly half, because the more a language inflects the more
+        // near-misses every one of its words has. Every one of them came from
+        // here and none of them was ever committed; the cost is the two spare
+        // chips, in the languages that can least afford to spend them.
+        //
+        // [acceptedWord] is the fourth caller of the one definition of a word
+        // -- the doc on it promises the underline, the space bar and the strip
+        // cannot disagree about what one is, and this is the strip.
+        //
+        // It costs nothing that the path was doing: a word with completions
+        // never reaches this branch at all, so "cat" on the way to "cart" is
+        // unaffected -- byPrefix has plenty for it and [FUZZY_TRIGGER] is
+        // never met.
+        if (merged.size < FUZZY_TRIGGER && lower.length >= 3 &&
+            !acceptedWord(composing, lang, locale, altLang, altLocale)
+        ) {
             for ((w, f) in dict.byPrefixFuzzy(lower, KeyProximity.forLang(lang), 6)) {
                 if (userData.isBlocked(w)) continue
                 if (com.rimboard.keyboard.model.Contractions.isAutoBareForm(lang, w)) continue
