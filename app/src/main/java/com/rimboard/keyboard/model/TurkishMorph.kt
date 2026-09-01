@@ -260,8 +260,54 @@ object TurkishMorph {
      */
     fun completionsFor(typed: String, limit: Int, known: (String) -> Boolean): List<String> {
         if (typed.length < MIN_STEM + 1) return emptyList()
-        val stem = stemOf(typed, known) ?: return emptyList()
         val out = ArrayList<String>(limit)
+        // A proper noun carrying its ending across an apostrophe -- "Paris'e",
+        // "ABD'de", "Rusya'nın". [Morphology.apostropheSuffixed] has recognised
+        // that shape as a word since it was written; nothing has ever completed
+        // it, and it is the most expensive word in the keyboard: measured over
+        // the Turkish prose fixture, a word with an apostrophe in it saved
+        // **0.0%** of its keystrokes against 38.9% for the rest, and cost 8.92
+        // letters against 3.02.
+        //
+        // The reason is that [stemOf] finds "paris" and [inflections] then
+        // builds "parise", which is not a continuation of "paris'e" -- so every
+        // generated form was filtered out by the very check that makes this
+        // safe. Generating across the mark is the same rule with the mark put
+        // back.
+        //
+        // Softening is deliberately not applied here, and that is the
+        // orthography rather than an omission: Turkish writes "Ahmet'i", not
+        // "Ahmed'i", because the apostrophe marks the stem as a name to be left
+        // alone. It is the same reason [Morphology.apostropheSuffixed] declines
+        // to check vowel harmony across the mark -- and the same limit, in the
+        // other direction: "ABD" is said "a-be-de" and takes a front-vowel
+        // ending its spelling does not predict, so acronyms are not reached
+        // from here. A name spelled as it sounds is, which is most of them.
+        val mark = typed.indexOfFirst { it == '\'' || it == '’' }
+        if (mark >= MIN_STEM) {
+            val head = typed.substring(0, mark)
+            val tail = typed.substring(mark + 1)
+            // Something after the mark, for the reason the elided-article path
+            // in `SuggestionEngine` gives for refusing a bare "l'": with
+            // nothing typed after it there is no evidence about which ending is
+            // wanted, and the three commonest are not a guess about this
+            // sentence.
+            if (tail.isNotEmpty() && known(head)) {
+                for (t in TEMPLATES) {
+                    val form = apply(head, t) ?: continue
+                    val suffix = form.substring(head.length)
+                    if (suffix.length > tail.length && suffix.startsWith(tail)) {
+                        out.add(head + typed[mark] + suffix)
+                        if (out.size >= limit) break
+                    }
+                }
+            }
+            // An apostrophe word is not an ordinary one, and the path below
+            // has nothing it could add: every form it builds runs the suffix
+            // straight on and so cannot continue what is on screen.
+            return out
+        }
+        val stem = stemOf(typed, known) ?: return emptyList()
         for (form in inflections(stem)) {
             if (form.length > typed.length && form.startsWith(typed)) {
                 out.add(form)
