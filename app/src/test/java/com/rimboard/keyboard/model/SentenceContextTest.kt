@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 import java.util.Locale
 
 /**
@@ -92,5 +93,82 @@ class SentenceContextTest {
     @Test
     fun `an apostrophe stays inside the word`() {
         assertEquals("don't", SentenceContext.from("I don't", en).prevWord)
+    }
+
+    /**
+     * A cursor inside a word is not a place where a next word is being chosen.
+     *
+     * `refreshContextFromCursor` runs when there is **no** composing text,
+     * which is precisely the state a cursor move leaves behind — so the note
+     * that used to stand there, that the composing branch handles the mid-word
+     * case, was describing a branch that cannot be reached from it. What
+     * happened instead was that the half-word before the cursor became the
+     * prediction key: tapping into "wor|ld" predicted what follows "wor".
+     *
+     * Where the fragment is itself a word it did so confidently, off the wrong
+     * one — "work|ing" predicted after "work", "cat|s" after "cat" — and the
+     * chips are tappable, so the offer was to insert a word into the middle of
+     * another.
+     */
+    @Test
+    fun `a cursor inside a word has no next-word context`() {
+        val ctx = SentenceContext.from(
+            "I went to work", en,
+            insideWord = SentenceContext.insideWord("I went to work", "ing today")
+        )
+        assertEquals("", ctx.prevWord)
+        assertEquals("", ctx.prevWord2)
+        assertFalse(ctx.atSentenceStart)
+    }
+
+    /**
+     * And the case that makes looking *forwards* necessary: with the cursor
+     * between a space and the next word, the character after it is a letter
+     * and the position is an ordinary word boundary. A backwards-only test
+     * would have been right about "wor|ld" and wrong about every space.
+     */
+    @Test
+    fun `a cursor at a word boundary keeps its context`() {
+        assertFalse(SentenceContext.insideWord("I went to ", "work today"))
+        val ctx = SentenceContext.from("I went to ", en, insideWord = false)
+        assertEquals("to", ctx.prevWord)
+        assertEquals("went", ctx.prevWord2)
+    }
+
+    @Test
+    fun `the end of the text is not inside a word`() {
+        assertFalse(SentenceContext.insideWord("I went to work", ""))
+        assertTrue(SentenceContext.insideWord("I went to work", "ing"))
+    }
+
+    @Test
+    fun `punctuation on either side is a boundary`() {
+        assertFalse(SentenceContext.insideWord("stop", ". Next"))
+        assertFalse(SentenceContext.insideWord("(", "word"))
+        // An apostrophe is part of a word, so the middle of "don't" is inside.
+        assertTrue(SentenceContext.insideWord("don", "'t"))
+        assertTrue(SentenceContext.insideWord("don'", "t"))
+    }
+
+    /** The service has to look forwards, or none of the above can be true. */
+    @Test
+    fun `the service reads the character after the cursor`() {
+        val svc = listOf(File("src/main/java"), File("app/src/main/java"))
+            .first { it.isDirectory }
+            .resolve("com/rimboard/keyboard/RimBoardService.kt").readText()
+        val start = svc.indexOf("private fun refreshContextFromCursor(")
+        assertTrue("refreshContextFromCursor is gone; this scan needs rewriting", start >= 0)
+        val end = Regex(String(charArrayOf('\n')) + "    (private )?fun ")
+            .find(svc, start + 10)?.range?.first ?: svc.length
+        val body = svc.substring(start, end)
+        assertTrue(
+            "refreshContextFromCursor no longer reads what is after the cursor, " +
+                "so a cursor inside a word is indistinguishable from one at a boundary",
+            body.contains("getTextAfterCursor(")
+        )
+        assertTrue(
+            "the mid-word answer is no longer passed to SentenceContext",
+            body.contains("insideWord =")
+        )
     }
 }

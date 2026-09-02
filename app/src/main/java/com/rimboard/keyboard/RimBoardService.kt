@@ -1241,10 +1241,22 @@ class RimBoardService : InputMethodService(),
     private fun refreshContextFromCursor() {
         val ic = currentInputConnection ?: return
         val before = ic.getTextBeforeCursor(96, 0)?.toString() ?: return
-        // Trailing whitespace means the cursor sits between words, which is
-        // where a next-word prediction makes sense. Mid-word it does not, and
-        // the composing branch of updateStrip handles that case anyway.
-        val ctx = com.rimboard.keyboard.model.SentenceContext.from(before, locale())
+        // And one character the other way, which decides whether the cursor is
+        // *inside* a word.
+        //
+        // The note that stood here said mid-word "the composing branch of
+        // updateStrip handles that case anyway", and it does not: this runs
+        // when there is no composing text, which is exactly the state a cursor
+        // move leaves behind. So tapping into "wor|ld" took "wor" as the
+        // previous word and predicted what follows it -- confidently, wherever
+        // the fragment was itself a word ("work|ing", "cat|s") -- and those
+        // chips are tappable, so the strip was offering to insert a word into
+        // the middle of another one.
+        val after = ic.getTextAfterCursor(1, 0)?.toString().orEmpty()
+        val ctx = com.rimboard.keyboard.model.SentenceContext.from(
+            before, locale(),
+            insideWord = com.rimboard.keyboard.model.SentenceContext.insideWord(before, after)
+        )
         // Assigned through the backing field rather than the property, because
         // `prevWordForBigram`'s setter shifts `prevWord2` for the *committing*
         // path and would overwrite the value just read back from the text.

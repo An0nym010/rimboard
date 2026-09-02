@@ -37,6 +37,23 @@ object SentenceContext {
     )
 
     /**
+     * Whether the cursor sits *inside* a word rather than at a boundary.
+     *
+     * Both neighbours have to be word characters. Looking only backwards is
+     * not enough and gets the commonest case exactly wrong: with the cursor
+     * between "hello " and "world" the character *after* it is a letter while
+     * the cursor is at a perfectly ordinary word boundary.
+     */
+    fun insideWord(before: String, after: String): Boolean {
+        val b = before.lastOrNull() ?: return false
+        val a = after.firstOrNull() ?: return false
+        return isWordChar(b) && isWordChar(a)
+    }
+
+    private fun isWordChar(c: Char): Boolean =
+        c.isLetter() || c.isDigit() || c == '\'' || c == '’'
+
+    /**
      * Reads [before] — the text immediately preceding the cursor — into the two
      * words a prediction is keyed on and whether a new sentence is starting.
      *
@@ -45,8 +62,24 @@ object SentenceContext {
      * empty context mean "start of a sentence" rather than "nothing to go on",
      * and one word into a new sentence the *second* word back is not the last
      * word of the previous one.
+     *
+     * [insideWord] is [insideWord]'s answer for this cursor position, and it
+     * short-circuits everything below.
      */
-    fun from(before: String, locale: Locale): Context {
+    fun from(before: String, locale: Locale, insideWord: Boolean = false): Context {
+        // A cursor in the middle of a word is not a place where a next word is
+        // being chosen, and the last thing before it is not a word -- it is
+        // half of one. Tapping into "wor|ld" left the strip predicting what
+        // follows "wor", and where the fragment happened to be a word itself
+        // ("work|ing", "cat|s") it predicted confidently from the wrong one.
+        // Those chips are tappable, so the offer was to insert a word into the
+        // middle of another.
+        //
+        // Reported as no context at all rather than as the words further back,
+        // because the service's own test for whether to predict is "is there a
+        // previous word", and there is no *next word position* here to predict
+        // into. See RimBoardService.refreshContextFromCursor.
+        if (insideWord) return Context("", "", atSentenceStart = false)
         // Only spaces and tabs are trimmed: a trailing newline is itself a
         // sentence break, and trimming it would remove the character being
         // tested for.
