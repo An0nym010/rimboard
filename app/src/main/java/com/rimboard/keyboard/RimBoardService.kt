@@ -233,6 +233,14 @@ class RimBoardService : InputMethodService(),
     private var glideWords: List<String> = emptyList()
 
     /**
+     * The n-gram the last swipe filed, so a correction can take it back.
+     *
+     * (prev2, prev1, what was committed). Null when the swipe filed nothing --
+     * learning off, incognito, a password field, or no context to file under.
+     */
+    private var glideNgram: Triple<String, String, String>? = null
+
+    /**
      * [learnable] is false for whole-phrase reverts such as a translation.
      * Reverting a corrected *word* teaches the dictionary that word and moves
      * the bigram context onto it; doing either with an entire sentence would
@@ -242,7 +250,19 @@ class RimBoardService : InputMethodService(),
         val original: String,
         val committed: String,
         val separator: String,
-        val learnable: Boolean = true
+        val learnable: Boolean = true,
+        /**
+         * The context the commit filed [committed] under, and null when it
+         * filed nothing.
+         *
+         * Carried rather than re-read, because by the time the revert happens
+         * the context has already moved: `prevWordForBigram`'s setter shifts
+         * `prevWord2` on every commit, so the word before the one being
+         * reverted is no longer anywhere to be found. Without this the
+         * correction could only be filed under half the context the mistake
+         * was filed under, which is not a correction of it.
+         */
+        val ngramContext: Pair<String, String>? = null
     )
 
     private var revert: Revert? = null
@@ -1329,8 +1349,12 @@ class RimBoardService : InputMethodService(),
         ic.commitText(lead + best + insertedWordTail(), 1)
         ic.endBatchEdit()
         val canLearn = Prefs.learnWords(this) && !isIncognito() && !isPassword && !isEmailOrUri
+        glideNgram = null
         if (canLearn && Prefs.predictions(this) && (prevWordForBigram.isNotEmpty() || atSentenceStart)) {
             userData.recordNgram(prevWord2, prevWordForBigram, best.lowercase(bestLoc))
+            // Kept so that reaching for the strip afterwards can take it back;
+            // the context is about to move and cannot be recovered later.
+            glideNgram = Triple(prevWord2, prevWordForBigram, best.lowercase(bestLoc))
         }
         prevWordForBigram = best.lowercase(bestLoc)
         atSentenceStart = false
@@ -1671,7 +1695,8 @@ class RimBoardService : InputMethodService(),
             }
         }
         ic.commitText(finalWord + separator, 1)
-        revert = if (finalWord != typed) Revert(typed, finalWord, separator) else null
+        // Read before the two lines below move them.
+        val ctxBefore = prevWord2 to prevWordForBigram
 
         val loc = locale()
         noteCommittedWord(typed)
@@ -1681,9 +1706,15 @@ class RimBoardService : InputMethodService(),
             userData.learnWord(typed.lowercase(loc))
         }
         val fw = finalWord.lowercase(loc)
+        var recordedAs: Pair<String, String>? = null
         if (canLearn && Prefs.predictions(this) && wordish && (prevWordForBigram.isNotEmpty() || atSentenceStart)) {
-            userData.recordNgram(prevWord2, prevWordForBigram, fw)
+            userData.recordNgram(ctxBefore.first, ctxBefore.second, fw)
+            recordedAs = ctxBefore
         }
+        // Armed after the n-gram, so it can carry what was filed and where.
+        revert =
+            if (finalWord != typed) Revert(typed, finalWord, separator, ngramContext = recordedAs)
+            else null
         prevWordForBigram = if (wordish) fw else ""
         atSentenceStart = false
         composing.setLength(0); touchTrail.clear()
@@ -2340,6 +2371,30 @@ class RimBoardService : InputMethodService(),
         // that the slot is wrong. The swipe's commit already noted its own
         // guess; without this the rejected word stayed on the record.
         noteCommittedWord(word, countAsWord = false)
+        // ...and the same evidence, told to the model rather than only to the
+        // language detector.
+        //
+        // The swipe's own commit filed its guess as the next word after this
+        // context. Reaching for the strip afterwards is the user replacing it,
+        // and until now that replacement was written to the screen and nowhere
+        // else -- so the next identical context predicted the **rejected**
+        // word, with the chosen one carrying no count at all. Learned too,
+        // because [UserData.glideCandidates] reads the learned list, so the
+        // same shape decodes to the right word next time instead of needing
+        // the same correction again.
+        val loc = locale()
+        val wordish = word.all { it.isLetter() || it == '\'' }
+        val canLearn = Prefs.learnWords(this) && !isIncognito() && !isPassword && !isEmailOrUri
+        if (canLearn && wordish && word.length >= 2) {
+            userData.learnWord(word.lowercase(loc))
+        }
+        if (canLearn && Prefs.predictions(this) && wordish) {
+            glideNgram?.let { (ctx2, ctx1, rejected) ->
+                userData.forgetNgram(ctx2, ctx1, rejected)
+                userData.recordNgram(ctx2, ctx1, word.lowercase(loc))
+                glideNgram = Triple(ctx2, ctx1, word.lowercase(loc))
+            }
+        }
         // Replacement of the last word: the trigram context (prevWord2) must
         // not shift onto the word being replaced.
         val keep2 = prevWord2
@@ -2367,6 +2422,25 @@ class RimBoardService : InputMethodService(),
         ic.endBatchEdit()
         if (rv.learnable && Prefs.learnWords(this) && !isIncognito()) {
             userData.markKnown(rv.original.lowercase(locale()))
+        }
+        // The next-word model was told about the word being taken away, and
+        // was never told about the one put back. Backspace after an
+        // autocorrect is the plainest statement a user can make that the
+        // keyboard was wrong, and until now it moved the text and left the
+        // evidence pointing the other way -- so the same context predicted the
+        // rejected word more confidently after the correction than before it.
+        //
+        // Filed under the context the mistake was filed under, which is why
+        // [Revert] carries it: by now `prevWordForBigram` has moved onto the
+        // committed word and the one before it is gone.
+        rv.ngramContext?.let { (ctx2, ctx1) ->
+            if (rv.learnable && Prefs.learnWords(this) && !isIncognito() &&
+                Prefs.predictions(this)
+            ) {
+                val loc = locale()
+                userData.forgetNgram(ctx2, ctx1, rv.committed.lowercase(loc))
+                userData.recordNgram(ctx2, ctx1, rv.original.lowercase(loc))
+            }
         }
         if (rv.learnable) {
             // Reverting swaps the last word in place; keep the trigram context.

@@ -450,6 +450,47 @@ class UserData private constructor(dir: File) {
         }
     }
 
+    /**
+     * Take back one [recordNgram], for a word the user visibly rejected.
+     *
+     * Every commit records what it committed, which is right, because almost
+     * every commit is what was meant. The two gestures that say otherwise --
+     * tapping a different word on the strip after a swipe, and pressing
+     * backspace on an autocorrect -- left that record standing. So the model
+     * was taught the rejected word and never the chosen one, and the next
+     * identical context predicted the mistake more confidently than before.
+     *
+     * A correction is the strongest evidence this keyboard ever gets: the user
+     * has been shown a word and has gone out of their way to replace it.
+     *
+     * **The one case this is unfair to** is a word that had been recorded
+     * legitimately in the same context earlier -- swiping "there" correctly
+     * three times, then once wrongly, and correcting it, leaves two. That is
+     * the right direction anyway: the user has just said that in this context
+     * the word was wrong, and a count is evidence rather than a tally.
+     *
+     * Never goes below zero, and drops the row when it empties, so this cannot
+     * leave an empty context behind for [predictScores] to walk.
+     */
+    fun forgetNgram(prev2: String, prev1: String, next: String) {
+        if (next.isEmpty()) return
+        decrement(bigrams, if (prev1.isEmpty()) START else prev1, next)
+        if (prev2.isEmpty() || prev1.isEmpty()) return
+        decrement(trigrams, "$prev2 $prev1", next)
+    }
+
+    private fun decrement(
+        table: ConcurrentHashMap<String, ConcurrentHashMap<String, Int>>,
+        context: String,
+        next: String
+    ) {
+        val counts = table[context] ?: return
+        val now = (counts[next] ?: return) - 1
+        if (now <= 0) counts.remove(next) else counts[next] = now
+        if (counts.isEmpty()) table.remove(context)
+        dirty = true
+    }
+
     /** Records both the bigram prev1->next and (when prev2 is known) the trigram. */
     fun recordNgram(prev2: String, prev1: String, next: String) {
         // No preceding word is itself a context — the opening of a message —
