@@ -1921,6 +1921,17 @@ class SuggestionEngine private constructor(
                 else dict.tokenTotal.toDouble() / altDict.tokenTotal
             for ((w, f) in altDict.byPrefix(lower, 6)) {
                 if (userData.isBlocked(w)) continue
+                // The two refusals the loop over the *primary* list makes three
+                // paragraphs above, and this one did not. A word is not a
+                // better spelling for being in the other dictionary.
+                //
+                // Both have to be asked of the **other** language, which is the
+                // part that is easy to get wrong: [isElongation] compares two
+                // spellings by count and the counts live in that list's corpus,
+                // and the contraction table is per-language. Asking the primary
+                // one would silently answer no.
+                if (w != lower && isElongation(w, altDict)) continue
+                if (com.rimboard.keyboard.model.Contractions.isAutoBareForm(altLang, w)) continue
                 // The context multiplier every other candidate source gets.
                 // Without it the second language's words were ranked on raw
                 // frequency alone however strongly the sentence predicted them,
