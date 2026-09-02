@@ -2273,12 +2273,48 @@ class SuggestionEngine private constructor(
             // being asked was, until this, the one that ignored both "Block
             // offensive words" -- whose own summary reads "Never suggest or
             // autocorrect to profanity" -- and the user's own blocked list.
+            // ...and the apostrophe the letter layer cannot draw.
+            //
+            // The corpus stripped apostrophes, so "dont" sits in the English
+            // list with a real frequency and "don't" is absent -- which is the
+            // whole reason [Contractions] exists. Every other path already
+            // knows: the completion loop skips an [Contractions.isAutoBareForm]
+            // word outright, and [correctionCandidates] refuses to commit one,
+            // so tapping d-o-n-t and pressing space puts "don't" in the
+            // message. **A swipe of the same four keys put "dont" in it**, and
+            // a swipe commits on the lift with no keystroke in between.
+            //
+            // Measured over the forty-four forms in [Contractions.autoForms]:
+            // **eleven are committed** by a swipe through their own letters
+            // (dont, thats, whats, wheres, theres, didnt, isnt, wouldnt,
+            // couldnt, havent, oclock) and twenty-two are offered.
+            //
+            // Substituted rather than filtered, which is the only version that
+            // helps: dropping "dont" from the candidates makes the same swipe
+            // commit **"door"**. The apostrophe is not on the letter layer, so
+            // a swipe *cannot* express the canonical spelling and this is the
+            // only way to reach it -- the same argument [Contractions] makes
+            // about the corpus, one input method along.
+            //
+            // Only [Contractions.Expansion.auto] forms, so this stays inside
+            // the rule the space bar already holds to: those are the ones whose
+            // bare spelling is never itself an English word. A swipe of "cant"
+            // or "wont" still commits what was swiped, because those are words.
+            //
+            // Before the filter, not after, so what is checked is what will be
+            // emitted -- and de-duplicated, so a swipe that reaches both
+            // spellings does not spend two of three slots on one word.
+            .map { entry ->
+                com.rimboard.keyboard.model.Contractions.expand(lang, entry.key)
+                    ?.takeIf { it.auto }?.canonical ?: entry.key
+            }
+            .distinct()
             .filter {
-                !userData.isBlocked(it.key) &&
-                    !isOffensiveEither(it.key, lang, locale, altLang, altLocale)
+                !userData.isBlocked(it) &&
+                    !isOffensiveEither(it, lang, locale, altLang, altLocale)
             }
             .take(GLIDE_OFFERED)
-            .map { it.key }
+            .toList()
     }
 
     /**
