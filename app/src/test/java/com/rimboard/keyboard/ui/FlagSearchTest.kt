@@ -78,10 +78,21 @@ class FlagSearchTest {
             "\"united\" should find more than one united thing",
             kw["united"].orEmpty().size >= 2
         )
-        // The platform's name is the name: it calls TR "Türkiye", so that is
-        // what finds the flag, and "turkey" does not. Recorded rather than
-        // patched with a hand-written alias, which is the thing this avoids.
-        assertTrue("türkiye should be a key", kw.containsKey("türkiye"))
+        // The platform's name is the name, and *which* name that is belongs to
+        // the platform too. This asserted the literal string "türkiye",
+        // because that is what the JDK on this desk answers for TR -- and the
+        // one CI builds with answers "Turkey", so the suite passed locally and
+        // failed on every push for fifteen commits. Android is the third
+        // opinion and varies by release. What the app promises is that
+        // whatever the platform calls a region is what finds its flag, with no
+        // hand-written alias in between; so that is what is asked, of the same
+        // call the feature makes.
+        val tr = java.util.Locale("", "TR").getDisplayCountry(Locale.ENGLISH)
+            .lowercase(Locale.ENGLISH)
+        assertTrue(
+            "the platform calls TR \"$tr\" and that is not what finds its flag",
+            kw.containsKey(tr)
+        )
     }
 
     /**

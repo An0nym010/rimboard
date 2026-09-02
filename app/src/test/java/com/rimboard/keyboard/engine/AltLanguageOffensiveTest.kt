@@ -279,12 +279,37 @@ class AltLanguageOffensiveTest {
         val enDict = engine("en").dictionary("en", en)
         val ordinary = ArrayList<Pair<String, String>>()
         val notOrdinary = ArrayList<Pair<String, String>>()
+        val deleted = ArrayList<Pair<String, String>>()
+        val reachable = ArrayList<Pair<String, String>>()
+        val leaked = ArrayList<Pair<String, String>>()
+        var filteredAway = 0
         for (lang in shippedLanguages()) {
             if (lang == "en") continue
-            for (w in offensiveList(lang)) {
-                if (w in enOff || !enDict.contains(w)) continue
-                if (enDict.ordinaryVocabulary(w)) ordinary.add(w to lang)
-                else notOrdinary.add(w to lang)
+            val words = offensiveList(lang).filter { it !in enOff && enDict.contains(it) }
+            if (words.isEmpty()) continue
+            // One engine for this language, both settings asked of it, and
+            // nothing holding it once the language is done. Each word's two
+            // answers are taken here rather than in three later passes over
+            // the same lists, so a language is loaded once. See [stripFor].
+            val e = engine("en", lang)
+            for (w in words) {
+                val offered = stripFor(e, w, lang, block = false).contains(w)
+                val removed = offered && !stripFor(e, w, lang, block = true).contains(w)
+                if (enDict.ordinaryVocabulary(w)) {
+                    ordinary.add(w to lang)
+                    if (removed) deleted.add(w to lang)
+                } else {
+                    notOrdinary.add(w to lang)
+                    // Not every one of these can be *shown* the filter in the
+                    // first place -- a word the ranking never offers is never
+                    // filtered either -- so the leak test asks only about the
+                    // ones the strip does reach.
+                    if (offered) {
+                        reachable.add(w to lang)
+                        if (!removed) leaked.add(w to lang)
+                    }
+                    if (removed) filteredAway++
+                }
             }
         }
         println(
@@ -295,18 +320,11 @@ class AltLanguageOffensiveTest {
         assertTrue("the enumeration found nothing", ordinary.size + notOrdinary.size >= 100)
         assertTrue("nothing came back at all", ordinary.size >= 10)
 
-        val deleted = ordinary.filter { (w, lang) -> removedByFilter(w, lang) }
         assertEquals(
             "an ordinary English word was taken off the strip because the user's " +
                 "other language calls it offensive.",
             emptyList<Pair<String, String>>(), deleted
         )
-        val kept = notOrdinary.filterNot { (w, lang) -> removedByFilter(w, lang) }
-        // Not every one of these can be *shown* the filter in the first place --
-        // a word the ranking never offers is never filtered either -- so this
-        // asks that the ones the strip does reach are the ones taken away.
-        val reachable = notOrdinary.filter { (w, lang) -> offeredWithFilterOff(w, lang) }
-        val leaked = reachable.filter { (w, lang) -> !removedByFilter(w, lang) }
         println("of ${notOrdinary.size} not ordinary here, ${reachable.size} reach the strip at all")
         assertTrue("nothing reachable to check", reachable.size >= 20)
         assertEquals(
@@ -314,22 +332,27 @@ class AltLanguageOffensiveTest {
                 "use, was offered anyway.",
             emptyList<Pair<String, String>>(), leaked
         )
-        assertTrue("expected some of these to be filtered", kept.size < notOrdinary.size)
+        assertTrue("expected some of these to be filtered", filteredAway > 0)
     }
 
-    /** The strip for [w]'s own prefix, with the filter off -- what ranking alone offers. */
-    private fun offeredWithFilterOff(w: String, alt: String): Boolean =
-        stripFor(w, alt, block = false).contains(w)
-
-    /** Whether switching the setting on is what takes [w] away. */
-    private fun removedByFilter(w: String, alt: String): Boolean =
-        offeredWithFilterOff(w, alt) && !stripFor(w, alt, block = true).contains(w)
-
-    /** One engine per second language: building one loads two full word lists. */
-    private val engines = HashMap<String, SuggestionEngine>()
-
-    private fun stripFor(w: String, alt: String, block: Boolean): List<String> {
-        val e = engines.getOrPut(alt) { engine("en", alt) }
+    /**
+     * The strip for [w]'s own prefix on [e], with the filter set as asked.
+     *
+     * **The engine is passed in, and there is no cache, deliberately.** This
+     * was a `HashMap` keyed by language, which reads as an obvious saving and
+     * is the opposite of one. Building an engine loads two full word lists
+     * *and* pins the text they were parsed from -- [SuggestionEngine.forTesting]
+     * takes a lambda over a map of file contents and the engine holds the
+     * lambda -- so a map that never evicts ended up holding **all twenty-one
+     * at once**, English's nine megabytes twenty-one times over. It ran out of
+     * heap on the build machine and passed here only because this desk has
+     * more of it, which is fifteen commits of red CI whose log nobody could
+     * read. Every caller walks the languages in order and builds one engine
+     * per language either way, so there was no speed in the cache to lose.
+     */
+    private fun stripFor(
+        e: SuggestionEngine, w: String, alt: String, block: Boolean
+    ): List<String> {
         e.blockOffensive = block
         return e.suggestionsFor(
             w.dropLast(1), "en", Locale.ENGLISH,
@@ -337,6 +360,11 @@ class AltLanguageOffensiveTest {
             altLang = alt, altLocale = Locale.forLanguageTag(alt)
         ).items.map { it.lowercase(Locale.ROOT) }
     }
+
+    /** Whether switching the setting on is what takes [w] away. */
+    private fun removedByFilter(e: SuggestionEngine, w: String, alt: String): Boolean =
+        stripFor(e, w, alt, block = false).contains(w) &&
+            !stripFor(e, w, alt, block = true).contains(w)
 
     /**
      * The fourth path, and the only one that acts without being chosen.
@@ -376,7 +404,9 @@ class AltLanguageOffensiveTest {
             val words = offensiveList(lang)
                 .filter { it !in enOff && enDict.contains(it) && it.length >= 3 }
             if (words.isEmpty()) continue
-            val e = engines.getOrPut(lang) { engine("en", lang) }
+            // Built here and dropped with the iteration, for the reason on
+            // [stripFor]: twenty-one of these do not fit in a test JVM.
+            val e = engine("en", lang)
             e.blockOffensive = true
             val altLoc = Locale.forLanguageTag(lang)
             for (w in words) {
@@ -435,7 +465,8 @@ class AltLanguageOffensiveTest {
         assertEquals(
             "\"got\" was withheld from an English writer because Turkish lists " +
                 "the bare-key spelling of \"göt\".",
-            emptyList<String>(), listOf("got").filter { removedByFilter(it, "tr") }
+            emptyList<String>(),
+            engine("en", "tr").let { e -> listOf("got").filter { removedByFilter(e, it, "tr") } }
         )
     }
 }

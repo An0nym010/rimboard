@@ -93,20 +93,52 @@ class EmojiNameSearchTest {
         )
     }
 
+    /**
+     * Only what the running platform names can be asserted on.
+     *
+     * `Character.getName` answers out of the JDK's own Unicode table, and that
+     * table has a version: 17 ships Unicode 13 and 21 ships 15. "Saluting
+     * face" and "melting face" are Unicode 14, so they are findable on this
+     * desk and are not on the machine that builds the release -- and pinning
+     * them asserted the JDK's version rather than the feature, in the one
+     * direction that passes for a developer and fails for everyone else.
+     * Android is a third table again and varies by release, so the app never
+     * had these to rely on either.
+     *
+     * What it promises is that whatever the platform *does* name is findable
+     * without a hand-written keyword. So the newer ones stay in the list and
+     * are still checked wherever the platform knows them, and named in the
+     * output where it does not.
+     *
+     * ("perch" was in this list paired with no emoji, so it asserted nothing;
+     * the negative case is covered by `a one-letter query` below.)
+     */
     @Test
     fun `emoji nobody had written a keyword for are findable by their own name`() {
         val kw = EmojiData.unicodeNameKeywords()
-        val missing = listOf(
-            "saluting" to "🫡", "lantern" to "🎃", "handshake" to "🤝",
-            "cowboy" to "🤠", "relieved" to "😌", "goblin" to "👺",
-            "melting" to "🫠", "perch" to null, "weary" to "😩"
-        ).filter { (word, emoji) ->
-            emoji != null && kw[word]?.contains(emoji) != true
+        val cases = listOf(
+            "lantern" to "🎃", "handshake" to "🤝", "cowboy" to "🤠",
+            "relieved" to "😌", "goblin" to "👺", "weary" to "😩",
+            // Unicode 14, and so absent from any table older than that.
+            "saluting" to "🫡", "melting" to "🫠"
+        )
+        val unnamed = cases.filter { Character.getName(it.second.codePointAt(0)) == null }
+        println(
+            "checked ${cases.size - unnamed.size} of ${cases.size}; this platform's " +
+                "Unicode table has no name for: ${unnamed.joinToString(" ") { it.second }}"
+        )
+        assertTrue(
+            "the platform named almost none of these, so this test is measuring " +
+                "its Unicode table rather than the search index",
+            cases.size - unnamed.size >= 6
+        )
+        val missing = (cases - unnamed.toSet()).filter { (word, emoji) ->
+            kw[word]?.contains(emoji) != true
         }
         assertEquals(
             "an emoji the hand-written index never named cannot be found by the " +
                 "name Unicode gives it.",
-            emptyList<Pair<String, String?>>(), missing
+            emptyList<Pair<String, String>>(), missing
         )
     }
 
