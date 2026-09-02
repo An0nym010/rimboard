@@ -1861,6 +1861,45 @@ class SuggestionEngine private constructor(
                 if (merged[w] == null) merged[w] = score
             }
         }
+        // The other productive word-building this app ships a rule for, and
+        // the same half of it was missing. [Compounds.splitOf] answers whether
+        // a *finished* German word is two words written closed -- 24% of the
+        // German words a 200,000-entry list misses are -- and nothing ever
+        // asked the question the user is actually waiting on, which is what
+        // the word being typed is going to be. So a compound the list does not
+        // hold had no completion at all: every letter of it typed by hand,
+        // with three unrelated words on the strip the whole way.
+        //
+        // Held out at a cut of 40,000, over the 29,591 words past it that are
+        // two listed words joined: **12.10 letters -> 9.78**, never offered at
+        // all **100% -> 11.6%**.
+        //
+        // Anchored below the weakest attested completion, exactly as the
+        // generated inflections above are and for the reason measured there:
+        // scored on their own frequency instead, these cost **1.9 points** of
+        // German keystroke savings by displacing words the corpus does know,
+        // while anchored they cost nothing at all -- 47.75% either way, to the
+        // digit. A join is grammatical rather than counted, so it is the guess
+        // for when nothing attested fits.
+        //
+        // **After the fuzzy branch, not before it.** That branch fires on an
+        // empty [merged], and filling [merged] with joins would silence the
+        // typo repair for the one language this runs in. The inflection block
+        // above sits on the other side of it, which is where it was measured.
+        if (com.rimboard.keyboard.model.Compounds.writesClosed(lang)) {
+            val anchor = merged.values.minOrNull() ?: MORPH_BASE_SCORE
+            com.rimboard.keyboard.model.Compounds.completionsFor(
+                lang, lower, dict.stemMinFreq, { dict.frequency(it) }
+            ) { p -> dict.byPrefix(p, COMPLETION_FETCH) }
+                .forEachIndexed { i, form ->
+                    if (userData.isBlocked(form) || isOffensive(form, lang, locale)) {
+                        return@forEachIndexed
+                    }
+                    val score = (anchor * MORPH_PENALTY / (i + 1)).toLong()
+                    if (merged[form] == null) merged[form] = maxOf(1L, score)
+                }
+        }
+
         val altWords = HashSet<String>()
         if (altLang != null && altLocale != null) {
             val altDict = dictionary(altLang, altLocale)
