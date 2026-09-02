@@ -268,4 +268,41 @@ class ApostropheStripTest {
             "", bad.toString()
         )
     }
+
+    /**
+     * And the space bar, which is the half a display filter cannot reach.
+     *
+     * The apostrophe-blind candidates were always in the ranked list; the
+     * three-slot strip was cutting them before anyone saw them. Widening the
+     * strip to five put them on screen, which is how they were found — but the
+     * chip was never the dangerous end. `correctionCandidates` is what the
+     * separator asks, so a candidate the strip must not show is one the space
+     * bar must not commit, and the guard belongs where both of them look.
+     *
+     * A rule enforced on one of the two paths is not a rule; this engine has
+     * been bitten by that four times.
+     */
+    @Test
+    fun `the space bar never rubs out an apostrophe either`() {
+        val bad = StringBuilder()
+        for ((lang, cases) in listOf(
+            "fr" to listOf("l'avai", "qu'ell", "aujourd'h"),
+            "it" to listOf("d'az"),
+            "en" to listOf("i'm", "don't", "you're")
+        )) {
+            val e = engine(lang)
+            val loc = Locale.forLanguageTag(lang)
+            for (typed in cases) {
+                val commit = e.correctionFor(typed, lang, loc)?.lowercase(loc) ?: continue
+                val bare = typed.filter { it != '\'' }
+                if (!commit.startsWith(typed) && commit.startsWith(bare)) {
+                    bad.append("%n  %s: \"%s\" + space commits \"%s\"".format(lang, typed, commit))
+                }
+            }
+        }
+        assertEquals(
+            "the space bar committed the word with the apostrophe rubbed out:$bad",
+            "", bad.toString()
+        )
+    }
 }

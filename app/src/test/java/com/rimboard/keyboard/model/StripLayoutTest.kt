@@ -1,6 +1,7 @@
 package com.rimboard.keyboard.model
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -34,20 +35,21 @@ class StripLayoutTest {
         val out = StripLayout.arrange(
             listOf("mndsnfms"), autocorrectIndex = -1, known = false, quote = q
         )
-        assertEquals(listOf("“mndsnfms”", "", ""), out.words)
+        // One chip, not one chip and two blanks. Padding is the view's job
+        // now that the strip is five wide -- see StripLayout's closing note.
+        assertEquals(listOf("“mndsnfms”"), out.words)
         assertEquals(-1, out.highlight)
         assertEquals("mndsnfms", out.quotedWord)
     }
 
     @Test
     fun `empty candidate slots do not count as suggestions`() {
-        // The engine pads to three, and a padded blank is not something to
-        // arrange the strip around — it would put the word at the front again
-        // with an empty chip beside it.
+        // A blank handed in is not something to arrange the strip around — it
+        // would put the word at the front again with an empty chip beside it.
         val out = StripLayout.arrange(
             listOf("mndsnfms", "", ""), autocorrectIndex = -1, known = false, quote = q
         )
-        assertEquals(listOf("“mndsnfms”", "", ""), out.words)
+        assertEquals(listOf("“mndsnfms”"), out.words)
     }
 
     @Test
@@ -76,5 +78,53 @@ class StripLayoutTest {
         val out = StripLayout.arrange(emptyList(), autocorrectIndex = -1, known = false, quote = q)
         assertEquals(emptyList<String>(), out.words)
         assertNull(out.quotedWord)
+    }
+
+    /**
+     * Five chips, and the quoted word still sits second.
+     *
+     * The strip was three wide and the arrangement was written as a literal
+     * triple. Widening it is only safe if the *rule* survives -- the best
+     * suggestion leads, the word the user actually typed is beside it, and
+     * everything else follows in rank order.
+     */
+    @Test
+    fun `an unknown word keeps its place as the strip widens`() {
+        val out = StripLayout.arrange(
+            listOf("helko", "hello", "helo", "help", "held", "hell"),
+            autocorrectIndex = 1, known = false, quote = q
+        )
+        assertEquals(
+            listOf("hello", "“helko”", "helo", "help", "held"), out.words
+        )
+        // Re-found by value, as ever: "hello" moved from index 1 to index 0.
+        assertEquals(0, out.highlight)
+        assertEquals("helko", out.quotedWord)
+    }
+
+    /**
+     * Width is shared by what each chip has to hold.
+     *
+     * Equal shares ellipsised "Bananenkuchen" into "Banane…uchen" while
+     * "Kinde" beside it sat two-thirds empty — and equal shares are what would
+     * make five chips unreadable rather than merely narrow.
+     */
+    @Test
+    fun `a chip gets width in proportion to its word`() {
+        val w = StripLayout.weights(listOf("a", "hello", "bananenkuchen", ""))
+        // The floor: a one-letter chip is still a target you can hit.
+        assertEquals(StripLayout.MIN_WEIGHT, w[0], 0f)
+        assertEquals(5f, w[1], 0f)
+        // The cap: one long word may not starve the rest.
+        assertEquals(StripLayout.MAX_WEIGHT, w[2], 0f)
+        // An empty slot is not shown, so it takes nothing.
+        assertEquals(0f, w[3], 0f)
+    }
+
+    @Test
+    fun `the floor is below the cap and both are usable`() {
+        assertTrue(StripLayout.MIN_WEIGHT < StripLayout.MAX_WEIGHT)
+        assertTrue("five chips at the floor must still be tappable",
+            StripLayout.SLOTS * StripLayout.MIN_WEIGHT > 0f)
     }
 }

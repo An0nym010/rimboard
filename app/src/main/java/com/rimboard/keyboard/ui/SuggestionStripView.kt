@@ -176,7 +176,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
         addView(centerBox, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
 
-        for (i in 0 until 3) {
+        for (i in 0 until com.rimboard.keyboard.model.StripLayout.SLOTS) {
             if (i > 0) {
                 val d = View(context)
                 dividers.add(d)
@@ -323,14 +323,35 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         incogIcon.visibility = if (incognitoMark) VISIBLE else GONE
         emojiChip.text = emoji.orEmpty()
         emojiChip.visibility = if (emoji.isNullOrEmpty()) GONE else VISIBLE
-        for (i in 0 until 3) {
+        // Sized to what each chip holds, and an empty one takes no room at
+        // all. Equal shares were what ellipsised "Bananenkuchen" into
+        // "Banane...uchen" while "Kinde" beside it sat two-thirds empty --
+        // and equal shares are what would make five chips unreadable. See
+        // [com.rimboard.keyboard.model.StripLayout.weights].
+        val shown = List(slots.size) { words.getOrNull(it) ?: "" }
+        val weights = com.rimboard.keyboard.model.StripLayout.weights(shown)
+        for (i in slots.indices) {
             val tv = slots[i]
-            val w = words.getOrNull(i) ?: ""
+            val w = shown[i]
             tv.text = w
-            tv.visibility = VISIBLE
+            // GONE rather than INVISIBLE: a weighted row gives width to
+            // everything it can see, so an invisible slot would still take its
+            // share and the visible chips would be narrower for nothing.
+            tv.visibility = if (w.isEmpty()) GONE else VISIBLE
+            (tv.layoutParams as? LayoutParams)?.let { lp ->
+                if (lp.weight != weights[i]) {
+                    lp.weight = weights[i]
+                    tv.layoutParams = lp
+                }
+            }
             tv.setTypeface(null, if (i == highlightIndex && w.isNotEmpty()) Typeface.BOLD else Typeface.NORMAL)
         }
-        dividers.forEach { it.visibility = VISIBLE }
+        // A divider belongs to the chip on its right, so it goes when that
+        // chip does -- otherwise a half-filled strip ends in a row of rules
+        // with nothing between them.
+        for (i in dividers.indices) {
+            dividers[i].visibility = if (shown.getOrNull(i + 1).isNullOrEmpty()) GONE else VISIBLE
+        }
         refreshSlotColors()
     }
 

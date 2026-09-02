@@ -13,6 +13,77 @@ package com.rimboard.keyboard.model
 object StripLayout {
 
     /**
+     * How many suggestion chips the strip has room for.
+     *
+     * It was three, and three was never measured -- it is what Gboard shows
+     * and what this keyboard copied. Measured over 500 words of prose per
+     * language, taking the target word from the top N of the engine's own
+     * ranked list, keystrokes saved:
+     *
+     *     lang   3 chips     4       6       8      12
+     *     en      41.8%   47.7%   53.4%   56.7%   60.0%
+     *     de      39.6%   47.4%   54.2%   58.1%   62.1%
+     *     tr      30.6%   38.0%   45.2%   49.4%   54.8%
+     *     fi      33.3%   42.2%   49.9%   54.7%   59.4%
+     *     cs      32.2%   39.7%   48.0%   52.2%   57.7%
+     *     pl      35.3%   43.3%   51.0%   54.8%   59.5%
+     *     ru      35.1%   41.2%   48.8%   53.4%   57.5%
+     *     es      39.0%   45.0%   51.3%   54.7%   58.9%
+     *
+     * **The ranking already knew the word; the strip could not show it.** One
+     * more chip is worth six to nine points, an order of magnitude more than
+     * anything else measured in this engine.
+     *
+     * Five rather than more, and the limit is width rather than ranking. The
+     * strip is the screen less the chevron and the padding -- about 960px of
+     * 1080 on the phone this was checked on. Split five ways at the minimum
+     * weight below that is 192px, or **70dp**, comfortably past the 48dp
+     * Android asks of a touch target; six would be 58dp and seven 50dp, which
+     * is where it stops being a button. The emoji chip and the incognito mark
+     * share the same row and are not free either.
+     *
+     * The figures above are an **upper bound**: they assume the reader finds
+     * the right chip among N, and reading five costs more attention than
+     * reading three. What is not an assumption is that at three the answer was
+     * often computed and thrown away.
+     */
+    const val SLOTS = 5
+
+    /**
+     * The smallest share of the strip a chip may take, as a word length.
+     *
+     * Chips used to divide the width equally, so "Bananenkuchen" was
+     * ellipsised to "Banane...uchen" while "Kinde" beside it sat in a slot
+     * two-thirds empty. Weighting by length fixes that and is what makes five
+     * chips affordable at all -- but a bare length weight gives a one-letter
+     * chip an eighth of what a long one gets, which is a target too small to
+     * hit. Four is the floor, so the narrowest chip is still the width of an
+     * ordinary short word.
+     */
+    const val MIN_WEIGHT = 4f
+
+    /**
+     * And the largest, so one long word cannot starve the rest.
+     *
+     * Twelve characters is past the point where a chip is comfortably read at
+     * a glance; beyond it the word is ellipsised either way and the space is
+     * better spent on its neighbours.
+     */
+    const val MAX_WEIGHT = 12f
+
+    /**
+     * Width shares for [words], proportional to how much room each needs.
+     *
+     * Character count rather than measured text: this runs on every keystroke,
+     * the difference between "iii" and "mmm" is not worth a `Paint` call per
+     * chip, and a rule expressed in characters is one a test can check without
+     * a font. Empty slots weigh nothing because they are not shown.
+     */
+    fun weights(words: List<String>): List<Float> = words.map {
+        if (it.isEmpty()) 0f else it.length.toFloat().coerceIn(MIN_WEIGHT, MAX_WEIGHT)
+    }
+
+    /**
      * [words] as they should appear, [highlight] as the index the space bar
      * would commit (-1 for none), and [quotedWord] as the raw word behind the
      * quoted chip, if there is one.
@@ -47,15 +118,29 @@ object StripLayout {
     ): Arranged {
         val verbatim = items.firstOrNull()
             ?: return Arranged(items, autocorrectIndex, null)
-        if (known) return Arranged(items, autocorrectIndex, null)
+        if (known) return Arranged(items.take(SLOTS), autocorrectIndex, null)
         val others = items.drop(1).filter { it.isNotEmpty() }
         val chip = quote(verbatim)
-        if (others.isEmpty()) return Arranged(listOf(chip, "", ""), -1, verbatim)
-        val arranged = listOf(others[0], chip, others.getOrNull(1) ?: "")
+        if (others.isEmpty()) return Arranged(listOf(chip), -1, verbatim)
+        // Second, not first, whatever the strip is wide enough for: the front
+        // slot carries the best suggestion and the quoted word sits beside it.
+        val arranged = (listOf(others[0], chip) + others.drop(1)).take(SLOTS)
         // Re-found by value: the target moved, so carrying the old index over
         // would highlight — and commit on space — whatever now sits at it.
         val target = items.getOrNull(autocorrectIndex)
         val hi = if (target != null) arranged.indexOf(target) else -1
         return Arranged(arranged, hi, verbatim)
     }
+
+    /**
+     * **Nothing here pads, and everything here trims.** Every entry returned
+     * is a chip with a word on it,
+     * so a caller counting suggestions is counting suggestions -- the view
+     * fills the row out to [SLOTS] and hides what is left over.
+     *
+     * That distinction did not matter while the strip was three wide and
+     * usually full. At five it matters constantly, and getting it wrong made
+     * four separate tests report a keyboard "offering a different word" that
+     * was offering an empty one.
+     */
 }

@@ -844,6 +844,38 @@ class SuggestionEngine private constructor(
         return !dictionary(lang, locale).ordinaryVocabulary(here)
     }
 
+    /**
+     * Whether [candLower] is [typedLower] with an apostrophe the user typed
+     * rubbed out.
+     *
+     * a6722af made this argument for the fuzzy *completion* path and stopped
+     * there: the apostrophe is the one non-letter a composing word can hold,
+     * it is not on the letter layer, and reaching it costs a long press or a
+     * trip to the symbol layer -- so deleting it models no slip a thumb can
+     * make. The correction path never got the guard, and the three-slot strip
+     * hid that, because these candidates ranked fourth and fifth and were cut
+     * before anyone saw them. Widening the strip to five put them on screen:
+     *
+     *     fr  "l'avai"    -> lavais      fr  "qu'ell"    -> quelle
+     *     fr  "aujourd'h" -> aujourdh'   it  "d'az"      -> daz
+     *
+     * Applied here rather than at the strip because
+     * [correctionCandidates] is what the **space bar** asks as well -- a rule
+     * enforced on one of the two paths is not a rule, which is the shape this
+     * engine has been bitten by four times.
+     *
+     * Only when the typed word has a mark and the candidate continues the
+     * version without it: a candidate that keeps the apostrophe where it was
+     * put is an ordinary correction, and "dont" -> "don't" adds one rather
+     * than removing it, so neither is touched.
+     */
+    private fun rubsOutApostrophe(typedLower: String, candLower: String): Boolean {
+        if (typedLower.none { it == '\'' || it == '\u2019' }) return false
+        if (candLower.startsWith(typedLower)) return false
+        val bare = typedLower.filter { it != '\'' && it != '\u2019' }
+        return bare.isNotEmpty() && candLower.startsWith(bare)
+    }
+
     private fun isOffensive(word: String, lang: String, locale: Locale): Boolean {
         if (!blockOffensive) return false
         val here = word.lowercase(locale)
@@ -1144,7 +1176,8 @@ class SuggestionEngine private constructor(
             .filter {
                 !isOffensiveEither(it, lang, locale, altLang, altLocale) &&
                     !userData.isBlocked(it) &&
-                    !com.rimboard.keyboard.model.Contractions.isAutoBareForm(lang, it)
+                    !com.rimboard.keyboard.model.Contractions.isAutoBareForm(lang, it) &&
+                    !rubsOutApostrophe(lower, it.lowercase(locale))
             }
             .map { matchCase(typed, it, locale) }
             .take(limit)
@@ -1931,6 +1964,15 @@ class SuggestionEngine private constructor(
             for ((w, f) in dict.byPrefixFuzzy(lower, KeyProximity.forLang(lang), 6)) {
                 if (userData.isBlocked(w)) continue
                 if (com.rimboard.keyboard.model.Contractions.isAutoBareForm(lang, w)) continue
+                // The third path, and the one the guard was written for.
+                // `prefixVariants` keeps a transposition *across* the mark on
+                // purpose -- "dont'" for "don't" is a real slip with a real
+                // repair -- but the same variant reaches corpus misspellings
+                // that carry the mark in the wrong place: French holds
+                // "aujourdh'" from its own text, so typing "aujourd'h" was
+                // offered it. A repair that moves the apostrophe back is
+                // untouched here, because "don't" does not continue "dont".
+                if (rubsOutApostrophe(lower, w.lowercase(locale))) continue
                 val score = (f * completionFactor(w, contextRank)).toLong()
                 if (merged[w] == null) merged[w] = score
             }
@@ -2141,11 +2183,11 @@ class SuggestionEngine private constructor(
             val caseLocale = if (w in altWords && altLocale != null) altLocale else locale
             val cased = matchCase(composing, w, caseLocale)
             if (cased != composing && !display.contains(cased)) display.add(cased)
-            if (display.size >= 3) break
+            if (display.size >= com.rimboard.keyboard.model.StripLayout.SLOTS) break
         }
 
         if (split != null && !display.contains(split)) {
-            if (display.size < 3) {
+            if (display.size < com.rimboard.keyboard.model.StripLayout.SLOTS) {
                 display.add(split)
             } else if (dict.frequency(lower) > 0) {
                 // The last chip that is not what the space bar will commit:
@@ -2181,7 +2223,7 @@ class SuggestionEngine private constructor(
         // when a continuation exists at all, so a finished word that is simply
         // wrong ("helko", "alot") is unaffected: nothing in the dictionary
         // continues those, and the slots stay with the repairs.
-        if (display.size >= 3) {
+        if (display.size >= com.rimboard.keyboard.model.StripLayout.SLOTS) {
             val continues = { w: String ->
                 val l = w.lowercase(locale)
                 l.length > lower.length && l.startsWith(lower)

@@ -196,7 +196,20 @@ class EngineDepthTest {
             "airpo", "en", en, allowAutocorrect = false, personalized = false
         ).items
         assertTrue("the word being typed is missing: $out", out.contains("airport"))
-        assertFalse("a split took a chip mid-word: $out", out.contains("air po"))
+        assertTrue("the second continuation was displaced: $out", out.contains("airports"))
+        // Not "the split is absent". That was the same claim while the strip
+        // was three wide and this fixture holds exactly three answers -- the
+        // split had nowhere to go, so "absent" and "displaced nothing" were the
+        // same test. At five slots they part company: both continuations are
+        // still here and the split takes a chip after them, which is what the
+        // rule above actually says.
+        val split = out.indexOf("air po")
+        if (split >= 0) {
+            assertTrue(
+                "the split came ahead of a word still being typed: $out",
+                split > out.indexOf("airport") && split > out.indexOf("airports")
+            )
+        }
     }
 
     @Test

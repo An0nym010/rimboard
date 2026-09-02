@@ -1981,15 +1981,15 @@ class RimBoardService : InputMethodService(),
         if (composing.isEmpty()) {
             val rv = revert
             if (rv != null) {
-                s.showSuggestions(listOf("\u21A9 " + rv.original, "", ""), -1)
+                s.showSuggestions(listOf("\u21A9 " + rv.original), -1)
                 return
             }
             if (glideWords.isNotEmpty()) {
-                s.showSuggestions(glideWords.take(3), 0)
+                s.showSuggestions(glideWords, 0)
                 return
             }
             calcChip()?.let {
-                s.showSuggestions(listOf(it, "", ""), -1)
+                s.showSuggestions(listOf(it), -1)
                 return
             }
             // Nothing in the field at all: no word to suggest from and none to
@@ -2014,7 +2014,7 @@ class RimBoardService : InputMethodService(),
                     // the user is actually writing. A Turkish keyboard with
                     // English enabled completed English words and then
                     // predicted the word after them in Turkish.
-                    prevWord2, prevWordForBigram, effLang(), effLocale(), 3,
+                    prevWord2, prevWordForBigram, effLang(), effLocale(), com.rimboard.keyboard.model.StripLayout.SLOTS,
                     personalized = !isIncognito(),
                     // The strip is redrawn after every keystroke on the main
                     // thread. A missing prediction model is parsed from assets
@@ -2052,7 +2052,7 @@ class RimBoardService : InputMethodService(),
                 }
             }
             if (preds.isNotEmpty()) {
-                s.showSuggestions((preds + listOf("", "", "")).take(3), -1)
+                s.showSuggestions(preds, -1)
             } else {
                 maybeClipboardOrEmpty(s)
             }
@@ -2096,7 +2096,7 @@ class RimBoardService : InputMethodService(),
             // "on my way" in bold while space committed "On my way".
             shownWords =
                 listOf(WordCase.match(composing.toString(), shortcutExp, effLocale())) +
-                    shownWords.take(2)
+                    shownWords.take(com.rimboard.keyboard.model.StripLayout.SLOTS - 1)
             shownHi = 0
         } else {
             val arranged = arrangeUnknownWord(res)
@@ -2177,11 +2177,12 @@ class RimBoardService : InputMethodService(),
         val after = before.substring(at + 1)
         // Domain already picked or being typed past its dot: leave it alone.
         if (after.any { it == ' ' || it == '.' }) return false
-        val hits = emailDomains.filter { it.startsWith(after.lowercase()) }.take(3)
+        val hits = emailDomains.filter { it.startsWith(after.lowercase()) }
+            .take(com.rimboard.keyboard.model.StripLayout.SLOTS)
         if (hits.isEmpty()) return false
         domainChips = hits
         domainTyped = after.length
-        s.showSuggestions((hits + listOf("", "", "")).take(3), -1)
+        s.showSuggestions(hits, -1)
         return true
     }
 
