@@ -142,6 +142,44 @@ import java.util.Locale
  * Some of those entries are not even wrong, only mislabelled. Swedish `polis-`
  * and `huvud-`, German `wasser-` and `haupt-` are compound first elements, and
  * those really do build unbounded numbers of real words.
+ *
+ * ## Measured and refused: completing from a prefix
+ *
+ * The inventory answers *is this a word* -- it is a guard, never a generator.
+ * Both of the other rules shaped like that have since been asked the second
+ * question too, and both paid: Turkish names across an apostrophe, and German
+ * compounds. So this one was priced the same way and the answer is no.
+ *
+ * Held out at a cut of 40,000, the rule being *take an inventory prefix off
+ * what has been typed, complete the rest from the list, put it back*, anchored
+ * below the weakest attested completion:
+ *
+ *     lang  buildable   letters        never offered      prose cost
+ *     pl      4.6%      9.15 -> 7.74   100% -> 26%        none
+ *     de      4.0%     10.31 -> 8.01   100% -> 11%        none
+ *     nl      3.7%     10.11 -> 7.95   100% -> 14%        none
+ *     ru      3.3%      8.64 -> 7.18   100% -> 23%        none
+ *     hu      3.1%     10.15 -> 8.48   100% -> 14%        none
+ *     fr      2.7%      8.77 -> 7.08   100% -> 22%        none
+ *     ro 2.3, sk 2.1, sv 1.5, id 1.1, pt 0.9, uk 0.3
+ *
+ * It works, and it is free on ordinary prose in all twelve -- the anchor does
+ * there what it does for the compounds. **The population is what refuses it.**
+ * A prefix is three letters and not a word, so almost nothing decomposes that
+ * way: the best language reaches 4.6% of the words past the list, against
+ * **23.7%** for German compounds. Per held-out word that is 0.065 letters for
+ * Polish and 0.092 for German, where the compound rule is 0.55 -- and where
+ * the Finnish and Hungarian ending generator, already measured and refused,
+ * was 0.21.
+ *
+ * So it is weaker than something this project has already turned down, and it
+ * would run in twelve languages on every keystroke to get there. German is
+ * weaker still than it looks: its inventory's compound first elements
+ * (`wasser-`, `haupt-`) are words, so the compound completer already reaches
+ * those and the 4.0% overlaps what shipped.
+ *
+ * Recorded so nobody prices it from scratch again. What would change the
+ * answer is a bigger population, not a better rule.
  */
 class PrefixInventoryTest {
 
