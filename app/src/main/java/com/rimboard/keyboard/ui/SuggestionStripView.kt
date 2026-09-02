@@ -223,7 +223,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             addView(tv, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
         }
 
-        // Its own chip at the end of the row, not one of the three slots. It
+        // Its own chip at the end of the row, not one of the word slots. It
         // used to take the third slot whenever a typed word matched, which
         // spent a word suggestion on exactly the words most likely to have had
         // a useful one. Narrow, because it holds a single glyph.

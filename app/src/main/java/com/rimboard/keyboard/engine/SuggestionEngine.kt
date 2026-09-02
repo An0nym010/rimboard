@@ -2222,7 +2222,7 @@ class SuggestionEngine private constructor(
             }
         }
 
-        // One of the two free slots is kept for finishing the word.
+        // One of the free slots is kept for finishing the word.
         //
         // Everything above ranks repairs of what was typed ahead of
         // continuations of it, and mid-word that is the wrong way round: a
@@ -2452,7 +2452,7 @@ class SuggestionEngine private constructor(
             //
             // Before the filter, not after, so what is checked is what will be
             // emitted -- and de-duplicated, so a swipe that reaches both
-            // spellings does not spend two of three slots on one word.
+            // spellings does not spend two of its slots on one word.
             .map { entry ->
                 com.rimboard.keyboard.model.Contractions.expand(lang, entry.key)
                     ?.takeIf { it.auto }?.canonical ?: entry.key

@@ -2141,7 +2141,7 @@ class RimBoardService : InputMethodService(),
      * With nothing to suggest at all — no completion, no correction, no
      * near-miss — the word is alone on the strip. That is the honest display
      * for something like "mndsnfms": there is no candidate to rank against it,
-     * and filling the other two slots would mean inventing something. Note this
+     * and filling the remaining slots would mean inventing something. Note this
      * is decided by *having no candidates*, not by judging the word random;
      * the keyboard has no business declaring what is and is not a word.
      */

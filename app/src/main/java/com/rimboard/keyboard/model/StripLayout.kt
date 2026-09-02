@@ -1,8 +1,11 @@
 package com.rimboard.keyboard.model
 
 /**
- * How the three suggestion slots are filled for a word the dictionary does not
- * know.
+ * How the suggestion slots are filled for a word the dictionary does not know.
+ *
+ * [SLOTS] says how many there are, and every rule below is written in terms of
+ * it rather than of a digit -- the strip was three wide for most of this
+ * file's life, and the prose that said so outlived it in six places.
  *
  * Pulled out of the service, which is an `InputMethodService` and cannot run on
  * a plain JVM. These are ordering rules with an index that has to follow the
