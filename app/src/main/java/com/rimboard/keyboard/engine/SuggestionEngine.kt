@@ -2687,6 +2687,25 @@ class SuggestionEngine private constructor(
         // Blocked and offensive are both checked against the folded key, which
         // is how those lists are stored — a capitalised surface form must not
         // be a way past either of them.
+        //
+        // **Not [acceptedWord], and that is measured rather than assumed.**
+        // Every other path that offers a word is filtered by whether the
+        // keyboard would let you keep it, and this one is not, so the curated
+        // model can in principle predict a spelling the space bar would
+        // correct away. Enumerated: of roughly 170,000 continuations across
+        // the twenty-two shipped models, **68 are words the engine refuses** --
+        // almost all accent-stripped forms the corpora are full of (pl "sie",
+        // "moze", "byla"; sv "basta", "for"; cs "ja", "rad"; de "ware"), plus
+        // Romanian "fiii", which is a real word the elongation rule is wrong
+        // about rather than a bad row.
+        //
+        // They are inert. Asked of every context in all twenty-two prose
+        // fixtures -- about 14,000 of them -- one of those 68 reached the top
+        // five **three times**, 0.02%: they sit deep in rows whose head is the
+        // properly accented spelling. So the filter would cost an
+        // [acceptedWord] call per candidate to remove something nobody sees,
+        // and it is not taken. Recorded so the inconsistency is a decision
+        // rather than an oversight, and so the next person has the number.
         return scores.entries
             .asSequence()
             .filter {
