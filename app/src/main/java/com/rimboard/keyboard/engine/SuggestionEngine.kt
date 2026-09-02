@@ -108,6 +108,64 @@ class SuggestionEngine private constructor(
          * grammatical rather than counted, so an attested word of the same
          * prefix -- if the corpus happens to hold one -- is the better guess.
          */
+        /**
+         * How much commoner the collapsed spelling has to be before a trebled
+         * letter counts as a key held down.
+         *
+         * This rule overrules what somebody typed, and every sibling of it in
+         * this class asks for dominance rather than for a majority:
+         * [Dictionary.BARE_KEY_RATIO] is 50, [Dictionary.TRANSPOSE_SUGGEST_RATIO]
+         * is 1,000, `SPLIT_DOMINANCE` is 150. This one asked for **one more
+         * occurrence** -- and the note beside it already described the band it
+         * should have been using: "hello outnumbers hellooo thousands to one,
+         * which is what an elongation looks like from the corpus's side."
+         * Written down, and never asked for.
+         *
+         * What that cost, across the shipped lists, is words of comparable
+         * frequency that merely happen to differ by a repeated letter:
+         *
+         *     ro  copiii  59,389 : copii 111,475   1.9x   "the children"
+         *     es  xviii      580 : xvi       615   1.1x   Roman numeral
+         *     en  viii       585 : vi      2,114   3.6x   Roman numeral
+         *     hu  xiii       236 : xi        249   1.1x   Roman numeral
+         *
+         * Every one was underlined as a misspelling *and* rewritten on the
+         * space bar. Romanian's is the one that matters: "copiii" runs at
+         * **187 per million** of its own corpus -- one word in 5,340 of
+         * Romanian text -- and it was being committed as "copii", which is the
+         * same noun without its definite article.
+         *
+         * ## Why ten
+         *
+         * There is no delicate boundary to find. The real elongations sit
+         * thousands of times below their base and the real words sit within
+         * single figures of theirs, with nothing in between:
+         *
+         *     hellooo    4,408x     hellooooo  27,036x     coool  7,270x
+         *     copiii         1.9x   xviii          1.1x    viii       3.6x
+         *
+         * Swept at 1, 2, 5, 10, 20 and 50 against `OutOfVocabularyTest` and
+         * `AutocorrectAccuracyTest`: **destruction is identical at every one
+         * of them** (de 21.0%, en 20.2%, es 27.3%) and nothing else moved. Ten
+         * recovers every case above, leaves the headline one collapsing by a
+         * factor of four hundred, and is the largest value that changes
+         * nothing a measurement can see.
+         *
+         * Twenty would additionally recover Romanian "propriii" (11.7x) and
+         * would stop "shhh" collapsing to "shh" (13.4x in English), "hmmm" to
+         * "hmm" and "хммм" to "хм". That is a change to what the feature does
+         * to interjections, and there is no measurement arguing for it, so it
+         * is recorded rather than taken.
+         *
+         * **Known residue, not reachable by any ratio**: Romanian "fiii" (the
+         * sons, 3,084) collapses to "fi" (to be, 1,564,273) at 507x, because
+         * the run cut to *one* letter is a far commoner word than the run cut
+         * to two. That is a fault in which base is chosen rather than in how
+         * dominant it has to be, and preferring the nearer collapse breaks
+         * "hellooo" -- so it wants its own answer.
+         */
+        const val ELONGATION_DOMINANCE = 10
+
         private const val ELISION_PENALTY = 0.55
 
         /** The learned list is small; this is a bound, not a filter. */
@@ -1389,7 +1447,10 @@ class SuggestionEngine private constructor(
             // stopped being correct thirty years ago. Nothing the feature is
             // for needs that: "hello" outnumbers "hellooo" thousands to one,
             // which is what an elongation looks like from the corpus's side.
-            ?.takeIf { dict.frequency(it) > dict.frequency(lower) }
+            ?.takeIf {
+                dict.frequency(it).toLong() >=
+                    ELONGATION_DOMINANCE.toLong() * dict.frequency(lower)
+            }
 
     /**
      * Additive score bonus for a word the preceding context predicts, fading
