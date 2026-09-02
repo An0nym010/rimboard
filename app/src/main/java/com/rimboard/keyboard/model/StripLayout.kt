@@ -50,6 +50,46 @@ object StripLayout {
     const val SLOTS = 5
 
     /**
+     * The narrowest a chip may be and still be a button.
+     *
+     * Android asks 48dp of anything meant to be tapped, and a suggestion chip
+     * is meant to be tapped.
+     */
+    const val MIN_CHIP_DP = 48
+
+    /**
+     * How many of [SLOTS] actually fit in [freeDp], never dropping the chip at
+     * [keepAtLeast] - 1.
+     *
+     * [SLOTS] is a maximum, not a count, and the first version of this change
+     * did not say so -- it justified five with "960px of row divided five ways
+     * is 70dp", which is this phone, at full width, with neither the emoji
+     * chip nor the incognito mark on screen. The strip's fixed children come
+     * to **114dp** (chevron 34, emoji chip 38, incognito 30, padding 8, four
+     * dividers), and once they are subtracted five chips are:
+     *
+     *     393dp phone   full  55.8dp     floating  44.8dp
+     *     360dp phone   full  49.2dp     floating  39.1dp
+     *     320dp phone   full  41.2dp     floating  32.2dp
+     *
+     * Three of those six are below the touch target and one is half of it. So
+     * the row counts what it can afford instead of assuming, which also covers
+     * one-handed mode, landscape, and whatever screen this has not seen.
+     *
+     * [keepAtLeast] is the promise from the bold chip: what the separator is
+     * going to commit must be *on* the strip, so a narrow row may drop the
+     * candidates after it and never the one it points at.
+     */
+    fun chipsThatFit(freeDp: Int, want: Int = SLOTS, keepAtLeast: Int = 1): Int {
+        if (want <= 0) return 0
+        // Before the first layout there is no width to divide. The strip is
+        // redrawn on the next keystroke, by which time there is.
+        if (freeDp <= 0) return want
+        val floor = keepAtLeast.coerceIn(1, want)
+        return (freeDp / MIN_CHIP_DP).coerceIn(floor, want)
+    }
+
+    /**
      * The smallest share of the strip a chip may take, as a word length.
      *
      * Chips used to divide the width equally, so "Bananenkuchen" was

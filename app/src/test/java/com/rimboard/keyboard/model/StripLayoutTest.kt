@@ -127,4 +127,55 @@ class StripLayoutTest {
         assertTrue("five chips at the floor must still be tappable",
             StripLayout.SLOTS * StripLayout.MIN_WEIGHT > 0f)
     }
+
+    /**
+     * [StripLayout.SLOTS] is a maximum, not a count.
+     *
+     * The arithmetic that chose five was done for one phone at full width with
+     * neither the emoji chip nor the incognito mark showing. With the strip's
+     * fixed children subtracted, five chips are 44.8dp in floating mode on
+     * that same phone and 32.2dp on a small one -- a target you cannot hit.
+     */
+    @Test
+    fun `a narrow row shows fewer chips rather than unhittable ones`() {
+        // 393dp phone, full width: 279dp free.
+        assertEquals(5, StripLayout.chipsThatFit(279, 5))
+        // the same phone floating: 224dp, which is four chips, not five.
+        assertEquals(4, StripLayout.chipsThatFit(224, 5))
+        // a 360dp phone floating: 196dp.
+        assertEquals(4, StripLayout.chipsThatFit(196, 5))
+        // a 320dp phone floating: 161dp.
+        assertEquals(3, StripLayout.chipsThatFit(161, 5))
+        // and every chip that survives is a button.
+        for (free in listOf(279, 224, 196, 161, 100, 49)) {
+            val n = StripLayout.chipsThatFit(free, 5)
+            assertTrue(
+                "at ${free}dp free, $n chips is ${free / n}dp each",
+                free / n >= StripLayout.MIN_CHIP_DP
+            )
+        }
+    }
+
+    /**
+     * And the one chip a narrow row may never drop.
+     *
+     * The bold chip is a promise about what the space bar will do (d73db54).
+     * A row too narrow to show it all may lose the candidates *after* the
+     * highlight and never the highlight itself.
+     */
+    @Test
+    fun `the chip the space bar will commit survives a narrow row`() {
+        // Room for one, but the commit is the second chip: two are kept.
+        assertEquals(2, StripLayout.chipsThatFit(50, 5, keepAtLeast = 2))
+        assertEquals(3, StripLayout.chipsThatFit(0, 3, keepAtLeast = 3))
+        // Never more than there are.
+        assertEquals(3, StripLayout.chipsThatFit(9999, 3, keepAtLeast = 9))
+    }
+
+    /** Before the first layout there is no width to divide. */
+    @Test
+    fun `an unmeasured row asks for everything and is corrected next keystroke`() {
+        assertEquals(5, StripLayout.chipsThatFit(0, 5))
+        assertEquals(5, StripLayout.chipsThatFit(-20, 5))
+    }
 }

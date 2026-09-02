@@ -76,6 +76,21 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         const val TOOL_W_MAX = 46
         /** Width reserved for the chevron, which never scrolls away. */
         const val CHEVRON_W = 34
+
+        /**
+         * The other two fixed children of the row, in dp.
+         *
+         * Named because the width they take is subtracted when the strip works
+         * out how many chips it can afford, and a second copy of a number is
+         * only safe while something compares the two. These are used at
+         * `addView` and by that subtraction, and nowhere else.
+         */
+        const val EMOJI_CHIP_W = 38
+        const val INCOG_W = 30
+
+        /** Padding either side, and the hairline between two chips. */
+        const val ROW_PAD = 8
+        const val DIVIDER_W = 1
     }
 
 
@@ -93,7 +108,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     init {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        setPadding(dp(4), 0, dp(4), 0)
+        setPadding(dp(ROW_PAD / 2), 0, dp(ROW_PAD / 2), 0)
 
         // Permanently visible: it is the only fixed control on the strip now,
         // and the one guaranteed route to whatever the user has pinned.
@@ -180,7 +195,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             if (i > 0) {
                 val d = View(context)
                 dividers.add(d)
-                val lp = LayoutParams(dp(1), dp(20))
+                val lp = LayoutParams(dp(DIVIDER_W), dp(20))
                 lp.gravity = Gravity.CENTER_VERTICAL
                 addView(d, lp)
             }
@@ -222,10 +237,10 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
                 if (!e.isNullOrEmpty()) listener?.onEmojiSuggestionPicked(e)
             }
         }
-        addView(emojiChip, LayoutParams(dp(38), LayoutParams.MATCH_PARENT))
+        addView(emojiChip, LayoutParams(dp(EMOJI_CHIP_W), LayoutParams.MATCH_PARENT))
 
         incogIcon = IconView(context, Icons.INCOGNITO).apply { visibility = GONE }
-        addView(incogIcon, LayoutParams(dp(30), LayoutParams.MATCH_PARENT))
+        addView(incogIcon, LayoutParams(dp(INCOG_W), LayoutParams.MATCH_PARENT))
         centerLabel = TextView(context).apply {
             gravity = Gravity.CENTER_VERTICAL
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
@@ -328,7 +343,18 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         // "Banane...uchen" while "Kinde" beside it sat two-thirds empty --
         // and equal shares are what would make five chips unreadable. See
         // [com.rimboard.keyboard.model.StripLayout.weights].
-        val shown = List(slots.size) { words.getOrNull(it) ?: "" }
+        // What the row can afford, not what it would like. See
+        // [com.rimboard.keyboard.model.StripLayout.chipsThatFit]: the fixed
+        // children come to about 114dp, and in floating mode on a narrow phone
+        // five chips would be 39dp each.
+        val fixed = dp(CHEVRON_W) + dp(ROW_PAD) + dividers.size * dp(DIVIDER_W) +
+            (if (emojiChip.visibility == VISIBLE) dp(EMOJI_CHIP_W) else 0) +
+            (if (incogIcon.visibility == VISIBLE) dp(INCOG_W) else 0)
+        val freeDp = ((width - fixed) / resources.displayMetrics.density).toInt()
+        val fits = com.rimboard.keyboard.model.StripLayout.chipsThatFit(
+            freeDp, slots.size, keepAtLeast = highlightIndex + 1
+        )
+        val shown = List(slots.size) { if (it < fits) words.getOrNull(it) ?: "" else "" }
         val weights = com.rimboard.keyboard.model.StripLayout.weights(shown)
         for (i in slots.indices) {
             val tv = slots[i]
