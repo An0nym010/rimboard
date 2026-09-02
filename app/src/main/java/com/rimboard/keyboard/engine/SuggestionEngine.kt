@@ -162,7 +162,20 @@ class SuggestionEngine private constructor(
          * the run cut to *one* letter is a far commoner word than the run cut
          * to two. That is a fault in which base is chosen rather than in how
          * dominant it has to be, and preferring the nearer collapse breaks
-         * "hellooo" -- so it wants its own answer.
+         * "hellooo" -- verified, because English holds "helloo" at 41, so
+         * nearest-first would answer "helloo".
+         *
+         * **And it is not worth a rule of its own**, which is the part worth
+         * writing down. Romanian marks a plural definite by adding -i to a
+         * plural in -ii, so the obvious fix is to spare a word ending in -iii
+         * whose -ii form the list holds. The population says no: of the 27
+         * such entries, eight are stretched spellings that *should* collapse
+         * ("stiii" for "stii", "heiii" for "hei") and several more are Roman
+         * numerals the bar of ten already spares. Weighing what the rule would
+         * rescue against what it would let through leaves about 3,350
+         * occurrences in a 317-million-token corpus -- **0.011 per million**,
+         * three orders of magnitude below the "copiii" the ratio already
+         * fixes, and pointing the wrong way for eight words. Left alone.
          */
         const val ELONGATION_DOMINANCE = 10
 
