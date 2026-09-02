@@ -94,12 +94,20 @@ class SuggestionEngine private constructor(
         /**
          * How many words a swipe is allowed to offer.
          *
-         * Three, because the suggestion strip has three slots and every caller
-         * of this takes three. Returning a fourth computed a candidate the user
-         * had no way to reach and quietly made the accuracy this is measured at
-         * look better than the accuracy anyone could use.
+         * As many as the strip has room for, and it says so rather than
+         * repeating the number. The rule was already the right one -- "three,
+         * because the suggestion strip has three slots and every caller of
+         * this takes three; returning a fourth computed a candidate the user
+         * had no way to reach and quietly made the accuracy this is measured
+         * at look better than the accuracy anyone could use" -- but it was
+         * written as a literal, so widening the strip left the swipe still
+         * answering three and the fourth and fifth chips empty after every
+         * gesture.
+         *
+         * Pointing it at [StripLayout.SLOTS] is what stops that happening
+         * again: the sentence and the number can no longer disagree.
          */
-        private const val GLIDE_OFFERED = 3
+        private val GLIDE_OFFERED = com.rimboard.keyboard.model.StripLayout.SLOTS
 
         /**
          * How far below an attested completion a joined elision ranks.
@@ -2065,6 +2073,20 @@ class SuggestionEngine private constructor(
             .toMutableList()
 
         // Up to two corrections, best first, promoted to the front of the strip.
+        //
+        // Two was chosen when the strip was three chips wide and is not an
+        // artefact of that. Re-swept once it was five, which is when a third
+        // correction first had a slot to sit in, and it is worse on every arm:
+        //
+        //     promoted        2        3        4
+        //     en blind    40.3%    40.1%    40.1%
+        //     en typo     46.6%    46.3%    46.1%
+        //     tr blind    36.9%    36.1%    35.8%
+        //     tr typo     43.7%    43.0%    42.7%
+        //
+        // Including the typo arms, which is the surprise: a third repair of a
+        // mistyped word is worth less than the continuation it displaces, so
+        // the extra room belongs to finishing words rather than to fixing them.
         var corrs = correctionCandidates(
             composing, lang, locale, altLang, altLocale, 2, contextRank, touch, personalized)
         var crossLanguage = false
