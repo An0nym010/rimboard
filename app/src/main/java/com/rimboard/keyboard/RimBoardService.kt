@@ -2103,10 +2103,25 @@ class RimBoardService : InputMethodService(),
             shownWords = arranged.first
             shownHi = arranged.second
         }
-        // The emoji has a chip of its own beside the words, so offering one
-        // never costs a suggestion. Blocked emoji stay blocked: long-pressing
-        // a chip offers to remove it, and without this the emoji was the one
-        // suggestion that came straight back.
+        // The emoji has a chip of its own beside the words rather than taking
+        // one of them. It used to take the third slot whenever a typed word
+        // matched, which spent a word suggestion on exactly the words most
+        // likely to have had a useful one.
+        //
+        // "Never costs a suggestion" is what that note used to say, and it is
+        // no longer quite true: the chip is 38dp of a row the strip now
+        // divides by [StripLayout.MIN_CHIP_DP] to decide how many words fit,
+        // so on a narrow phone it can be the difference between five word
+        // chips and four. On the phone this was measured on it is the
+        // difference between five and five. The trade is left to that one
+        // rule rather than given a special case, because a row that hides the
+        // emoji on small screens is a feature that quietly disappears, and
+        // the chip it now displaces is the fifth-best word rather than the
+        // third.
+        //
+        // Blocked emoji stay blocked: long-pressing a chip offers to remove
+        // it, and without this the emoji was the one suggestion that came
+        // straight back.
         val emojiSug = if (composing.length >= 2)
             engine.emojiFor(composing.toString().lowercase(effLocale()), effLang())
                 ?.takeIf { !userData.isBlocked(it) }
