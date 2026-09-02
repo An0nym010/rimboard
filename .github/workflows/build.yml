@@ -106,6 +106,20 @@ jobs:
           chmod +x gradlew
           ./gradlew testOfflineDebugUnitTest testOnlineDebugUnitTest --no-daemon
 
+      # What a red build says, to someone who is not signed in as the owner.
+      #
+      # Actions logs are private even for a public repository — the API
+      # answers 403 without a token and the job page fetches its lines from a
+      # signed URL — so every failure here reads as "Process completed with
+      # exit code 1" and nothing else. Annotations *are* public, so the JUnit
+      # XML Gradle has already written is turned into some, with the printed
+      # report as well as the assertion: nearly every measurement in this
+      # project asserts on one number out of a table, and the table is the
+      # half that says which language and which word.
+      - name: Say which tests failed
+        if: failure()
+        run: python3 tools/ci_test_report.py app/build/test-results
+
       # Fails the build on lint's error-severity issues. Missing translations
       # and format-string mismatches are errors, and both are invisible until
       # the string is shown to someone in that language.
