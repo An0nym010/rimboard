@@ -2674,7 +2674,10 @@ class SuggestionEngine private constructor(
                 surface.putIfAbsent(k, w)
             }
         }
-        curated(modelFor(lang, mayLoad), key2, key).forEachIndexed { i, w ->
+        val model = modelFor(lang, mayLoad)
+        // Asked under the key the corpus actually counted; see [curatedKey].
+        curated(model, curatedKey(key2, model), curatedKey(key, model))
+            .forEachIndexed { i, w ->
             // Fades with rank, so the curated model's own ordering survives the
             // merge. At the top it is worth a few repeated user sightings; by
             // the end of the list it only breaks ties.
@@ -2739,6 +2742,53 @@ class SuggestionEngine private constructor(
      * Measured on held-out sentences, first suggestion correct: en 16.3% ->
      * 19.6%, tr 13.7% -> 15.0%.
      */
+    /**
+     * The key the **bundled** model would have counted [word] under.
+     *
+     * The n-gram corpora were tokenised at the apostrophe, so no shipped model
+     * has a row keyed on a word that contains one -- French has **0 of
+     * 26,309**, Italian 0 of 29,447, Turkish 0 of 35,246. English has 23, and
+     * only because they were written by hand.
+     *
+     * The consequence is a dead spot exactly where the commonest words are.
+     * Measured over the prose fixtures, the share of contexts the model can
+     * answer at all:
+     *
+     *     fr   after a word with an apostrophe   0.0%      after any other  99.5%
+     *     it                                     0.0%                       99.4%
+     *     tr                                     0.0%                       94.8%
+     *     en                                    69.4%                       99.7%
+     *
+     * French writes one token in fourteen with an apostrophe, and they are
+     * "j'ai", "c'est", "l'", "n'", "qu'" -- so the strip went blank after the
+     * words it should have most to say about.
+     *
+     * **The counts exist; only the key is wrong.** A tokeniser that split
+     * "j'ai la" into `j`, `ai`, `la` counted the pair (`ai`, `la`) -- which is
+     * precisely what follows "j'ai". So the row to ask for is the segment
+     * after the last mark, and that is true whatever the language does with
+     * the apostrophe: elision puts the content word there ("l'homme" ->
+     * `homme`), a Turkish case ending puts the ending there ("Paris'e" ->
+     * `e`), and a Ukrainian inner mark splits an indivisible word ("здоров'я"
+     * -> `я`). In every one of them the *last corpus token* is the tail.
+     *
+     * Recovers, of the contexts that had no row at all: **fr 98.0%, tr 100%,
+     * it 78.9%, en 72.7%**. Italian and English fall short only where the tail
+     * is a single letter the model never counted ("c'è" -> `è`, "she's" ->
+     * `s`), and those simply keep today's answer.
+     *
+     * Only for the bundled model. The learned store records words as the user
+     * typed them, apostrophes and all, so it has the real key already and
+     * asking it for a tail would answer a different question.
+     */
+    private fun curatedKey(word: String, model: Map<String, List<String>>): String {
+        if (word.isEmpty() || model.containsKey(word)) return word
+        val i = maxOf(word.lastIndexOf('\''), word.lastIndexOf('’'))
+        if (i < 0 || i == word.length - 1) return word
+        val tail = word.substring(i + 1)
+        return if (model.containsKey(tail)) tail else word
+    }
+
     private fun curated(
         model: Map<String, List<String>>, key2: String, key: String
     ): List<String> {
