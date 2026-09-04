@@ -106,13 +106,56 @@ class Dictionary(
          *     HURRIED     70   72   72   72   71   68   64     5
          *
          * A careful swipe wants the shape trusted almost absolutely; a hurried
-         * one wants frequency to carry it. Six is the compromise, and the
-         * compromise is cheap: adapting the weight to an estimate of steadiness
-         * could win at most 0.8 points on deliberate swipes and 0.2 on sloppy
-         * ones, against the risk of misreading which kind a swipe was. Not
-         * worth building, and now measured rather than assumed.
+         * one wants frequency to carry it. Six was the compromise, and the
+         * paragraph that stood here called the compromise cheap: "adapting the
+         * weight to an estimate of steadiness could win at most 0.8 points on
+         * deliberate swipes and 0.2 on sloppy ones". That was true of the words
+         * it was measured on, and of no others.
+         *
+         * ## Re-swept on the words people actually write, 2026-09-04
+         *
+         * **Every sweep above was run on `sample(lang, 120)`: the 120 words
+         * ranked 41 to 160 by frequency.** On a list like that the frequency
+         * prior almost always names the target on its own, so trusting the
+         * shape more cannot help and the curve peaks early. Real writing is not
+         * that list. Swept again over the prose fixtures -- every token of
+         * running text 4 to 10 letters long that the dictionary holds, so the
+         * common words carry their real weight and the rest are there too --
+         * through [SuggestionEngine.glideFor] itself, with the preceding two
+         * words as context, 13,015 swipes across all twenty-two languages:
+         *
+         *     w    DELIBERATE     NATURAL       SLOPPY       HURRIED       top1  offered
+         *     6   88.4 / 98.8  67.7 / 91.8  44.4 / 77.4  47.0 / 78.9    61.90    86.72
+         *     7   90.3 / 99.1  69.9 / 93.0  44.5 / 77.4  47.6 / 78.7    63.07    87.02
+         *     8   92.2 / 99.4  71.6 / 93.5  43.8 / 77.0  47.2 / 78.4    63.70    87.08
+         *     9   93.1 / 99.4  72.6 / 93.8  43.2 / 75.9  47.0 / 78.0    63.99    86.79
+         *     10  93.8 / 99.5  73.0 / 94.0  42.8 / 74.8  46.4 / 76.9    64.00    86.32
+         *     12  94.6 / 99.5  74.0 / 94.2  41.7 / 72.9  45.4 / 75.4    63.93    85.49
+         *
+         * Two things change. The absolute numbers are twenty points lower than
+         * the frequency sample says -- **the decoder is not as good as this
+         * file believed**, and neither figure was wrong, they were answers to
+         * different questions. And the answer moves: six is 1.8 points below
+         * the plateau, which now runs from eight to ten.
+         *
+         * Eight rather than nine or ten, which take another 0.3 of top-1,
+         * because `offered` is the safety net and it peaks here. A wrong first
+         * candidate costs a tap when the right word is still on the strip and
+         * costs a deletion when it is not, so the two columns are not worth the
+         * same. Eight is the only value that beats six on **both** of them.
+         *
+         * What it costs is under a point on the two unsteady hands -- SLOPPY
+         * 44.4 to 43.8, HURRIED 47.0 to 47.2 -- against about four points each
+         * on the two steady ones. And it does not settle the adaptive question
+         * either way: on this sample the hands disagree far more than the
+         * sentence above claimed (a per-hand oracle is worth about 1.8 points
+         * beyond eight, not 0.8), and the fit costs that would have to
+         * distinguish them are cleanly separated -- 0.10 key widths deliberate,
+         * 0.40 natural, 0.67 sloppy. That is a real piece of work with a real
+         * risk of fitting the synthetic finger rather than a human one, and it
+         * is now measurable rather than dismissed.
          */
-        const val GLIDE_SHAPE_WEIGHT = 6.0
+        const val GLIDE_SHAPE_WEIGHT = 8.0
 
         /**
          * How many surviving words get a shape computed.

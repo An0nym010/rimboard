@@ -67,6 +67,45 @@ class GlideAccuracyTest {
         dir.deleteRecursively()
     }
 
+    /**
+     * Running text, tokenised, as (two preceding words, target).
+     *
+     * The sample the rest of this file used is [sample] -- the 120 words ranked
+     * 41 to 160 by frequency -- and on a list like that the frequency prior
+     * names the target almost by itself, which flatters every measurement made
+     * on it and moved the answer to the weight sweep by two points. This is the
+     * other sample and the honest one: every token of running prose 4 to 10
+     * letters long that the dictionary holds, duplicates kept, so the common
+     * words carry the weight they really have and the rest are there as well.
+     */
+    private fun proseTriples(
+        lang: String, locale: Locale, dict: Dictionary, count: Int
+    ): List<Triple<String, String, String>> {
+        val out = ArrayList<Triple<String, String, String>>()
+        for (line in File(fixtures(), "prose_" + lang + ".txt").readLines()) {
+            val toks = Regex("[^ ]+").findAll(line.lowercase(locale))
+                .map { m -> m.value.filter { it.isLetter() } }
+                .filter { it.isNotEmpty() }
+                .toList()
+            for (i in toks.indices) {
+                val t = toks[i]
+                if (i < 1 || t.length !in 4..10 || dict.frequency(t) <= 0) continue
+                out.add(Triple(if (i >= 2) toks[i - 2] else "", toks[i - 1], t))
+                if (out.size >= count) return out
+            }
+        }
+        return out
+    }
+
+    private fun listFor(lang: String, locale: Locale): Dictionary =
+        Dictionary(
+            File(assets(), "dictionaries/" + lang + ".txt").readText().byteInputStream(),
+            null, locale
+        )
+
+    private fun fixtures(): File =
+        listOf(File("src/test/fixtures"), File("app/src/test/fixtures")).first { it.isDirectory }
+
     private fun assets(): File =
         listOf(File("src/main/assets"), File("app/src/main/assets")).first { it.isDirectory }
 
@@ -688,15 +727,104 @@ class GlideAccuracyTest {
 
 
     /**
+     * What the decoder scores on the words people actually write.
+     *
+     * Every other arm in this file samples [sample] — the 120 words ranked 41
+     * to 160 by frequency — and that sample flatters the decoder by about
+     * twenty points, because on a list that short and that common the
+     * frequency prior names the target almost unaided. It also moved the
+     * answer to the weight sweep: see [Dictionary.GLIDE_SHAPE_WEIGHT].
+     *
+     * This is the same decoder asked the same question about running prose:
+     * every token 4 to 10 letters long the dictionary holds, duplicates kept
+     * so the common words carry the weight they really have, decoded through
+     * [SuggestionEngine.glideFor] with the two preceding words as context —
+     * which is what a swipe gets in a sentence and which no arm here had ever
+     * supplied. Context is worth **+1.56 points of top-1** on its own,
+     * measured by running this with and without it.
+     *
+     * At the shipped weight, 13,015 swipes over all twenty-two languages:
+     *
+     *     DELIBERATE   top1 92.2%   offered 99.4%
+     *     NATURAL           71.6%           93.5%
+     *     SLOPPY            43.8%           77.0%
+     *     HURRIED           47.2%           78.4%
+     *     all               63.7%           87.1%
+     *
+     * The floors are set well under those. What they are for is a change that
+     * moves the honest number while leaving the flattering one alone, which is
+     * exactly what six years of tuning against `sample` would have done.
+     */
+    @Test
+    fun `the decoder measured on the words people write`() {
+        val lines = StringBuilder()
+        val perHand = LinkedHashMap<String, IntArray>()
+        var n = 0
+        var top = 0
+        var off = 0
+        for (lang in com.rimboard.keyboard.model.Languages.codes) {
+            val loc = Locale.forLanguageTag(lang)
+            val engine = realEngine(lang)
+            val prox = KeyProximity.forLang(lang)
+            val triples = proseTriples(lang, loc, listFor(lang, loc), 150)
+            for (hand in Hand.values()) {
+                val rnd = Random(seed = 20260823 + hand.ordinal)
+                val k = perHand.getOrPut(hand.name) { IntArray(3) }
+                for ((p2, p1, w) in triples) {
+                    val pts = path(w, hand, prox, rnd) ?: continue
+                    val gp = GlidePath.of(pts, prox) ?: continue
+                    val offered = engine.glideFor(
+                        gp, lang, loc, personalized = false, prevWord2 = p2, prevWord = p1
+                    )
+                    k[2]++; n++
+                    if (offered.firstOrNull() == w) { k[0]++; top++ }
+                    if (offered.contains(w)) { k[1]++; off++ }
+                }
+            }
+        }
+        val weak = ArrayList<String>()
+        for ((hand, k) in perHand) {
+            val t1 = k[0].toDouble() / k[2]
+            val of = k[1].toDouble() / k[2]
+            lines.append("%-11s n=%5d  top1 %5.1f%%  offered %5.1f%%%n"
+                .format(hand, k[2], t1 * 100, of * 100))
+            if (t1 < PROSE_HAND_TOP1_FLOOR) weak.add("$hand top1 ${"%.1f".format(t1 * 100)}%")
+            if (of < PROSE_HAND_OFFERED_FLOOR) weak.add("$hand offered ${"%.1f".format(of * 100)}%")
+        }
+        val t1 = top.toDouble() / n
+        val of = off.toDouble() / n
+        lines.append("all         n=%5d  top1 %5.1f%%  offered %5.1f%%%n".format(n, t1 * 100, of * 100))
+        println(lines)
+        assertEquals("a hand has fallen through its floor:\n" + lines, emptyList<String>(), weak)
+        assertTrue("glide top-1 on running prose has regressed:\n" + lines, t1 >= PROSE_TOP1_FLOOR)
+        // The safety net matters as much as the first candidate: a wrong top-1
+        // costs a tap while the word is still on the strip and a deletion once
+        // it is not.
+        assertTrue(
+            "the right word is reaching the strip less often:\n" + lines,
+            of >= PROSE_OFFERED_FLOOR
+        )
+    }
+
+    /**
      * The trade between how common a word is and how well it fits, swept.
      *
      * Read the columns, not the peak. What matters is that there is a broad
      * plateau and that the shipped value sits on it — a constant that only
      * works at one setting is a constant that has been fitted to this corpus.
+     *
+     * **And it had been fitted, to the sample rather than to the corpus.**
+     * This swept `sample(lang, 120)`, the words ranked 41 to 160 by frequency,
+     * where the prior names the target almost unaided — so trusting the shape
+     * more could not help and the curve peaked at six. Over running prose the
+     * plateau is at eight to ten and six sits 1.8 points below it. Same
+     * decoder, same finger model, same seed: only the words changed. See
+     * [Dictionary.GLIDE_SHAPE_WEIGHT] for the per-hand table, and
+     * `the decoder measured on the words people write` for what ships.
      */
     @Test
     fun `the weight between frequency and fit, swept`() {
-        val weights = listOf(3.0, 4.0, 5.0, 6.0, 7.0, 9.0, 12.0)
+        val weights = listOf(3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 12.0)
         val lines = StringBuilder()
         val hits = IntArray(weights.size)
         val asked = IntArray(weights.size)
@@ -706,7 +834,12 @@ class GlideAccuracyTest {
                 File(assets(), "dictionaries/$lang.txt").readText().byteInputStream(),
                 null, Locale.forLanguageTag(lang)
             )
-            val words = sample(lang, 120)
+            // Running prose, not the frequency sample. See [proseTriples]:
+            // the list this used to take made the frequency prior do the work,
+            // so the constant that trades frequency against shape was fitted
+            // to a case where the trade barely mattered.
+            val words = proseTriples(lang, Locale.forLanguageTag(lang), dict, 150)
+                .map { it.third }
             for (hand in Hand.values()) {
                 lines.append("$lang %-11s".format(hand.name))
                 // One swipe decoded once and scored at every weight, rather
@@ -903,6 +1036,23 @@ class GlideAccuracyTest {
     private companion object {
         /** Under the worst arm measured, with room for corpus noise. */
         const val GLIDE_TOP1_FLOOR = 0.60
+
+        /**
+         * Floors for `the decoder measured on the words people write`, which
+         * asks about running prose rather than [sample]'s frequency list and
+         * so reads about twenty points lower. Measured 63.7% / 87.1% overall,
+         * worst hand 43.8% / 77.0%.
+         *
+         * Set with room, because their job is not to pin a figure. It is to
+         * catch a change that improves the flattering number while quietly
+         * costing the honest one — which is what tuning against [sample] alone
+         * did to [Dictionary.GLIDE_SHAPE_WEIGHT] for as long as it was the
+         * only sample anybody looked at.
+         */
+        const val PROSE_TOP1_FLOOR = 0.60
+        const val PROSE_OFFERED_FLOOR = 0.84
+        const val PROSE_HAND_TOP1_FLOOR = 0.40
+        const val PROSE_HAND_OFFERED_FLOOR = 0.72
     }
 
     // ---- Two languages at once ---------------------------------------------
