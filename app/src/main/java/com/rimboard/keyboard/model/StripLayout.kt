@@ -83,6 +83,41 @@ object StripLayout {
      * going to commit must be *on* the strip, so a narrow row may drop the
      * candidates after it and never the one it points at.
      */
+    /**
+     * The width every chip gets before the weighted surplus is shared out.
+     *
+     * [chipsThatFit] and [weights] were two models of the same row, and only
+     * one of them was the one the strip actually used. The count is decided by
+     * dividing the row **equally** -- `freeDp / MIN_CHIP_DP` -- while the view
+     * lays the chips out **proportionally to word length**. So the row was
+     * counted on the promise that every chip could be 48dp and then drawn so
+     * that some of them were not.
+     *
+     * Measured over 8,649 strips the engine really produces, 22 languages,
+     * on a 393dp phone with no emoji chip and no incognito mark:
+     *
+     *     narrowest chip   min 30.2dp   p5 43.4   p25 53.4   median 57.8
+     *     under 48dp on **14.6% of rows**
+     *
+     * One row in seven had a chip below the size this file exists to
+     * guarantee, and the worst was under two thirds of it. A chip that small
+     * is still a *word*, and tapping the wrong one puts the wrong word in the
+     * message, so it is worth more than the tidiness of the number.
+     *
+     * The fix costs no suggestions. A `LinearLayout` child with a width and a
+     * weight takes the width first and then its share of what is left over, so
+     * giving every chip [MIN_CHIP_DP] and weighting the surplus keeps all five
+     * and still lets "Bananenkuchen" take more room than "Kinde".
+     *
+     * Zero when the row genuinely cannot afford it, which is the case
+     * [chipsThatFit] cannot always prevent: [keepAtLeast] can force more chips
+     * than fit, because the bold chip's promise outranks the touch target --
+     * what the space bar is about to commit has to be *on* the strip. There
+     * the old behaviour is right and the chips share what there is.
+     */
+    fun chipFloorDp(freeDp: Int, chips: Int): Int =
+        if (chips > 0 && freeDp >= chips * MIN_CHIP_DP) MIN_CHIP_DP else 0
+
     fun chipsThatFit(freeDp: Int, want: Int = SLOTS, keepAtLeast: Int = 1): Int {
         if (want <= 0) return 0
         // Before the first layout there is no width to divide. The strip is

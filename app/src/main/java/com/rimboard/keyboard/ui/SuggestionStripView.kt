@@ -356,6 +356,9 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         )
         val shown = List(slots.size) { if (it < fits) words.getOrNull(it) ?: "" else "" }
         val weights = com.rimboard.keyboard.model.StripLayout.weights(shown)
+        val floorPx = dp(
+            com.rimboard.keyboard.model.StripLayout.chipFloorDp(freeDp, fits)
+        )
         for (i in slots.indices) {
             val tv = slots[i]
             val w = shown[i]
@@ -365,8 +368,14 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             // share and the visible chips would be narrower for nothing.
             tv.visibility = if (w.isEmpty()) GONE else VISIBLE
             (tv.layoutParams as? LayoutParams)?.let { lp ->
-                if (lp.weight != weights[i]) {
+                if (lp.weight != weights[i] || lp.width != floorPx) {
                     lp.weight = weights[i]
+                    // Width first, then the weighted surplus. See
+                    // [com.rimboard.keyboard.model.StripLayout.chipFloorDp]:
+                    // with a width of zero the whole row is shared out by
+                    // weight, which put a chip under the touch target on one
+                    // row in seven.
+                    lp.width = floorPx
                     tv.layoutParams = lp
                 }
             }
