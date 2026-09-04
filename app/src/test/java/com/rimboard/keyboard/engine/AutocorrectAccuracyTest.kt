@@ -1062,12 +1062,12 @@ class AutocorrectAccuracyTest {
         results.forEach { (lang, s) ->
             assertTrue(
                 "autocorrect has stopped fixing typos in $lang.\n" + lines,
-                s.fixRate >= 0.90
+                s.fixRate >= 0.92
             )
             assertTrue(
                 "autocorrect is overwriting correctly-typed words in $lang " +
                     "again — this was 56%/61% before the gate existed.\n" + lines,
-                s.destroyRate <= 0.25
+                s.destroyRate <= 0.20
             )
             assertTrue("the corpus generated nothing:\n" + lines, s.asked > 20 && s.alien > 20)
         }
@@ -1373,10 +1373,18 @@ class AutocorrectAccuracyTest {
          * ratio sweep in the test above says every lever costs more than it
          * saves. What must not happen is that it grows unnoticed.
          */
-        const val CLOSE_DESTROY_CEILING = 90
+        const val CLOSE_DESTROY_CEILING = 85
 
-        /** Under the 87.8% measured over eight languages, with room for noise. */
-        const val PROSE_FIX_FLOOR = 0.80
+        /**
+         * Under the 89.0% these five languages measure, with about four points
+         * of room -- for the JDK the suite runs on and for the assets being
+         * rebuilt, not for run-to-run noise, of which a seeded corpus has none.
+         *
+         * It was 0.80 when written this morning, nine points under, which is
+         * the same failure the rest of this suite's floors had: far enough
+         * below the measurement that no plausible regression reaches it.
+         */
+        const val PROSE_FIX_FLOOR = 0.85
 
         /**
          * Pooled near-tail words recovered by the touch trail across all

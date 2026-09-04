@@ -678,8 +678,27 @@ class StripAccuracyTest {
          * on the register its own n-grams were counted from, so letting it hold
          * the floor would let a regression in the completion path hide behind
          * the model having seen prose like this before.
+         *
+         * ## Re-measured 2026-09-04, and the floor tightened to match
+         *
+         *     en blind 40.3%    en context 48.8%
+         *     tr blind 36.9%    tr context 46.2%
+         *
+         * Six points above what is recorded above, from changes since. The
+         * floor was still 0.25 -- **twelve points under the arm it guards** --
+         * and a ratchet that far below the measurement is not a ratchet: a
+         * change costing ten points of keystroke savings, which would be an
+         * enormous regression, passed it without a word.
+         *
+         * These corpora are seeded and shipped in the repository, so there is
+         * no run-to-run noise to leave room for; what room remains is for the
+         * JDK the suite happens to run on (CI is 17 and this machine is 21,
+         * whose CLDR tables differ) and for the assets being rebuilt. Five
+         * points is generous for both. Anything larger is a number nobody has
+         * to think about, and this file's whole argument is that the numbers
+         * are worth thinking about.
          */
-        const val KSR_FLOOR = 0.25
+        const val KSR_FLOOR = 0.32
 
         /**
          * Sentences per language in the survey.
@@ -700,8 +719,15 @@ class StripAccuracyTest {
          */
         const val TYPO_RATE = 0.05
 
-        /** Share of mistyped words that may go unrecovered. */
-        const val TYPO_LOST_CEILING = 0.30
+        /**
+         * Share of mistyped words that may go unrecovered.
+         *
+         * Measured 2026-09-04: **4%** on both typo arms. The ceiling was 0.30,
+         * which is twenty-six points of slack and could only ever have fired
+         * on a catastrophe. Three times the measured value is still generous
+         * for a figure this small.
+         */
+        const val TYPO_LOST_CEILING = 0.12
 
         /**
          * Under the worst language measured, with room for corpus noise.
@@ -710,7 +736,12 @@ class StripAccuracyTest {
          * saying because Turkish was assumed to be the worst case for two
          * sessions on the strength of it being the one non-English language
          * anything was measured on.
+         *
+         * Re-measured 2026-09-04: Czech is still the floor-setter and now
+         * reads **34.7%**, with the survey running cs 34.7 to id 47.4. The
+         * floor stayed at 0.22, nearly thirteen points under it. Tightened for
+         * the reason given on [KSR_FLOOR].
          */
-        const val SURVEY_FLOOR = 0.22
+        const val SURVEY_FLOOR = 0.30
     }
 }

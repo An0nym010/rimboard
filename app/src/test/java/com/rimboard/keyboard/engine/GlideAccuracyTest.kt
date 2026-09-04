@@ -1165,11 +1165,18 @@ class GlideAccuracyTest {
          * 69.8% and calls the wrong one better by five times the real margin.
          */
         const val HELDOUT_TOP1_FLOOR = 0.54
-        const val HELDOUT_IN_FIVE_FLOOR = 0.75
-        const val HELDOUT_HAND_TOP1_FLOOR = 0.30
+        const val HELDOUT_IN_FIVE_FLOOR = 0.76
+        const val HELDOUT_HAND_TOP1_FLOOR = 0.31
 
-        /** Under the worst arm measured, with room for corpus noise. */
-        const val GLIDE_TOP1_FLOOR = 0.60
+        /**
+         * Under the worst arm measured, with room for corpus noise.
+         *
+         * That arm is the frequency-sampled one, whose worst reads 67% (en
+         * SLOPPY) as of 2026-09-04. Tightened from 0.60, which was seven
+         * points under it -- see [PROSE_TOP1_FLOOR] for why a floor that far
+         * below its measurement is not guarding anything.
+         */
+        const val GLIDE_TOP1_FLOOR = 0.62
 
         /**
          * Floors for `the decoder measured on the words people write`, which
@@ -1177,16 +1184,26 @@ class GlideAccuracyTest {
          * so reads about twenty points lower. Measured 63.7% / 87.1% overall,
          * worst hand 43.8% / 77.0%.
          *
-         * Set with room, because their job is not to pin a figure. It is to
-         * catch a change that improves the flattering number while quietly
-         * costing the honest one — which is what tuning against [sample] alone
-         * did to [Dictionary.GLIDE_SHAPE_WEIGHT] for as long as it was the
-         * only sample anybody looked at.
+         * Their job is to catch a change that improves the flattering number
+         * while quietly costing the honest one — which is what tuning against
+         * [sample] alone did to [Dictionary.GLIDE_SHAPE_WEIGHT] for as long as
+         * it was the only sample anybody looked at.
+         *
+         * Set about five points under each measurement, and no further. These
+         * corpora are seeded and shipped, so there is no run-to-run noise to
+         * allow for; the room is for the JDK the suite runs on and for the
+         * assets being rebuilt. A floor twelve points below the thing it
+         * guards -- which is where several in this suite sat until
+         * 2026-09-04 -- cannot fire on any regression short of a catastrophe,
+         * and a test that cannot fail is not protecting anybody.
+         *
+         * Measured 2026-09-04 with the shipped weights: all 69.8% / 88.8%,
+         * worst hand SLOPPY 53.1% / 80.0%.
          */
-        const val PROSE_TOP1_FLOOR = 0.60
-        const val PROSE_OFFERED_FLOOR = 0.84
-        const val PROSE_HAND_TOP1_FLOOR = 0.40
-        const val PROSE_HAND_OFFERED_FLOOR = 0.72
+        const val PROSE_TOP1_FLOOR = 0.65
+        const val PROSE_OFFERED_FLOOR = 0.85
+        const val PROSE_HAND_TOP1_FLOOR = 0.48
+        const val PROSE_HAND_OFFERED_FLOOR = 0.75
     }
 
     // ---- Two languages at once ---------------------------------------------
