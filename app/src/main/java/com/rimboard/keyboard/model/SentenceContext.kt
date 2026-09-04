@@ -51,7 +51,35 @@ object SentenceContext {
     }
 
     private fun isWordChar(c: Char): Boolean =
-        c.isLetter() || c.isDigit() || c == '\'' || c == '’'
+        c.isLetter() || c.isDigit() || Apostrophe.isMark(c)
+
+    /**
+     * The words [from] reads a context out of.
+     *
+     * Both apostrophes, because [isWordChar] says both are word characters and
+     * the two ran the same text through different rules — one deciding whether
+     * the cursor sits inside a word, the other deciding what a prediction is
+     * keyed on. Only the second was missing U+2019, so in text written with
+     * it "I don’t " gave `don` and `t` as the two context words: a fragment,
+     * predicted from confidently, and filed in the learned n-grams under the
+     * same fragment. That is 13.1% of the positions in the French fixture,
+     * 4.9% in the English one.
+     */
+    private val WORD =
+        Regex("[" + "\\p{L}\\p{N}" + Apostrophe.LIST_MARK + Apostrophe.CURLY + "]+")
+
+    /**
+     * A word from the text, in the form everything downstream is keyed on.
+     *
+     * Lower case, and the apostrophe written the way the data writes it — the
+     * same pair of normalisations `SuggestionEngine.acceptedWord` does, and
+     * for the same reason. Without the second, a context read back from curly
+     * text would key on "don’t" while the same word typed here keys on
+     * "don't", so the learned store would hold two rows for one word and
+     * neither would have the other's count. See [Apostrophe].
+     */
+    private fun key(word: String?, locale: Locale): String =
+        if (word == null) "" else Apostrophe.asWritten(word.lowercase(locale))
 
     /**
      * Reads [before] — the text immediately preceding the cursor — into the two
@@ -87,10 +115,10 @@ object SentenceContext {
         val atStart = tail.isEmpty() || tail.last() in ENDERS
         val lastBreak = before.indexOfLast { it in ENDERS }
         val sentence = if (lastBreak >= 0) before.substring(lastBreak + 1) else before
-        val words = Regex("""[\p{L}\p{N}']+""").findAll(sentence).map { it.value }.toList()
+        val words = WORD.findAll(sentence).map { it.value }.toList()
         return Context(
-            prevWord2 = words.getOrNull(words.size - 2)?.lowercase(locale).orEmpty(),
-            prevWord = words.lastOrNull()?.lowercase(locale).orEmpty(),
+            prevWord2 = key(words.getOrNull(words.size - 2), locale),
+            prevWord = key(words.lastOrNull(), locale),
             atSentenceStart = atStart
         )
     }

@@ -96,6 +96,68 @@ class SentenceContextTest {
     }
 
     /**
+     * The curly apostrophe too — and read back under the straight one.
+     *
+     * [SentenceContext.insideWord] has always counted U+2019 a word character;
+     * the scan that produces the context words did not. The two ran the same
+     * text through different rules, and only the second decides what a
+     * prediction is keyed on, so in text written the way most software writes
+     * it — iOS smart punctuation, most of the web — "I don’t " gave `don` and
+     * `t`: a fragment, predicted from confidently, and filed in the learned
+     * n-grams under the same fragment. **13.1% of the positions in the French
+     * prose fixture and 4.9% of the English ones.**
+     *
+     * The mark is then written the way the data writes it, which is the second
+     * half of the same rule: without that the store would hold "don’t" from
+     * text read back and "don't" from text typed here, two rows for one word
+     * with neither carrying the other's count. See [Apostrophe].
+     */
+    @Test
+    fun `the two apostrophes give one context`() {
+        val curly = SentenceContext.from("I don" + Apostrophe.CURLY + "t", en)
+        assertEquals("don't", curly.prevWord)
+        assertEquals("i", curly.prevWord2)
+        // The whole claim, on the sentences this actually bites in.
+        for (text in listOf(
+            "I don't know what",
+            "she said it's a",
+            "l'homme qui a",
+            "si j'ai besoin",
+            "non c'è niente"
+        )) {
+            assertEquals(
+                text,
+                SentenceContext.from(text, en),
+                SentenceContext.from(text.replace('\'', Apostrophe.CURLY), en)
+            )
+        }
+    }
+
+    /**
+     * The invariant the bug broke: one rule about what a word character is.
+     *
+     * Two functions in this object read the same text, and a character either
+     * belongs to a word in both or in neither. Asserted rather than assumed,
+     * because the disagreement they had was invisible — each was individually
+     * reasonable, and nothing in either one mentioned the other.
+     */
+    @Test
+    fun `insideWord and the context scan agree about word characters`() {
+        val disagree = ArrayList<Char>()
+        for (c in listOf('a', 'Z', 'é', 'ß', 'я', '5', '\'', Apostrophe.CURLY,
+                         ' ', '-', '.', ',', '/', '_', '@')) {
+            // "a<c>a" is one word exactly when <c> is a word character. The
+            // expectation goes through the same normalisation the scan does,
+            // so this asks about word boundaries and not about the mark.
+            val whole = Apostrophe.asWritten(("a" + c + "a").lowercase(en))
+            val oneWord = SentenceContext.from("x a" + c + "a", en).prevWord == whole
+            val inside = SentenceContext.insideWord("a" + c, "a")
+            if (oneWord != inside) disagree.add(c)
+        }
+        assertEquals(emptyList<Char>(), disagree)
+    }
+
+    /**
      * A cursor inside a word is not a place where a next word is being chosen.
      *
      * `refreshContextFromCursor` runs when there is **no** composing text,

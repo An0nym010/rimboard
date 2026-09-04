@@ -181,6 +181,65 @@ class ApostropheContextTest {
         )
     }
 
+    /**
+     * The whole chain is blind to which apostrophe the text uses.
+     *
+     * Asked end to end -- text in, [SentenceContext] to the two context words,
+     * the model to the prediction -- because that is the only way to see it.
+     * Each link looked reasonable on its own: the scan took U+0027 as a word
+     * character and not U+2019, so curly text keyed on a fragment; the model
+     * has no row keyed on an apostrophe word anyway, so the strip often
+     * answered *something* and the fault showed up as slightly worse
+     * predictions rather than as none.
+     *
+     * Measured before the fix, over every context position in the fixture,
+     * with the same prose written both ways:
+     *
+     *          contexts   differing   top-3 hits straight / curly
+     *     en      1425      70 (4.9%)          455 / 447
+     *     fr      1408     184 (13.1%)         444 / 443
+     *     it      1240      34 (2.7%)          406 / 408
+     *
+     * The strip barely moved, and that is worth writing down rather than
+     * hiding: [SuggestionEngine.curatedKey] already falls back to the segment
+     * after the last mark, which is exactly what the mis-split produced, so
+     * the two wrongs cancelled for the *bundled* model. What did not cancel is
+     * the learned store, which was being taught rows keyed on "ve", "en" and
+     * "d". Every count above is now identical on both sides.
+     */
+    @Test
+    fun `the same sentence predicts the same with either apostrophe`() {
+        val curly = Char(0x2019)
+        fun isW(c: Char) = c.isLetter() || c.isDigit() || c == Char(39) || c == curly
+        val differing = ArrayList<String>()
+        for (lang in listOf("en", "fr", "it")) {
+            val loc = Locale.forLanguageTag(lang)
+            val e = engine(lang)
+            for (line in File(fixtures(), "prose_" + lang + ".txt").readLines()) {
+                if (line.isBlank()) continue
+                for (i in line.indices) {
+                    // Every word end in the line: a word character with a
+                    // non-word character (or nothing) after it.
+                    if (!isW(line[i])) continue
+                    if (i + 1 < line.length && isW(line[i + 1])) continue
+                    val before = line.substring(0, i + 1) + " "
+                    val a = com.rimboard.keyboard.model.SentenceContext.from(before, loc)
+                    val bCtx = com.rimboard.keyboard.model.SentenceContext.from(
+                        before.replace(Char(39), curly), loc
+                    )
+                    if (a != bCtx && differing.size < 5) differing.add(before.takeLast(24))
+                    val pa = e.predictions(a.prevWord2, a.prevWord, lang, loc, 3, false)
+                    val pb = e.predictions(bCtx.prevWord2, bCtx.prevWord, lang, loc, 3, false)
+                    if (pa != pb && differing.size < 5) differing.add(before.takeLast(24))
+                }
+            }
+        }
+        assertEquals(
+            "the apostrophe used changed the context or the prediction: " + differing,
+            emptyList<String>(), differing
+        )
+    }
+
     /** And a mark with nothing after it is not a key. */
     @Test
     fun `a word ending in the mark falls back to nothing`() {
