@@ -275,4 +275,45 @@ class AltLanguageWordTest {
             totalMs / n < 2.0
         )
     }
+    /**
+     * The harness guard, and why it exists.
+     *
+     * Every test in this file builds its engine over *both* languages, which
+     * is what makes the assertions mean anything. An engine built over one
+     * answers about the other with an empty dictionary — so the correction
+     * refusal, the offensive fallback and [SuggestionEngine.acceptedWord]'s
+     * alt branch all find nothing, do nothing, and pass while measuring the
+     * opposite of what they claim.
+     *
+     * That is not hypothetical. On 2026-09-05 a probe built over French alone
+     * reported that enabling English as the second language stopped none of
+     * the 79 words in 200 that French autocorrect overwrites; with both
+     * loaded it stops all 79. The engine was answering about a language whose
+     * word list it had never seen.
+     *
+     * [SuggestionEngine.forTesting] now throws instead of answering, and this
+     * is the test that it does. The app itself keeps the old behaviour on
+     * purpose — see the note there — because an unavailable language must not
+     * take the keyboard down with it.
+     */
+    @Test
+    fun `an engine built over one language refuses to answer about another`() {
+        val e = engine("en")
+        var threw = false
+        try {
+            e.acceptedWord("kitap", "tr", loc("tr"))
+        } catch (expected: AssertionError) {
+            threw = true
+        }
+        assertTrue(
+            "the test engine answered about Turkish without a Turkish word " +
+                "list, which is how a bilingual assertion passes while " +
+                "measuring nothing",
+            threw
+        )
+        // ...and the language it *was* built over still works, so the guard is
+        // not simply breaking every engine.
+        assertTrue("English stopped answering", e.acceptedWord("keyboard", "en", loc("en")))
+    }
+
 }

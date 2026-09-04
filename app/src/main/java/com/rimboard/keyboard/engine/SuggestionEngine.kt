@@ -303,8 +303,51 @@ class SuggestionEngine private constructor(
          * per-instance. A case that passes true owes the next case a
          * [trimLanguageCaches] with an empty set.
          */
+        /**
+         * An engine for tests, which refuses to answer about a language it
+         * cannot serve.
+         *
+         * In the app a missing dictionary asset yields an empty dictionary and
+         * a log line, deliberately: an unavailable language must not take the
+         * keyboard down with it, and [dictionary] says so where it happens.
+         * Under a unit test that same silence is a trap, because the empty
+         * dictionary answers every question confidently and wrongly.
+         *
+         * The shape it takes: an engine built over one language's assets and
+         * then asked about a *second* one. Every rule that consults the other
+         * enabled language -- the correction refusal in [correctionCandidates],
+         * the offensive fallback, [acceptedWord]'s alt branch -- is asking a
+         * list with nothing in it, so it finds nothing, so it does nothing, and
+         * the test passes while measuring the opposite of what it says.
+         *
+         * That was believed for several minutes on 2026-09-05: a probe built
+         * `forTesting` over French alone and reported that enabling English as
+         * the second language stopped none of the 79 words in 200 that French
+         * autocorrect overwrites. Loaded with both, it stops all 79.
+         *
+         * So the test engine throws instead. Only for `dictionaries/`, because
+         * that is the asset whose absence is indistinguishable from a language
+         * having nothing to say; the optional ones (suffixes, prefixes, emoji,
+         * offensive) are absent for real languages by design and every caller
+         * already treats null as "this language has none".
+         */
         internal fun forTesting(userData: UserData, shared: Boolean = false, assets: Assets) =
-            SuggestionEngine(assets, null, userData, shared = shared)
+            SuggestionEngine(
+                Assets { path ->
+                    val stream = assets.open(path)
+                    if (stream == null && path.startsWith("dictionaries/")) {
+                        throw AssertionError(
+                            "the test engine was asked for " + path + " and cannot " +
+                                "serve it. An engine built over one language answers " +
+                                "about every other with an empty dictionary, so every " +
+                                "rule that consults the second language passes while " +
+                                "measuring nothing. Build it over both."
+                        )
+                    }
+                    stream
+                },
+                null, userData, shared = shared
+            )
 
         /**
          * Dictionaries, shared by every engine reading the bundled assets.
