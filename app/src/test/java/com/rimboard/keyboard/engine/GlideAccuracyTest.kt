@@ -740,20 +740,31 @@ class GlideAccuracyTest {
      * so the common words carry the weight they really have, decoded through
      * [SuggestionEngine.glideFor] with the two preceding words as context —
      * which is what a swipe gets in a sentence and which no arm here had ever
-     * supplied. Context is worth **+1.56 points of top-1** on its own,
-     * measured by running this with and without it.
+     * supplied.
      *
-     * At the shipped weight, 13,015 swipes over all twenty-two languages:
+     * At the shipped weights, 13,015 swipes over all twenty-two languages:
      *
-     *     DELIBERATE   top1 92.2%   offered 99.4%
-     *     NATURAL           71.6%           93.5%
-     *     SLOPPY            43.8%           77.0%
-     *     HURRIED           47.2%           78.4%
-     *     all               63.7%           87.1%
+     *     DELIBERATE   top1 93.3%   offered 99.4%
+     *     NATURAL           76.9%           94.2%
+     *     SLOPPY            53.1%           80.0%
+     *     HURRIED           55.9%           81.5%
+     *     all               69.8%           88.8%
      *
-     * The floors are set well under those. What they are for is a change that
-     * moves the honest number while leaving the flattering one alone, which is
-     * exactly what six years of tuning against `sample` would have done.
+     * **The word sample here is honest and the context is not.** These
+     * sentences are `fixtures/prose_*.txt`, and `tools/build_ngrams.py` says
+     * what they are: "their prose fixtures come from this same corpus, so the
+     * model would have been scored on the sentences it counted." So every
+     * figure above that depends on the prediction model is optimistic, and the
+     * one to believe is `the decoder on sentences the model has not counted`,
+     * which reads 55.4% over its six languages. The gap is not small and not
+     * uniform: sweeping the glide context weight reads +9.35 points here and
+     * +1.66 there.
+     *
+     * This arm keeps its value as a broad ratchet — twenty-two languages, a
+     * real word sample, and blind to nothing but the corpus overlap. The floors
+     * are set well under it. What they are for is a change that moves the
+     * honest number while leaving the flattering one alone, which is exactly
+     * what tuning against `sample` would have done.
      */
     @Test
     fun `the decoder measured on the words people write`() {
@@ -804,6 +815,109 @@ class GlideAccuracyTest {
             "the right word is reaching the strip less often:\n" + lines,
             of >= PROSE_OFFERED_FLOOR
         )
+    }
+
+    /**
+     * The decoder on sentences the bundled model has never counted.
+     *
+     * `the decoder measured on the words people write` fixed the *word* sample
+     * and left the *context* one contaminated, which is worth stating plainly
+     * rather than leaving for somebody to find. Its swipes come from
+     * `fixtures/prose_*.txt`, and `tools/build_ngrams.py` says what those are:
+     * "their prose fixtures come from this same corpus, so the model would have
+     * been scored on the sentences it counted." Every context-sensitive number
+     * that arm prints is therefore optimistic.
+     *
+     * How optimistic is not a guess. Sweeping [SuggestionEngine.GLIDE_CONTEXT_WEIGHT]
+     * on the contaminated fixtures read **+9.35 points** and rose monotonically
+     * to the edge of the sweep with no knee at all — the signature of a model
+     * being rewarded for reciting. On the held-out split the same sweep reads
+     * **+1.66**, with a knee, and with deliberate swipes starting to be
+     * overruled past five.
+     *
+     * `fixtures/heldout` is what `build_ngrams.py --fixtures` writes: a model
+     * built from nine tenths of a corpus and the remaining tenth beside it, for
+     * the six languages that split exists for. This arm reads that pair, so its
+     * absolute numbers are lower than the contaminated arm's and are the ones
+     * to believe. At the shipped weight, 6,000 swipes:
+     *
+     *     DELIBERATE  86.2%      NATURAL  61.2%
+     *     SLOPPY      35.7%      HURRIED  38.6%
+     *     all         55.4% top-1, 80.1% in the strip's five
+     *
+     * The floors are a ratchet on the honest number. What they exist to catch
+     * is a change that improves the contaminated arm and costs this one, which
+     * is exactly what a context weight fitted to the fixtures would have done.
+     */
+    @Test
+    fun `the decoder on sentences the model has not counted`() {
+        val dir = File(fixtures(), "heldout")
+        val langs = dir.list().orEmpty()
+            .filter { it.startsWith("prose_") && it.endsWith(".txt") }
+            .map { it.removePrefix("prose_").removeSuffix(".txt") }
+            .sorted()
+        assertTrue("no held-out fixtures found", langs.isNotEmpty())
+        val perHand = LinkedHashMap<String, IntArray>()
+        var n = 0
+        var top = 0
+        var inFive = 0
+        for (lang in langs) {
+            val loc = Locale.forLanguageTag(lang)
+            // The model built from the other nine tenths. Anything else counts
+            // the same corpus twice.
+            val files = mapOf(
+                "dictionaries/" + lang + ".txt" to
+                    File(assets(), "dictionaries/" + lang + ".txt").readText(),
+                "predictions/" + lang + ".txt" to
+                    File(dir, "pred2_" + lang + ".txt").readText()
+            )
+            val engine = SuggestionEngine.forTesting(userData) { p -> files[p]?.byteInputStream() }
+            val prox = KeyProximity.forLang(lang)
+            val dict = listFor(lang, loc)
+            val trip = ArrayList<Triple<String, String, String>>()
+            for (line in File(dir, "prose_" + lang + ".txt").readLines()) {
+                val toks = Regex("[^ ]+").findAll(line.lowercase(loc))
+                    .map { m -> m.value.filter { it.isLetter() } }
+                    .filter { it.isNotEmpty() }
+                    .toList()
+                for (i in toks.indices) {
+                    val t = toks[i]
+                    if (i < 1 || t.length !in 4..10 || dict.frequency(t) <= 0) continue
+                    trip.add(Triple(if (i >= 2) toks[i - 2] else "", toks[i - 1], t))
+                    if (trip.size >= 250) break
+                }
+                if (trip.size >= 250) break
+            }
+            for (hand in Hand.values()) {
+                val rnd = Random(seed = 20260823 + hand.ordinal)
+                val k = perHand.getOrPut(hand.name) { IntArray(3) }
+                for ((p2, p1, w) in trip) {
+                    val pts = path(w, hand, prox, rnd) ?: continue
+                    val gp = GlidePath.of(pts, prox) ?: continue
+                    val offered = engine.glideFor(
+                        gp, lang, loc, personalized = false, prevWord2 = p2, prevWord = p1
+                    )
+                    n++; k[2]++
+                    if (offered.firstOrNull() == w) { top++; k[0]++ }
+                    if (offered.contains(w)) { inFive++; k[1]++ }
+                }
+            }
+        }
+        val lines = StringBuilder("held out over " + langs + "%n".format())
+        val weak = ArrayList<String>()
+        for ((hand, k) in perHand) {
+            val t1 = k[0].toDouble() / k[2]
+            lines.append("%-11s n=%5d  top1 %5.1f%%  in five %5.1f%%%n"
+                .format(hand, k[2], t1 * 100, 100.0 * k[1] / k[2]))
+            if (t1 < HELDOUT_HAND_TOP1_FLOOR) weak.add(hand + " " + "%.1f".format(t1 * 100) + "%")
+        }
+        val t1 = top.toDouble() / n
+        val of = inFive.toDouble() / n
+        lines.append("all         n=%5d  top1 %5.1f%%  in five %5.1f%%%n".format(n, t1 * 100, of * 100))
+        println(lines)
+        assertTrue("a hand has fallen through its held-out floor:" + NL + lines + weak, weak.isEmpty())
+        assertTrue("held-out glide top-1 has regressed:" + NL + lines, t1 >= HELDOUT_TOP1_FLOOR)
+        assertTrue("the right word reaches the strip less often:" + NL + lines, of >= HELDOUT_IN_FIVE_FLOOR)
     }
 
     /**
@@ -1034,6 +1148,26 @@ class GlideAccuracyTest {
     }
 
     private companion object {
+        /** A newline, so a message can carry a report without a format string. */
+        val NL: String = System.lineSeparator()
+
+        /**
+         * Floors for `the decoder on sentences the model has not counted`,
+         * which is the honest arm for anything context-sensitive. Measured
+         * 55.4% / 80.1% overall; worst hand SLOPPY at 35.7% / 66.5% in five.
+         *
+         * The top-1 floor is deliberately set *between* the value the borrowed
+         * correction weight gave (53.8%) and the one
+         * [SuggestionEngine.GLIDE_CONTEXT_WEIGHT] gives (55.4%), so putting
+         * that constant back fails this arm. A floor with the old value inside
+         * it would ratchet nothing: the whole point of this arm is that the
+         * contaminated one cannot tell the two apart -- it reads 63.7% against
+         * 69.8% and calls the wrong one better by five times the real margin.
+         */
+        const val HELDOUT_TOP1_FLOOR = 0.54
+        const val HELDOUT_IN_FIVE_FLOOR = 0.75
+        const val HELDOUT_HAND_TOP1_FLOOR = 0.30
+
         /** Under the worst arm measured, with room for corpus noise. */
         const val GLIDE_TOP1_FLOOR = 0.60
 

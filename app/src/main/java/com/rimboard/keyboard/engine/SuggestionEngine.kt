@@ -441,6 +441,85 @@ class SuggestionEngine private constructor(
          */
         const val CONTEXT_CORRECTION_WEIGHT = 1.25
 
+        /**
+         * The same tie-break on the glide path, which wants a much louder one.
+         *
+         * This used to be [CONTEXT_CORRECTION_WEIGHT] itself, borrowed. The two
+         * paths weigh the same evidence against very different alternatives. A
+         * correction competes with a word the user actually typed, so context
+         * is allowed to break a near-tie and no more. A swipe competes with
+         * whatever else the finger's curve could have been, and **the right
+         * word is in the candidate set far more often than it is on top**:
+         * measured over 13,015 prose swipes, it is in the 24 scored 95.6% of
+         * the time, on the strip's five 87.1%, and first only 63.7%. Nearly
+         * thirty-two points of the loss is ranking rather than generation, and
+         * this is the only evidence in the ranking that did not come from the
+         * finger.
+         *
+         * ## The number this sweep first produced was wrong, and the reason is
+         * worth more than the number
+         *
+         * Swept over the prose fixtures it read +9.35 points at a weight of
+         * twelve, rising monotonically with no knee. That is what fitting the
+         * training set looks like. `tools/build_ngrams.py` says so in its own
+         * words -- "their prose fixtures come from this same corpus, so the
+         * model would have been scored on the sentences it counted" -- so a
+         * heavier context weight was being rewarded for reciting.
+         *
+         * Re-swept on `fixtures/heldout`, which is a model built from nine
+         * tenths of each corpus and the tenth beside it, for the six languages
+         * that split exists for. 6,000 swipes:
+         *
+         *     cw     top1     in5     DELIB   NAT    SLOPPY  HURRIED
+         *     0.00  52.75   79.67    86.0   59.2    31.1    34.7
+         *     1.25  53.77   79.87    86.2   60.1    32.5    36.2   was here
+         *     3.00  54.87   80.12    86.3   61.1    34.7    37.4
+         *     4.00  55.23   80.12    86.3   61.2    35.3    38.1
+         *     5.00  55.43   80.13    86.2   61.2    35.7    38.6   here
+         *     6.00  55.60   80.12    86.1   61.3    36.2    38.8
+         *     12.0  55.67   80.12    85.8   60.9    36.6    39.3
+         *     40.0  55.25   80.13    84.7   60.3    36.8    39.3
+         *
+         * **+1.66 rather than +9.35**: four fifths of the apparent gain was the
+         * model being asked about sentences it had counted.
+         *
+         * Five, because it is the largest value at which no hand is worse than
+         * it was. DELIBERATE peaks at three to four and falls away after five
+         * -- past that the model starts overruling a swipe that was drawn
+         * clearly, which is the harm this constant can do -- while the unsteady
+         * hands go on gaining to twelve in increments of a tenth. Six and eight
+         * are worth another fifth of a point and cost deliberate swipes a
+         * tenth; the flat region runs four to twelve either way, so this is not
+         * a number to agonise over, and it is the middle of it that no arm
+         * loses on.
+         *
+         * The six languages are cs, da, fi, hr, pl and sk, because those are
+         * the corpora the held-out split exists for. They are the small ones,
+         * where `build_ngrams.py` records context helping most, so this may
+         * read high for English. The honest reading of that is the direction of
+         * the effect and its rough size, which is what a constant on a broad
+         * plateau needs.
+         *
+         * ## What the sweep does not cover
+         *
+         * It ran `personalized = false`, so every rank above came from the
+         * bundled model and none from the user's own n-grams. Those enter the
+         * same rank map and can enter it at the top: [UserData.predictScores]
+         * returns raw counts with a trigram worth four, against the bundled
+         * model's 3.0 for its first row, so **one sighting of an exact
+         * two-word context outranks everything shipped** and takes the whole
+         * bonus.
+         *
+         * That was true at 1.25 and is four times louder now, which is worth
+         * stating rather than discovering. Two things bound it. The evidence is
+         * real -- the user has typed that exact pair after that exact
+         * context -- and it is the premise of every personalised path here.
+         * And a swipe corrected on the strip calls [UserData.forgetNgram] on
+         * what it rejected and records what was chosen, so a pair learned from
+         * a mistake is taken back by the gesture that notices it.
+         */
+        const val GLIDE_CONTEXT_WEIGHT = 5.0
+
 
         /**
          * How thin the completion list has to get before near-miss prefixes are
@@ -1525,9 +1604,13 @@ class SuggestionEngine private constructor(
      * [Dictionary], so it settles ties rather than overriding the geometry of
      * what was actually typed.
      */
-    private fun contextBonus(word: String, contextRank: Map<String, Int>): Double {
+    private fun contextBonus(
+        word: String,
+        contextRank: Map<String, Int>,
+        weight: Double = CONTEXT_CORRECTION_WEIGHT
+    ): Double {
         val r = contextRank[word] ?: return 0.0
-        return CONTEXT_CORRECTION_WEIGHT / (r + 1.0)
+        return weight / (r + 1.0)
     }
 
     /**
@@ -2422,7 +2505,12 @@ class SuggestionEngine private constructor(
                 prevWord2, prevWord, lang, locale, altLang, altLocale, personalized
             )
         return merged.entries
-            .sortedByDescending { it.value + contextBonus(it.key, contextRank) }
+            // [GLIDE_CONTEXT_WEIGHT], not the correction one this used to
+            // borrow: the two paths weigh the same evidence against very
+            // different alternatives.
+            .sortedByDescending {
+                it.value + contextBonus(it.key, contextRank, GLIDE_CONTEXT_WEIGHT)
+            }
             // The same two refusals every other path applies, and applied here
             // last because a swipe has three sources -- the primary list, the
             // second language, and what the user has typed before -- and a
