@@ -19,17 +19,24 @@ class KeyProximity private constructor(
      * For a letter the layout does not draw, the key that hosts it under a long
      * press. See [hostOf].
      */
-    private val hosts: Map<Char, Char>
+    private val hosts: Map<Char, Char>,
+    /**
+     * Where the first letter of each row sits, in key widths, read from the
+     * layout rather than assumed. See [Companion.rowOffsets].
+     */
+    offsets: List<Float> = QWERTY_OFFSETS
 ) {
 
     private val xs = HashMap<Char, Float>()
     private val ys = HashMap<Char, Float>()
 
     init {
-        // Column centres per row, matching the visual stagger: the middle row
-        // is inset ~1 unit and the bottom row ~2 units (it sits between the
-        // shift and backspace keys).
-        val offsets = floatArrayOf(0.5f, 1.0f, 2.0f)
+        // Column centres per row, matching the visual stagger. These used to be
+        // the constant [0.5, 1.0, 2.0], which is the QWERTY shape -- ten keys,
+        // then nine centred, then seven between a shift and a backspace of one
+        // and a half. Five shipped layouts are not that shape and were placed
+        // half a key width from where they are drawn. See
+        // [Companion.rowOffsets].
         rows.forEachIndexed { r, row ->
             val off = offsets.getOrElse(r) { 0.5f }
             row.forEachIndexed { i, ch ->
@@ -179,9 +186,75 @@ class KeyProximity private constructor(
          * The letter rows and the popup hosts of [lang]'s real layout, read in
          * one traversal so they cannot describe different keyboards.
          */
-        private fun geometry(lang: String): Pair<List<String>, Map<Char, Char>> = try {
+        /** The QWERTY stagger, which is what a hypothetical grid is asked in. */
+        private val QWERTY_OFFSETS = listOf(0.5f, 1.0f, 2.0f)
+
+        /**
+         * Where the first letter of each row actually sits, in key widths.
+         *
+         * This was the constant [0.5, 1.0, 2.0] for as long as the class
+         * existed, and its own header promised something else: that every
+         * letter is placed "on the same staggered three-row grid that [Layouts]
+         * draws" and that reading the rows from the real layout means "a layout
+         * change can never leave tap targeting pointing at the wrong keys". The
+         * *letters* were read from the layout. The *positions* were assumed,
+         * and the two are different claims.
+         *
+         * The constant is the QWERTY shape -- ten keys, nine centred under
+         * them, seven between a shift and a backspace of one and a half. Five
+         * of the twenty-two shipped layouts are not that shape:
+         *
+         *     lang  rows        true offsets        assumed
+         *     es    10, 10, 7   0.50, 0.50, 2.00    0.5, 1.0, 2.0
+         *     fr    10, 10, 6   0.50, 0.50, 2.00
+         *     ru    11, 11, 9   0.50, 0.50, 1.50
+         *     uk    11, 11, 9   0.50, 0.50, 1.50
+         *     el     9,  9, 7   1.00, 1.00, 2.00
+         *
+         * Spanish and French carry a tenth key in the middle row -- "ñ", and
+         * AZERTY's "m" -- so it is flush rather than inset. Greek has nine in
+         * the top row, so that one is inset instead. Russian and Ukrainian are
+         * eleven wide with narrower side keys.
+         *
+         * Half a key width is not a rounding error here. It is the difference
+         * between "directly below" and "half a key over", and it inverts
+         * adjacency: with the assumed offsets Spanish "a" is nearest to "w"
+         * when it is drawn directly under "q". Every substitution cost across
+         * rows in those five languages was measured against keys that are not
+         * where the finger sees them.
+         *
+         * Read from the layout now, walking the row's real key widths so a key
+         * that is not a letter -- French's apostrophe sits in the bottom
+         * letter row -- takes its space like anything else.
+         */
+        private fun rowOffsets(rows: List<Row>, unitsPerRow: Float): List<Float> =
+            rows.map { row ->
+                val rowUnits = row.keys.fold(0f) { a, k -> a + k.width }
+                var x = (unitsPerRow - rowUnits) / 2f
+                var first = Float.NaN
+                for (k in row.keys) {
+                    val isLetter = k.type == KeyType.CHARACTER &&
+                        k.label.length == 1 && k.label[0].isLetter()
+                    if (isLetter && first.isNaN()) first = x + k.width / 2f
+                    x += k.width
+                }
+                if (first.isNaN()) 0.5f else first
+            }
+
+        private fun geometry(
+            lang: String
+        ): Triple<List<String>, Map<Char, Char>, List<Float>> = try {
             val layout = Languages.byCode(lang).layout(false, false)
-            val rows = layout.rows
+            // The rows are picked first and the offsets read from *those*, so
+            // the positions describe the same rows the letters came from.
+            val letterRows = layout.rows.filter { row ->
+                row.keys.count {
+                    it.type == KeyType.CHARACTER && it.label.length == 1 &&
+                        it.label[0].isLetter()
+                } >= 4
+            }.take(3)
+            val offsets = rowOffsets(letterRows, layout.unitsPerRow)
+            val rows = letterRows
                 .map { row ->
                     row.keys
                         .filter {
@@ -190,8 +263,6 @@ class KeyProximity private constructor(
                         }
                         .joinToString("") { it.label }
                 }
-                .filter { it.length >= 4 }
-                .take(3)
                 .ifEmpty { qwerty }
             val hosts = HashMap<Char, Char>()
             for (row in layout.rows) {
@@ -212,15 +283,15 @@ class KeyProximity private constructor(
                     }
                 }
             }
-            rows to hosts
+            Triple(rows, hosts, if (rows === qwerty) QWERTY_OFFSETS else offsets)
         } catch (_: Exception) {
-            qwerty to emptyMap()
+            Triple(qwerty, emptyMap(), QWERTY_OFFSETS)
         }
 
         @Synchronized
         fun forLang(lang: String): KeyProximity = cache.getOrPut(lang) {
-            val (rows, hosts) = geometry(lang)
-            KeyProximity(rows, hosts)
+            val (rows, hosts, offsets) = geometry(lang)
+            KeyProximity(rows, hosts, offsets)
         }
 
         /**
