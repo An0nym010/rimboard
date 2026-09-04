@@ -3,6 +3,7 @@ package com.rimboard.keyboard.engine
 import com.rimboard.keyboard.model.KeyProximity
 import com.rimboard.keyboard.spell.SpellJudge
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -802,6 +803,156 @@ class AutocorrectAccuracyTest {
                 .toList()
         }
 
+    private fun fixturesDir(): File =
+        listOf(File("src/test/fixtures"), File("app/src/test/fixtures")).first { it.isDirectory }
+
+    /** Token-weighted targets from running prose, not the head of the list. */
+    private fun proseTargets(
+        lang: String, locale: Locale, engine: SuggestionEngine, count: Int
+    ): List<String> {
+        val out = ArrayList<String>()
+        val f = File(fixturesDir(), "prose_" + lang + ".txt")
+        if (!f.isFile) return out
+        for (line in f.readLines()) {
+            for (raw in Regex("[^ ]+").findAll(line.lowercase(locale)).map { it.value }) {
+                val t = raw.filter { it.isLetter() }
+                if (t.length in 5..9 && engine.acceptedWord(t, lang, locale)) out.add(t)
+                if (out.size >= count) return out
+            }
+        }
+        return out
+    }
+
+    /**
+     * The commit arm, asked about the population it will actually meet.
+     *
+     * `autocorrect applies its fixes without overwriting words that were
+     * right` measures two languages, English and Turkish, each against the
+     * other. Both halves of that are unrepresentative, and in the same
+     * direction — they make the keyboard look better than it is.
+     *
+     * **The targets come off the top of the frequency list.** [sample] draws
+     * from rank 80 and takes the first that fit, so every typo it repairs is a
+     * typo of a very common word. Over running prose the same repair rate is
+     * eight points lower: **95.1% against 87.8%**, pooled over eight languages
+     * and 3,698 typos.
+     *
+     * **And the words it must not overwrite come from a language nobody
+     * types.** English and Turkish share almost no orthography, so an
+     * "alien" word is one the dictionary has no near neighbour for. The
+     * foreign words a person really types are English ones, in a European
+     * language, and those are one cheap edit from a real word constantly:
+     *
+     *     language   destroys, alien=en   alien=tr   of the en figure, accent-only
+     *     fr              40%               9%              36 of 79
+     *     es              24%              13%               0
+     *     it              21%              11%               0
+     *     de              19%              10%               1
+     *     pl              17%              14%               1
+     *     tr              15%    (alien=en)                  4
+     *     en               8%    (alien=tr)                  0
+     *
+     * The project's own ceiling for this is 25%, asserted in the arm above.
+     * French is at 40% against the language a French speaker is likeliest to
+     * borrow from, and nothing measured it.
+     *
+     * ## Two mechanisms, and only one of them has a setting
+     *
+     * French's excess is not more of the same. **Forty-six percent of it is
+     * accent restoration** — `different` to `différent`, `piece` to `pièce`,
+     * `president` to `président` — which is a different code path with a
+     * different gate. An accent edit costs almost nothing spatially, so
+     * [Dictionary.AUTO_MAX_COST_PER_CHAR] never sees it, and the user-facing
+     * cautious setting, whose whole purpose is "overrule me less", moves
+     * French by two points (40% to 38%) while working as designed elsewhere
+     * (Italian 21 to 16, Polish 17 to 12, Turkish 15 to 10).
+     *
+     * ## The obvious lever, measured and refused
+     *
+     * That leaves [Dictionary.BARE_KEY_RATIO], which is what decides an accent
+     * restoration. Swept, against the population the feature exists for —
+     * accented words of the language typed bare — and the population it costs:
+     *
+     *     ratio   fr restores   fr accents English   all restored   all accented
+     *       50        68%            36 of 200          65.0%           3.4%
+     *      100        30%            12 of 200          51.8%           1.6%
+     *      200         3%             1 of 200          34.2%           0.6%
+     *      400         0%             1 of 200          25.4%           0.3%
+     *
+     * The two move together and steeply. Halving the cost costs French
+     * thirty-eight points of the feature, and the population that types French
+     * without accents is far larger than the one typing English words into
+     * French. Fifty stands, and wiring the cautious setting to a higher ratio
+     * would hand those users a keyboard that has stopped restoring accents —
+     * which is the thing [Dictionary.AUTO_MAX_COST_PER_CHAR_CAUTIOUS]'s own
+     * note says cautious must not become.
+     *
+     * So this arm changes nothing and measures what was invisible. The real
+     * answer for somebody who writes two languages is to enable the second
+     * one, which is what makes [SuggestionEngine.acceptedWord] ask it too.
+     */
+    @Test
+    fun `the commit arm on the population it will actually meet`() {
+        val out = StringBuilder()
+        val over = ArrayList<String>()
+        var fixedProse = 0
+        var askedProse = 0
+        for ((lang, close, far) in listOf(
+            Triple("fr", "en", "tr"), Triple("es", "en", "tr"), Triple("it", "en", "tr"),
+            Triple("de", "en", "tr"), Triple("pl", "en", "tr")
+        )) {
+            val loc = Locale.forLanguageTag(lang)
+            val engine = realEngine(lang)
+            val prox = KeyProximity.forLang(lang)
+            val prose = proseTargets(lang, loc, engine, 60)
+            for (slip in Slip.values()) {
+                val rnd = Random(seed = 20260820 + slip.ordinal)
+                for (w in prose) {
+                    val typo = damage(w, slip, prox, rnd) ?: continue
+                    if (engine.acceptedWord(typo, lang, loc)) continue
+                    askedProse++
+                    if (engine.correctionFor(typo, lang, loc) == w) fixedProse++
+                }
+            }
+            val rates = IntArray(2)
+            var accentOnly = 0
+            for ((i, foreign) in listOf(close, far).withIndex()) {
+                val alien = alienWords(engine, lang, loc, foreign, 200)
+                for (w in alien) {
+                    val fix = engine.correctionFor(w, lang, loc) ?: continue
+                    if (fix.lowercase(loc) == w) continue
+                    rates[i]++
+                    if (i == 0 &&
+                        com.rimboard.keyboard.model.Diacritics.fold(fix.lowercase(loc)) == w
+                    ) accentOnly++
+                }
+            }
+            out.append(
+                "%-3s destroys %3d/200 against %s, %3d/200 against %s; accent-only %d%n"
+                    .format(lang, rates[0], close, rates[1], far, accentOnly)
+            )
+            // A ratchet, not the 25% ceiling the distant-pair arm asserts: this
+            // population is over it and the sweep above says the levers cost
+            // more than they save. What must not happen is that it gets worse
+            // without anyone noticing, which is exactly what has been possible
+            // until now.
+            if (rates[0] > CLOSE_DESTROY_CEILING) {
+                over.add(lang + " " + rates[0] + "/200 against " + close)
+            }
+            // And the close pair must stay the harder one, or this arm has
+            // stopped measuring what it claims to.
+            if (rates[0] < rates[1]) over.add(lang + " close pair is now the easier one")
+        }
+        val proseRate = fixedProse.toDouble() / askedProse
+        out.append("prose targets: fixes %.1f%% (%d/%d)%n".format(proseRate * 100, fixedProse, askedProse))
+        println(out)
+        assertEquals("the close-language destroy rate has grown:\n" + out, emptyList<String>(), over)
+        assertTrue(
+            "autocorrect has stopped repairing typos of ordinary prose words:\n" + out,
+            proseRate >= PROSE_FIX_FLOOR
+        )
+    }
+
     private fun measureCommit(
         lang: String, locale: Locale, foreign: String, words: Int,
         cautious: Boolean = false
@@ -1216,6 +1367,17 @@ class AutocorrectAccuracyTest {
     }
 
     private companion object {
+        /**
+         * A ratchet on the close-language destroy rate rather than a standard.
+         * The distant-pair arm asserts 25%; this population is over it and the
+         * ratio sweep in the test above says every lever costs more than it
+         * saves. What must not happen is that it grows unnoticed.
+         */
+        const val CLOSE_DESTROY_CEILING = 90
+
+        /** Under the 87.8% measured over eight languages, with room for noise. */
+        const val PROSE_FIX_FLOOR = 0.80
+
         /**
          * Pooled near-tail words recovered by the touch trail across all
          * twenty-two languages. Measured at 153; a third of headroom, because
