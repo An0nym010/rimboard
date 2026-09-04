@@ -179,6 +179,35 @@ class Dictionary(
          * finger drew. So the measure fires hardest exactly where the shape
          * evidence is least trustworthy.
          *
+         * ## What the errors actually are, which closes off the other idea
+         *
+         * Before reaching for another signal it is worth knowing what is being
+         * got wrong. Over the held-out arm, 2,674 errors in 6,000 swipes:
+         *
+         *     len(winner) - len(target)
+         *     -4  12.9%   -3  15.7%   -2  21.7%   -1  25.3%
+         *      0  16.7%   +1   6.2%   +2   1.2%   +3   0.3%
+         *
+         * **75.6% of errors are a winner shorter than the target**, against
+         * 7.8% longer, and the winner is the commoner word 88.2% of the time.
+         * That looks exactly like a missing length prior: the drawn path is
+         * long, the winner's curve is short, so penalise the mismatch.
+         *
+         * It has the wrong sign. Asked of those same errors, the drawn length
+         * is closer to the **winner's** ideal polyline than to the target's
+         * **82.5%** of the time. A length term would push harder towards the
+         * word already being chosen.
+         *
+         * The reason is in the hands and not in the arithmetic. A hurried or
+         * sloppy finger cuts corners -- that is what `Hand.cutMax` is -- so a
+         * long word drawn quickly really does trace something shorter, and
+         * really is closer in both shape and length to the short word. So this
+         * part of the gap is not a ranking mistake waiting to be fixed. It is
+         * the input being genuinely ambiguous, and the only thing that
+         * separates those two words is evidence from outside the gesture,
+         * which is [SuggestionEngine.GLIDE_CONTEXT_WEIGHT] and is already
+         * weighed as hard as the held-out data supports.
+         *
          * The proxy that is not confounded would measure the gesture itself --
          * its jitter, how far it strays from key centres. That one cannot be
          * validated here at all: the swipes are drawn by this file's own hand
