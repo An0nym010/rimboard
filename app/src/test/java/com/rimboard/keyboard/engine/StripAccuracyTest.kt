@@ -206,9 +206,12 @@ class StripAccuracyTest {
         sentences: List<String>,
         withContext: Boolean,
         typos: Boolean = false,
-        predictions: String? = null
+        predictions: String? = null,
+        personalized: Boolean = false,
+        engineOverride: SuggestionEngine? = null
     ): Savings {
-        val engine = if (predictions == null) realEngine(lang) else engineWith(lang, predictions)
+        val engine = engineOverride
+            ?: if (predictions == null) realEngine(lang) else engineWith(lang, predictions)
         // Resident before the first keystroke, and not for speed.
         //
         // The keystroke path asks for the prediction model with mayLoad =
@@ -251,7 +254,7 @@ class StripAccuracyTest {
                 // call, and the reason a word can be free.
                 if (prev.isNotEmpty() || (withContext && i == 0)) {
                     val preds = engine.predictions(
-                        prev2, prev, lang, locale, SLOTS, personalized = false
+                        prev2, prev, lang, locale, SLOTS, personalized = personalized
                     )
                     if (preds.any { it.equals(w, ignoreCase = true) }) taken = 0
                 }
@@ -268,7 +271,7 @@ class StripAccuracyTest {
                     for (k in 1..typed.length) {
                         val res = engine.suggestionsFor(
                             typed.substring(0, k), lang, locale,
-                            allowAutocorrect = true, personalized = false,
+                            allowAutocorrect = true, personalized = personalized,
                             prevWord2 = prev2, prevWord = prev
                         )
                         if (strip(engine, res, lang, locale)
@@ -478,6 +481,130 @@ class StripAccuracyTest {
      * Printed rather than asserted. These are small corpora and 140 sentences;
      * the number is evidence for a decision, not a threshold to defend.
      */
+    /**
+     * The learned store must not cost keystrokes.
+     *
+     * Every other arm in this file runs `personalized = false`, so the thing
+     * that makes a keyboard *yours* — the words and word pairs it has watched
+     * you type — has never been measured end to end. This arm gives the engine
+     * a history and asks what it is worth.
+     *
+     * The history is real text fed exactly as the service feeds it on a
+     * committed word: [UserData.learnWord] and [UserData.recordNgram] for every
+     * word of it. The model is the held-out one and the text scored is the half
+     * neither the model nor the history has seen, so nothing here is asked
+     * about sentences it has already counted. Both split directions are run and
+     * pooled, because with seventy sentences a side a single word is worth two
+     * tenths of a point.
+     *
+     * **What it is worth: about +0.22 points, and that is a floor.** It grows
+     * with the history — +0.167 after roughly 390 words, +0.221 after about
+     * 1,500 — and both split directions agree on the sign.
+     *
+     * ## Why the obvious follow-up is a trap
+     *
+     * [SuggestionEngine.STATIC_WEIGHT] decides how loudly the shipped model
+     * speaks against a count of how often you have typed something. Swept here
+     * it improves monotonically and never turns over:
+     *
+     *     STATIC_WEIGHT    1.0     1.5     3.0     5.0     8.0    20.0   100
+     *     personal gain  -0.177  +0.061  +0.221  +0.350  +0.436  +0.490  +0.44
+     *
+     * Read literally that says "raise it, and keep raising it" — trust the
+     * shipped model, almost never the user. **The reason it says that is that
+     * this corpus cannot represent a person.** The history is drawn from the
+     * same distribution as the model's training data, so it holds no idiom the
+     * model lacks; it is a small noisy sample of what the model already knows
+     * well. Under those conditions preferring the model is simply correct, and
+     * the sweep dutifully says so. A real user's value is exactly the
+     * difference between their writing and the corpus average, and there is
+     * none of that difference in this data.
+     *
+     * So the sweep is recorded and not acted on, which is the same discipline
+     * `GlideAccuracyTest` learned the hard way: a measurement that covers one
+     * population must not set a constant that governs another.
+     *
+     * What is safe to take from it is this assertion. The harmful regime is
+     * real and reachable — at 1.0 the store costs 0.18 points — so a change
+     * that lets learned junk outrank the model would show up here. The `off`
+     * column reads 39.716% at every weight, which is the control: with
+     * personalisation off the model's rank ordering is scale-invariant, so this
+     * constant touches nothing but the personalised path.
+     */
+    @Test
+    fun `the learned store does not cost keystrokes`() {
+        val dir = File(fixtures(), "heldout")
+        val langs = dir.list().orEmpty()
+            .filter { it.startsWith("prose_") && it.endsWith(".txt") }
+            .map { it.removePrefix("prose_").removeSuffix(".txt") }.sorted()
+        val out = StringBuilder()
+        var onSum = 0.0
+        var offSum = 0.0
+        var halves = 0
+        for (lang in langs) {
+            val loc = Locale.forLanguageTag(lang)
+            val all = File(dir, "prose_$lang.txt").readLines().filter { it.isNotBlank() }
+            val half = all.size / 2
+            // A bigger history: the main prose fixture as well. It is the
+            // corpus the *shipped* model was built from, but the model used
+            // here is the held-out one, and the test half is text neither has
+            // seen -- so this is a user with more of their own writing behind
+            // them, not a leak.
+            val extra = File(fixtures(), "prose_$lang.txt").let {
+                if (it.isFile) it.readLines().filter { l -> l.isNotBlank() } else emptyList()
+            }
+            for (reversed in listOf(false, true)) {
+            val history = extra + (if (reversed) all.drop(half) else all.take(half))
+            val test = if (reversed) all.take(half) else all.drop(half)
+            val store = File.createTempFile("hist_" + lang, "").let { it.delete(); it.mkdirs(); it }
+            val ud = UserData.inDir(store)
+            // Fed exactly as the service feeds it on a committed word.
+            var words = 0
+            for (sentence in history) {
+                val ws = wordsOf(sentence, loc)
+                for ((i, w) in ws.withIndex()) {
+                    val lw = w.lowercase(loc)
+                    if (lw.length >= 2) ud.learnWord(lw)
+                    ud.recordNgram(
+                        if (i >= 2) ws[i - 2].lowercase(loc) else "",
+                        if (i >= 1) ws[i - 1].lowercase(loc) else "",
+                        lw
+                    )
+                    words++
+                }
+            }
+            val files = mapOf(
+                "dictionaries/$lang.txt" to File(assets(), "dictionaries/$lang.txt").readText(),
+                "predictions/$lang.txt" to File(dir, "pred2_$lang.txt").readText()
+            )
+            val engine = SuggestionEngine.forTesting(ud) { p -> files[p]?.byteInputStream() }
+            val on = measure(lang, loc, test, withContext = true, personalized = true,
+                engineOverride = engine)
+            val off = measure(lang, loc, test, withContext = true, personalized = false,
+                engineOverride = engine)
+            out.append("%-3s %-5s history %d words: personal %.2f%%  off %.2f%%  (%+.2f)%n"
+                .format(lang, if (reversed) "back" else "fwd", words,
+                        on.ksr * 100, off.ksr * 100, (on.ksr - off.ksr) * 100))
+            onSum += on.ksr * 100
+            offSum += off.ksr * 100
+            halves++
+            ud.shutdown()
+            store.deleteRecursively()
+            }
+        }
+        val on = onSum / halves
+        val off = offSum / halves
+        out.append("pooled over %d halves: personal %.3f%%  off %.3f%%  (%+.3f)%n"
+            .format(halves, on, off, on - off))
+        println(out)
+        assertTrue(
+            "the learned store is costing keystrokes rather than saving them:" +
+                System.lineSeparator() + out,
+            on >= off
+        )
+    }
+
+
     @Test
     fun `held-out context savings, for languages the fixtures cannot`() {
         val dir = File(fixtures(), "heldout")
