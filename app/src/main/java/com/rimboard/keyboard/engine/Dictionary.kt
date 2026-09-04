@@ -146,14 +146,46 @@ class Dictionary(
          *
          * What it costs is under a point on the two unsteady hands -- SLOPPY
          * 44.4 to 43.8, HURRIED 47.0 to 47.2 -- against about four points each
-         * on the two steady ones. And it does not settle the adaptive question
-         * either way: on this sample the hands disagree far more than the
-         * sentence above claimed (a per-hand oracle is worth about 1.8 points
-         * beyond eight, not 0.8), and the fit costs that would have to
-         * distinguish them are cleanly separated -- 0.10 key widths deliberate,
-         * 0.40 natural, 0.67 sloppy. That is a real piece of work with a real
-         * risk of fitting the synthetic finger rather than a human one, and it
-         * is now measurable rather than dismissed.
+         * on the two steady ones.
+         *
+         * ## Adapting the weight per swipe: measured, and refused
+         *
+         * On this sample the hands disagree far more than the old paragraph
+         * allowed: a per-hand oracle is worth about **1.8 points beyond
+         * eight**, not 0.8. So the question was worth asking properly rather
+         * than dismissing, and the obvious proxy is the best fit any candidate
+         * achieves, which separates the hands cleanly -- 0.10 key widths
+         * deliberate, 0.40 natural, 0.67 sloppy.
+         *
+         * It captures none of the 1.8 and costs a fifth of a point. Swept as
+         * `w = hi - (hi - lo) * min(minCost / c, 1)` over prose, against a
+         * fixed-weight control run in the same frame:
+         *
+         *     hi   lo   c     all      DELIB   NAT    SLOPPY  HURRIED
+         *      8    8   --   60.52     91.0   68.2    40.0    42.9    fixed
+         *     12    6  0.7   60.29     93.4   68.3    38.3    41.2
+         *     12    5  0.8   60.13     93.4   68.1    38.0    41.0
+         *     14    6  0.7   60.28     94.0   69.1    37.6    40.5
+         *     12    6  0.5   59.72     93.1   65.9    38.8    41.0
+         *     10    6  0.7   60.16     92.3   67.1    39.3    41.9
+         *
+         * Every setting is below the fixed weight. It buys two points on
+         * deliberate swipes and gives back more than that on the unsteady
+         * ones, which is the arm it was supposed to protect.
+         *
+         * **The proxy is confounded, and the reason is worth keeping.** A low
+         * best-fit does not mean the swipe was careful; it means *some* word
+         * fits the path well, and a short common word often does whatever the
+         * finger drew. So the measure fires hardest exactly where the shape
+         * evidence is least trustworthy.
+         *
+         * The proxy that is not confounded would measure the gesture itself --
+         * its jitter, how far it strays from key centres. That one cannot be
+         * validated here at all: the swipes are drawn by this file's own hand
+         * model, so a measure of steadiness would be tuned against the
+         * generator's definition of steadiness, and a gain would be evidence
+         * about the generator rather than about fingers. Left alone for that
+         * reason rather than for lack of a number.
          */
         const val GLIDE_SHAPE_WEIGHT = 8.0
 
