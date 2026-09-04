@@ -29,6 +29,31 @@ package com.rimboard.keyboard.model
  * German's and Turkish's do not — matches nothing and is unaffected, which is a
  * better guarantee than a list of languages somebody has to remember to update.
  *
+ * ## Which apostrophe
+ *
+ * Two characters are written as one in practice: U+0027 `'` and U+2019 `’`.
+ * Everything on the phone produces the second at some point — iOS smart
+ * punctuation by default, most web text, and this keyboard's own long-press on
+ * the apostrophe key (`Layouts.symbols`) — and the spell checker is asked
+ * about text the user did not type at all.
+ *
+ * Finding the split point has always accepted either. The **lookup** did not,
+ * because the halves were sliced out of the typed word and so carried the
+ * typed mark into a list that holds only the straight one. So the curly branch
+ * found the boundary and then asked for a key no dictionary has, and every
+ * contraction and elision written the common way was underlined:
+ *
+ *     accepted, of the apostrophe words in the prose fixtures
+ *     en   20 of 20 straight      0 of 20 curly
+ *     fr   69 of 70               0 of 70
+ *     it   22 of 22               0 of 22
+ *
+ * The two sibling clauses were never affected, and for the same reason this
+ * one now is not: [Morphology.apostropheSuffixed] and [InnerApostrophe.isWord]
+ * look up the halves *without* the mark, so what they ask for is a key the
+ * list has whichever mark was typed — Turkish and Ukrainian measure 10 of 10
+ * and 3 of 3 either way.
+ *
  * ## What stops it accepting anything
  *
  * Both halves have to be known and to clear the same frequency floor a compound
@@ -57,15 +82,24 @@ package com.rimboard.keyboard.model
  */
 object Elision {
 
+    /**
+     * The mark the word lists are written with, and the only one they hold.
+     * See [Apostrophe]: it is what a half is *looked up* with, whichever mark
+     * the text in front of us happens to use.
+     */
+    private const val LIST_MARK = Apostrophe.LIST_MARK
+
     /** Both kinds of apostrophe: typed straight, autocorrected to curly. */
-    private fun isApostrophe(c: Char) = c == '\'' || c == '’'
+    private fun isApostrophe(c: Char) = Apostrophe.isMark(c)
 
     /**
      * The two halves [wordLower] elides into, or null if it is not an elision.
      *
      * The apostrophe is kept on whichever half the dictionary stores it with,
-     * so the returned pair is exactly what was looked up rather than a
-     * reconstruction of it.
+     * and written as [LIST_MARK], so the returned pair is exactly what was
+     * looked up rather than a reconstruction of it. That is why the halves are
+     * built rather than sliced out of [wordLower]: slicing carries the typed
+     * mark into the lookup, and a curly one is a key no list has.
      */
     fun splitOf(
         wordLower: String,
@@ -79,12 +113,12 @@ object Elision {
             val right = wordLower.substring(i + 1)
             if (left.isEmpty() || right.isEmpty()) continue
             // The apostrophe belongs to the right half: don + 't.
-            val suffix = wordLower.substring(i)
+            val suffix = LIST_MARK + right
             if (frequency(left) >= minFrequency && frequency(suffix) >= minFrequency) {
                 return left to suffix
             }
             // The apostrophe belongs to the left half: l' + homme.
-            val prefix = wordLower.substring(0, i + 1)
+            val prefix = left + LIST_MARK
             if (frequency(prefix) >= minFrequency && frequency(right) >= minFrequency) {
                 return prefix to right
             }

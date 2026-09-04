@@ -49,13 +49,16 @@ class ElisionTest {
     fun `a curly apostrophe is the same word`() {
         // Autocorrect and several keyboards produce U+2019, and a word is not
         // a different word for having been typed on a different keyboard.
-        assertEquals("don" to "’t", Elision.splitOf("don’t", 500) {
-            when (it) {
-                "don" -> 4158644
-                "’t" -> 9628970
-                else -> 0
-            }
-        })
+        //
+        // Asked of the *straight* map, which is the whole point. The previous
+        // version handed the frequency function a "’t" entry of its own
+        // invention and asserted it came back, so it passed while the feature
+        // did not: no shipped list holds a single U+2019, and the real lookup
+        // was for a key that cannot exist. A fixture that invents the data
+        // under test proves the test rather than the code — see
+        // `ElisionRealListsTest` for the same case put to the lists that ship.
+        assertEquals("don" to "'t", split("don’t", english))
+        assertEquals("l'" to "homme", split("l’homme", romance))
     }
 
     @Test

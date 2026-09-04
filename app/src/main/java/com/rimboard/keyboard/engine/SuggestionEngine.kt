@@ -1315,7 +1315,19 @@ class SuggestionEngine private constructor(
          */
         underlining: Boolean = false
     ): Boolean {
-        val lower = typed.lowercase(locale)
+        // Two normalisations of the same kind and for the same reason: the
+        // lists are written lower case and with the straight apostrophe, so the
+        // query is put into that form before any of them is asked.
+        //
+        // Only the first was being done, and the word lists hold 9,536 entries
+        // containing an apostrophe — 5,168 English, 3,198 Italian, 1,170
+        // French — every one of them keyed on U+0027. So "aujourd’hui" and
+        // "po’" were certain misses rather than near ones, and the spell
+        // checker, whose text the user did not type, underlined every
+        // contraction and elision written the way most software writes them.
+        // See [com.rimboard.keyboard.model.Apostrophe].
+        val lower =
+            com.rimboard.keyboard.model.Apostrophe.asWritten(typed.lowercase(locale))
         val dict = dictionary(lang, locale)
         // Asked before the dictionary, because the dictionary says yes: the
         // frequency lists are built from web text and "hellooo", "helloooo" and
@@ -1361,7 +1373,8 @@ class SuggestionEngine private constructor(
         // for German compounds, French elision and both apostrophe rules: the
         // second language got a bare `contains` and the first got five rules.
         if (altLang == null || altLocale == null) return false
-        val altLower = typed.lowercase(altLocale)
+        val altLower =
+            com.rimboard.keyboard.model.Apostrophe.asWritten(typed.lowercase(altLocale))
         val altDict = dictionary(altLang, altLocale)
         // ...including the bare-key exception, which this did not ask and the
         // paragraph above claimed it did.
