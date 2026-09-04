@@ -176,4 +176,61 @@ class ReadmeVersionTest {
         const val ASSET_CEILING_MB = 80.0
     }
 
+    /**
+     * The README describes the strip the app actually draws.
+     *
+     * It read "verbatim | best match | alternative" — three slots — for two
+     * days after the strip went to five. The commit that widened it is called
+     * *"The strip's width was written down in five places, four of them in
+     * prose"*, and [com.rimboard.keyboard.model.StripLayout]'s own note says
+     * the stale prose "outlived it in six places". Every one of those was
+     * inside the code. The README is the copy a user reads, and it was not
+     * counted.
+     */
+    @Test
+    fun `the README describes as many chips as the strip has`() {
+        val spelled = mapOf(
+            3 to "three", 4 to "four", 5 to "five", 6 to "six", 7 to "seven", 8 to "eight"
+        )
+        val n = com.rimboard.keyboard.model.StripLayout.SLOTS
+        assertTrue("no word for $n chips; add one", spelled.containsKey(n))
+        val readme = File(root(), "README.md").readText()
+        assertTrue(
+            "the README does not say the strip holds " + spelled[n] + " chips. " +
+                "StripLayout.SLOTS is " + n + ", and the feature list is where " +
+                "somebody reads what this keyboard does.",
+            readme.contains("up to " + spelled[n] + " chips")
+        )
+    }
+
+    /**
+     * The README counts the contexts the bundled model actually ships.
+     *
+     * It claimed 282,000 while the assets held 567,009 — the figure was
+     * written before `MIN_PAIR` fell to 2 in `tools/build_ngrams.py`, which
+     * added rows, and nothing read it again. That understated the shipped
+     * model by more than half, in the paragraph that exists to say how big it
+     * is.
+     *
+     * Counted from the assets rather than pinned to a literal, so a rebuild
+     * fails this until the README is updated — which is the whole point, and
+     * the same argument as the version above.
+     */
+    @Test
+    fun `the README counts the prediction contexts that ship`() {
+        val dir = listOf(
+            File(root(), "app/src/main/assets/predictions"),
+            File("src/main/assets/predictions")
+        ).first { it.isDirectory }
+        val rows = dir.listFiles { f -> f.name.endsWith(".txt") }.orEmpty()
+            .sumOf { f -> f.readLines().count { it.isNotBlank() } }
+        val readme = File(root(), "README.md").readText()
+        val grouped = "%,d".format(rows)
+        assertTrue(
+            "the README says the bundled model has some other number of " +
+                "contexts; the assets hold " + grouped + ".",
+            readme.contains(grouped) || readme.contains(rows.toString())
+        )
+    }
+
 }

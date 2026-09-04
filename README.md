@@ -129,13 +129,15 @@ The latest release is **2.9.1**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
 - Auto-capitalization (sentence-aware), double-tap Shift for caps lock
 - Autocorrect (edit distance ≤ 2 against a frequency dictionary) with a
   one-tap "↩ original" revert chip that also teaches the keyboard your word
-- Suggestion strip: verbatim | best match | alternative, with the word that
-  will be auto-committed shown in bold/accent
+- Suggestion strip: up to five chips — what you typed, the best match and the
+  alternatives — with the word that will be auto-committed shown in
+  bold/accent; a narrow row drops chips from the right rather than squeezing
+  them
 - 200,000 words per language built in, 298,946 for English, and a deeper list
   per language you can add later — downloaded on the `online` build, imported
   from a file you fetched yourself on the `offline` one, checksum-checked
   either way
-- Next-word predictions from a bundled corpus model (282,000 one- and
+- Next-word predictions from a bundled corpus model (567,009 one- and
   two-word contexts across 22 languages) merged with what you have typed
   yourself, which is weighed as trigrams
 - Double-space inserts ". ", hold-and-slide the spacebar to move the cursor
