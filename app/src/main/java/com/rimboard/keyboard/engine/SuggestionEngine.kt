@@ -2658,8 +2658,26 @@ class SuggestionEngine private constructor(
         // "hi", "thanks", "I" and "the" are all far likelier openings than they
         // are continuations. It used to return nothing here, so the strip was
         // blank until the first word had been typed in full.
-        val key = if (prevWord.isEmpty()) UserData.START else prevWord.lowercase(locale)
-        val key2 = prevWord2.lowercase(locale)
+        // Lower case and the straight apostrophe: one normalisation in two
+        // halves, the same pair [acceptedWord] applies and for the same reason.
+        // See [com.rimboard.keyboard.model.Apostrophe]. Every key on both sides
+        // of this lookup is written that way -- the bundled model comes from a
+        // corpus that never wrote U+2019, and every learned row is filed under
+        // a word that has been through the same fold.
+        //
+        // The keyboard's own caller hands these over normalised already, since
+        // [com.rimboard.keyboard.model.SentenceContext] does it when it reads
+        // them out of the field. The spell checker does not: it takes its
+        // context from [com.rimboard.keyboard.model.SpellTokens], which reads
+        // the field's text directly and counts both marks a word character. So
+        // "don’t" arrived here as a key and matched nothing the user had ever
+        // typed, in the one caller that is asked about text the user did not
+        // write.
+        val key =
+            if (prevWord.isEmpty()) UserData.START
+            else com.rimboard.keyboard.model.Apostrophe.asWritten(prevWord.lowercase(locale))
+        val key2 =
+            com.rimboard.keyboard.model.Apostrophe.asWritten(prevWord2.lowercase(locale))
 
         // Both sources scored on one scale and then merged, rather than one
         // source winning outright. A hard cascade meant a word pair typed once

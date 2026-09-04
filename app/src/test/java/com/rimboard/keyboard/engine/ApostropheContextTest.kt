@@ -240,6 +240,45 @@ class ApostropheContextTest {
         )
     }
 
+    /**
+     * The learned store answers whichever mark the text in front of it uses.
+     *
+     * This is the last consumer of a context word, and the one the keyboard
+     * itself never exercises. `SentenceContext` normalises what it reads out
+     * of the field, so every learned row is filed under a straight mark -- but
+     * the **spell checker** takes its context from `SpellTokens`, which reads
+     * the field's own text and counts both marks a word character. So a user
+     * whose text uses U+2019 had a store full of rows their own sentences
+     * could not reach.
+     *
+     * Asserted of both marks in one test rather than of the curly one alone:
+     * a control that only shows the curly form answering cannot tell a working
+     * lookup from one that has started ignoring the mark altogether.
+     */
+    @Test
+    fun `a learned pair is found whichever apostrophe the context uses`() {
+        val e = engine("en")
+        val en = Locale.ENGLISH
+        val curly = Char(0x2019)
+        repeat(3) { userData.recordBigram("don't", "know") }
+        assertTrue(
+            "the straight form stopped answering",
+            e.predictions("", "don't", "en", en, 5, personalized = true).contains("know")
+        )
+        assertTrue(
+            "the same sentence written with U+2019 reaches none of it",
+            e.predictions("", "don" + curly + "t", "en", en, 5, personalized = true)
+                .contains("know")
+        )
+        // And the trigram key, which is the other half of the context.
+        repeat(3) { userData.recordNgram("i", "don't", "care") }
+        assertTrue(
+            "the trigram context is not normalised",
+            e.predictions("i", "don" + curly + "t", "en", en, 5, personalized = true)
+                .contains("care")
+        )
+    }
+
     /** And a mark with nothing after it is not a key. */
     @Test
     fun `a word ending in the mark falls back to nothing`() {
