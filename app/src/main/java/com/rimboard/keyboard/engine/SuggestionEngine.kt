@@ -580,6 +580,23 @@ class SuggestionEngine private constructor(
          * the effect and its rough size, which is what a constant on a broad
          * plateau needs.
          *
+         * ## The depth was asked again afterwards, and 24 is still enough
+         *
+         * [GLIDE_DEPTH] decides how many candidates are scored, and it was
+         * chosen when this bonus could move a word by at most 1.25. At 5.0 a
+         * candidate ranked below the cut on shape alone might plausibly deserve
+         * the top slot, so the question is worth re-asking rather than
+         * assuming the old answer survives. Held out, doubling it does almost
+         * nothing:
+         *
+         *     GLIDE_DEPTH   24: 55.4 / 80.1    32: 55.5 / 80.2    48: 55.5 / 80.2
+         *
+         * A word twenty-fifth on shape is a poor enough match that five units
+         * of context rarely lift it past four better ones. The recall is there
+         * -- the target is inside the 40 scored 97.3% of the time against 95.6%
+         * inside 24 -- so this is the ranking declining to use it rather than
+         * the generator failing to find it.
+         *
          * ## What the sweep does not cover
          *
          * It ran `personalized = false`, so every rank above came from the
