@@ -608,6 +608,36 @@ class RimBoardService : InputMethodService(),
         kind = initialKindFor(info)
         applyLayout()
         updateShiftState()
+        // Read the context out of the field rather than assuming it, before
+        // the strip is drawn for the first time.
+        //
+        // [onStartInputView] sets `prevWordForBigram = ""` and
+        // `atSentenceStart = true`, which together mean "the start of a
+        // sentence" -- and that is a guess about the field, made without
+        // looking at it. It is right for an empty box and wrong for every
+        // other one, and the keyboard is shown into a non-empty box constantly:
+        // a draft being edited, a search box holding the last query, and above
+        // all the ordinary case of hiding the keyboard mid-sentence, or leaving
+        // the app and coming back, and typing on.
+        //
+        // Two things went wrong there, and the second is the worse one. The
+        // strip offered sentence openers -- "hi", "thanks", "I" -- in the
+        // middle of a sentence, until a cursor move happened to bring
+        // `onUpdateSelection` along; and the next word committed was filed
+        // under [UserData.START], teaching the opener model that a mid-sentence
+        // word starts sentences. The openers are what fills the strip on an
+        // empty field, so the fault fed itself.
+        //
+        // Only when nothing is being composed, which is the same guard
+        // `onUpdateSelection` uses and for the same reason: mid-word the text
+        // before the cursor ends in half a word, and that is not the previous
+        // word. Reachable here through the two callers that rebuild the input
+        // view without restarting input -- a rotation and the floating toggle.
+        //
+        // If the field will not answer, `refreshContextFromCursor` returns
+        // without changing anything, so the assumption above stays as the
+        // fallback it always was.
+        if (composing.isEmpty()) refreshContextFromCursor()
         updateStrip()
     }
 
