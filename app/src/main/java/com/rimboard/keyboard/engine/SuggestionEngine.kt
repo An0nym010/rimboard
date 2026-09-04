@@ -416,6 +416,43 @@ class SuggestionEngine private constructor(
          * its frequency multiplied by 1 + this; the effect fades with rank. At
          * 6, a strongly-predicted word overtakes one up to seven times commoner
          * — enough to matter, not so much that context drowns frequency.
+         *
+         * ## Swept at last, and it barely matters
+         *
+         * That paragraph argued from the mechanism and never measured the
+         * outcome, which made this the one context constant in this file
+         * carrying no table. Swept on `fixtures/heldout` — a model built from
+         * nine tenths of each corpus, scored on the tenth it never counted,
+         * which is the only honest way to ask a question about the prediction
+         * model — over the six languages that split exists for:
+         *
+         *     weight   keystrokes saved   letters per word   done by 3 letters
+         *        2         39.601              2.6183             72.56%
+         *        4         39.649                 —                  —
+         *        6         39.670              2.6139             72.63%
+         *        9         39.685                 —                  —
+         *       14         39.710                 —                  —
+         *       25         39.717              2.6107             72.62%
+         *
+         * **A twelve-fold range moves keystrokes saved by a ninth of a point**
+         * and letters per word by eight thousandths. The blind arm reads
+         * 35.171% at every setting, which is the control working: it never
+         * consults the model.
+         *
+         * The reason is worth keeping, because it says where context does pay.
+         * By the time a prefix exists the completion list is short and usually
+         * already led by the right word on frequency alone, so this constant
+         * re-orders ties that are mostly already broken. Context is worth
+         * **4.5 points** on this corpus — 39.67% against 35.17% blind — and
+         * nearly all of that is the strip offering the whole word before a
+         * letter is typed, which is [predictions] and a different path. Making
+         * the model shout inside the completion ranking adds almost nothing.
+         *
+         * Six stands, and nothing is asserted on it: on a plateau this flat an
+         * assertion would pass at any value in the range and pin nothing.
+         * Contrast [GLIDE_CONTEXT_WEIGHT], where the same question about the
+         * same evidence was worth 1.66 points, because a swipe's candidates are
+         * many and shape-ambiguous where a prefix's are few and already sorted.
          */
         const val CONTEXT_COMPLETION_WEIGHT = 6.0
 
