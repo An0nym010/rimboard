@@ -953,6 +953,84 @@ class AutocorrectAccuracyTest {
         )
     }
 
+    /**
+     * The remedy for the arm above, and that nothing reaches past it.
+     *
+     * `the commit arm on the population it will actually meet` measures the
+     * harm: a French keyboard overwrites 40% of the English words a French
+     * speaker is likeliest to borrow, and every lever inside French costs more
+     * than it saves. Its note ends by saying the real answer is to enable the
+     * second language. **That was prose, and prose is not a measurement** — so
+     * here is the measurement, and it is worth having as a test rather than a
+     * sentence because the guard it depends on is one line that a fifth caller
+     * could route around.
+     *
+     * `correctionCandidates` returns nothing when `acceptedWord` says the other
+     * enabled language accepts the word. But `correctionFor` asks
+     * [SuggestionEngine.contractionFor] *first* and returns its answer
+     * directly, so "the guard exists" and "the guard is reached" are two
+     * claims and only the second one matters.
+     *
+     * Measured: alone, fr destroys 79 of 200, es 48, it 41, de 38. With the
+     * second language enabled, **all four are zero**.
+     *
+     * The engine here serves *both* dictionaries, and that is load-bearing
+     * rather than incidental. Asked with only the primary's assets — which is
+     * what [realEngine] gives — `acceptedWord(word, foreign, ...)` consults an
+     * empty dictionary, the guard cannot fire, and the numbers come back
+     * unchanged at 79/48/41/38. That reads exactly like a keyboard ignoring
+     * the user's second language, and it is a property of the harness.
+     */
+    @Test
+    fun `the second language stops the overwriting, with nothing reaching past it`() {
+        val out = StringBuilder()
+        for ((lang, foreign) in listOf("fr" to "en", "es" to "en", "it" to "en", "de" to "en")) {
+            val loc = Locale.forLanguageTag(lang)
+            val fLoc = Locale.forLanguageTag(foreign)
+            // BOTH dictionaries. realEngine(lang) serves one language's
+            // assets, so acceptedWord(w, foreign, ...) would ask an empty
+            // dictionary and the alt-language guard could never fire -- which
+            // is a property of the harness, not of the keyboard.
+            val files = HashMap<String, String>()
+            for (l in listOf(lang, foreign)) {
+                for (kind in listOf("dictionaries", "predictions")) {
+                    val n = kind + "/" + l + ".txt"
+                    files[n] = File(assets(), n).readText()
+                }
+            }
+            val engine = SuggestionEngine.forTesting(userData) { q -> files[q]?.byteInputStream() }
+            val alien = alienWords(engine, lang, loc, foreign, 200)
+            var alone = 0
+            var withAlt = 0
+            val leaks = ArrayList<String>()
+            for (w in alien) {
+                val a = engine.correctionFor(w, lang, loc)
+                if (a != null && a.lowercase(loc) != w) alone++
+                val b = engine.correctionFor(w, lang, loc, altLang = foreign, altLocale = fLoc)
+                if (b != null && b.lowercase(loc) != w) {
+                    withAlt++
+                    if (leaks.size < 8) leaks.add(w + "->" + b)
+                }
+            }
+            out.append("%-3s alone %3d/200   with %s enabled %3d/200   %s%n"
+                .format(lang, alone, foreign, withAlt, leaks))
+            // The harness check, first: if the primary is not overwriting
+            // these words even without the second language, the corpus has
+            // stopped exercising what this arm is about and the zero below
+            // would mean nothing.
+            assertTrue(
+                "the alien corpus for " + lang + " no longer provokes any " +
+                    "overwriting, so this arm proves nothing:" + NL + out,
+                alone > 10
+            )
+            assertEquals(
+                "a correction reached past the second-language check:" + NL + out,
+                0, withAlt
+            )
+        }
+        println(out)
+    }
+
     private fun measureCommit(
         lang: String, locale: Locale, foreign: String, words: Int,
         cautious: Boolean = false
@@ -1367,6 +1445,8 @@ class AutocorrectAccuracyTest {
     }
 
     private companion object {
+        val NL: String = System.lineSeparator()
+
         /**
          * A ratchet on the close-language destroy rate rather than a standard.
          * The distant-pair arm asserts 25%; this population is over it and the
