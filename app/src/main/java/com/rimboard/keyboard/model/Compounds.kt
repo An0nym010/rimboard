@@ -52,8 +52,19 @@ package com.rimboard.keyboard.model
  * **Finnish is missing the most and the longest.** Its 8.5% row is a share of a
  * base several times larger than Danish's or Dutch's, whose dictionaries the
  * note above says already cover them — which is true, and is exactly why their
- * rows are not the comparison Finnish should be read against. Against German,
- * Finnish still loses on the trade, and that part of the decision stands.
+ * rows are not the comparison Finnish should be read against.
+ *
+ * `tools/dictionary_gap.py` has since surveyed all twenty-two and the reading
+ * holds up in both directions. Every Germanic language clusters high on the
+ * compound column, because that is what writing compounds closed does —
+ * de 47%, nl 39%, da 38%, no 37%, sv 33% — and only German has enough missing
+ * words for it to matter: nl misses 0.57% of its tokens and da 0.96%, against
+ * German's 1.11% and Finnish's 4.52%. Multiplied out, the share of *all*
+ * tokens a split could reach runs fi 1.18%, tr 0.78%, hu 0.65%, de 0.52%,
+ * da 0.36%, no 0.33%, sv 0.25%, nl 0.22%.
+ *
+ * So the Dutch and Danish refusals were right for precisely the reason given,
+ * and Finnish sits at more than twice the language that ships it.
  *
  * What the reasoning never weighed is that 8.5% of Finnish's missing words is
  * more absolute vocabulary, in longer words, than 21.5% of Dutch's. Whether it

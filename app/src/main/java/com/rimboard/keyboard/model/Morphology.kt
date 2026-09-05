@@ -49,43 +49,57 @@ object Morphology {
      * list does not contain, built from a stem that it does — is gated here,
      * and here it is Turkish alone.
      *
-     * **Finnish has the strongest measured claim to join it, and does not.**
-     * Measured 2026-09-05 over held-out Tatoeba prose, share of word tokens
-     * absent from the shipped 200,000-word dictionary, which is the ceiling on
-     * what generation could ever recover:
+     * **Hungarian has the strongest measured claim to join it, and Finnish is
+     * second. Neither is in.** `tools/dictionary_gap.py` surveys all
+     * twenty-two: the share of corpus tokens the dictionary cannot offer at
+     * all, and what would reach each missing word.
      *
-     *     fi 3.8%   tr 4.1%   hr 1.6%   cs 1.6%   pl 1.6%   sk 1.3%
-     *     da 0.9%   en 0.2%
+     *     fi 4.52% missing, 16% of it reachable by a counted ending
+     *     hu 3.92% missing, 28%
+     *     sk 2.50%          14%      everything else is under 2.5% missing
      *
-     * Finnish sits beside Turkish and clear of everything else, and the words
-     * are not a rounding error in keystrokes: they average **12.5 characters**
-     * against 5.8 for the words the dictionary does hold, so 3% of the tokens
-     * are about 6% of the typing. `build_prose_fixture.py` records the whole
-     * gap as worth around three points of keystroke savings.
+     * Multiplied out, that is **1.10% of all Hungarian tokens against 0.74% of
+     * Finnish ones** — Hungarian is the larger prize, and it ships the biggest
+     * counted inventory of any language here at 91 endings. Finnish and
+     * Hungarian are in a class of their own; every other language misses under
+     * 2.5%, in words far closer to the length of the ones it holds.
+     *
+     * Read Turkish's 0% in that survey as a blind spot rather than a result:
+     * it ships no `assets/suffixes/tr.txt` because its inventory is [TR_SUFFIXES]
+     * here in code, so the script cannot see it. Greek's 0% is real — it has
+     * no inventory, for the reason recorded above.
+     *
+     * The words are not a rounding error in keystrokes: Finnish's average
+     * **11.3 characters** against 5.8 for the words the dictionary does hold,
+     * so 4.5% of the tokens are nearer 9% of the typing.
+     * `build_prose_fixture.py` records the whole gap as worth around three
+     * points of keystroke savings.
      *
      * **That three points is the gap, not the prize, and an earlier version of
      * this note conflated them.** Suffix generation cannot reach most of it.
      * Classifying every out-of-dictionary token in the Finnish corpus — 34,544
-     * of them, 4.5% of the whole — by what would actually recover it:
+     * of them, 4.5% of the whole — by what would actually recover it, at the
+     * same [Compounds.MIN_PART] the split really uses:
      *
      *     stem + a counted ending      16%
-     *     two dictionary words         34%
-     *     word + inflected word         4%
-     *     neither                      46%
+     *     two dictionary words         26%
+     *     neither                      58%
      *
-     * So this gate is the smaller half of the answer. Nearly half of what
-     * Finnish is missing is a compound, which is [Compounds]' problem and not
-     * this one, and nearly half is out of reach of both — forms needing
-     * consonant gradation and stacked endings that no counted list of endings
-     * describes. Sixteen per cent of six per cent of the keystrokes is a
-     * fraction of a point, which is worth having and is not worth the sentence
-     * that used to be here.
+     * So this gate is the smaller half of the answer. A quarter of what Finnish
+     * is missing is a compound, which is [Compounds]' problem and not this one,
+     * and well over half is out of reach of both — forms needing consonant
+     * gradation and stacked endings that no counted list of endings describes.
+     *
+     * Sixteen per cent of the missing tokens is 0.74% of all of them, and those
+     * are the long ones, so call it a point of keystrokes at the absolute
+     * ceiling where every generated form lands and lands early. Neither holds.
+     * It is worth having and is not worth the sentence that used to be here.
      *
      * The compound row is *not* comparable with the 8.5% [Compounds] records
      * for Finnish, and the two must not be read against each other. This one
      * asks only whether both halves are in the dictionary; that one is the
      * real `splitOf` with its linking rules and its floors. The same loose test
-     * reads 55.2% for German where [Compounds] records 24.4%, so it runs about
+     * reads 47% for German where [Compounds] records 24.4%, so it runs about
      * twice high everywhere and preserves the ordering — de, nl, da, fi, en on
      * both scales. It is used here to divide Finnish's gap into parts, which
      * needs one consistent yardstick, not to price a feature.
