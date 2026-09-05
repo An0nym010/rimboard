@@ -49,6 +49,33 @@ object StripLayout {
      * the right chip among N, and reading five costs more attention than
      * reading three. What is not an assumption is that at three the answer was
      * often computed and thrown away.
+     *
+     * Re-measured 2026-09-05 through the shipped pipeline rather than the top
+     * N of the ranked list, because the table above scores the ranking and the
+     * strip is what a user sees. `StripAccuracyTest` with [SLOTS] moved:
+     *
+     *              5       6       7
+     *     en    50.7%   53.1%   54.4%
+     *     tr    47.7%   50.0%   51.8%
+     *
+     * **English at six reads 53.1% here against the 53.4% above**, which is the
+     * two methods agreeing to three tenths of a point and is the useful part of
+     * this. Turkish does not agree as closely -- 50.0% against 45.2% -- because
+     * the row above takes the target from a ranked list where this takes it
+     * from the strip the engine actually builds, and the two diverge most where
+     * completion does the most work.
+     *
+     * The sixth chip is worth +2.3 and the seventh +1.6 on the pipeline
+     * figures, on a metric that flatters every extra chip: a keystroke upper
+     * bound improves mechanically each time another candidate is put in front
+     * of a reader assumed to scan all of them for free. The case against is
+     * unchanged and is not about ranking -- 58dp is past the 48dp floor and
+     * well short of the 70dp five gives, the emoji chip and the incognito mark
+     * are on the same row, and the attention cost is in none of these numbers.
+     *
+     * Five stands. Recorded so the next person who notices that
+     * `build_ngrams.PER_CONTEXT` is 6 while the strip shows 5 does not have to
+     * re-run it to find out that the width decided this, not the ranking.
      */
     const val SLOTS = 5
 
