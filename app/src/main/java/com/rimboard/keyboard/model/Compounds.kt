@@ -37,6 +37,35 @@ package com.rimboard.keyboard.model
  * vocabulary for every typo let through. The others are listed so the next
  * person has the numbers rather than the intuition — the Dutch and Danish
  * corpora are small enough that their dictionaries already cover them.
+ *
+ * # One dimension that table does not have
+ *
+ * Every row is a *share of the words a language is missing*, which says nothing
+ * about how many it is missing or how much they cost to type. Measured
+ * 2026-09-05, out-of-dictionary tokens as a share of all corpus tokens, and
+ * their mean length against the words the dictionary does hold:
+ *
+ *     fi  4.5% of tokens   12.5 letters against 5.8
+ *     tr  4.1%             10.6 against 5.7
+ *     hr  1.6%             en 0.2%
+ *
+ * **Finnish is missing the most and the longest.** Its 8.5% row is a share of a
+ * base several times larger than Danish's or Dutch's, whose dictionaries the
+ * note above says already cover them — which is true, and is exactly why their
+ * rows are not the comparison Finnish should be read against. Against German,
+ * Finnish still loses on the trade, and that part of the decision stands.
+ *
+ * What the reasoning never weighed is that 8.5% of Finnish's missing words is
+ * more absolute vocabulary, in longer words, than 21.5% of Dutch's. Whether it
+ * clears the bar is a keystroke question this table cannot answer, because it
+ * is not denominated in keystrokes. [Morphology.isAgglutinative] carries the
+ * other half of the same argument: of everything Finnish is missing, a counted
+ * ending reaches a sixth and a compound split reaches a third.
+ *
+ * Not reopened here. The cost column is what governs, 0.7% of one-key typos
+ * newly accepted is a real cost, and nothing above measures what enabling this
+ * would do to Finnish keystroke savings. That measurement is the price of
+ * reopening it, and it is worth someone paying.
  */
 object Compounds {
 

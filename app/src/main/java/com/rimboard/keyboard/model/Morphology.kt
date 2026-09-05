@@ -60,10 +60,35 @@ object Morphology {
      * Finnish sits beside Turkish and clear of everything else, and the words
      * are not a rounding error in keystrokes: they average **12.5 characters**
      * against 5.8 for the words the dictionary does hold, so 3% of the tokens
-     * are about 6% of the typing. `build_prose_fixture.py` records what that
-     * is worth: around three points of keystroke savings — larger than any
-     * single constant measured in this engine, `GLIDE_CONTEXT_WEIGHT`'s 1.66
-     * included.
+     * are about 6% of the typing. `build_prose_fixture.py` records the whole
+     * gap as worth around three points of keystroke savings.
+     *
+     * **That three points is the gap, not the prize, and an earlier version of
+     * this note conflated them.** Suffix generation cannot reach most of it.
+     * Classifying every out-of-dictionary token in the Finnish corpus — 34,544
+     * of them, 4.5% of the whole — by what would actually recover it:
+     *
+     *     stem + a counted ending      16%
+     *     two dictionary words         34%
+     *     word + inflected word         4%
+     *     neither                      46%
+     *
+     * So this gate is the smaller half of the answer. Nearly half of what
+     * Finnish is missing is a compound, which is [Compounds]' problem and not
+     * this one, and nearly half is out of reach of both — forms needing
+     * consonant gradation and stacked endings that no counted list of endings
+     * describes. Sixteen per cent of six per cent of the keystrokes is a
+     * fraction of a point, which is worth having and is not worth the sentence
+     * that used to be here.
+     *
+     * The compound row is *not* comparable with the 8.5% [Compounds] records
+     * for Finnish, and the two must not be read against each other. This one
+     * asks only whether both halves are in the dictionary; that one is the
+     * real `splitOf` with its linking rules and its floors. The same loose test
+     * reads 55.2% for German where [Compounds] records 24.4%, so it runs about
+     * twice high everywhere and preserves the ordering — de, nl, da, fi, en on
+     * both scales. It is used here to divide Finnish's gap into parts, which
+     * needs one consistent yardstick, not to price a feature.
      *
      * Not done here, because it is not a one-line change and must not be
      * pretended into one. The generator is `TurkishMorph.completionsFor`,
@@ -76,9 +101,12 @@ object Morphology {
      * Turkish candidates *costing* 0.6 points when they merely sat too high in
      * the ranking — and those were correct forms.
      *
-     * What the numbers above establish is that the work is worth doing, and
-     * roughly what it is worth. What they do not establish is that it is safe,
-     * and that is the part still owed.
+     * What the numbers above establish is that Finnish has the largest
+     * unserved gap of any shipped language, and that this gate addresses a
+     * sixth of it for a fraction of a point. What they do not establish is
+     * that it is safe, or that it is where the sixth of a gap is best spent.
+     * Both are still owed, and the second is the one to answer first: the
+     * compound row is twice this one.
      */
     fun isAgglutinative(lang: String): Boolean = lang == "tr"
 
