@@ -744,11 +744,15 @@ class GlideAccuracyTest {
      *
      * At the shipped weights, 13,015 swipes over all twenty-two languages:
      *
-     *     DELIBERATE   top1 93.3%   offered 99.4%
-     *     NATURAL           76.9%           94.2%
-     *     SLOPPY            53.1%           80.0%
-     *     HURRIED           55.9%           81.5%
-     *     all               69.8%           88.8%
+     *     DELIBERATE   top1 93.4%   offered 99.4%
+     *     NATURAL           76.6%           94.1%
+     *     SLOPPY            53.3%           79.8%
+     *     HURRIED           56.1%           81.6%
+     *     all               69.8%           88.7%
+     *
+     * Re-read 2026-09-05 after the key geometry was corrected for es, fr, ru,
+     * uk and el: those five moved and the other seventeen did not, so the
+     * pooled figures shift by a tenth.
      *
      * **The word sample here is honest and the context is not.** These
      * sentences are `fixtures/prose_*.txt`, and `tools/build_ngrams.py` says
