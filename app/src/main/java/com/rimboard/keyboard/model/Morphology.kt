@@ -158,6 +158,34 @@ object Morphology {
      *    the rate at which a mistyped word is waved through (Turkish 0.3% at
      *    three, 2.8% at two, 10.2% at one).
      *
+     *    **The obvious repair does not work, and it is worth knowing why.**
+     *    Finnish has vowel harmony too — back `a o u` against front `ä ö y`,
+     *    with `e i` neutral — and it is a mechanical rule rather than a
+     *    judgement about usage, so it can be written by someone who does not
+     *    read the language. Finnish is also the language this would help most:
+     *    it stays at a three-character floor because two costs 2.3% wrongly
+     *    accepted against a 1.5% ceiling, and it has the largest
+     *    out-of-vocabulary exposure of anything shipped.
+     *
+     *    Measured 2026-09-05, over adjacent-key typos of the commonest 120,000
+     *    Finnish words, on the two-character endings a two-floor derivation
+     *    yields: harmony rejects **11.4%** of the mistyped words those endings
+     *    would wave through, against **0.6%** of the real ones. A genuine
+     *    filter, twenty-five to one, and about a third of the **35%** it would
+     *    take to bring 2.3% under the ceiling.
+     *
+     *    The reason it falls short is structural, not a matter of tuning. A
+     *    *counted* inventory already holds both harmony variants — the Finnish
+     *    derivation returns `-ta` beside `-tä`, `-sa` beside `-sä`, `-ko`
+     *    beside `-kö` — so a mistyped word simply matches whichever of the pair
+     *    agrees with its stem, and the check has nothing left to reject.
+     *    Harmony pays for Turkish because that list is *written*, and the rule
+     *    supplies what the list does not encode. Counting discovers the pairs
+     *    and spends the information in the same breath.
+     *
+     *    So Finnish's floor is not waiting on a harmony implementation. What it
+     *    is waiting on is in [isAgglutinative].
+     *
      *    The floor is per language and not three everywhere, which is what this
      *    said before the sweep that set it: Slavic and Germanic inflection is
      *    short, so nine languages are measured at two and keep their case
