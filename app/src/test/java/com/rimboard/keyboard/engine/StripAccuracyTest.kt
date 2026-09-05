@@ -730,9 +730,12 @@ class StripAccuracyTest {
             val a = measure(lang, locale, strict.take(n), withContext = false)
             val b = measure(lang, locale, loose.take(n), withContext = false)
             out.append(
-                "    %-3s n=%d  out of dict %.1f%%  blind %.2f%% -> %.2f%%  delta %+.2f%n"
+                "    %-3s n=%d  out of dict %.1f%%  blind %.2f%% -> %.2f%%  delta %+.2f  never %.2f%% -> %.2f%%  letters %.3f -> %.3f%n"
                     .format(lang, n, 100.0 * lm / lw, a.ksr * 100, b.ksr * 100,
-                        (b.ksr - a.ksr) * 100)
+                        (b.ksr - a.ksr) * 100,
+                        a.never * 100.0 / a.words, b.never * 100.0 / b.words,
+                        a.lettersTyped.toDouble() / a.words,
+                        b.lettersTyped.toDouble() / b.words)
             )
         }
         println(out)

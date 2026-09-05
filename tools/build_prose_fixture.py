@@ -135,9 +135,11 @@ PAIR_DIR = os.path.join(OUT_DIR, "openvocab")
 # languages and the sampling noise between two draws is half of that, so the
 # pair needs more sentences than the shipped fixture to say anything.
 PAIR_WANT = 600
-# The five the table above covers: an unaffected control, two mid, and the two
-# with enough out-of-dictionary text to move.
-PAIR_LANGS = ("en", "da", "cs", "tr", "fi")
+# The five the table above covers -- an unaffected control, two mid, and the
+# two with enough out-of-dictionary text to move -- plus German, which is the
+# only language shipping Compounds and so the only calibration there is for
+# what a feature aimed at these words is worth. See CompoundCostTest.
+PAIR_LANGS = ("en", "da", "cs", "de", "tr", "fi")
 STRIP = ".,!?;:\"'()[]{}«»‘’“”…-—"
 
 # Ordinary prose: no digits, no quotation, ends like a sentence. Digits are out

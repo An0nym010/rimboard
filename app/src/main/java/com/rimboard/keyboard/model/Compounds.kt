@@ -62,10 +62,38 @@ package com.rimboard.keyboard.model
  * other half of the same argument: of everything Finnish is missing, a counted
  * ending reaches a sixth and a compound split reaches a third.
  *
- * Not reopened here. The cost column is what governs, 0.7% of one-key typos
- * newly accepted is a real cost, and nothing above measures what enabling this
- * would do to Finnish keystroke savings. That measurement is the price of
- * reopening it, and it is worth someone paying.
+ * # Denominated in keystrokes, which changes the gain side entirely
+ *
+ * Measured 2026-09-05 on `fixtures/openvocab`, which unlike the shipped
+ * fixtures contains the words this feature exists for — see
+ * `StripAccuracyTest.what the fixture's selection rule costs`. Blind keystroke
+ * savings with the language gated in against gated out, same 600 sentences,
+ * nothing differing but this file's answer:
+ *
+ *     de   42.61% -> 42.79%   +0.18    never offered  0.90% -> 0.51%
+ *     fi   37.47% -> 37.62%   +0.15    never offered  3.18% -> 2.69%
+ *
+ * **The two are level.** 24.4% against 8.5% does not survive being denominated
+ * in keystrokes, because those are shares of very different bases: German is
+ * missing 0.8% of its tokens and Finnish 3.1%, and a larger share of a smaller
+ * base is the same number of words. The gain side of this table's Finnish row
+ * was, in the terms that matter, never the reason to refuse it.
+ *
+ * # So the whole question is the cost column, which is now disputed
+ *
+ * [com.rimboard.keyboard.model.CompoundCostTest] re-measures it with the
+ * engine's own split, dictionary floor and per-language key adjacency, because
+ * the script behind the table above is not in the repository. It agrees on the
+ * magnitudes and on Dutch and English, and it puts **German at 0.73% and
+ * Finnish at 0.49%** — the other way round from the two rows that decide
+ * anything.
+ *
+ * Not reopened, and not on the strength of the newer number being newer. Two
+ * internally consistent measurements disagree in direction about the one
+ * column that governs, and reconciling them is a smaller and far more
+ * answerable question than the one this started as. That is where anyone
+ * picking this up should begin, and if the 0.49% holds then Finnish costs less
+ * than the only language whose cost this project has ever accepted.
  */
 object Compounds {
 
@@ -98,6 +126,27 @@ object Compounds {
         frequency: (String) -> Int
     ): Pair<String, String>? {
         if (!writesClosed(lang)) return null
+        return splitParts(wordLower, minFrequency, frequency)
+    }
+
+    /**
+     * [splitOf] without the language gate.
+     *
+     * Split out so the cost of *enabling* a language can be measured for one
+     * that is not enabled — which is the question the table above answers for
+     * six languages and could not be re-asked for any of them, because the
+     * only way in was through a gate that says no. `CompoundCostTest` walks
+     * this directly.
+     *
+     * No caller in the engine should reach for this. The gate is the whole
+     * point: a language either writes its compounds closed or it does not, and
+     * running this on one that does not is how "alot" becomes a word.
+     */
+    fun splitParts(
+        wordLower: String,
+        minFrequency: Int,
+        frequency: (String) -> Int
+    ): Pair<String, String>? {
         if (wordLower.length < MIN_PART * 2) return null
         for (i in MIN_PART..wordLower.length - MIN_PART) {
             val head = wordLower.substring(0, i)
