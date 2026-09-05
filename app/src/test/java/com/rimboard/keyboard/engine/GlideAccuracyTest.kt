@@ -760,7 +760,7 @@ class GlideAccuracyTest {
      * model would have been scored on the sentences it counted." So every
      * figure above that depends on the prediction model is optimistic, and the
      * one to believe is `the decoder on sentences the model has not counted`,
-     * which reads 55.4% over its six languages. The gap is not small and not
+     * which reads 57.3% over its seven languages. The gap is not small and not
      * uniform: sweeping the glide context weight reads +9.35 points here and
      * +1.66 there.
      *
@@ -841,13 +841,13 @@ class GlideAccuracyTest {
      *
      * `fixtures/heldout` is what `build_ngrams.py --fixtures` writes: a model
      * built from nine tenths of a corpus and the remaining tenth beside it, for
-     * the six languages that split exists for. This arm reads that pair, so its
+     * the seven languages that split exists for. This arm reads that pair, so its
      * absolute numbers are lower than the contaminated arm's and are the ones
      * to believe. At the shipped weight, 6,000 swipes:
      *
-     *     DELIBERATE  86.2%      NATURAL  61.2%
-     *     SLOPPY      35.7%      HURRIED  38.6%
-     *     all         55.4% top-1, 80.1% in the strip's five
+     *     DELIBERATE  87.1%      NATURAL  63.5%
+     *     SLOPPY      37.4%      HURRIED  41.0%
+     *     all         57.3% top-1, 81.3% in the strip's five
      *
      * The floors are a ratchet on the honest number. What they exist to catch
      * is a change that improves the contaminated arm and costs this one, which
@@ -1158,19 +1158,22 @@ class GlideAccuracyTest {
         /**
          * Floors for `the decoder on sentences the model has not counted`,
          * which is the honest arm for anything context-sensitive. Measured
-         * 55.4% / 80.1% overall; worst hand SLOPPY at 35.7% / 66.5% in five.
+         * 57.3% / 81.3% overall; worst hand SLOPPY at 37.4% / 68.7% in five.
+         *
+         * English joined the split on 2026-09-05, so this is seven languages
+         * and 7,000 swipes rather than six and 6,000.
          *
          * The top-1 floor is deliberately set *between* the value the borrowed
-         * correction weight gave (53.8%) and the one
-         * [SuggestionEngine.GLIDE_CONTEXT_WEIGHT] gives (55.4%), so putting
+         * correction weight gave (55.7%) and the one
+         * [SuggestionEngine.GLIDE_CONTEXT_WEIGHT] gives (57.3%), so putting
          * that constant back fails this arm. A floor with the old value inside
          * it would ratchet nothing: the whole point of this arm is that the
          * contaminated one cannot tell the two apart -- it reads 63.7% against
          * 69.8% and calls the wrong one better by five times the real margin.
          */
-        const val HELDOUT_TOP1_FLOOR = 0.54
-        const val HELDOUT_IN_FIVE_FLOOR = 0.76
-        const val HELDOUT_HAND_TOP1_FLOOR = 0.31
+        const val HELDOUT_TOP1_FLOOR = 0.56
+        const val HELDOUT_IN_FIVE_FLOOR = 0.77
+        const val HELDOUT_HAND_TOP1_FLOOR = 0.33
 
         /**
          * Under the worst arm measured, with room for corpus noise.

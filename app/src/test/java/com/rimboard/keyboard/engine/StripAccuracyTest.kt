@@ -497,7 +497,7 @@ class StripAccuracyTest {
      * pooled, because with seventy sentences a side a single word is worth two
      * tenths of a point.
      *
-     * **What it is worth: about +0.22 points, and that is a floor.** It grows
+     * **What it is worth: about +0.35 points, and that is a floor.** It grows
      * with the history — +0.167 after roughly 390 words, +0.221 after about
      * 1,500 — and both split directions agree on the sign.
      *
@@ -509,6 +509,10 @@ class StripAccuracyTest {
      *
      *     STATIC_WEIGHT    1.0     1.5     3.0     5.0     8.0    20.0   100
      *     personal gain  -0.177  +0.061  +0.221  +0.350  +0.436  +0.490  +0.44
+     *
+     * Those are the six-language split. English joined it on 2026-09-05 and
+     * the pooled gain rose to +0.354 over fourteen halves, which changes
+     * neither the shape of the curve nor the argument below.
      *
      * Read literally that says "raise it, and keep raising it" — trust the
      * shipped model, almost never the user. **The reason it says that is that

@@ -580,6 +580,33 @@ class SuggestionEngine private constructor(
          * the effect and its rough size, which is what a constant on a broad
          * plateau needs.
          *
+         * ## Re-checked with English in the split, 2026-09-05
+         *
+         * The six languages above are the small corpora, and this note said so:
+         * "this may read high for English". English now has a held-out split of
+         * its own, and it does read high -- **+1.00 for English against +1.66
+         * pooled**, with English's own curve still rising at twelve (70.0%
+         * against 69.7% at five). Pooled over the seven, the gain is +1.6.
+         *
+         * The value stands and the *reason* for it does not. Five was taken as
+         * "the largest value at which no hand is worse than it was". Per hand
+         * over the seven, 1,750 swipes each:
+         *
+         *     cw      DELIB    NAT      SLOPPY   HURRIED
+         *     1.25    87.83    62.69    34.46    38.63
+         *     4.00    87.83    63.66    37.03    40.63
+         *     5.00    87.77    63.66    37.43    41.03
+         *     6.00    87.71    63.77    37.94    41.26
+         *     8.00    87.43    63.60    38.00    41.37
+         *
+         * DELIBERATE now peaks at three and is 0.06 below its starting value at
+         * five, which is **one swipe in seventeen hundred**. So the constraint
+         * that picked five is marginal rather than clean, and the honest
+         * statement is that the plateau runs four to eight and nothing in it is
+         * distinguishable at this sample size. Five is the middle of that, which
+         * is why it stays -- moving to six for half a point of SLOPPY would be
+         * chasing a difference of two swipes.
+         *
          * ## The depth was asked again afterwards, and 24 is still enough
          *
          * [GLIDE_DEPTH] decides how many candidates are scored, and it was
