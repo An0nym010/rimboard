@@ -1034,6 +1034,100 @@ class AutocorrectAccuracyTest {
         println(out)
     }
 
+    /**
+     * The space bar and the underline never name different words.
+     *
+     * Two paths answer "what should this word be" and a user meets both: press
+     * space and the keyboard commits, or leave it and the squiggle offers a
+     * menu. They run through different code -- `correctionFor` takes
+     * `correctionCandidates(limit = 1)` and gates it on
+     * [Dictionary.autoCommitConfident], while [SpellJudge] takes a deeper pool
+     * and re-ranks it -- and until now nothing compared their answers. A
+     * disagreement is directly visible: the word the space bar puts in is not
+     * the word the menu offered.
+     *
+     * Measured over 1,460 typos in six languages:
+     *
+     *     agree 96.9%   space-only 0.0%   underline-only 3.1%   differ 0%
+     *
+     * **Nothing differs and nothing is space-only.** The whole asymmetry runs
+     * one way -- the underline offers a repair where the space bar declines to
+     * commit one -- and that is the design rather than a gap: the commit gate
+     * is deliberately stricter, because a squiggle asks the reader to look
+     * while a commit overrules them.
+     *
+     * The two assertions are the safety property and the consistency one, and
+     * the first matters more. `correctionFor` asks
+     * [SuggestionEngine.contractionFor] *before* the candidate pool and returns
+     * its answer directly, so a fifth pre-check added there would let the space
+     * bar commit a word the underline has never heard of, and nothing would
+     * have said so.
+     *
+     * Compared with no context on either side, which is where the two are
+     * directly comparable: [SpellJudge]'s right-context and rank-map arms are
+     * inert without it, and with it both paths build the same map from the same
+     * call, so the invariant is about the gate rather than the ranking.
+     */
+    @Test
+    fun `the space bar never commits what the underline would not offer`() {
+        val out = StringBuilder()
+        var tot = 0; var bothSame = 0; var barOnly = 0; var judgeOnly = 0
+        val examples = ArrayList<String>()
+        for (lang in listOf("en", "tr", "de", "es", "fr", "ru")) {
+            val loc = Locale.forLanguageTag(lang)
+            val engine = realEngine(lang)
+            val judge = com.rimboard.keyboard.spell.SpellJudge(engine, lang, loc)
+            val prox = KeyProximity.forLang(lang)
+            var n = 0; var same = 0; var bOnly = 0; var jOnly = 0; var differ = 0
+            for (slip in Slip.values()) {
+                val rnd = Random(seed = 20260820 + slip.ordinal)
+                for (w in sample(lang, 60)) {
+                    val typo = damage(w, slip, prox, rnd) ?: continue
+                    if (engine.acceptedWord(typo, lang, loc)) continue
+                    n++
+                    val bar = engine.correctionFor(typo, lang, loc)
+                    val v = judge.verdictFor(
+                        typo, "", "", "", 3, false,
+                        com.rimboard.keyboard.spell.Budget(1000)
+                    )
+                    val top = v.words.firstOrNull()
+                    when {
+                        bar != null && top != null && bar.equals(top, true) -> same++
+                        bar != null && top == null -> bOnly++
+                        bar == null && top != null -> jOnly++
+                        bar != null && top != null -> {
+                            differ++
+                            if (examples.size < 8) examples.add("$lang $typo: bar=$bar judge=$top")
+                        }
+                    }
+                }
+            }
+            out.append("%-3s n=%4d  agree %3.0f%%  space-only %3.0f%%  underline-only %3.0f%%  differ %3.0f%%%n"
+                .format(lang, n, 100.0*same/n, 100.0*bOnly/n, 100.0*jOnly/n, 100.0*differ/n))
+            tot += n; bothSame += same; barOnly += bOnly; judgeOnly += jOnly
+        }
+        out.append("ALL n=%d  agree %.1f%%  space-only %.1f%%  underline-only %.1f%%%n"
+            .format(tot, 100.0*bothSame/tot, 100.0*barOnly/tot, 100.0*judgeOnly/tot))
+        out.append("  disagreements: " + examples + "%n".format())
+        println(out)
+        assertTrue(
+            "the corpus stopped provoking corrections, so this proves nothing:" +
+                NL + out,
+            tot > 500 && bothSame > 400
+        )
+        assertEquals(
+            "the space bar and the underline name different words:" + NL + out + examples,
+            emptyList<String>(), examples
+        )
+        assertEquals(
+            "the space bar commits a word the underline would not offer at all. " +
+                "correctionFor asks contractionFor before the candidate pool, so a " +
+                "new pre-check there reaches the commit without reaching the menu:" +
+                NL + out,
+            0, barOnly
+        )
+    }
+
     private fun measureCommit(
         lang: String, locale: Locale, foreign: String, words: Int,
         cautious: Boolean = false
