@@ -844,7 +844,7 @@ class AutocorrectAccuracyTest {
      * language, and those are one cheap edit from a real word constantly:
      *
      *     language   destroys, alien=en   alien=tr   of the en figure, accent-only
-     *     fr              40%               9%              36 of 79
+     *     fr              38%               9%              36 of 76
      *     es              24%              13%               0
      *     it              21%              11%               0
      *     de              19%              10%               1
@@ -853,18 +853,21 @@ class AutocorrectAccuracyTest {
      *     en               8%    (alien=tr)                  0
      *
      * The project's own ceiling for this is 25%, asserted in the arm above.
-     * French is at 40% against the language a French speaker is likeliest to
-     * borrow from, and nothing measured it.
+     * French is at 38% against the language a French speaker is likeliest to
+     * borrow from, and nothing measured it. It read 40% until the key geometry
+     * was corrected on 2026-09-05: French is one of five layouts whose
+     * proximity grid sat half a key from the drawn keys, so three of those two
+     * hundred were the geometry rather than the gate.
      *
      * ## Two mechanisms, and only one of them has a setting
      *
-     * French's excess is not more of the same. **Forty-six percent of it is
+     * French's excess is not more of the same. **Just under half of it is
      * accent restoration** — `different` to `différent`, `piece` to `pièce`,
      * `president` to `président` — which is a different code path with a
      * different gate. An accent edit costs almost nothing spatially, so
      * [Dictionary.AUTO_MAX_COST_PER_CHAR] never sees it, and the user-facing
      * cautious setting, whose whole purpose is "overrule me less", moves
-     * French by two points (40% to 38%) while working as designed elsewhere
+     * French by nothing at all (38% to 38%) while working as designed elsewhere
      * (Italian 21 to 16, Polish 17 to 12, Turkish 15 to 10).
      *
      * ## The obvious lever, measured and refused
@@ -1456,7 +1459,7 @@ class AutocorrectAccuracyTest {
         const val CLOSE_DESTROY_CEILING = 85
 
         /**
-         * Under the 89.0% these five languages measure, with about four points
+         * Under the 88.8% these five languages measure, with about four points
          * of room -- for the JDK the suite runs on and for the assets being
          * rebuilt, not for run-to-run noise, of which a seeded corpus has none.
          *
