@@ -74,10 +74,13 @@ import java.util.Locale
  * shaped like a word of the language to a tighter bar than one that is not,
  * which is worth five to ten points everywhere and costs nothing on the repair
  * side. Then a counted suffix inventory (`tools/derive_suffixes.py`) lets
- * eighteen languages recognise a word built out of parts they know, worth
- * another one and a half to eight points each; only Greek, Ukrainian and
- * Slovak have none, the first two deriving nothing at all and the third an
- * inventory that prevents nothing. Which languages have one, on what
+ * twenty languages recognise a word built out of parts they know, worth
+ * another one and a half to eight points each. **Only Greek has none now.**
+ * This used to name Ukrainian and Slovak beside it, the first two "deriving
+ * nothing at all" and the third "an inventory that prevents nothing"; both
+ * ship one today — 42 endings and 17 prefixes for Ukrainian, 50 and 16 for
+ * Slovak — and both accept more held-out words than Finnish does. Greek is
+ * the control and still accepts none, which is the point of it. Which languages have one, on what
  * measurement, and why English very nearly did not, is in
  * [SuffixInventoryTest].
  *
@@ -93,7 +96,7 @@ import java.util.Locale
  * inherited that assumption along with it — so `verschuldigde` and
  * `angeschlichen`, whose only unusual feature is a prefix, were words no rule
  * could vouch for. `tools/derive_prefixes.py` counts the other end of the word
- * the same way, ten languages ship one, and [PrefixInventoryTest] holds each of
+ * the same way, twelve languages ship one, and [PrefixInventoryTest] holds each of
  * them to the same trade. Dutch drops 2.2 points, Russian 2.7, Polish 2.3.
  *
  * `elohopea` becomes `elohopeaa`, `kisegített` becomes `segített`,
@@ -108,8 +111,28 @@ import java.util.Locale
  * ([com.rimboard.keyboard.model.Morphology.isAgglutinative] is `lang == "tr"`).
  * Stripping suffixes to a known stem takes acceptance of held-out words from 0%
  * to 46%, and those accepted words are never offered a correction, so they
- * cannot be destroyed. Finnish and Hungarian are agglutinative in exactly the
- * same way and get none of it.
+ * cannot be destroyed.
+ *
+ * That last sentence used to end "Finnish and Hungarian are agglutinative in
+ * exactly the same way and get none of it", which stopped being true when the
+ * counted inventories landed and stayed on the page. They get some. What they
+ * do not get is the hand-written walk, and the difference is the whole of the
+ * remaining prize. Measured 2026-09-05, acceptance of the 600 held-out words
+ * against the destruction it prevents:
+ *
+ *          tr    de    hu    pl    sk    uk    fi    cs    el
+ * accepts 43.5  29.0  22.0  20.8  18.8  15.0  12.0  12.2   0.0
+ * destroys 20.5  21.0  26.5  23.7  24.0  22.3  28.3  29.7  41.0
+ *
+ * Acceptance and destruction move together down the whole row, which is the
+ * claim this file makes, holding across nine languages rather than the three
+ * it was argued from.
+ *
+ * **Finnish is the worst pairing in the table**: the lowest acceptance of any
+ * language that has an inventory, on the language with the largest share of
+ * out-of-dictionary words of anything shipped (4.5% of corpus tokens, see
+ * `tools/dictionary_gap.py`). Turkish's 43.5% is what a written,
+ * harmony-aware walk buys over a counted list, and Finnish has harmony too.
  *
  * ## Four cheaper answers, measured and rejected
  *
@@ -379,7 +402,8 @@ class OutOfVocabularyTest {
         assertTrue(
             "Turkish accepts only ${"%.0f".format(rate)}% of held-out words; it was " +
                 "46%, and an accepted word is never offered a correction and so " +
-                "cannot be destroyed. Finnish and Hungarian accept 0%.",
+                "cannot be destroyed. Finnish accepts 12% and Hungarian 22% off " +
+                "their counted inventories, which is the gap a written walk closes.",
             rate >= 30.0
         )
         // Finnish and Hungarian accepted *none* when this was written, for want
