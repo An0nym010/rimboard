@@ -38,11 +38,11 @@ import java.util.Locale
  * ```
  *            recorded   here
  *     de       0.5%     0.73%     ships the feature
- *     fi       0.7%     0.49%
- *     nl       1.3%     1.19%
- *     da       1.6%     0.61%
- *     tr       2.6%     1.21%
- *     en       1.6%     1.85%     where accepting "alot" is the bug
+ *     fi       0.7%     0.45%
+ *     nl       1.3%     1.10%
+ *     da       1.6%     0.53%
+ *     tr       2.6%     1.13%
+ *     en       1.6%     1.79%     where accepting "alot" is the bug
  * ```
  *
  * The magnitudes agree — everything is a fraction of a per cent to about two —
@@ -50,15 +50,21 @@ import java.util.Locale
  * round.** The recorded table has Finnish costing 40% more than German; this
  * has it costing a third less, which matters because German is the only
  * language whose cost the project has ever accepted, and so the only bar there
- * is. Two internally consistent measurements of one quantity, disagreeing in
- * direction on the pair that decides something.
+ * is.
  *
- * Which is right is not settled here and must not be assumed from the fact that
- * this one is newer. The original script is not in the repository, so its word
- * sample, its length floor and its idea of an adjacent key are all unknown, and
- * any of the three moves a number like this.
+ * The original script is not in the repository, so its word sample and length
+ * floor are unknown and either moves a number like this. Four readings of
+ * "one-key typos" were therefore tried, varying only which words get mistyped:
+ * length floor 8 or none, top 20,000 or 200,000 or all. **All four put German
+ * above Finnish by about half again**, and one of them — any length, top
+ * 20,000 — lands German at 0.45% against a recorded 0.5%, which is as close as
+ * an unspecified method can be validated. None comes near Finnish's 0.7%.
  *
- * What this arm establishes is that the disagreement exists and where to look.
+ * That is not proof the recorded figure is wrong. It is a method that hits the
+ * one number it can be checked against and misses the other in the same
+ * direction under every sampling, which is worth more than a single
+ * measurement and less than a reproduction.
+ *
  * It asserts only that German — the shipped case, the one row that is not
  * hypothetical — stays under a bar the project has already accepted in
  * practice, so that a change making compound acceptance wildly more permissive
@@ -75,10 +81,14 @@ import java.util.Locale
  * German is missing 0.8% of its tokens and Finnish 3.1%, and the two effects
  * very nearly cancel.
  *
- * So the gain side is settled and level, and the whole question now rests on
- * the cost column that these two measurements disagree about. That is a much
- * smaller and more answerable question than the one this started as, and it is
- * the reason nothing here changes [Compounds.writesClosed].
+ * So Finnish gets 83% of German's benefit for 62% of its cost, and has the
+ * worst never-offered rate of any language that ships. On the numbers the case
+ * is better than the one already accepted.
+ *
+ * Nothing here changes [Compounds.writesClosed] anyway, and the reason is not a
+ * number: every figure above says the strip would offer the word more often,
+ * and none says the words it offers are ones a Finn would want. No measurement
+ * in this file can answer that.
  */
 class CompoundCostTest {
 
@@ -127,7 +137,7 @@ class CompoundCostTest {
                 val typo = w.substring(0, i) + n + w.substring(i + 1)
                 if (dict.contains(typo)) continue
                 tried++
-                if (Compounds.splitParts(typo, dict.stemMinFreq) { dict.frequency(it) } != null) {
+                if (Compounds.splitParts(typo, dict.stemMinFreq, Compounds.linkingS(lang)) { dict.frequency(it) } != null) {
                     accepted++
                 }
             }

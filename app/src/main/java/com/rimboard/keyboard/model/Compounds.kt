@@ -79,26 +79,74 @@ package com.rimboard.keyboard.model
  * base is the same number of words. The gain side of this table's Finnish row
  * was, in the terms that matter, never the reason to refuse it.
  *
- * # So the whole question is the cost column, which is now disputed
+ * # And the cost column does not hold up either
  *
- * [com.rimboard.keyboard.model.CompoundCostTest] re-measures it with the
- * engine's own split, dictionary floor and per-language key adjacency, because
- * the script behind the table above is not in the repository. It agrees on the
- * magnitudes and on Dutch and English, and it puts **German at 0.73% and
- * Finnish at 0.49%** — the other way round from the two rows that decide
- * anything.
+ * [CompoundCostTest] re-measures it with the engine's own split, dictionary
+ * floor and per-language key adjacency, because the script behind the table
+ * above is not in the repository. It agrees on the magnitudes and on Dutch and
+ * English, and it puts German *above* Finnish — the other way round from the
+ * two rows that decide anything.
  *
- * Not reopened, and not on the strength of the newer number being newer. Two
- * internally consistent measurements disagree in direction about the one
- * column that governs, and reconciling them is a smaller and far more
- * answerable question than the one this started as. That is where anyone
- * picking this up should begin, and if the 0.49% holds then Finnish costs less
- * than the only language whose cost this project has ever accepted.
+ * "Share of one-key typos it would newly wave through" leaves the word sample
+ * unspecified, so four readings of it were tried:
+ *
+ * ```
+ *     mistyping                 de       fi
+ *     length >= 8, top 20k     0.73%    0.49%
+ *     any length,  top 20k     0.45%    0.31%
+ *     any length,  top 200k    0.48%    0.33%
+ *     length >= 8, all         0.61%    0.40%
+ * ```
+ *
+ * **Every one puts German above Finnish, by about half again.** One of them
+ * reproduces German's recorded 0.5% almost exactly, which is the check that
+ * this method measures the same quantity as the original; none comes near
+ * Finnish's recorded 0.7%. A method that lands the one figure it can be
+ * validated against, and misses the other in the same direction under every
+ * sampling, is evidence about that other figure.
+ *
+ * With the linking -s gated to the language whose grammar has it — see
+ * [linkingS], which costs Finnish nothing and was only ever charging it for a
+ * German joint — Finnish reads **0.45% against German's 0.73%**.
+ *
+ * # Where that leaves it
+ *
+ * ```
+ *            gain     never offered      typo cost
+ *     de    +0.18     0.90% -> 0.51%       0.73%     ships
+ *     fi    +0.15     3.18% -> 2.69%       0.45%
+ * ```
+ *
+ * Finnish gets 83% of German's benefit for 62% of its cost, and has the worst
+ * never-offered rate of any language that ships. On the numbers the case is
+ * better than the one already accepted.
+ *
+ * **It is still not enabled, and the reason is not a number.** Every figure
+ * here says the strip would offer the word more often; none of them says the
+ * words it offers are ones a Finn would want. That question needs somebody who
+ * reads Finnish looking at real output, which is the same bar the four native
+ * word lists elsewhere in this project are waiting on, and it is not something
+ * another measurement can clear. The change is one line in [writesClosed] when
+ * someone can read it.
  */
 object Compounds {
 
     /** Whether [lang] writes its compounds without a space. */
     fun writesClosed(lang: String): Boolean = lang == "de"
+
+    /**
+     * Whether [lang] joins compounds with a linking -s-.
+     *
+     * German morphology, not a general rule: Arbeit+s+platz, Liebling+s+lied.
+     * It used to run for whatever language reached [splitParts], which was only
+     * ever German, so nothing was wrong — but it made the split one line less
+     * portable than it looked, and measuring a second language through it
+     * charged that language for a joint its grammar does not have. Finnish
+     * links with a genitive -n where it links at all, and gating this cost it
+     * nothing: the keystroke gain is identical with the rule off, and the typo
+     * cost falls from 0.49% to 0.45%.
+     */
+    fun linkingS(lang: String): Boolean = lang == "de"
 
     /**
      * The shortest either half may be.
@@ -126,7 +174,7 @@ object Compounds {
         frequency: (String) -> Int
     ): Pair<String, String>? {
         if (!writesClosed(lang)) return null
-        return splitParts(wordLower, minFrequency, frequency)
+        return splitParts(wordLower, minFrequency, linkingS(lang), frequency)
     }
 
     /**
@@ -145,6 +193,7 @@ object Compounds {
     fun splitParts(
         wordLower: String,
         minFrequency: Int,
+        linkingS: Boolean = true,
         frequency: (String) -> Int
     ): Pair<String, String>? {
         if (wordLower.length < MIN_PART * 2) return null
@@ -157,7 +206,7 @@ object Compounds {
             // to neither half: Arbeit+s+platz, Liebling+s+lied. Only tried
             // after the plain split, so "haus" + "schuh" is never read as
             // "hau" + "s" + "schuh".
-            if (tail.length > MIN_PART && tail[0] == 's') {
+            if (linkingS && tail.length > MIN_PART && tail[0] == 's') {
                 val rest = tail.substring(1)
                 if (frequency(rest) >= minFrequency) return head to rest
             }
