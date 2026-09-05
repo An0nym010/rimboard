@@ -200,8 +200,22 @@ class StripAccuracyTest {
             .filter { File(fixtures(), "prose_$it.txt").isFile }
             .sorted()
 
-    /** How many slots the suggestion strip has. */
-    private val SLOTS = 3
+    /**
+     * How many slots the suggestion strip has — read, never written down.
+     *
+     * This was the literal `3` from 2026-08-23, which was correct on the day.
+     * `fa1246c` widened the strip to five on 2026-09-02 under the title *"The
+     * strip was three chips wide, and three was never measured"*, and this line
+     * went on asking [SuggestionEngine.predictions] for three.
+     *
+     * So every context figure in this file between those dates was measured on
+     * a narrower strip than ships, by one to two points. The blind arms were
+     * never affected and did not move: this constant reaches only the
+     * prediction call, which is the whole of the context path and none of the
+     * completion one. That is why nothing failed and nobody noticed — the arms
+     * that are asserted on are exactly the arms it cannot touch.
+     */
+    private val SLOTS = StripLayout.SLOTS
 
     private data class Savings(
         val keystrokes: Int,
@@ -490,7 +504,7 @@ class StripAccuracyTest {
      * pooled, because with seventy sentences a side a single word is worth two
      * tenths of a point.
      *
-     * **What it is worth: about +0.28 points, and that is a floor.** It grows
+     * **What it is worth: about +0.37 points, and that is a floor.** It grows
      * with the history — +0.167 after roughly 390 words, +0.221 after about
      * 1,500 — and both split directions agree on the sign.
      *
@@ -513,7 +527,8 @@ class StripAccuracyTest {
      *
      * Those are the six-language split, measured before the fixture fixes of
      * 2026-09-05; English joining took the pooled gain to +0.354 over fourteen
-     * halves, and the fixes then took it to +0.276 over sixteen. The *levels*
+     * halves, the fixture fixes then took it to +0.276 over sixteen, and widening
+     * the strip to the five chips it draws took it to +0.371. The *levels*
      * in that row will therefore not reproduce. They are cited for the shape —
      * monotone, no turnover — which is what the argument below rests on, and
      * which nothing since has touched. Re-running the sweep would buy new
@@ -540,7 +555,8 @@ class StripAccuracyTest {
      * column read 39.716% at every weight in that sweep — one figure, not a
      * range — which is the control: with personalisation off the model's rank
      * ordering is scale-invariant, so this constant touches nothing but the
-     * personalised path. It reads 41.646% now, for the fixture reasons above,
+     * personalised path. It reads 42.682% now, for the fixture and strip-width
+     * reasons above,
      * and what makes it a control is that it does not move with the weight.
      */
     @Test
@@ -771,18 +787,18 @@ class StripAccuracyTest {
      *
      * ```
      *      corpus.bz2 blind   held-out   shipped   premium   control(n)
-     * hr      0.1 MB  34.3%     37.7%     53.2%     +15.5    -0.2 ( 32)
-     * sk      0.3 MB  33.8%     38.9%     49.1%     +10.2    +0.5 (133)
-     * da      0.8 MB  40.0%     48.4%     54.2%      +5.8    +1.1 (140)
-     * cs      1.0 MB  32.8%     36.7%     48.2%     +11.5    +0.1 (140)
-     * pl      1.7 MB  34.9%     41.3%     49.9%      +8.6    +0.1 (140)
-     * fi      1.9 MB  35.2%     40.6%     50.0%      +9.4    +0.0 (140)
-     * tr      8.2 MB  36.3%     40.5%     42.3%      +1.8    +0.2 (140)
-     * en     23.7 MB  41.9%     48.7%     49.6%      +0.9    +0.8 (140)
+     * hr      0.1 MB  34.3%     38.2%     54.2%     +16.0    -1.1 ( 32)
+     * sk      0.3 MB  33.8%     40.0%     50.7%     +10.8    +0.7 (133)
+     * da      0.8 MB  40.0%     49.4%     56.2%      +6.8    +1.2 (140)
+     * cs      1.0 MB  32.8%     37.7%     50.7%     +12.9    +0.2 (140)
+     * pl      1.7 MB  34.9%     42.5%     51.9%      +9.4    +0.5 (140)
+     * fi      1.9 MB  35.2%     41.7%     52.6%     +10.9    -0.0 (140)
+     * tr      8.2 MB  36.3%     41.2%     43.4%      +2.2    +0.3 (140)
+     * en     23.7 MB  41.9%     50.1%     51.4%      +1.3    +1.3 (140)
      * ```
      *
-     * **A Croatian figure taken the easy way is fifteen points of flattery; an
-     * English one is under a point.** It runs inversely with corpus size, which
+     * **A Croatian figure taken the easy way is sixteen points of flattery; an
+     * English one is a point and a bit.** It runs inversely with corpus size, which
      * is what `build_ngrams.py` says about the gain from context generally and
      * for the same reason: MIN_PAIR is a count threshold, and in a small corpus
      * most surviving pairs sit exactly at it, so whether the scored sentence
@@ -791,7 +807,7 @@ class StripAccuracyTest {
      * That is the number behind the survey running blind in all twenty-two
      * languages rather than quoting the better-looking column. It was the right
      * call for a reason that had never been priced: quoting context there would
-     * have credited Croatian with 53.2% against an honest 37.7%.
+     * have credited Croatian with 54.2% against an honest 38.2%.
      *
      * ## What the prediction model is worth, which is the point of shipping it
      *
@@ -802,19 +818,19 @@ class StripAccuracyTest {
      * 1.45 MB those assets cost was argued from coverage and from threshold
      * deltas, and the answer was to spend it. It was the right answer:
      *
-     *     da +8.4   en +6.8   pl +6.4   fi +5.4
-     *     sk +5.1   tr +4.2   cs +3.9   hr +3.4
+     *     da +9.4   en +8.2   pl +7.6   fi +6.5
+     *     sk +6.2   cs +4.9   tr +4.9   hr +3.9
      *
-     * **About 5.5 points of keystrokes saved on average, positive in every
-     * language, and never below three.**
+     * **About 6.5 points of keystrokes saved on average, positive in every
+     * language, and never below four.**
      *
      * Note what does *not* order that list. Against corpus size the
-     * contamination column ranks at Spearman **-0.79** and this one at
+     * contamination column ranks at Spearman **-0.69** and this one at
      * **+0.38**, which on eight points is not distinguishable from no relation
      * at all. Danish has the third smallest corpus in the set and gains the
      * most, more than English with thirty times the text. What the top two
-     * share is that they are the least inflected languages here, and the bottom
-     * two are fusional Slavic.
+     * share is that they are the least inflected languages here, and Croatian
+     * is last.
      *
      * That is eight points and an inference, not a measurement, and it is put
      * here because it agrees with something this file already concluded from
@@ -1006,17 +1022,29 @@ class StripAccuracyTest {
          *
          * That was an argument from the mechanism until 2026-09-05, when the
          * held-out arm measured it: on the same sentences, the shipped model
-         * beats one built without them by **0.9 points in English and 1.8 in
+         * beats one built without them by **1.3 points in English and 2.2 in
          * Turkish**. So the two context figures above are inflated by roughly
          * that much and no more, which is small — these are the two largest
          * corpora in the project. It is not small everywhere. The same
-         * measurement reads **+15.5 for Croatian**, which is why the
+         * measurement reads **+16.0 for Croatian**, which is why the
          * twenty-two-language survey below quotes the blind column.
          *
          * ## Re-measured 2026-09-04, and the floor tightened to match
          *
          *     en blind 40.3%    en context 48.8%
          *     tr blind 36.9%    tr context 46.2%
+         *
+         * ## The context figures were measured three chips wide, and are not
+         *
+         *     en blind 40.3%    en context 50.7%
+         *     tr blind 36.9%    tr context 47.7%
+         *
+         * Corrected 2026-09-05. [SLOTS] had been the literal 3 since before the
+         * strip became five, so the prediction call was asking for two fewer
+         * candidates than the strip draws. The blind arms are identical to the
+         * digit, which is the control: that constant reaches the prediction
+         * path and nothing else. Every context figure in this file rose between
+         * one and two points, and none of them was ever asserted on.
          *
          * Six points above what is recorded above, from changes since. The
          * floor was still 0.25 -- **twelve points under the arm it guards** --
