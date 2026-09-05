@@ -77,6 +77,101 @@ class StripWidthTest {
     }
 
     /**
+     * And it stays filled over real prose, not just over prefixes chosen here.
+     *
+     * The arm above proves the engine *can* fill five chips, from seven English
+     * prefixes picked by hand. That is the right shape for catching a literal
+     * three left behind somewhere, and the wrong shape for knowing what a user
+     * sees: seven prefixes chosen to work say nothing about the ninety-ninth
+     * keystroke of an ordinary sentence.
+     *
+     * This types every word of the prose fixture one letter at a time and
+     * counts the chips that come back.
+     *
+     * ```
+     *      chips filled, by letters typed        spare chips
+     *      1     2     3     4     5     6     7     8    per keystroke
+     * en  5.00  5.00  4.99  4.93  4.89  4.81  4.76  4.61     0.04
+     * tr  5.00  5.00  5.00  4.98  4.96  4.90  4.88  4.80     0.03
+     * fi  5.00  5.00  5.00  5.00  4.97  4.94  4.95  4.85     0.02
+     * de  5.00  5.00  4.99  4.98  4.97  4.97  4.91  4.87     0.01
+     * ```
+     *
+     * **While a word is being typed there is no slack at all.** A hundredth to
+     * four hundredths of a chip per keystroke, and what little opens up only
+     * does so past the seventh letter, by which point the word is nearly typed
+     * and the list is nearly right. Whatever else the strip could be doing, it
+     * is not doing it in space left over mid-word.
+     *
+     * That is **not** the same question as the open one about filling spare
+     * slots with next-word predictions, and the two must not be read as one.
+     * That question is about the moment a word is *finished*, when the chips
+     * hold corrections of what was just committed rather than completions of
+     * what is being typed, and there the slack is real and large — over one
+     * chip on average in the Slavic languages. This arm never looks at that
+     * moment: every prefix it measures is strictly shorter than its word.
+     *
+     * Asserted at [FILL_FLOOR] rather than at the measured 4.96–4.99, because
+     * the failure worth catching is not a hundredth: it is a change that caps
+     * the list below the strip's width, which is what happened to
+     * `GLIDE_OFFERED` and would land here around 3.0.
+     */
+    @Test
+    fun `the strip stays filled over real prose`() {
+        val fixtures = listOf(File("src/test/fixtures"), File("app/src/test/fixtures"))
+            .first { it.isDirectory }
+        val report = StringBuilder()
+        val thin = mutableListOf<String>()
+        for (lang in FILL_LANGS) {
+            val file = File(fixtures, "prose_$lang.txt")
+            if (!file.isFile) continue
+            val locale = Locale.forLanguageTag(lang)
+            val engine = engine(lang)
+            engine.dictionary(lang, locale)
+            engine.predictions("", "x", lang, locale, 1)
+            var filledSum = 0L
+            var keystrokes = 0L
+            val byLen = LongArray(MAX_PREFIX + 1)
+            val seenLen = LongArray(MAX_PREFIX + 1)
+            for (line in file.readLines().filter { it.isNotBlank() }) {
+                for (w in line.split(Regex("[^\\p{L}']+"))) {
+                    val word = w.trim('\'').lowercase(locale)
+                    if (word.isEmpty() || !word.all { it.isLetter() || it == '\'' }) continue
+                    for (k in 1..minOf(word.length - 1, MAX_PREFIX)) {
+                        val n = engine.suggestionsFor(
+                            word.substring(0, k), lang, locale,
+                            allowAutocorrect = true, personalized = false
+                        ).items.count { it.isNotEmpty() }
+                        filledSum += n.toLong()
+                        keystrokes++
+                        byLen[k] += n.toLong()
+                        seenLen[k]++
+                    }
+                }
+            }
+            if (keystrokes == 0L) continue
+            val mean = filledSum.toDouble() / keystrokes
+            report.append("    %-3s mean %.3f of %d  spare %.2f per keystroke   by length %s%n".format(
+                lang, mean, StripLayout.SLOTS, StripLayout.SLOTS - mean,
+                (1..MAX_PREFIX).filter { seenLen[it] > 0 }.joinToString(" ") {
+                    "%.2f".format(byLen[it].toDouble() / seenLen[it])
+                }
+            ))
+            if (mean < FILL_FLOOR) thin += "%s %.3f".format(lang, mean)
+        }
+        println(report)
+        assertTrue("no prose fixtures found", report.isNotEmpty())
+        assertTrue(
+            "the strip is coming back with fewer chips than it has room for," +
+                " which is what a list capped below StripLayout.SLOTS looks" +
+                " like from the outside:" + System.lineSeparator() +
+                thin.joinToString(System.lineSeparator()) +
+                System.lineSeparator() + report,
+            thin.isEmpty()
+        )
+    }
+
+    /**
      * And a swipe, which is the copy that was missed.
      *
      * With `GLIDE_OFFERED` left at a literal three this fails at three against
@@ -195,4 +290,22 @@ class StripWidthTest {
         assertEquals(0, StripLayout.chipFloorDp(freeDp = 5 * StripLayout.MIN_CHIP_DP - 1, chips = 5))
     }
 
+
+    private companion object {
+        /** Languages the fill arm walks: two analytic, two that inflect hard. */
+        val FILL_LANGS = listOf("en", "tr", "fi", "de")
+
+        /** Letters typed before the completion list is not interesting any more. */
+        const val MAX_PREFIX = 8
+
+        /**
+         * Measured 4.96 to 4.99 of five across the four languages.
+         *
+         * The floor is far below that on purpose. What it exists to catch is a
+         * list capped under the strip's width -- the shape of the GLIDE_OFFERED
+         * defect this file was written for -- which would land near 3.0, not a
+         * change of a hundredth from a dictionary rebuild.
+         */
+        const val FILL_FLOOR = 4.5
+    }
 }
