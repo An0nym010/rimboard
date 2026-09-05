@@ -280,6 +280,21 @@ MIN_STEMS_BY_LANG = {"pt": 85, "no": 100, "pl": 130}
 # MIN_SUFFIX excludes for good reason, and it is not on the Slavic-and-Germanic
 # list below that would admit two.
 #
+# Tried anyway on 2026-09-05, because Greek destroys 41.0% of the correct words
+# it is not given -- the worst of anything shipped -- and a language that bad
+# off is worth a second look. Admitted at two it derives exactly four endings:
+# -υς, -τε, -με, -τα. All four are real Greek morphology and none of them is
+# dangerous, 0.0% wrongly accepted, but together they prevent **0.3 points** of
+# destruction against the 1.0 this file holds every inventory to. Safe and not
+# worth shipping.
+#
+# So Greek's 41% is not an inventory that nobody got round to deriving. Its
+# endings are one and two characters and they are ambiguous at that length --
+# the same four letters that mark a verb ending mark the end of an ordinary
+# stem -- so counting cannot separate them the way it can in Slavic. Whatever
+# helps Greek is not this method, and the number is here so the next person
+# does not spend the afternoon finding out.
+#
 # Ukrainian read the same way and for a different reason. It is Slavic, so it
 # takes two characters like Czech, Russian and Slovak -- and it derives nothing
 # even at two until its stem floor is scaled, because 910 stems cannot support
