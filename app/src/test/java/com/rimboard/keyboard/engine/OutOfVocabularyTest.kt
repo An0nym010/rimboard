@@ -134,6 +134,48 @@ import java.util.Locale
  * `tools/dictionary_gap.py`). Turkish's 43.5% is what a written,
  * harmony-aware walk buys over a counted list, and Finnish has harmony too.
  *
+ * ## Which language this actually hurts, which is not the same ranking
+ *
+ * Every figure above is a rate *within* the out-of-vocabulary population: of
+ * the correct words a language's list does not hold, how many get rewritten.
+ * That says nothing about how often a user meets one. `tools/dictionary_gap.py`
+ * measures the other half -- the share of corpus tokens the list cannot offer
+ * at all -- and the two multiply into the number a user would recognise: how
+ * much of everything they type gets silently changed into a different word.
+ *
+ * ```
+ *        destroyed   never in the list   of ALL words typed
+ * fi       28.3%          4.52%                1.28%
+ * hu       26.5%          3.92%                1.04%
+ * sk       24.0%          2.50%                0.60%
+ * uk       22.3%          2.29%                0.51%
+ * tr       20.5%          2.44%                0.50%
+ * hr       36.7%          1.20%                0.44%
+ * ru       29.7%          1.18%                0.35%
+ * el       41.0%          0.79%                0.32%
+ * ...
+ * en       20.2%          0.55%                0.11%
+ * ```
+ *
+ * **Finnish is eleven times English.** And the ranking inverts at the top:
+ * Greek has the worst rate of anything shipped and sits eighth of eighteen
+ * here, because a Greek user meets an out-of-list word a fifth as often as a
+ * Finnish one. A rate that alarming on a population that small is worth less
+ * attention than a milder rate on a population four times larger, and reading
+ * the first table alone gives the opposite impression.
+ *
+ * It is an estimate rather than a measurement, and the join is where the give
+ * is. The destruction rate is measured on words cut from a 60,000-entry
+ * truncation standing in for words past the shipped 200,000, while the
+ * exposure is measured against the full list. The proxy population is commoner
+ * than the real one, and commoner words have more support in the dictionary
+ * around them, so if it is wrong it is most likely wrong low.
+ *
+ * What it is for is ordering the work. On this column the two languages worth
+ * fixing are Finnish and Hungarian, in that order, and both want the same
+ * thing: [com.rimboard.keyboard.model.Morphology.isAgglutinative], which is
+ * still `lang == "tr"`.
+ *
  * ## Four cheaper answers, measured and rejected
  *
  * Morphology is the expensive answer, so the cheap ones were tried first. All
