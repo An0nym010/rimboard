@@ -465,9 +465,19 @@ class SuggestionEngine private constructor(
          * That paragraph argued from the mechanism and never measured the
          * outcome, which made this the one context constant in this file
          * carrying no table. Swept on `fixtures/heldout` — a model built from
-         * nine tenths of each corpus, scored on the tenth it never counted,
-         * which is the only honest way to ask a question about the prediction
-         * model — over the six languages that split exists for:
+         * a corpus with the scored sentences taken out of it, which is the only
+         * honest way to ask a question about the prediction model — over the
+         * six languages that split then existed for.
+         *
+         * Measured 2026-09-04, before the fixture fixes of the following day
+         * corrected the split and the per-language MIN_PAIR, so the levels
+         * below now read higher and will not reproduce. The plateau has not
+         * been re-swept on the corrected fixtures. The expectation is that it
+         * is flatter rather than steeper — this constant re-orders ties inside
+         * a completion list, and a stronger model leaves fewer of them — but
+         * that is an argument, not a measurement, and it is only worth as much
+         * as the decision it supports: six stands either way, because nothing
+         * is asserted on it.
          *
          *     weight   keystrokes saved   letters per word   done by 3 letters
          *        2         39.601              2.6183             72.56%

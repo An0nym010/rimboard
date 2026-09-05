@@ -204,17 +204,18 @@ TRI_ROWS = 6000
 # prose fixtures come from this same corpus, so the model would have been
 # scored on the sentences it counted.
 #
-# `--fixtures` closes that. It builds a model from nine tenths of a corpus and
-# writes the tenth beside it, which is a split the shipped assets cannot offer,
-# and `StripAccuracyTest.held-out context savings` reads the pair. Four corpora
-# of differing size, keystrokes saved with context:
+# `--fixtures` closes that. It builds a model from the corpus minus the
+# sentences it is about to score and writes those beside it, which is a split
+# the shipped assets cannot offer, and `StripAccuracyTest.held-out context
+# savings` reads the pair. All the split languages improve at each step down,
+# the smallest corpus by the most: on 2026-08-28, over cs/da/hr/sk, MIN_PAIR 3
+# to 2 was worth 0.6 points on average -- smaller than Turkish, larger than
+# English, and a measurement rather than an inference. The 1.45 MB stands.
 #
-#     cs  28.3% -> 29.1%    da  40.9% -> 41.4%
-#     hr  28.4% -> 29.3%    sk  29.7% -> 30.0%
-#
-# All four improve, the smallest corpus by the most. 0.6 points on average --
-# smaller than Turkish, larger than English, and now a measurement rather than
-# an inference. The 1.45 MB stands.
+# The figures themselves are printed by that arm rather than copied here. The
+# copy that used to sit at this line went stale on 2026-08-30, when
+# MIN_PAIR_BY_LANG below moved those four languages to 1 and left a table
+# quoting a threshold none of them used.
 # **Swept again at 1, and not taken.** The sentence above -- that the gain runs
 # inversely with corpus size -- keeps being true below two. Held out the same
 # way, coverage and top-3 at MIN_PAIR 2 against 1:

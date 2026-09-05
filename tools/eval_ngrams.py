@@ -129,6 +129,10 @@ def write_fixtures(langs, held_sentences=140):
     exists at it. build_ngrams.MIN_PAIR_BY_LANG decides that per language, and
     the suite reads it from there.
     """
+    # Keep this in step with StripAccuracyTest's held-out arm, which prints the
+    # current figures rather than carrying a copy of them. Three copies of the
+    # 2026-08-28 table existed -- here, in build_ngrams.py and in the test --
+    # and all three went stale together two days later.
     root = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                         "app", "src", "test", "fixtures", "heldout")
     os.makedirs(root, exist_ok=True)

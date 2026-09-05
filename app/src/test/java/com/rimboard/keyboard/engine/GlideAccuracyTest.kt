@@ -760,7 +760,7 @@ class GlideAccuracyTest {
      * model would have been scored on the sentences it counted." So every
      * figure above that depends on the prediction model is optimistic, and the
      * one to believe is `the decoder on sentences the model has not counted`,
-     * which reads 57.3% over its seven languages. The gap is not small and not
+     * which reads 59.0% over its eight languages. The gap is not small and not
      * uniform: sweeping the glide context weight reads +9.35 points here and
      * +1.66 there.
      *

@@ -459,9 +459,17 @@ class StripAccuracyTest {
      * pooled, because with seventy sentences a side a single word is worth two
      * tenths of a point.
      *
-     * **What it is worth: about +0.35 points, and that is a floor.** It grows
+     * **What it is worth: about +0.28 points, and that is a floor.** It grows
      * with the history — +0.167 after roughly 390 words, +0.221 after about
      * 1,500 — and both split directions agree on the sign.
+     *
+     * It read +0.359 until 2026-09-05, when this arm stopped loading `pred2`
+     * for languages that ship at MIN_PAIR 1 (see the held-out arm below). The
+     * gain fell and the absolute figures rose, 40.9% to 41.6% with the store
+     * off, which is the expected direction and the reason the fix mattered
+     * here: the store was being credited for beating a model weaker than the
+     * one it competes with on a phone. Of the three arms that read those
+     * fixtures this is the only one the bug flattered.
      *
      * ## Why the obvious follow-up is a trap
      *
@@ -472,9 +480,14 @@ class StripAccuracyTest {
      *     STATIC_WEIGHT    1.0     1.5     3.0     5.0     8.0    20.0   100
      *     personal gain  -0.177  +0.061  +0.221  +0.350  +0.436  +0.490  +0.44
      *
-     * Those are the six-language split. English joined it on 2026-09-05 and
-     * the pooled gain rose to +0.354 over fourteen halves, which changes
-     * neither the shape of the curve nor the argument below.
+     * Those are the six-language split, measured before the fixture fixes of
+     * 2026-09-05; English joining took the pooled gain to +0.354 over fourteen
+     * halves, and the fixes then took it to +0.276 over sixteen. The *levels*
+     * in that row will therefore not reproduce. They are cited for the shape —
+     * monotone, no turnover — which is what the argument below rests on, and
+     * which nothing since has touched. Re-running the sweep would buy new
+     * numbers for a table whose conclusion is that the table must not be acted
+     * on.
      *
      * Read literally that says "raise it, and keep raising it" — trust the
      * shipped model, almost never the user. **The reason it says that is that
@@ -493,9 +506,11 @@ class StripAccuracyTest {
      * What is safe to take from it is this assertion. The harmful regime is
      * real and reachable — at 1.0 the store costs 0.18 points — so a change
      * that lets learned junk outrank the model would show up here. The `off`
-     * column reads 39.716% at every weight, which is the control: with
-     * personalisation off the model's rank ordering is scale-invariant, so this
-     * constant touches nothing but the personalised path.
+     * column read 39.716% at every weight in that sweep — one figure, not a
+     * range — which is the control: with personalisation off the model's rank
+     * ordering is scale-invariant, so this constant touches nothing but the
+     * personalised path. It reads 41.646% now, for the fixture reasons above,
+     * and what makes it a control is that it does not move with the weight.
      */
     @Test
     fun `the learned store does not cost keystrokes`() {
@@ -539,9 +554,12 @@ class StripAccuracyTest {
                     words++
                 }
             }
+            // At the threshold this language ships, not a flat 2. A weaker
+            // shipped model makes the learned store look better than it is,
+            // which is the one direction this arm must not be wrong in.
             val files = mapOf(
                 "dictionaries/$lang.txt" to File(assets(), "dictionaries/$lang.txt").readText(),
-                "predictions/$lang.txt" to File(dir, "pred2_$lang.txt").readText()
+                "predictions/$lang.txt" to HeldOut.predictionsFor(dir, lang)
             )
             val engine = SuggestionEngine.forTesting(ud) { p -> files[p]?.byteInputStream() }
             val on = measure(lang, loc, test, withContext = true, personalized = true,
@@ -592,7 +610,7 @@ class StripAccuracyTest {
      * corpus containing them.
      *
      * ```
-     *        corpus   blind   held-out   shipped   premium   control(n)
+     *      corpus.bz2 blind   held-out   shipped   premium   control(n)
      * hr      0.1 MB  34.3%     37.7%     53.2%     +15.5    -0.2 ( 32)
      * sk      0.3 MB  33.8%     38.9%     49.1%     +10.2    +0.5 (133)
      * da      0.8 MB  40.0%     48.4%     54.2%      +5.8    +1.1 (140)
@@ -615,6 +633,36 @@ class StripAccuracyTest {
      * call for a reason that had never been priced: quoting context there would
      * have credited Croatian with 53.2% against an honest 37.7%.
      *
+     * ## What the prediction model is worth, which is the point of shipping it
+     *
+     * `held-out` minus `blind` is the whole model against no model at all.
+     * That is a different question from the one the MIN_PAIR table below asks,
+     * which is what the *last* step down in threshold bought, and it had only
+     * ever been answered on the contaminated arm, for English and Turkish. The
+     * 1.45 MB those assets cost was argued from coverage and from threshold
+     * deltas, and the answer was to spend it. It was the right answer:
+     *
+     *     da +8.4   en +6.8   pl +6.4   fi +5.4
+     *     sk +5.1   tr +4.2   cs +3.9   hr +3.4
+     *
+     * **About 5.5 points of keystrokes saved on average, positive in every
+     * language, and never below three.**
+     *
+     * Note what does *not* order that list. Against corpus size the
+     * contamination column ranks at Spearman **-0.79** and this one at
+     * **+0.38**, which on eight points is not distinguishable from no relation
+     * at all. Danish has the third smallest corpus in the set and gains the
+     * most, more than English with thirty times the text. What the top two
+     * share is that they are the least inflected languages here, and the bottom
+     * two are fusional Slavic.
+     *
+     * That is eight points and an inference, not a measurement, and it is put
+     * here because it agrees with something this file already concluded from
+     * the other end: the languages at the bottom of the survey need the
+     * grammatical *form*, not the word, and a counted lookup table does not
+     * know agreement. Corpus is not what those languages are short of, so more
+     * corpus is not what would fix them.
+     *
      * ## The control, which is why those numbers are believable
      *
      * `premium` compares two models on text only one of them was built from,
@@ -622,6 +670,12 @@ class StripAccuracyTest {
      * `control` scores text they have **both** seen: it is what is left when
      * memory is taken out, and it must be near zero or the premium above is
      * measuring the wrong thing.
+     *
+     * "Both seen" is checked rather than assumed. The control reads the shipped
+     * `fixtures/prose_*.txt`, which is drawn from the same Tatoeba dump but
+     * built by a different tool, so it could in principle have collected the
+     * held-out sentences. It does not: the two files share at most two
+     * sentences in two hundred, and for four of the eight languages none.
      *
      * It is near zero now. It was not when this was first run, and the two
      * bugs it caught are why the assertion below exists:
