@@ -508,6 +508,24 @@ class StripAccuracyTest {
      * with the history — +0.167 after roughly 390 words, +0.221 after about
      * 1,500 — and both split directions agree on the sign.
      *
+     * **That average hides one language going the other way.** Slovak loses in
+     * both split directions, -0.69 and -0.71, and is the only one of the eight
+     * that does; every other language is positive on the mean, from Polish's
+     * +0.09 to English's +1.09. Two directions agreeing to within two
+     * hundredths is more consistency than noise usually manages, so it is
+     * probably real.
+     *
+     * It is named in the report rather than asserted on. Seventy sentences a
+     * side is too few to fail a build over — Danish and Czech each read exactly
+     * +0.00 in one direction and over +1.2 in the other, which is what the
+     * noise at this sample size looks like. The pooled figure is what the
+     * assertion can defend, and the point of naming the language is that the
+     * pooled figure is structurally unable to see it.
+     *
+     * What it is not is a reason to reach for [SuggestionEngine.STATIC_WEIGHT].
+     * The sweep below is a trap for the reason given there, and one language at
+     * one sample size does not change that.
+     *
      * It read +0.359 until 2026-09-05, when this arm stopped loading `pred2`
      * for languages that ship at MIN_PAIR 1 (see the held-out arm below). The
      * gain fell and the absolute figures rose, 40.9% to 41.6% with the store
@@ -568,6 +586,7 @@ class StripAccuracyTest {
         val out = StringBuilder()
         var onSum = 0.0
         var offSum = 0.0
+        val perLang = LinkedHashMap<String, MutableList<Double>>()
         var halves = 0
         for (lang in langs) {
             val loc = Locale.forLanguageTag(lang)
@@ -618,6 +637,8 @@ class StripAccuracyTest {
                         on.ksr * 100, off.ksr * 100, (on.ksr - off.ksr) * 100))
             onSum += on.ksr * 100
             offSum += off.ksr * 100
+            perLang.getOrPut(lang) { mutableListOf() }
+                .add((on.ksr - off.ksr) * 100)
             halves++
             ud.shutdown()
             store.deleteRecursively()
@@ -627,6 +648,17 @@ class StripAccuracyTest {
         val off = offSum / halves
         out.append("pooled over %d halves: personal %.3f%%  off %.3f%%  (%+.3f)%n"
             .format(halves, on, off, on - off))
+        // Named rather than left in the sixteen lines above. The assertion is
+        // on the pooled figure and cannot see one language going the wrong way,
+        // which is exactly what Slovak does.
+        val losers = perLang.filterValues { it.isNotEmpty() && it.all { d -> d < 0.0 } }
+        out.append(
+            if (losers.isEmpty()) "no language loses in both split directions%n".format()
+            else "loses in BOTH split directions: %s%n".format(
+                losers.entries.sortedBy { it.value.average() }.joinToString(", ") {
+                    "%s %+.2f".format(it.key, it.value.average())
+                })
+        )
         println(out)
         assertTrue(
             "the learned store is costing keystrokes rather than saving them:" +
