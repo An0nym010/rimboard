@@ -110,8 +110,12 @@ class GlideAccuracyTest {
         listOf(File("src/main/assets"), File("app/src/main/assets")).first { it.isDirectory }
 
     private fun realEngine(lang: String): SuggestionEngine {
-        val files = listOf("dictionaries/$lang.txt", "predictions/$lang.txt")
-            .associateWith { File(assets(), it).readText() }
+        val files = HashMap<String, String>()
+        for (kind in listOf("dictionaries", "predictions", "suffixes", "prefixes")) {
+            File(assets(), "$kind/$lang.txt").takeIf { it.isFile }?.let {
+                files["$kind/$lang.txt"] = it.readText()
+            }
+        }
         return SuggestionEngine.forTesting(userData) { p -> files[p]?.byteInputStream() }
     }
 

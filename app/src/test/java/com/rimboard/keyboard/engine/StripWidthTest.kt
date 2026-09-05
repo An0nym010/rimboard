@@ -47,9 +47,25 @@ class StripWidthTest {
     private fun assets(): File =
         listOf(File("src/main/assets"), File("app/src/main/assets")).first { it.isDirectory }
 
+    /**
+     * Everything the APK ships for [lang], not just the two big files.
+     *
+     * The suffix and prefix inventories are assets, and an engine built without
+     * them is a weaker engine than the one that ships -- it vouches for fewer
+     * words, so it corrects more of them. `OutOfVocabularyTest` carries the
+     * scar: it measured "no change at all" from adding an inventory, twice,
+     * because its own map named only the files it already knew about.
+     *
+     * Measured 2026-09-05 across the three benchmark helpers that had the same
+     * gap: it moves the autocorrect destroy rate by at most one word in two
+     * hundred, moves three English typos out of the fix denominator because
+     * morphology now vouches for them, and moves the glide figures not at all.
+     * Immaterial, and listed anyway, because the next arm added to one of these
+     * files should not have to find that out.
+     */
     private fun engine(lang: String): SuggestionEngine {
         val files = HashMap<String, String>()
-        for (kind in listOf("dictionaries", "predictions")) {
+        for (kind in listOf("dictionaries", "predictions", "suffixes", "prefixes")) {
             File(assets(), "$kind/$lang.txt").takeIf { it.isFile }?.let {
                 files["$kind/$lang.txt"] = it.readText()
             }
@@ -91,10 +107,10 @@ class StripWidthTest {
      * ```
      *      chips filled, by letters typed        spare chips
      *      1     2     3     4     5     6     7     8    per keystroke
-     * en  5.00  5.00  4.99  4.93  4.89  4.81  4.76  4.61     0.04
+     * en  5.00  5.00  4.99  4.93  4.89  4.81  4.74  4.61     0.04
      * tr  5.00  5.00  5.00  4.98  4.96  4.90  4.88  4.80     0.03
-     * fi  5.00  5.00  5.00  5.00  4.97  4.94  4.95  4.85     0.02
-     * de  5.00  5.00  4.99  4.98  4.97  4.97  4.91  4.87     0.01
+     * fi  5.00  5.00  5.00  5.00  4.97  4.93  4.94  4.83     0.02
+     * de  5.00  5.00  4.99  4.98  4.97  4.97  4.90  4.86     0.01
      * ```
      *
      * **While a word is being typed there is no slack at all.** A hundredth to

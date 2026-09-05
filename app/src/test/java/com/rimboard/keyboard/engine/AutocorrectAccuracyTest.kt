@@ -62,8 +62,12 @@ class AutocorrectAccuracyTest {
      * by once, so [measureContext] asserts the model actually loaded.
      */
     private fun realEngine(lang: String): SuggestionEngine {
-        val files = listOf("dictionaries/$lang.txt", "predictions/$lang.txt")
-            .associateWith { File(assets(), it).readText() }
+        val files = HashMap<String, String>()
+        for (kind in listOf("dictionaries", "predictions", "suffixes", "prefixes")) {
+            File(assets(), "$kind/$lang.txt").takeIf { it.isFile }?.let {
+                files["$kind/$lang.txt"] = it.readText()
+            }
+        }
         return SuggestionEngine.forTesting(userData) { p -> files[p]?.byteInputStream() }
     }
 
@@ -994,11 +998,15 @@ class AutocorrectAccuracyTest {
             // assets, so acceptedWord(w, foreign, ...) would ask an empty
             // dictionary and the alt-language guard could never fire -- which
             // is a property of the harness, not of the keyboard.
+            // ...and both languages' inventories with them, for the same
+            // reason one step further on: an engine without the suffix asset
+            // vouches for fewer words than the shipped one, so it corrects
+            // more of them. See realEngine above.
             val files = HashMap<String, String>()
             for (l in listOf(lang, foreign)) {
-                for (kind in listOf("dictionaries", "predictions")) {
+                for (kind in listOf("dictionaries", "predictions", "suffixes", "prefixes")) {
                     val n = kind + "/" + l + ".txt"
-                    files[n] = File(assets(), n).readText()
+                    File(assets(), n).takeIf { it.isFile }?.let { files[n] = it.readText() }
                 }
             }
             val engine = SuggestionEngine.forTesting(userData) { q -> files[q]?.byteInputStream() }
