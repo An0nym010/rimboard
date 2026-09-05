@@ -1,13 +1,14 @@
-a	mluvím já tak pak co on
+a	mluvím já tak pak on co
 a ani	já
 a co	když
 a dal	se
 a dokonce	i
 a dívá	se
-a je	si
+a je	mi si
 a jeho	žena
 a já	jsme taky jsem se také ti
 a k	tomu
+a marie	jsou hraje
 a modré	oči
 a my	jsme
 a nikdo	neví
@@ -16,10 +17,14 @@ a od	té
 a odešel	z
 a odsouzen	na
 a on	se je
-a pak	se odešel
+a pak	se odešel ho
+a proto	se
+a přece	se
 a přemýšlel	o
+a přesto	jsi
+a souzeni	za
 a stal	se
-a tak	jsem se si
+a tak	jsem si se je
 a teď	je
 a to	hned rychle
 a ty	jsi
@@ -27,28 +32,36 @@ a uč	se
 a už	se
 a vstoupil	do
 a zabil	se
+a zeptej	se
 aby	se to si mi mě ses
 aby mi	pomohl
 aby mu	někdo
+aby mě	takhle
+aby na	mě
 aby někdo	věděl
-aby s	námi
-aby se	to do s se k o
+aby s	námi tím
+aby se	to s do k se o
 aby si	mohl
 aby tam	byl
 aby to	udělal pro nedělal udělala udělali byla
 aby vám	pomohl
-abych	to se ti si mu tam
+abych	se to ti si mu šel
 abych byl	upřímný
+abych ho	následoval
+abych mu	dal
 abych něco	dělal
 abych pravdu	řekl
 abych s	ním
-abych si	to
+abych se	vyhnul
+abych si	udělal to
 abych tam	šel
 abych ti	pomohl to
 abych to	udělal pro
 abych vám	pomohl
+abych zabil	čas
 abych řekl	pravdu
-abychom	to se odešli si šli dělali
+abych šel	do
+abychom	se to odešli si šli dělali
 abychom to	udělali dělali
 abys	to mi šel věděl mě byl
 abys to	udělal
@@ -58,16 +71,16 @@ abyste	to mi se si na jeli
 afrika	je
 ahoj	jak
 akorát	jen
-ale	já ne je on nemohu ona
+ale	já ne je on i nemohu
 ale i	tak
 ale je	to
-ale já	jsem tebe ne
+ale já	jsem ne ji tebe
 ale musel	jsem
 ale nemám	peníze
 ale není	to
 ale nepodařilo	se
-ale nevím	jak
-ale on	to
+ale nevím	jak proč
+ale on	to řekl
 ale ona	mě
 ale pak	začalo
 ale stejně	to
@@ -77,71 +90,81 @@ ale tohle	je
 ale ve	skutečnosti
 alergický	na
 alergii	na
-alespoň	jednou
+alespoň	jednou jeden
 alkohol	a
 anebo	ne
 anglických	slov
 anglických slov	pochází
-ani	slovo já se s trochu jsem
+ani	slovo já s se jeden trochu
 ani jeden	z
 ani jsem	nevěděl
 ani jste	tam
 ani já	ne
+ani neví	proč
 ani nevíš	co
 ani slovo	z
 aniž	by bych byste
 aniž by	se
 aniž bych	si
-ano	jsem mám je nebo ale myslím
+ano	jsem mám je ale myslím nebo
 ano je	to
 ano nebo	ne
-asi	tři tak za bych jsem nikdy
+asi	tři bych tak za jsem třicet
 asi bych	se
 asi tři	hodiny
 atraktivní	ale
 auta	se a jsou
-auto	je bylo má není se mého
+autem	protože
+auto	je bylo se není má na
 auto mého	otce
 auto narazilo	do
 auto potřebuje	umýt
-ať	se už to si žije mi
+autobusu	se
+ať	se už žije to si jde
 ať chceš	nebo
-ať se	ti děje stane
+ať se	ti děje stane od
 ať už	s
 ať žije	král
-až	do se na to po budeš
-až budeš	připraven
+až	se do na budeš to po
+až budeš	odcházet připraven
 až do	konce své
 až na	kůži mě to
 až po	uši
-až se	vrátím vrátíš vrátí
+až se	vrátíš vrátím vrátí s
 bankovní	účet
+banánový	koláč
 barvu	má mají
 barvy	jsou
 bavit	o
-baví	mě tě nás vás
+baví	mě tě vás nás s to
 baví nás	svými
+baví to	co
 bazénu	a
 benzín	je
 beru	to
 beru to	jako
-bez	tebe toho práce vody pomoci ohledu
+bez	tebe práce toho pomoci vody mého
 bez mého	souhlasu
 bez ohledu	na
 bez toho	aniž
 bez tvé	pomoci
-beze	mě stopy mne
-blonďaté	vlasy
+bez vaší	pomoci
+beze	mě mne stopy
 blázen	do
 blízko	mého
 blízko mého	domu
 blízké	budoucnosti
+blízkými	přáteli
 blíž	k
+blíž k	ohni
 blíží	se
 bob	se
 boha	je
-bohaté	rodiny
+boha je	pro
+bohaté	na rodiny
+bohatého	muže
 bohatý	ale a jak
+bohatý a	slavný
 bohatší	než
 bohu	že
 bohužel	jsem
@@ -154,18 +177,17 @@ bojím se	že toho
 bojíme	se
 bojíte	se
 bojíš	se
-bolest	v byla
+bolest	v byla je
 bolest v	zádech
 bolesti	hlavy
-bolí	mě hlava tě záda to zub
-bolí mě	zub
+bolí	mě hlava záda tě zub to
+bolí mě	záda zub
 boty	jsou co které
 boty jsou	příliš tady
 bože	můj
 bral	jsem
 bral jsem	jako
-brambory	jsou a
-bratr	je se žije
+bratr	je se žije to
 bratr je	ještě
 bratr žije	v
 bratra	a
@@ -175,41 +197,51 @@ bratři a	sestry
 brazílie	je
 brzké	uzdravení
 brzo	spát
-brzy	ráno se bude aby si znovu
-brzy si	na
+brzy	se ráno bude si aby znovu
+brzy si	zvykneš na
 brána	je se
 brání	v
 brát	ty
-bude	to mít zítra muset líbit se
+bude	to mít muset zítra líbit trvat
+bude chtít	udělat
 bude muset	udělat
 bude pěkné	počasí
 bude příliš	pozdě
 bude příští	rok
+bude to	trvat
 bude trvat	než
 bude těžké	najít
 bude v	pořádku
 bude zítra	počasí
 budeme	mít muset dělat v jíst moci
-budete	mít muset to potřebovat se
-budeš	mít dělat se potřebovat muset chtít
+budeme muset	čekat
+budete	mít muset se to potřebovat
+budeš	mít dělat potřebovat se muset chtít
 budeš cítit	lépe
 budeš mi	chybět
-budou	mít se na
+budeš mít	čas
+budeš si	muset
+budou	mít se na muset zatčeni
+budou zatčeni	a
 budova	je
-budu	mít se muset potřebovat moci to
+budu	mít se muset potřebovat moci tam
 budu mít	čas
 budu na	tebe
-budu pracovat	na
+budu pracovat	s na
 budu se	snažit na
 budu to	muset
-buď	zticha prosím velmi na tak
-buďte	k opatrní
-by	se mě to ses měl sis
+buď	zticha tak na prosím opatrný velmi
+buď okouzlující	nebo
+buď tak	laskav
+buďte	k opatrní tak
+by	se mě to měl ses sis
 by bylo	lepší
+by lepší	kdyby
 by mi	pomohl to
 by mohl	být
+by mohla	být
 by mohlo	být
-by mě	jestli co proč kdo jak kdyby
+by mě	jestli co proč kdo jak kde
 by měl	být jít
 by měla	být
 by měli	být
@@ -217,11 +249,14 @@ by mělo	být
 by nám	to
 by nás	mohl
 by se	měl to mohlo mi ti mělo
-by ses	měl s na stydět za jí
+by ses	měl s stydět na za jí
 by si	měl mě
 by sis	vzít měl s nechat
 by teď	měl
-by to	byl měl být byla udělal bylo
+by ti	kdybych
+by to	měl byl být bylo byla udělal
+by už	měl
+by za	to
 bych	si se to měl věděl byl
 bych byl	tak poslechl
 bych být	na
@@ -229,15 +264,17 @@ bych jít	s
 bych k	tomu
 bych měl	jít udělat
 bych na	to
-bych s	tebou
-bych se	měl s byl setkal mohl o
-bych si	aby abych měl dal abys s
+bych raději	kdyby
+bych s	tebou ní
+bych se	měl s byl o setkal že
+bych si	aby s abych měl dal abys
 bych ti	mohl to
-bych to	měl udělat mohl byl udělal ale
+bych to	měl udělat mohl udělal byl ale
 bych tě	měl
 bych udělal	to
 bych vidět	svého
-bych věděl	jestli proč co kdo kde
+bych věděl	jestli proč co kde kdo
+bych šel	pěšky
 bych žít	v
 bychom	měli se to si neměli mohli
 bychom měli	udělat jít
@@ -247,25 +284,27 @@ bychom to	měli
 bydlel	v
 bydlet	v sám
 bydlí	v se ve na
-bydlí v	tomto domě
+bydlí v	domě tomto
 bydlím	v ve u nedaleko na
 bydlíme	blízko
-byl	jsem to v na bych tak
-byl bych	to se teď ti
+bydlíš	tady
+byl	jsem to na v bych tak
+byl bych	to se teď ti raději
+byl doma	sám
 byl jako	dítě
 byl jediný	kdo
 byl jedním	z
-byl jsem	v tam na s velmi to
-byl jsi	včera už
+byl jsem	na v tam s velmi to
+byl jsi	včera už tam
 byl mohl	jít
-byl na	mě výletě té
+byl na	mě té mém místě výletě
+byl nalezen	mrtvý
 byl někdy	v
 byl obviněn	z
 byl odsouzen	k
 byl poslední	kdo
 byl poslán	do
 byl první	kdo
-byl překvapen	když
 byl přesvědčen	že
 byl příliš	unavený
 byl rád	že
@@ -275,7 +314,7 @@ byl tam	s
 byl ten	kdo
 byl to	můj jen dobrý
 byl unavený	šel
-byl v	paříži posteli té
+byl v	té paříži posteli
 byl ve	vězení
 byl včera	večer v
 byl věděl	že
@@ -283,24 +322,26 @@ byl zabit	v
 byl zatčen	za
 byl zrušen	kvůli
 byl řekl	pravdu
-byla	to jsem velmi v na jsi
+byla	to jsem velmi v jsi na
+byla jsem	v
 byla tak	horká
-byla to	tvoje dobrá moje jen dlouhá jeho
+byla to	jen tvoje dobrá dlouhá moje jeho
 byli	jsme jste v na všichni by
-bylo	to by mi na velmi hodně
+bylo	to by mi velmi na hodně
 bylo by	lepší to lépe
 bylo hodně	sněhu
 bylo jasné	že
 bylo mi	řečeno
 bylo na	stole
 bylo o	něco
-bylo to	velmi opravdu pro jako příliš tam
+bylo to	velmi opravdu pro jako příliš něco
 bylo zřejmé	že
-byly	v otevřené velmi to zavřené
+byly	v otevřené velmi to na dveře
 bys	mi to měl jít být mohl
 bys dělal	kdybys
 bys mi	prosím půjčit to
-bys měl	jít udělat vědět
+bys měl	jít vědět udělat
+bys prosím	tě
 bys ses	naučit
 bys to	měl mohl neměl udělat
 byste	to se si mi měli chtěli
@@ -308,6 +349,7 @@ byste chtěli	s
 byste je	nechávat
 byste si	pospíšit
 byste to	měli prosím
+byste trochu	počkat
 byste začít	co
 byste čekat	tady
 byt	je
@@ -316,14 +358,17 @@ bál	že jsem se
 bál jsem	se
 bál že	by
 báli	se
-bílou	budovu čokoládu
+bílou	čokoládu budovu
 bílé	víno
+bílého	vína
 bílý	dům
 být	v na tak s sám tebou
 být jako	můj
+být mým	šéfem
 být na	obtíž tvém
 být něco	co
 být sám	sebou
+být tebou	tak
 být v	práci
 být ve	škole
 bývala	jsem
@@ -332,32 +377,33 @@ bývalo	to
 bývá	často
 běhat	rychleji
 během	týdne dne
-běž	spát
+běž	si spát se
 běžel	jsem
 běželi	jsme
 běžte	se
 běží	za
 bůh	je existuje stvořil
 celek	je
-celkem	dobře jistý
+celkem	jistý dobře
 celkem jistý	že
-celou	noc dobu tu pravdu věčnost situaci
+celou	noc dobu pravdu tu věčnost věc
 celou tu	dobu věc
 celá	třída rodina ta
-celé	odpoledne město dopoledne léto ráno hodiny
+celé	odpoledne město dopoledne ráno léto hodiny
+celé dopoledne	jsem
 celé město	bylo
 celé odpoledne	jsem
 celého	srdce světa
 celém	světě
 celý	den život týden svět svůj rok
-celý den	jsem a doma
+celý den	jsem a mi doma
 celý svůj	život
 cena	je se
 centra	města
 centru	města
 cenu	se než
 ceny	jsou se
-cesta	do je byla
+cesta	do je byla se
 cestou	do domů
 cestou do	školy
 cestoval	jsem sám
@@ -367,90 +413,100 @@ cestovat kolem	světa
 cestovní	pas
 cestu	do na k
 cestě	do domů
+cestě do	školy
 cestě domů	z
-chce	být se jít aby spát mít
+chce	být se jít aby abych spát
 chce aby	se
 chce abych	mu
 chce se	mi
 chceme	to abys aby jet mír
-chcete	aby abych se jet jít říct
+chceme to	udělat
+chcete	aby se abych jet jít říct
 chcete opravdu	zůstat
 chcete říct	že
-chceš	abych jít vědět být aby říct
+chceš	abych vědět jít být aby to
+chceš aby	to
 chceš abych	ti to
-chceš jít	do
+chceš jít	do se
 chceš vědět	proč
 chceš říct	že
-chci	se vědět abys aby být si
-chci aby	to sis mi ses
-chci abys	mi věděl
+chci	se abys vědět aby být si
+chci aby	to sis mi ses ho
+chci abys	mi věděl na to odešel
 chci abyste	mi
 chci být	jako
 chci jet	do
-chci jít	do na
+chci jít	do s na
 chci mluvit	s
 chci s	tebou
-chci se	naučit stát s jít vrátit ujistit
+chci se	naučit s stát vrátit jít ujistit
 chci si	koupit s
 chci ti	něco dát
 chci to	od
-chci vědět	co proč kdo jak kde jestli
+chci vědět	co kdo proč kde jak jestli
+chemický	prvek
 chladné	počasí
 chlapci	si se
 chlapec	je se který má
 chlapík	je
-chleba	a s se
+chleba	a je s se
+chlubí	svými
 chlápek	je
 chodil	s do na
 chodit	do ven v spát s neměl
 chodit do	školy
 chodit spát	dříve
 chodit v	noci
-chodí	do na s každý pozdě spát
+chodí	do na s každý pozdě se
 chodí do	školy
 chodí na	procházky
 chodí spát	v
-chodím	do na
+chodím	do na nakupovat
 chodím do	školy kostela
 chodíme	do
 chodíte	rádi
-chodíš	spát
+chodívali	jsme
+chodíš	do spát
 choval	se hrubě jsem
 choval jsem	se
 choval se	jako
 chovat	jako
 chovej	se
+chovejte	se
 chová	se slepice
-chování	je
+chování	je se svého
 chováš	se
 chození	do
 chránit	před
 chrání	před
 chtít	udělat
-chtějí	abych nás
+chtějí	nás abych
 chtěl	bych jsem abych vědět bys aby
 chtěl aby	se
-chtěl abych	mu
+chtěl abych	mu s
 chtěl bych	si se být abys mít aby
 chtěl jsem	se si být aby ti vědět
 chtěl jít	na
 chtěl vědět	proč
 chtěla	bych jsem aby bys se vidět
+chtěla aby	jí
 chtěli	byste jsme aby vědět abych být
 chutná	to
 chuť	na k jít si se
 chuť k	jídlu
 chvilku	prosím
-chvíli	jsme mi jsem
+chvíli	jsme jsem mi
 chybu	udělal
+chyby	které
 chybí	mi mu nám ti
+chybíš	mi
 chyběl	jsi
 chystal	jsem
 chystal jsem	se
 chystá	se
 chystám	se
 chytil	jsi
-chytrý	kluk
+chytrý	kluk chlapec telefon
 chytřejší	než
 chytřejší než	já
 chyť	ho
@@ -465,37 +521,39 @@ co bude	dál
 co budeme	dělat
 co budeš	dělat
 co budu	dělat moci
-co by	se
-co bych	měl
+co by	se mohlo
+co bych	měl ti
 co bychom	měli si
 co bylo	na
-co bys	dělal udělal chtěl
+co bys	dělal udělal chtěl dělala
 co byste	chtěli
 co chcete	abych
-co chceš	dělat k abych
+co chceš	k dělat abych
+co chci	je
 co dělá	tvůj v
 co děláš	v
 co je	to v na třeba pro za
-co ještě	se
-co jsem	řekl chtěl ti se hledal mohl
-co jsi	udělal mi řekl dělal včera pro
-co jsme	se
-co jste	se
+co ještě	by se
+co jsem	řekl ti chtěl udělal se mohl
+co jsi	udělal mi dělal řekl včera mu
+co jsme	se mohli
+co jste	se čekali
 co k	tomu
 co kdyby	ses se
-co kdybychom	to si se šli
+co kdybychom	to se si šli
 co kdybys	začal to
 co když	se je to
 co mi	udělal
 co mohu	udělat
+co mu	patří
 co musí	udělat
 co musím	udělat
 co musíš	udělat
 co myslíš	že
-co má	dělat
+co má	dělat na
 co mám	dělat udělat
 co máme	dělat
-co máte	raději
+co máte	v raději
 co máš	v dělat na radši
 co měl	udělat
 co můžeme	udělat
@@ -510,40 +568,50 @@ co potřebujeme	je
 co potřebuji	vědět
 co pro	tebe vás
 co přede	mnou
-co s	tím
-co se	stalo děje ti stane to mi
+co s	tím ní
+co se	stalo děje ti stane to vám
 co si	myslíš o myslí myslím pamatuješ myslíte
-co ti	říkám chci říká
-co to	je znamená bylo do máš
+co sis	vůbec
+co tady	děláš
+co ti	říkám chci říká na
+co to	je bylo znamená do máš
 co tím	myslíš
+co tě	trápí
 co vidíš	na
 co vám	mám právem
 co víš	o
 co z	toho
 co řekl	se že
+co říká	je
 co říkáš	je
-copak	jste nevíš jsi
+cokoliv	kromě
+copak	jste nevíš jsi nejsi
 copak jste	tam
 copak nevíš	že
-což	takhle
+což	je takhle
+cukr	je se
+cílem	je
 cítil	jsem že
 cítil jsem	se
 cítila	se
 cítili	jsme
 cítili jsme	se
 cítit	lépe
-cítím	se to
+cítím	se to dobře
+cítím se	jako
 cítíš	se
 dal	jsem bych mi si všechny se
 dal bych	si výpověď
 dal bys	mi
 dal jasně	najevo
 dal jsem	si mu to ti jí
+dal k	narozeninám
 dal najevo	že
 dal se	do
 dal si	do
-dala	mu jsem mi svému
-daleko	je od jsi
+dal všechno	co
+dala	mu jsem mi si svému
+daleko	od je jsi
 daleko je	to
 dali	jsme mi
 dalo	se
@@ -553,63 +621,71 @@ dan	se byl
 dar	k
 dar k	jeho
 daroval	jí
+datum	narození
 dav	se
 daří	se dobře
-dcera	je se má
+dcera	je má se
 dcera je	zdravotní
 dcery	a
-dej	mi to si mu nám
-dej mi	vědět trochu pokoj tu to
+dej	mi to si mu nám vědět
+dej mi	vědět prosím šanci trochu pokoj tu
+dej si	pozor
 dej to	do
 dejte	mi prosím si mně
-dejte mi	prosím vědět
+dejte mi	vědět prosím
 dejte si	pozor
 demokracie	je
-den	jsem kdy se v volna byl
+den	jsem se kdy v volna byl
+den chodím	do
 den jsem	strávil
 den kdy	jsme se
 den v	práci
 den ve	škole
 den za	dnem
-deset	let minut dolarů dní hodin procent
+deset	let minut dolarů dní hodin lidí
 deset let	co mladší v
 deseti	lety minut
 devatenáct	set
 devatenáct set	sedmdesát
+devíti	do
 devět	hodin deset
+dešti	se
 divné	že
 divoká	zvířata
 divu	že
 dle	mého
 dle mého	názoru
-dlouho	jsem jsi čekat to už jste
+dlouho	jsem to čekat jsi už jste
 dlouho do	noci
 dlouho jsi	byl
 dlouho jste	byli
 dlouho myslíš	že
 dlouho to	ještě bude
+dlouho už	jsi
 dlouhou	dobu
 dlouhá	doba je
 dlouhé	vlasy
 dlouhý	dopis seznam ocas
+dlouhými	vlasy
 dlužíš	mi
-dne	se
+dne	se na
 dnes	večer je jsem ráno odpoledne se
 dnes do	školy
-dnes je	velmi
-dnes jsem	byl se šel měl
+dnes je	velmi poslední
+dnes jsem	byl se šel si měl
+dnes nemůže	přijít
 dnes odpoledne	bude
 dnes ráno	jsem mě
 dnes se	mi cítím
 dnes už	se
 dnes v	noci
 dnes večer	budu se
-dneska	je jsem večer mám ráno se
-dnešní	době noviny den hodinu
+dneska	je jsem večer ráno mám se
+dnešní	noviny době den hodinu
 dny	se jsem jsou
-dní	v
+dní	v volno
 dní v	týdnu
-do	školy práce toho nemocnice kina svého
+do	školy práce toho nemocnice kina zahraničí
 do centra	města
 do kina	nebo
 do konce	roku
@@ -619,41 +695,40 @@ do místnosti	a
 do new	yorku
 do ničeho	nutit
 do nového	domu
-do práce	autem na
+do práce	autem pěšky protože na
 do psychiatrické	léčebny
 do půl	třetí
 do spojených	států
 do své	kanceláře smrti
 do svého	pokoje
-do toho	ti nebude
+do toho	ti nebude nic
 do té	jeskyně
 do této	místnosti
 do čaje	cukr
-do školy	i na pozdě s protože
+do školy	i pěšky na pozdě s protože
 do špatného	autobusu
 dobou	jsem už
-dobrou	noc práci náladu paměť radu
-dobrá	práce věc v
-dobré	pro ráno odpoledne zdraví známky
+dobrou	noc náladu práci paměť radu
+dobrá	práce kuchařka věc v
+dobré	pro ráno odpoledne zdraví počasí znamení
 dobrého	právníka
-dobrý	nápad den v důvod člověk student
+dobrý	nápad den v důvod ve student
 dobrý v	matematice
 dobrý způsob	jak
 dobrých	rukou
-dobrým	manželem zdrojem
+dobrým	manželem příkladem zdrojem
 dobrými	přáteli
-dobu	jsem pracoval na neviděl
+dobu	jsem neviděl pracoval na je
 doby	co jsem kdy se je
 doby co	jsem
 doby jsem	ho
 době	jsem se hodně
-dobře	se si že na jako vědom
+dobře	se si jako že na díky
 dobře že	jsi
 dobří	přátelé
-docela	dobře jistý často jsem těžké
+docela	dobře často jistý dobrou jsem těžké
 docela jistý	že
 dochází	mi
-dodržovat	pravidla
 dohledné	době
 dohodli	jsme
 dohodli jsme	se
@@ -664,9 +739,10 @@ dokaž	že
 dokonalosti	daleko
 dokonce	i ani
 dokonce i	v
-dokončit	do
+dokončit	to do
+dokončit to	co
 doktor	mi řekl
-doktor mi	doporučil řekl
+doktor mi	řekl
 doktor řekl	že
 doktoři	říkají
 doktoři říkají	že
@@ -678,39 +754,42 @@ dokážeš	si to od
 dokážeš si	představit
 dokážu	to
 dolarů	za na
+dolarů za	den
 dolů	po
-doma	s a sám je v se
+doma	a s sám je v se
 doma s	rodiči
 domem	je
 domnívám	se
 domnívám se	že
 domov	můj
+domově	důchodců
 domu	je
 domy	jsou
 domácí	úkoly úkol vězení práce
 domácích	úkolů
 domácího	mazlíčka
 domě	není je
-domů	z v a jsem před pozdě
+domů	v z a jsem pěšky před
 domů velmi	pozdě
 domů z	práce
 domů ze	školy
 doopravdy	stalo
-dopis	od v je své ve
-doporučil	mi
-doporučuji	ti
-dopravní	nehodě zácpě nehoda
+dopis	od je v který své ve
+dopoledne	jsem
+doporučuji	ti vám
+dopravní	nehodě zácpě nehoda nehodu
 dorazil	na jsem domů
 dorazili	do
 dorazí	do
 dort	na
-dost	peněz času starý teplo místa starší
+dost	peněz času starý místa teplo starší
 dost místa	pro
 dost peněz	na
 dost starý	na
 dost času	na
-dostal	jsem do jsi padáka k to
-dostal jsem	od víc se
+dostal	jsem do jsi padáka na od
+dostal do	sporu
+dostal jsem	od víc to se
 dostal to	co
 dostala	jsem do
 dostali	jsme do jste
@@ -718,24 +797,25 @@ dostali jsme	se
 dostanu	na
 dostanu na	pláž
 dostat	do se domů dovnitř na padáka
-dostat se	tam
+dostat se	tam na
 dostatek	času jídla
-dosud	nevím jsem to se
+dosud	nevím jsem to mi se
 dosud nevím	proč
 doufal	jsem že
 doufal jsem	že
 doufat	že
 doufejme	že
 doufá	že
-doufá že	vyhraje to
+doufá že	to vyhraje
 doufám	že
-doufám že	se to na si mě jsi
+doufám že	se to si na jsi mě
 doufáme	že
 doufáme že	se
 dovedeš	si
 dovedeš si	vzpomenout
 dovol	mi
 dovol mi	abych to
+dovolenou	do
 dovolil	jsem
 dovolit	koupit aby
 dovolte	mi abych
@@ -744,11 +824,13 @@ dozvíš	pravdu
 dozvěděl	že
 dozvědět	víc
 dočkat	až
-došel	benzín nám mi
+došel	benzín mi nám
 došli	jsme
 došlo	k ke
 došly	nám
 drahé	auto
+draky	a
+dražší	než
 drogově	závislý
 drogy	jsou
 druhou	šanci stranu
@@ -758,41 +840,42 @@ druhé straně	ulice
 druhé světové	válce
 druhém	patře
 druhý	den
+druhých	lidí
 drž	se
 drž se	dál
 držel	v
 držet	dietu krok opodál
 držte	se
-drží	dietu slovo dál
+drží	slovo dietu dál
 duševní	zdraví
-dva	roky týdny dny psy tisíce syny
-dva roky	co
+dva	roky týdny dny psy syny tisíce
+dva roky	mladší co
 dvacet	let minut cigaret pět
 dvaceti	lety
-dvakrát	za denně tak týdně tolik
+dvakrát	denně tak za týdně tolik
 dvakrát tolik	co
-dvanáct	hodin let
+dvanáct	let hodin
 dveře	jsou otevřené se a byly na
 dveřmi	je
 dvou	jídel
-dvě	hodiny děti auta dcery sestry stě
+dvě	hodiny děti auta dcery knihy sestry
 dvě mouchy	jednou
-dvěma	lety týdny
+dvěma	lety týdny dny
 dá	se do koupit
 dá do	pořádku
 dá se	to
-dál	víc čekat od už tím více
+dál	víc čekat od více už tím
 dál tím	víc
-dám	ti si vám
+dám	ti si vám to
 dám ti	to vědět tolik
 dám vám	vědět
 dáme	si
 dámy	a na
 dámy a	pánové
 dámy na	její
-dárek	k od pro
-dárek k	narozeninám
-dát	něco do vědět
+dárek	od k pro který
+dárek k	narozeninám jeho
+dát	něco do vědět opravit své
 dáte	si
 dávat	pozor větší
 dávat větší	pozor
@@ -801,24 +884,25 @@ dávej na	sebe
 dávej si	pozor
 dávejte	pozor
 dávno	jsem
-dává	přednost smysl
+dává	přednost to smysl
 dávám	přednost
 dáš	si mi
 dáš si	ještě
 déle	než
 déšť	trval
-díky	za že bohu moc tobě
+díky	za že tobě bohu moc
 díky moc	za
+díky tobě	jsem
 díky za	pomoc
 díky že	jsi
 díru	do
 díru do	zdi
-dítě	jsem se by bylo ještě za
+dítě	se jsem by bylo má potřebuje
 dítě by	nemělo
 dítě za	ruku
 dítěte	je
 dívají	na
-díval	se na jsem
+díval	na se jsem
 díval jsem	se
 díval se	na
 dívala	se na
@@ -830,7 +914,7 @@ dívat na	televizi
 dívat se	na
 dívej	se
 dívej se	na
-dívka	je se která co kterou má
+dívka	je se co která kterou má
 dívka se	kterou
 dívky	jsou se
 dívá	na se
@@ -840,17 +924,22 @@ dívám	se na
 dívám na	televizi
 dívám se	na
 díváš	na
-děda	se je
+děda	se je byl
 děje	se co když v
+děje co	se
 děje se	to
 děkujeme	za
 děkuji	za ti vám
 děkuji ti	za
 děkuji vám	za
+děkuji za	dárek
 děkuju	za
-dělají	z
-dělal	že jsem kdybys kdybych včera co
-dělat	to nic s co nebudu sám
+dělají	to z
+dělal	že jsem kdybys co kdybych včera
+dělal co	mohl
+dělala	že
+dělali	jsme
+dělat	to nic s co nebudu si
 dělat co	ti
 dělat nic	co
 dělat něco	jiného
@@ -858,7 +947,8 @@ dělat si	co
 dělat to	co
 dělej	to
 dělejte	to
-dělá	to je v tvůj co že
+dělá	to je co v tvůj z
+dělá co	může
 dělá to	co
 dělám	to si domácí
 děláme	to
@@ -875,27 +965,31 @@ dětí	se
 dřevěná	židle
 dřív	než jsem nebo
 dřív nebo	později
-dříve	či než jsem bydlel žil
+dříve	či než jsem bydlel to žil
 dříve či	později
 dříve žil	v
+důležitou	roli
 důležité	aby je rozhodnutí
+důležité aby	to
 důležitý	úkol
 důležitější	než
-dům	je se ve byl kde má
-dům je	na třikrát jeho v
+dům	je se ve byl kde na
+dům je	na třikrát velmi jeho můj v
 dům kde	jsem
 dům se	zahradou
 dům ve	kterém
+důsledkem	tvé
 důvod	proč se k
 důvod k	tomu
-důvod proč	bych to
+důvod proč	bych to se
 důvodu	se
 důvody	proč
 důvěru	v
 edison	vynalezl
 evropské	unie
 existovat	bez
-film	byl se je viděl který jsem
+existuje	jen
+film	byl je se viděl který jsem
 film se	mi
 film stojí	za
 filmech	někdy
@@ -904,12 +998,13 @@ filmu	se je
 filmy	jsou v
 finanční	problémy
 firemní	večírek
-firma	se
+firma	se kolabuje
 fotbal	je
 fotka	mé
 fouká	vítr
-francie	a
+francie	a je
 francouzská	vína
+frontu	na
 fuk	co jestli
 fuk co	si
 funguje	to
@@ -918,10 +1013,11 @@ gauči	a
 hezky	voní
 hezká	ale
 hezké	že jméno
-hezký	jako výhled den
+hezký	den jako výhled dárek
 hezčí	než
 historie	je
-hlad	protože a že nemám
+hlad	protože a že nemám jako
+hlad jako	vlk
 hlad protože	jsem
 hlad že	bych
 hlava	a
@@ -933,8 +1029,9 @@ hlavu	na
 hledal	jsem
 hledal jsem	něco
 hledali	jsme
+hledat	práci
 hledá	práci policie
-hledám	své svoji práci
+hledám	své svoji práci svoje
 hledáte	práci něco
 hledět	svého
 hloupou	otázku
@@ -942,7 +1039,7 @@ hloupé	na otázky
 hloupé na	to
 hloupý	nápad aby
 hluboké	je
-hned	jak se tak jsem za teď
+hned	jak se tak jsem teď za
 hned se	vrátím
 hnědé	oči vlasy
 ho	na do viděl jak aby o
@@ -953,15 +1050,21 @@ ho na	to ulici
 ho nemám	rád
 ho někdo	chce
 ho o	radu
-hodil	jsem
-hodin	denně se spánku ráno večer obvykle
+ho s	sebou
+ho to	udělat
+hoch	je
+hodil	jsem míč
+hodin	denně večer se spánku ráno obvykle
 hodinky	jsou se
-hodiny	a se jdou odpoledne
+hodiny	se a jdou později odpoledne
+hodláš	dělat
 hodný	člověk
-hodně	peněz práce lidí věcí se jsem
+hodně	práce peněz lidí se věcí jsem
+hodně co	je
 hodně jsem	se o
 hodně peněz	ale
 hodně se	toho
+hodně tento	týden
 hodně věcí	které
 holka	je
 holky	se
@@ -969,13 +1072,14 @@ hora	je
 horkou	kávu
 horká	že
 horké	počasí
+horký	den
 horší	než
 horšího	než
 hotel	je
 hra	se na
 hrad	je
-hraje	na s dobře si velmi
-hraje na	piáno housle kytaru
+hraje	na s se si dobře velmi
+hraje na	piáno housle
 hraje velmi	dobře
 hraji	na
 hraju	na si
@@ -985,55 +1089,58 @@ hrdý	na
 hrdý na	to
 hrozbou	pro
 hrozná	věc
-hrozně	se mě
+hrozné	věci
+hrozně	se mě rád
 hru	se
 hrál	na jsem se
 hrála	na
 hráli	jsme
-hrát	na s golf si
-hrát na	kytaru piáno trubku
+hrát	na s si golf
+hrát na	piáno trubku
 hrát si	s
 hrávali	jsme
 hudba	je
 hudbu	a
 hudební	nástroj
 hádali	se
-hádej	kdo co
-i	když kdyby já v pro s
-i když	jsem se je ho bude to
+hádej	co kdo
+i	když kdyby v s pro já
+i když	jsem je se ho to bude
 ihned	odejít sem
 itálie	je
 jablečný	koláč
 jaderné	zbraně
 jaderné zbraně	jsou
-jak	se dlouho to jsi je jsem
+jak	se dlouho to jsi je si
 jak by	jsi
+jak bych	to
 jak byste	to
 jak daleko	je jsi
-jak dlouho	jsi to už jste ještě je
+jak dlouho	to jsi už jste ještě myslíš
 jak dlouhá	je
 jak je	to možné
-jak jsem	to si se očekával ji
+jak jsem	si to se očekával ji
 jak jsi	věděl to říkal se
 jak jsme	se
 jak jste	se
 jak moc	tě se
 jak na	to
-jak se	jmenuje to máš má dostanu ti
+jak se	jmenuje to máš ti má dostanu
 jak si	myslíš myslí myslíte
 jak starý	je
-jak to	udělat funguje jde že mám děláš
+jak to	udělat funguje jde mám že děláš
 jak velký	je
 jak často	se
 jakmile	se to budu
 jakmile to	půjde
-jako	dítě já ty první je by
+jako	dítě já ty první s by
 jako by	byl to
+jako domácího	mazlíčka
 jako dítě	jsem
-jako jeho	otec bratr
+jako jeho	otec bratr starší
 jako jsi	ty
 jako můj	otec bratr
-jako s	děckem malým
+jako s	děckem malým dítětem
 jako samozřejmost	že
 jakou	barvu jsem má máš
 jakou barvu	má mají
@@ -1045,36 +1152,39 @@ jaké	je jsou to má bylo barvy
 jaké bude	zítra
 jaké je	vaše tvoje
 jaké to	je
-jaký	je máš byl jsem to film
-jaký je	tvůj rozdíl váš to můj
+jaký	je byl máš jsem to druh
+jaký je	rozdíl tvůj váš to můj
 jaký jsem	kdy
 jakým	účelem
 jane	je
 japonska	jsem
 japonsko	je
 jasné	že co
-jasné že	je
+jasné že	je to
 jasně	že najevo
-jaře	příštího
-jaře příštího	roku
-jde	o do na
+jde	o do na domů se
+jde o	to
 jdeme	do na si pozdě
-jdi	do se a spát
+jdeš	na
+jdi	a se do spát
+jdi a	řekni
 jdi se	podívat
 jdu	do na si domů k
 jdu do	kostela školy
 jděte	rovně
 je	to velmi v na mi můj
 je ale	krásný
+je alergický	na
 je blázen	do
+je chemický	prvek
 je chytřejší	než
 je deset	let
 je divné	že
 je dnes	večer
 je dobré	pro
-je dobrý	nápad v
+je dobrý	nápad v ve
 je dobře	že
-je dost	teplo
+je dost	starý teplo
 je důležité	aby
 je důležitější	než
 je dům	ve kde
@@ -1083,32 +1193,38 @@ je hezká	ale
 je hezčí	než
 je hlavní	město
 je hlavním	městem
-je hodně	věcí
+je hodně	věcí lidí
 je jasné	že
 je jeden	z
-je jediný	kdo
+je jediný	kdo komu
 je jedna	z
 je jedno	co z kdo jak
 je jedním	z
-je jeho	dům
+je jeho	dům problém
 je její	dům
+je jen	jedna
 je ještě	vyšší v
 je jiný	než
+je jistý	že
 je k	tomu ničemu
 je krásná	země
+je lehčí	než
 je lepší	než se
+je malá	země
 je menší	než
 je mi	jedno to fuk líto zima do
 je mladý	ale
 je mladší	než
-je mnohem	větší horší
-je moc	hezká
-je moje	sestra oblíbené oblíbená první chyba kolo
+je mnohem	větší horší jednodušší
+je moc	hezká hezký
+je moje	sestra oblíbené první oblíbená chyba auto
 je možné	že se
-je můj	přítel oblíbený bratr pokoj otec nevlastní
-je na	stole mě tobě to čase řadě
+je mu	to
+je můj	přítel oblíbený bratr syn pokoj otec
+je na	stole mě tobě to čase cestě
 je naléhavě	zapotřebí
 je naučit	se
+je naše	jediná
 je nechávat	tak
 je nejlepší	způsob
 je nejvyšší	čas
@@ -1116,7 +1232,7 @@ je nezbytné	aby abys
 je nutné	aby abys
 je něco	co
 je nějaká	šance
-je o	něco hodně tři dva
+je o	něco dva hodně tři dost
 je od	tebe vás
 je opravdu	dobrý nutné
 je poprvé	co
@@ -1124,29 +1240,33 @@ je poslední	den dobou
 je pořád	v
 je pravda	že
 je pravděpodobné	že
-je pro	mě nás tebe vás něj mne
+je pro	mě nás tebe něj vás mne
+je právě	teď
 je pět	hodin
 je přesně	ten to
-je příliš	mladá pozdě hloupé malý mladý
+je příliš	mladá mladý mnoho pozdě hloupé malý
 je rozdíl	mezi
 je rád	že
-je s	sebou
+je s	sebou tím
 je se	svým
 je si	toho
 je smutné	že
 je starší	než
 je stejně	starý
 je stále	ještě na v naživu
+je stát	se
 je ta	žena dívka
 je tady	někdo uvnitř aby pro
+je tak	pozdě trochu
 je tam	kde
-je ten	kdo který muž nejlepší pán kluk
-je teď	na v
-je to	velmi pro jen pravda moje tak
-je toho	tolik hodně
-je tu	někdo pro něco
+je ten	kdo který muž nejlepší kluk chlapec
+je teď	v na
+je ti	let
+je to	velmi jen pro pravda moje tak
+je toho	hodně tolik
+je tu	někdo pro patnáct něco
 je tvoje	oblíbená žena
-je tvůj	oblíbený otec bratr kamarád nepřítel
+je tvůj	oblíbený otec bratr problém kamarád nepřítel
 je tím	co
 je těžká	práce
 je těžké	se uvěřit porozumět
@@ -1154,18 +1274,19 @@ je těžší	než
 je třeba	udělat si
 je tři	čtvrtě
 je třikrát	větší
-je v	této tomto pořádku nebezpečí domě kuchyni
+je v	pořádku této tomto kuchyni nebezpečí práci
 je vdaná	za
-je ve	vězení škole své vaší svém
+je ve	vězení své škole vaší skutečnosti svém
 je velká	země
-je velmi	dobrý hezká krásná starý důležitý atraktivní
+je velmi	dobrý starý důležitý hezká důležité krásná
 je venku	zima
 je vyšší	než
 je váš	oblíbený otec
 je větší	než
 je vše	co
 je všechno	co v
-je za	námi
+je vůči	mně
+je za	námi problém
 je zase	šťastný
 je zdravotní	sestra
 je ze	dřeva
@@ -1174,7 +1295,8 @@ je zodpovědný	za
 je závislý	na
 je zázrak	že
 je zřejmé	že
-je čas	jít na aby abys abych odejít
+je úplně	prázdná
+je čas	jít na aby abys abych se
 je černá	a
 je čtvrt	na
 je čím	dál
@@ -1183,41 +1305,47 @@ je škoda	že
 je že	je
 je ženatý	a
 je život	tak
-jede	do na ve
+jede	do ve na
 jede ve	tři
+jedeme	na do
 jeden	z po den druhého ze týden
+jeden můj	přítel
+jeden na	druhého
 jeden po	druhém
-jeden z	mých nás těch nich vás nejlepších
+jeden z	mých nás nich těch vás nejlepších
 jedenáct	hodin
-jediná	kdo naděje věc
+jediná	kdo naděje šance věc
 jediné	co
 jediné co	musíš
-jediný	kdo důvod den způsob koho komu
+jediný	kdo den důvod koho komu člověk
 jediný důvod	proč
 jediný kdo	to se si může má
 jediný způsob	jak
 jedl	jsem
 jedla	jsem
 jedli	jsme
-jedna	z je věc
+jedna	z je věc osoba
 jedna z	mých
 jednal	pod
 jednal pod	nátlakem
 jednali	s
 jedno	co z pivo jestli jak dítě
 jedno co	si
-jednoho	dne z ze syna bratra
+jednoduché	řešení
+jednodušší	než
+jednoho	dne z bratra ze přítele syna
+jednoho dne	se
 jednoho ze	svých
 jednou	za jsem se týdně z nohou
 jednou jsem	ho
 jednou nohou	v
 jednou za	měsíc týden
-jednu	věc noc otázku šanci kočku
+jednu	věc noc otázku šanci z hru
 jednu věc	a
 jedny	z
 jedná	se jako
 jedná jako	s
-jedné	restauraci lodi
+jedné	restauraci lodi z
 jedním	z ze
 jedním z	mých nich
 jedu	do na
@@ -1229,7 +1357,7 @@ jeho dům	je
 jeho nabídku	jste
 jeho nový	film
 jeho otec	je zemřel
-jeho starší	sestra bratr
+jeho starší	bratr sestra
 jeho telefonní	číslo
 jeho zdraví	se
 jeho žena	je
@@ -1237,8 +1365,9 @@ jeho život	je
 jehož	otec
 jehož otec	je
 jejich	jména děti rodiče dům otec práce
+jejich dům	je
 jejich práce	je
-její	otec jméno manžel dům matka sestra
+její	otec jméno manžel dům rodiče matka
 její dům	je
 její otec	je zemřel
 její telefonní	číslo
@@ -1248,7 +1377,7 @@ jel jsem	tam
 jela	do
 jeli	do na jsme
 jelikož	se
-jen	tak jsem se to když o
+jen	tak jsem se to o když
 jen doufám	že
 jen jsem	chtěl se
 jen když	se
@@ -1256,13 +1385,14 @@ jen několik	lidí
 jen proto	že
 jen tak	nechat
 jen to	co nejlepší
-jenom	tři se na v to dvě
+jenom	tři se na v jednu to
 jenž	jsi
 jenž jsi	na
-jestli	to se je chceš si by
+jestli	to se je chceš si jsem
 jestli bude	zítra
 jestli chceš	tak
 jestli je	to
+jestli mi	nevěříš
 jestli přijde	nebo
 jestli s	ním
 jestli se	to nepletu s
@@ -1280,17 +1410,19 @@ jezero	je
 jezeře	je
 ještě	jsem není jednou se to jednu
 ještě bude	trvat
-ještě jedno	pivo
+ještě budeme	muset
+ještě jedno	pivo auto
 ještě jednu	šanci
-ještě jsem	se nikdy to
+ještě jsem	se to nikdy nic
 ještě na	několik
 ještě není	připraven
 ještě nevím	co
-ještě nikdy	nebyl
+ještě nikdy	jsem nebyl
 ještě předtím	než
 ještě s	námi
+ještě se	to
 ještě to	nikdo
-ji	na miluji políbil miluješ najít miloval
+ji	na miluji neviděl za políbil miluješ
 ji a	ona
 ji miluješ	neboj
 jim	to že aby řekl ať se
@@ -1298,15 +1430,16 @@ jim aby	to
 jim ať	mi
 jim řekl	ať
 jim že	to
-jinak	než
+jinak	než vysvětlit
 jinou	možnost práci
 jinou možnost	než
-jiné	planety než řešení
-jiného	než na
+jiné	planety než řešení plány
+jiného	než na jsem
 jiného na	práci
 jiném	než
+jiném než	o
 jiní	ne
-jiný	názor než to způsob
+jiný	než názor to způsob
 jiný názor	než
 jist	že jestli
 jist že	to
@@ -1317,48 +1450,52 @@ jistá že	je
 jisté	že
 jistý	že jestli
 jistý jestli	to
-jistý že	to je
+jistý že	to je se
 jistě	jestli
 jistě jestli	jsem
-již	není nejsou odešel tři jsem
+již	jsem není nejsou odešel tři
 jmenoval	ten
 jmenuje	se tvoje tvůj tento tato vaše
 jmenuji	se
-jméno	je mi a bylo na
+jména	na
+jméno	je mi a na bylo
 john	je se
 johnovi	že
 jsem	se si že to na ho
 jsem aby	se
-jsem byl	v dítě mladý u s malý
+jsem byl	v dítě mladý na u s
 jsem celý	den
 jsem chodil	s
 jsem chtěl	říct
-jsem co	jsem
+jsem co	jsem mám se
 jsem do	tebe školy nemocnice
 jsem dobrý	v
 jsem dopis	od ve
+jsem dost	starý
 jsem dveře	a
-jsem ho	neviděl na viděl jak aby o
+jsem hlad	a
+jsem ho	neviděl jak na aby viděl o
 jsem hrdý	na
-jsem jak	se jste jsi zpívala
+jsem jak	se jste jsi to zpívala
 jsem jako	samozřejmost
-jsem je	nechal jen
+jsem je	nechal jen všechny
 jsem jediný	kdo
 jsem jeho	jméno
-jsem ji	na neviděl miloval před nemohl uviděl
+jsem ji	neviděl na miloval před nemohl uviděl
 jsem jim	že aby ať
 jsem jinou	možnost
-jsem jí	že to svůj
+jsem jí	to že svůj
 jsem kdy	viděl četl
+jsem lepší	než
 jsem mluvil	s
 jsem moc	rád
 jsem mu	že to řekl ať dal facku
 jsem měl	byla rád
-jsem na	to něj tebe tu vás cestě
+jsem na	to něj tebe ni tu vás
 jsem narazil	na
-jsem nebyl	v doma
+jsem nebyl	v ve doma
 jsem nemocný	a
-jsem neměl	čas
+jsem neměl	rád čas
 jsem neviděl	tak
 jsem nevěděl	že co
 jsem nečekal	že
@@ -1369,64 +1506,71 @@ jsem o	tobě ní něm pomoc to
 jsem od	tebe ní
 jsem odešel	z
 jsem poslední	kdo
-jsem pro	ni něj
+jsem pro	ni něj ně
 jsem právě	řekl
 jsem přesvědčen	že
 jsem připraven	na
 jsem příliš	unavený
 jsem rád	že
 jsem ráda	že
-jsem s	ním ní tím tebou přáteli
-jsem se	s v na že to vrátil
-jsem si	že jistý to myslel jist s
+jsem s	ním ní tím nimi tebou kamarády
+jsem se	s v na že do to
+jsem si	že jistý myslel to jist na
 jsem starší	než
 jsem strávil	s tím
 jsem svojí	ženě
 jsem svého	přítele
 jsem svým	dětem
-jsem tady	abych
+jsem tady	abych už
 jsem tak	opilý
-jsem tam	jít nebyl s a včera byl
-jsem ten	film příběh kdo
-jsem ti	že řekl abys říkal to něco
-jsem to	udělal udělat pro já v co
-jsem tu	práci
-jsem tvůj	otec
-jsem ty	knihy
-jsem tě	neviděl viděl s neměl jak
+jsem tam	jít s nebyl nebyla a včera
+jsem ten	kdo film příběh
+jsem ti	že řekl abys to říkal něco
+jsem to	udělal udělat pro já co řekl
+jsem tu	práci zprávu
+jsem tvůj	otec hlas
+jsem ty	knihy peníze
+jsem tě	neviděl viděl s neměl jak o
 jsem tři	hodiny
 jsem udělal	chybu
+jsem unavený	a
 jsem už	nějakou
 jsem v	práci životě lese římě úmyslu té
-jsem ve	svém škole
+jsem ve	svém škole službě
 jsem velký	hlad
 jsem velmi	unavený
 jsem vstoupil	do
-jsem vám	řekl že to
-jsem vás	nechal
+jsem vám	řekl to že
+jsem vás	nechal tady
 jsem víc	než
+jsem věděl	že
 jsem všechno	co
 jsem všechny	své
-jsem z	francie
+jsem z	toho francie
 jsem za	to
 jsem zapomněl	co že
+jsem zjistil	že
 jsem zůstal	doma
 jsem čekal	že
+jsem řekl	že
 jsem šel	s domů spát na
 jsem šťastný	že
-jsem že	jsi to se je mě jste
+jsem že	jsi se to je mě jste
 jsem žil	v
-jsi	to mi mě byl že na
+jsi	to mi mě byl na že
+jsi buď	okouzlující
 jsi byl	někdy ve
 jsi dnes	ráno
 jsi dost	starý
+jsi jediná	kdo
 jsi jediný	kdo
 jsi k	ničemu
 jsi ke	mě
 jsi lepší	než
-jsi mi	to neřekl o včera řekl půjčil
+jsi mi	to neřekl o že včera řekl
+jsi mladší	než
 jsi moc	mladý
-jsi mu	to o
+jsi mu	to o řekl
 jsi měl	odmítnout
 jsi měla	odmítnout
 jsi na	mě to mé nebesích
@@ -1434,25 +1578,33 @@ jsi naposledy	viděl
 jsi nevěděl	že
 jsi někdy	viděl v
 jsi pro	mě nebo
-jsi s	tím nimi ním
-jsi se	s mnou
-jsi sem	chodit
+jsi s	tím nimi ním ní
+jsi se	mnou s
+jsi sem	chodit přišel
 jsi si	jistý jistá jist
 jsi sám	ve
 jsi tak	brzo
 jsi tam	byl
 jsi ten	problém
-jsi to	udělal ty neudělal udělat řekl měl
+jsi to	udělal udělat ty neudělal řekl věděl
+jsi tu	nebyl
 jsi už	někdy
-jsi v	nebezpečí
+jsi v	bezpečí nebezpečí
 jsi víc	než
 jsi včera	večer
 jsi věděl	že co
 jsi řekl	že
-jsi že	se jsem to
+jsi říkal	že
+jsi že	se to jsem
+jsi žena	v
 jsme	se si to na v byli
+jsme až	do
+jsme co	jsme
+jsme jeli	do
+jsme jinou	možnost
 jsme na	to
-jsme se	na v s potkali že před
+jsme rádi	že
+jsme se	na v s že potkali dostali
 jsme si	mysleli to jisti vybrali
 jsme tady	abychom
 jsme ten	problém
@@ -1461,36 +1613,43 @@ jsme všichni	na
 jsme štěstí	že
 jsme že	se
 jsou	to v velmi na moje tady
+jsou důsledkem	tvé
 jsou hrozbou	pro
 jsou lidé	kteří
+jsou moji	přátelé
 jsou na	pokraji
 jsou naši	přátelé
 jsou příliš	malé
-jsou stejně	staré
+jsou silnější	než
+jsou stejně	staré staří
 jsou stále	naživu
 jsou ti	lidé
-jsou v	současnosti
+jsou to	jenom
+jsou v	současnosti místnosti mnoha
 jsou ve	škole
 jsou věci	které
-jste	se to si mi že na
+jste	se to si že mi někdy
 jste byli	naposledy
 jste být	opatrnější
+jste jak	to
 jste mi	to pomohli
+jste mě	poslechnout
 jste na	ně něj
 jste nový	dům
 jste někdy	s
+jste někoho	podezřelého
 jste prádlo	z
 jste se	s ho sem dnes rozhodli
 jste sem	chodit
-jste si	že jistý
-jste to	udělali
+jste si	jistý že
+jste to	udělali koupili
 jste už	někdy
-jste že	jsem
+jste že	jsem to
 jupiter	je
-já	jsem se to si taky jsme
+já	jsem se to si taky ne
 já bych	to
-já jsem	ten byl naopak
-já se	s
+já jsem	ten naopak byl tam
+já se	s vrátím na
 já si	myslím
 já taky	ne
 já také	ne
@@ -1501,6 +1660,7 @@ jí ať	se
 jí to	řekl
 jí že	ji mám
 jídelním	lístku
+jídlem	si
 jídlo	je bylo a pro tak na
 jídlo na	stole
 jím	tady ráda
@@ -1509,63 +1669,71 @@ jíst více	zeleniny
 jít	do s na domů ven spát
 jít do	školy práce kina nemocnice vězení
 jít i	když
-jít k	lékaři
-jít na	pláž
+jít k	lékaři doktorovi
+jít na	pláž procházku
 jít nebo	ne
 jít s	námi tebou vámi
 jít se	mnou
 jít ven	kvůli
 jíte	maso
 jízdní	řád
-k	tomu jídlu tobě narozeninám nám ničemu
+k	tomu jídlu nám narozeninám tobě pití
 k jeho	narozeninám
 k mému	překvapení
-k tomu	aby že co měl abych
+k narozeninám	kolo
+k sobě	domů
+k tomu	aby že co abych měl
 k věci	prosím
 k závěru	že
 k čemu	je to se potřebujete
-kabát	na
+kabát	na a
 kafe	je
-kam	se to šel jdeš jsem jsi
+kam	se to šel jsem jdeš jsi
+kam jsem	dal
 kam má	jít
 kam se	chystáš
 kam to	patří
 kanceláře	a jako
 kanceláře jako	poslední
 kandidovat	na
+kandidovat na	prezidenta
 kašlu	na
 kašlu na	to
-každodenním	životě
-každou	cenu neděli chvíli noc
-každé	ráno pondělí příležitosti slovo tři
+každou	cenu chvíli neděli noc
+každé	ráno pondělí slovo příležitosti tři
+každé ráno	v
 každého	kdo
 každém	případě
 každému	dítěti
-každý	den má se ví týden z
-každý den	chodí se kromě na v
+každý	den má rok se ví z
+každý den	chodí se kromě na v chodím
+každý kdo	ho
 každý koho	znám
 každý má	právo rád své
 každý se	může
 každý ví	že co
 každý z	nás nich
+každý člověk	má
 každým	dnem rokem
+kbelík	vodou
 kde	je jsi jsou se jste jsem
 kde budeš	zítra
-kde je	ta můj ten moje nejbližší váš
+kde je	ta ten můj moje nejbližší tvoje
 kde jsem	byl
 kde jsi	byl to je
-kde jsou	moje vaše naše
-kde jste	byli byl
+kde jsou	moje vaše naše tvoje
+kde jste	byli byl to
 kde mohu	koupit
-kde se	nachází to narodil
+kde se	nachází narodil to
+kde ses	naučil
 kde si	můžu
 kde teď	je
 kde to	je
-kdo	je to se by má ti
+kdo	je to se by ti má
 kdo by	mi to mohl mu
 kdo bydlí	v
 kdo ho	viděl
-kdo je	ta tvůj ten váš tady na
+kdo je	ta tvůj ten váš tady on
 kdo jsou	ti
 kdo mi	to
 kdo mu	to
@@ -1573,9 +1741,9 @@ kdo myslíš	že
 kdo má	rád
 kdo mě	naučil
 kdo nám	může
-kdo se	bojí s
+kdo se	bojí s postará
 kdo si	myslíš
-kdo ti	řekl dal
+kdo ti	řekl to dal
 kdo to	je udělal řekl bude tam udělá
 kdo tě	naučil
 kdo vám	řekl
@@ -1586,42 +1754,49 @@ kdo řekl	že
 kdokoliv	jiný
 kdy	se jsi jste to viděl jsem
 kdy a	kde
-kdy jsi	naposledy začal ji
+kdy jsi	naposledy začal to ji
 kdy jsme	se
-kdy jste	naposledy to byli se
+kdy jste	naposledy to se byli
+kdy myslíš	že
 kdy se	vrátí vrátíš bude budete
 kdy si	můžu
-kdyby	ses to se tam byl měl
+kdyby	ses to se tam měl byl
+kdyby se	to
 kdyby tady	byl
 kdyby to	byla
-kdybych	byl tak ti měl to se
-kdybych byl	věděl měl tebou
+kdybych	byl tak ti to měl se
+kdybych byl	věděl tebou měl
 kdybych tak	jen
 kdybych ti	mohl
 kdybych to	udělal
-kdybychom	to si se šli
+kdybychom	to se si šli
 kdybychom to	udělali
-kdybys	mě to ho byl mi mu
+kdybys	to mě byl mi ho mu
+kdybys byl	na
 kdybys mu	to
-kdysi	jsem jsme dělal pracoval rád
-kdysi jsem	byl si tu pracoval
-když	jsem se je to si jsme
+kdysi	jsem jsme dělal pracoval rád tady
+kdysi jsem	pracoval byl si tu
+když	jsem se je to si mi
 když budeš	něco
+když budu	mít
 když byl	nemocný
+když byla	mladá
 když ho	lidé požádáš
 když je	to
-když jsem	byl se byla viděl mu si
+když jsem	byl se byla mu viděl si
 když jsi	byl sám
 když jsme	dorazili se
 když jí	bylo
-když mi	bylo
+když mi	bylo o
 když mu	bylo
+když mě	uviděl
 když se	na mu to mi mnou ho
 když ti	to
+když to	dělá
 když už	je
 když začala	válka
 když zjistil	že
-ke	mně mě svým stolu svému stromu
+ke	mně mě stolu svým svému stromu
 ke mně	domů
 ke mě	včera
 kim	je
@@ -1630,21 +1805,24 @@ klasickou	hudbu
 klepe	na
 klepe na	dveře
 klobouk	je a
-kluk	se je
+kluk	se který je
 klást	otázky
-klíč	od a je
+klíč	od a do je
 klíče	od na
 klíče od	auta
-knihy	jsou na v z se které
+knihovně	je
+knihy	jsou na v se z které
 knížka	je
 kocour	je
 koho	jsi se znám jsem máš chceš
+koho bych	se
 koho jsi	viděl
 koho zajímá	co
-kolem	světa sebe slunce
-kolik	stojí je hodin lidí času jsi
+koho znám	mluví
+kolem	sebe světa slunce
+kolik	stojí je hodin lidí jsi času
 kolik hodin	obvykle je
-kolik je	hodin
+kolik je	hodin tam ti
 kolik jste	to
 kolik lidí	je
 kolik peněz	jsi
@@ -1655,12 +1833,15 @@ kolikrát	jsi za to ti denně
 kolo	je se
 koláč	je
 koláč je	vynikající
-komu	jsi se je patří to mám
+komu	se jsi patří je to mám
 komu mám	věřit
+komu se	líbí
+komára	velblouda
 konce	roku
 konci	světa měsíce
 konec	světa
-konečně	jsem se jsme tady
+konečné	rozhodnutí
+konečně	jsem jsme se tady
 konečně jsem	se našel
 kontakt	s
 kontaktní	čočky
@@ -1672,7 +1853,7 @@ koupelna	je
 koupila	jsem nové si jsi mu dvě
 koupila jsem	si
 koupili	jste
-koupit	nový si nové dům něco boty
+koupit	nový si dům nové něco boty
 koupit nový	dům
 koupit něco	k
 koupí	nové
@@ -1684,10 +1865,10 @@ košile	je potřebuje s
 krabice	je jsou
 krabici	je otevřít
 krade	peníze
-kreditní	kartu kartou
+kreditní	kartu kartou karty
 krev	aby
-krevní	skupinu tlak
-kromě	mě tebe
+krevní	tlak skupinu
+kromě	mě tebe toho
 kruté	a
 král	byl
 krása	je
@@ -1695,34 +1876,35 @@ krásnou	dívkou ženu
 krásná	země dívka jako
 krásná jako	její
 krásné	oči květiny šaty
-krásný	dům
+krásný	dům hlas
 krásnější	než
+krát	tři
 krátkou	dobu
-kterou	jsem jsi se si jsme mu
+kterou	jsem jsi si se jsme mu
 kterou jsem	kdy si
 kterou jsi	hledal
-která	je se žije mi ho by
+která	se je žije mi ho by
 která žije	v
-které	jsem se bych jsi ovoce si
+které	jsem se bych jsi si by
 které jsem	mu ti
 které jsi	mi
 které ovoce	je
 které vídáme	ve
-kterého	jsem znám si
+kterého	jsem znám si jsme
 kterém	jsem patře se
 kterém jsem	ti se
-který	se jsem je z mi by
+který	se jsem je z mi má
 který jsem	kdy
 který z	vás
 kterým	nerozumím jsi
-kteří	se mají ji jsou
+kteří	se ji mají jsou
 kuchyni	je a
 kuchyňský	nůž
 kufr	je
 kup	mi
 kus	papíru koláče
-květiny	do na
-kvůli	tomu tobě jeho mně sněhu nedostatku
+květiny	do jsou na
+kvůli	tomu tobě dešti jeho mně sněhu
 kvůli tomu	že
 káva	je
 kávu	s bez nebo
@@ -1730,25 +1912,26 @@ kávu bez	cukru
 kávu nebo	čaj
 kávu s	mlékem
 kéž	bych by bys bychom
-kéž by	mě to mi se
-kéž bych	byl měl uměl to mohl si
+kéž by	se mi mě to
+kéž bych	byl měl se uměl to mohl
 kéž bys	byl mi
-kým	jsi se ses
-křičel	jsem
+kým	se jsi si ses
+křičel	na jsem
 křičela	jsem
 křídla	a
 kůň	je
 kůže	je
+labutě	jsou
 lahev	vína
 laskav	a
-ledaže	bys by
+ledaže	by bys
 ledaže bys	mi
 lednici	je
-lehl	si
+lehko	řekne
 lehčí	než
 lekce	se
-lepší	než nápad kdyby způsob být kdybys
-lepší než	já moje nic
+lepší	než kdyby nápad se způsob být
+lepší než	já moje nic to
 lepšího	než
 lepším	místem
 lesa	chodit
@@ -1757,6 +1940,7 @@ let byl	zrušen
 let mladší	než
 let starší	než
 letadlo	je
+letecké	nehodě
 letní	prázdniny čas
 letos	v
 letos v	létě
@@ -1764,7 +1948,7 @@ lety	jsem
 lety jsem	žil
 lev	je
 levnější	než
-levou	ruku
+levou	ruku nohu
 levé	ruce
 leze	krkem
 ležel	na
@@ -1776,15 +1960,16 @@ leží na	stole
 leží v	posteli
 lhal	jsi jsem o
 lhal jsi	mi
+lhala	jsi
 lhali	jste
 lhali jste	mi
 lidem	kteří
-lidi	je kolem kteří
+lidi	kolem je kteří
 lidi kolem	sebe
-lidmi	je se
+lidmi	je se jako
 lidské	bytosti
 lidé	se jsou mají si kteří by
-lidé by	měli
+lidé by	měli se
 lidé mají	rádi
 lidé nemohou	žít
 lidé se	bojí
@@ -1797,18 +1982,21 @@ lituješ	toho
 lituji	že toho
 lituji toho	co
 lituji že	jsem
+liška	je
+liší	od
 lodi	se
 logické	vysvětlení
 londýn	je
 londýně	je
-loni	v
+loni	v jsem
 loni v	létě
 loď	se
 loňského	roku
 lvi	jsou
 láhev	vína je
-láska	je
-lék	na proti
+láska	je se
+láska je	slepá
+lék	na proti je
 lékař	ale mi
 lépe	než když pro
 lépe než	já
@@ -1818,62 +2006,76 @@ lézt na	nervy
 líbil	se
 líbila	se
 líbila se	ti
-líbilo	se
+líbilo	se nejvíc
+líbilo se	mi
 líbit	nebude
-líbí	se nebo nejvíc dívky na víc
+líbí	se nebo nejvíc na víc dívky
 líbí nebo	ne
-líbí se	mi ti vám mu jí nám
+líbí se	mi ti vám nám mu jí
 líbím	se
+líbíš	se
 líp	než
 líp než	já
 lístek	na do
 líto	ale že
-mají	rádi rády hodně dvě strach velmi
+mají	rádi rády hodně dvě velmi hlad
+mají velmi	málo
+malou	porci
+malá	země
 malé	děti dítě vesnici občerstvení
 malém	městě
 malý	problém a kluk ale
 malým	děckem
 manžel	je
+manželka	je
 manželství	je
-maria	má
+maria	se má
+marie	se má jestli je jsou hraje
+marie hraje	na
 mars	je
 maso	je se
 maso je	v
 matematika	je
-matka	je se mi koupila mě má
+matka	je se mi koupila nenávidí zemřela
 matčiny	strany
 menší	než
 menší než	jsem
 metro	jezdí
-mezi	námi tím sebou lidmi řádky mladými
+mezi	námi lidmi tím sebou řádky mladými
 mezi mladými	lidmi
 mezi námi	je
 mezi čtyřma	očima
 mezinárodní	den
 mi	to řekl že prosím o líbí
 mi abych	to se ti
+mi až	budeš
 mi chce	spát
-mi co	se máš jsi
+mi co	se máš jsi jsem si
 mi dal	dárek
 mi do	očí toho
 mi dělá	špatně
 mi fuk	co jestli
-mi jak	to jsem se
+mi jak	se to jsem
 mi jedno	co jestli jak
 mi ještě	jednu
+mi jít	do
 mi k	tomu ničemu
 mi kdy	to
 mi když	jsem
+mi líto	že
+mi moc	líbí
 mi můžeš	zavolat
 mi na	tobě
 mi není	dobře
 mi neřekl	že
 mi neřekla	že
+mi nic	neříká
 mi něco	o
 mi o	tobě ní
 mi opravil	auto
 mi po	tobě
 mi prosím	že říct
+mi proč	jsi
 mi půjčit	nějaké
 mi s	tím
 mi sklenici	vody
@@ -1883,29 +2085,30 @@ mi svoje	album
 mi svěřil	že
 mi svůj	nůž
 mi sůl	prosím
-mi to	prosím říct jedno řekl líbí na
+mi to	jedno říct prosím fuk řekl líbí
 mi trvalo	než
 mi ty	peníze
 mi ukázal	cestu
 mi včera	řekl
 mi vědět	až
+mi všechno	co
 mi vůbec	nelíbí
 mi z	nosu
 mi za	to
 mi zdá	být
-mi řekl	že abych ať
+mi řekl	že abych ať kde
 mi řekla	že
 mi řekli	že
 mi řečeno	že
 mi říct	co že jak
-mi že	se je už to jsem mě
+mi že	se je už to mě jsem
 milostný	dopis
 miloval	jsem
 miluje	své
 miluješ	svou neboj
 miluješ neboj	se
 miluji	tě
-mimo	provoz město dosah
+mimo	provoz město dosah jiné
 mimozemšťané	které
 mimozemšťané které	vídáme
 minulou	noc
@@ -1915,90 +2118,93 @@ minulé pondělí	jsem
 minulý	týden měsíc rok víkend
 minulý měsíc	jsem
 minulý týden	jsem jsme
-minut	po na
+minut	na po později
 minuta	má
 minutu	na
 mladá	a žena dívka
 mladí	lidé
-mladý	muž ale na
+mladý	muž ale a na
 mladý na	to
 mladými	lidmi
-mladší	než bratr sestru sestra
+mladší	než bratr sestra sestru
 mladší než	já
 mladšího	bratra
 mlha	se
-mluv	hlasitěji
+mluv	hlasitěji s
 mluvil	jsem s jsi o se
 mluvil jsem	s o
 mluvil jsi	s
 mluvila	jsem
-mluvili	jsme o
+mluvili	jsme o jste
 mluvili jsme	o
 mluvit	s o a je na do
 mluvit do	zdi
 mluvit na	veřejnosti
-mluvit o	něčem svém
+mluvit o	něčem svém samotě
 mluvit s	plnou
 mluvme	o
-mluví	o v s se trochu ve
+mluví	o v s ve se trochu
 mluvím	o velmi s trochu
 mluvíme	o
-mluvíte	dobře
-mluvíš	o jako se dobře
+mluvíte	dobře o
+mluvíš	o jako dobře se
 mládí	jsem
 mléčné	výrobky
-mne	jestli je že
-mnoha	lidem lety zemích
-mnohem	lépe víc horší lepší větší více
+mne	že jestli je
+mnoha	zemích lety lidem
+mnohem	lépe víc horší více lepší větší
 mnohem lépe	než
 mnohem víc	než
+mnohem více	než
 mnohem větší	než
 mnoho	lidí let věcí času vojáků známých
 mnohokrát	děkuji
 mnohokrát děkuji	za
-mnou	mluvit jako nechce mluví takhle nic
+mnou	jako mluvit nechce nemluví mluvíš na
 mnou jako	s
+mnou nebo	s
 mnozí	lidé
-mně	se je domů to ne
+mně	se je to domů ne
 mně je	to
 mobilní	telefon
-moc	rád dobře se rychle práce jsem
+moc	dobře rád se dobrý rychle jsem
 moc dobře	zpívat
 moc jsem	se
 moc na	výběr
 moc rád	že
-moc se	mi
+moc se	mi na
 moc starší	než
 moci	přijít udělat
 modré	oči
 mohl	bys bych být udělat by byste
 mohl by	ses někdo
-mohl bych	dostat si to
+mohl bych	dostat si ti to
 mohl bys	mi to prosím
 mohl byste	mi
+mohl jsi	mi
 mohl jít	s
 mohl přijít	o
 mohl udělat	lépe
-mohla	bys být by byste jsi aby
+mohla	bys být by jít udělat byste
 mohla bys	mi
 mohli	bychom byste by jste
 mohli bychom	se
 mohli byste	mi to
-mohlo	by stát být to pomoci
+mohlo	stát by být to zajímat pomoci
 mohlo by	se to
 mohou	být pomoci vyrábět
-mohu	ti se to udělat si tě
+mohu	ti se to si udělat jít
 mohu se	vás
 mohu ti	pomoci
 mohu to	udělat
-moje	sestra matka žena máma dcera rodina
+moje	sestra matka žena máma dcera auto
 moje auto	je
 moje boty	jsou
 moje dcera	je se
 moje hodinky	jsou
 moje jméno	je
 moje klíče	od
-moje matka	je mi
+moje matka	je nenávidí mi
 moje máma	je mi
 moje nová	práce
 moje první	láska
@@ -2013,37 +2219,42 @@ moji rodiče	jsou se mě
 mojí	sestrou ženou kočkou sestry
 most	je
 mostem	je
+mou	radu
 mouchy	jednou
 mouchy jednou	ranou
 moudrost	je
 moudřejší	než
 mount	everest
 možnost	než
-možná	že se to jsem bude bych
+možná	že se to jsem bude je
 možná bych	se
 možná bys	měl
 možná je	to
 možná jsem	je
-možné	že se aby
+možná se	mu
+možné	že aby se
 mrtvé	tělo
-mrzí	mě že
+mrzí	mě že mne
 mrzí mě	že
-mu	to že bylo dal řekl aby
-mu to	řekl
+mu	to že dal řekl bylo aby
+mu dal	všechno
+mu o	nás
+mu to	řekl jedno líbí
 mu zemřel	otec
-mu řekl	že
+mu řekl	že co
 mu říct	pravdu
 mu že	mám si
 musel	jsem udělat jít vzít být nechat
 musel jet	do
-musel jsem	si se to je
-musela	jsem se
+musel jsem	se si to je
+musela	jsem být se
 museli	jsme
-muset	udělat dělat čekat jít najít dát
+muset	udělat dělat čekat najít jít dát
 muset požádat	o
 musí	být udělat změnit se dělat jít
 musí se	to
-musím	se jít si to udělat s
+musí to	být
+musím	se si jít to udělat s
 musím jít	do na domů
 musím mluvit	s
 musím napsat	dopis
@@ -2051,23 +2262,26 @@ musím s	tebou
 musím se	naučit
 musím si	s koupit
 musím to	udělat
-musíme	se to si být jít dělat
+musíme	se to si být jít udělat
 musíme se	naučit rozhodnout
-musíme to	udělat
+musíme to	udělat zkusit
 musíme čekat	na
-musíte	se být si to pracovat odejít
+musíte	se být si to pracovat s
 musíš	se být to si udělat jít
 musíš být	na
 musíš dělat	co
 musíš jíst	víc
-musíš se	vrátit naučit rozhodnout
+musíš s	tím
+musíš se	naučit vrátit rozhodnout
 musíš to	udělat
 musíš udělat	je
+muzeum	je
 muž	je kterého který se a není
+muž kterého	jsme
 muže	a který
 muže a	ženu
 muži	jsou byli
-my	jsme všichni se víme to o
+my	jsme všichni víme se to o
 myslel	jsem že
 myslel jsem	že si
 myslel že	to jsem se je
@@ -2077,15 +2291,18 @@ myslela si	že
 mysleli	že jsme
 mysleli jsme	že
 myslet	na
+mysli	něco
+mysli něco	jiného
 myslí	že si
 myslí si	že
 myslí že	to jsem je se může by
 myslím	že si na
+myslím na	tebe
 myslím si	že
-myslím že	je to se bys bychom jsi
+myslím že	je to se bychom bys jsem
 myslíte	že si
 myslíte si	že
-myslíte že	je jsem
+myslíte že	je jsem to
 myslíš	že si o vážně
 myslíš si	že
 myslíš že	to je jsem by se jsi
@@ -2094,20 +2311,22 @@ myšlení	je
 má	rád na v ráda hodně dělat
 má alergii	na
 má dnes	narozeniny
+má dost	peněz
 má dvě	děti
 má hnědé	oči
-má hodně	práce peněz
+má hodně	práce peněz přátel
 má ještě	někdo
 má moc	ráda rád
 má modré	oči
 má málo	peněz
-má na	sobě hlavě starosti
+má na	sobě starosti hlavě
 má nové	auto
 má něco	v
 má poměr	se
 má problémy	se s
 má s	tím
 má sestra	má
+má slabé	srdce
 má strach	z
 má svoje	vlastní
 má své	vlastní výhody
@@ -2115,33 +2334,35 @@ má svůj	vlastní
 má to	co
 má tvoje	žena
 má v	plánu úmyslu pokoji
-má ve	zvyku
+má ve	svém zvyku
 má velké	problémy
 má za	sebou
 má záznam	v
 má špatnou	pověst
 má štěstí	že
 má ženu	a
-málem	jsem se utopil přišel
+má žlutý	květ
+málem	jsem se utopil přišel zemřel
 málem jsem	zapomněl
 málem přišel	o
-málo	lidí peněz o
+málo	lidí peněz sněhu o
 mám	rád hlad dělat ráda hodně v
 mám chuť	na
 mám dojem	že
+mám dvě	děti
 mám dělat	s
 mám hlad	protože
 mám hodně	práce
 mám mnohem	raději
 mám moc	rád práce
-mám na	tebe sobě
+mám na	tebe sobě stole
 mám několik	přátel
 mám plné	zuby
 mám pocit	že
 mám pro	tebe vás
 mám přítele	který
-mám rád	svoji psy své čaj hudbu všechny
-mám s	ním tím
+mám rád	svoji psy hudbu všechny své čaj
+mám s	tím ním
 mám se	dobře
 mám strach	že z
 mám takový	hlad pocit
@@ -2152,45 +2373,48 @@ mám velký	hlad
 mám z	toho
 mám za	sebou
 mám špatný	pocit
-máma	je mi
-máme	rádi dvě na dělat dost hodně
+máma	je mi se
+máme	rádi na dvě dělat dost problém
 máme dost	času
-máte	rádi nějaké na raději něco s
-máš	rád na ráda v pravdu hlad
+máte	rádi nějaké na raději něco v
+máš	rád na v ráda pravdu hlad
 máš dobrou	paměť
 máš na	mysli sobě
 máš v	plánu
 máš štěstí	že
-mé	sestry rodině jméno srdce auto zemi
+mé	sestry rodině jméno zemi srdce auto
 mé jméno	je
 mé rodině	jsou
 mé sestry	je
 mé srdce	je
-mého	otce domu života bratra názoru pokoje
+mého	domu otce života bratra názoru pokoje
 mého domu	je
 mého názoru	je
 mého otce	je
-mém	místě pokoji životě domě
+mém	místě životě pokoji domě městě
 mému	překvapení synovi otci bratrovi
-méně	než času peněz
+mému otci	je
+méně	než peněz času
+méně než	tři
 mí	rodiče
 mír	je
-místa	pro
+místa	pro kde
 místnost	je se
-místnosti	je a jsou
-místo	mě k kde pro toho na
+místnosti	je a není jsou
+místo	mě k pro toho kde na
 místo k	bydlení sezení životu
-místě	bych
-mít	čas děti hlad na rád víc
+místě	bych činu
+mít	čas děti na s hlad nic
 mít dost	peněz
 mít nic	společného
 mít svůj	vlastní
-mých	přátel očích oblíbených snů rodičů kolegů
+míň	než
+mých	přátel očích oblíbených rodičů snů dětí
 mýlíš	se
 mým	domem šéfem synem
 mým domem	je
-mě	to jestli že co požádal zeptal
-mě abych	to
+mě	to jestli že co na požádal
+mě abych	to ti
 mě bolí	hlava
 mě co	je se
 mě do	toho
@@ -2199,9 +2423,10 @@ mě jak	se
 mě jestli	je se jsem
 mě k	tomu
 mě kdo	to
-mě když	mi
+mě když	mi jsem
 mě mrzí	že
 mě má	rád
+mě na	to
 mě naléhal	abych
 mě nemáš	rád
 mě nenapadlo	že
@@ -2209,25 +2434,28 @@ mě o	pomoc to
 mě pozval	na
 mě požádal	abych o
 mě s	sebou
+mě tam	nechal
 mě to	nezajímá udělat
+mě vůbec	nezajímá
 mě z	toho
 mě zeptal	jestli proč jak
 mě čekal	na
 mě že	jsem si
 měj	se
 mějte	se
-měl	jsem bys by jsi být bych
+měl	jsem bys jsi by být udělat
 měl by	ses sis
 měl bych	se být
 měl byla	tak
-měl bys	to jít být s přestat říct
+měl bys	to jít být zůstat s přestat
 měl být	v doma
-měl jsem	se to velký problém dost
-měl jsi	mi to mu pravdu přijít
+měl jsem	se to velký problém velkou hlad
+měl jsi	to mi mu přijít pravdu být
 měl jít	domů s
 měl na	sobě
 měl pocit	že
 měl problémy	s
+měl s	sebou
 měl tolik	času
 měl v	úmyslu
 měl ve	zvyku
@@ -2238,27 +2466,31 @@ měla bys	být
 měla na	sobě
 měli	bychom jsme byste jste by udělat
 měli bychom	se to
-měli byste	se si
+měli byste	se si vědět
 měli jsme	se štěstí
 měli jste	mi
-mělo	být by udělat
+mělo	být by udělat stát
 mělo by	to
 měls	to
+měly	být
 měnit	své
-města	je
+mění	k
+města	jsou je
 město	je se bylo v má o
 město se	nachází mi
 město spojených	států
-městě	je
+městě	je není
 městě je	hodně
 měsíc	jsem v se je už
 měsíce	v
 měsíce v	kómatu
+měsíci	v
 můj	otec bratr syn život dům přítel
 můj bratr	je se žije
 můj bratranec	je
 můj byt	je
 můj doktor	mi
+můj děda	byl
 můj dům	je
 můj manžel	je
 můj mladší	bratr
@@ -2274,67 +2506,78 @@ můj syn	je si
 můj synovec	je
 můj telefon	je
 můj táta	je
+můj šéf	je
 můj život	je se
-může	být to se udělat přijít stát
+může	být to udělat se přijít stát
 může mi	někdo
 může se	to
-může to	být trvat
-můžeme	to si udělat jít se začít
+může to	trvat být
+může udělat	chybu
+můžeme	to si se udělat jít mluvit
+můžeme si	promluvit
 můžeme to	udělat
-můžete	mi to si se udělat jít
+můžete	mi si to se jít udělat
 můžete mi	říct prosím to říci
 můžete to	udělat prosím
 můžeš	mi se si to jít zůstat
 můžeš jít	s
-můžeš mi	to říct prosím dát
+můžeš mi	říct to prosím dát
+můžeš s	ním
 můžeš se	na
 můžeš si	vybrat vzít
 můžeš to	udělat
-můžu	si se ti jít to udělat
+můžu	si se ti jít udělat to
 můžu se	tě
 můžu si	půjčit od
 na	to mě tebe něj stole co
 na celém	světě
 na cestě	do
-na co	se to si potřebuješ chceš jsou
+na co	se to potřebuješ si chceš jsou
+na dovolenou	do
 na druhou	stranu
 na druhé	straně
+na firemní	večírek
 na gauči	a
-na jaře	příštího
 na jeden	z
 na jedno	oko
 na jednu	noc
 na jedné	lodi
+na jeho	zdraví
 na její	věk
 na konci	měsíce světa
+na lidi	kolem
+na mysli	něco
 na mé	straně otázky
 na mém	místě
-na mě	moc naštvaný tak prosím byl velmi
+na místě	činu
+na mě	moc naštvaný tak byl prosím velmi
 na můj	účet
-na naší	straně
+na naší	straně první
 na nic	ptát
+na novém	zélandu
+na noční	obloze
 na nás	čekal počká
 na náš	večírek
 na ní	líbí
 na ně	naštvaný
-na něco	zeptat jiného
-na něj	naštvaný
+na něco	zeptat jiného jsem
+na něj	naštvaný se
 na nějaký	film
 na několik	otázek
 na odchodu	když
 na park	street
+na pití	piva
 na pláž	s ale
 na pláži	a
-na podzim	padá
 na pokraji	nervového
 na poslední	chvíli
 na pozoru	před
 na pravé	oko
-na první	pohled
+na první	pohled pokus
 na pár	dní věcí
 na příští	stanici
 na rozdíl	od
-na sebe	do pozor
+na sebe	do pozor pyšný
 na služební	cestu cestě
 na sobě	neměl měla
 na stole	je jsou
@@ -2345,57 +2588,63 @@ na své	děti
 na svého	syna
 na svých	rodičích
 na světě	je jsou
-na svůj	věk
+na svůj	věk slib
 na takové	věci
-na tebe	čekat v
+na tebe	čekat naštvaný v
 na ten	film večírek
 na tenhle	film
-na to	aby co abych že jak abys
+na to	aby co abych že abys jak
 na tobě	abys
 na tomto	místě
-na tu	párty práci otázku
+na tu	párty práci otázku záhadnou
 na tuhle	otázku
 na tuto	otázku
 na tvém	místě
 na tvůj	názor
 na tyto	otázky
-na té	párty
+na té	párty akci
 na této	straně
 na těžkou	práci
+na ulici	je
+na učení	se
+na venkov	a
 na vlastní	oči
 na vrcholu	hory
 na vysoké	škole
-na vás	čekal bude
+na vás	čekal čekat bude
 na všechny	vaše
 na zemi	bude
 na základě	svých
 na západ	slunce
 na úkor	svého
-na čase	aby
+na čase	aby abys
 na čem	záleží
 na čerstvý	vzduch
 na řadě	s
+na štědrý	večer
 nabídku	jsi jste jsem
-nabídku jsi	měla
+nabídku jsi	měl měla
 nabídl	že jsem pomoc
 nachází	v na
-nad	tím námi svým jeho mraky
+nad	tím námi svým hlavou jeho poměry
 naděje	že je
 najdete	to
 najdi	si
 najednou	jsem přestal
 najednou jsem	si
 najevo	že
-najít	práci svoje své jinou někoho svoji
+najít	práci svoje své jinou někoho svůj
 najít jinou	práci
 najít svoje	klíče
 najít své	brýle
-nakonec	se jsem to si skončila
+nakonec	se jsem to si skončila jsme
 nakonec jsem	se
 nakonec se	z
+nakrmit	svého
 nakupování	v
 nalezen	mrtvý
 naléhal	abych
+naléhavý	případ
 naléhavě	zapotřebí
 namaloval	ten
 namaloval ten	obraz
@@ -2403,8 +2652,9 @@ napadlo	mě
 napadlo mě	že
 napiš	mi
 napište	to
+naplnil	jsem
 naposledy	viděl viděla co jsem
-naprosto	k
+naprosto	k s
 naprosto k	ničemu
 naprostou	pravdu
 naprostá	tma
@@ -2424,7 +2674,9 @@ narodila jsem	se
 narodila se	v
 narozeniny	v mám
 narozeniny mám	v
+narozeninám	kolo
 nasadil	si
+nasaď	si
 nastartovat	auto
 nastoupil	do jsem
 nastoupil do	vlaku
@@ -2448,95 +2700,107 @@ navštívili	naši
 navštívili naši	planetu
 navštívit	lékaře svého
 nařídil	jsem
-naše	škola město učitelka dítě firma tajemství
+naše	škola město učitelka jediná auto dítě
 naše škola	je
 našeho	domu života
 našel	jsem jsi v si ten práci
 našel jsem	to ti
 našel to	co
 našel v	lese
-našem	týmu domě městě hotelu
+našem	týmu městě domě hotelu
 našemu	plánu
-naši	planetu pomoc přátelé firmu
-našich	životů
+naši	pomoc planetu přátelé nabídku firmu
+našich	sousedů životů
 našla	jsem sis
 našli	jsme jste
 našli jsme	to
-naštvaný	na protože
+naštvaný	protože na
 naštěstí	se
-naší	zemi straně školy firmy
+naší	zemi školy straně třídě první firmy
 naší zemi	jsou
 naším	psem
 ne	každý pro všichni to já všechny
 ne pro	tebe
 nebe	je bylo a
-neber	to
-nebo	ne se proti já s později
+neber	to si
+nebo	ne se s proti já je
+nebo přijdeš	pozdě
 neboj	se
 nebojte	se
 nebojím	se
 nebral	vážně
 nebude	to mít líbit chtít ti tak
 nebude ti	vadit
+nebude to	pro
 nebudeme	moci muset
 nebudeme muset	dělat
-nebudeš	věřit
+nebudeš	věřit mít
 nebudeš věřit	co
 nebudou	mít
-nebudu	se doma to tě na moci
+nebudu	se to doma tě na moci
 nebudu moci	přijít
+nebudu to	dělat
 nebuď	tak na
 nebuďte	tak
-nebyl	jsem v tak na doma nikdo
+nebyl	jsem v na tak doma to
 nebyl jediný	kdo
 nebyl jsem	tam si jediný
+nebyl moc	dobrý
 nebyl nikdo	zraněn
 nebyl ve	škole
 nebyla	to jsem si žádná ve
 nebyla si	vědoma
 nebyla ve	škole
 nebyli	jsme
-nebylo	to by třeba moc nutné zapotřebí
+nebylo	to by třeba možné moc nutné
+nebylo by	to
 nebylo to	tak
 nebyly	žádné
 nebýt	jeho
 nech	mě to si je ho
 nech mě	to
-nechal	jsem svůj čekat jsi ve na
-nechal jsem	to si
+nechal	jsem čekat svůj jsi ve na
+nechal jsem	to si se
 nechal svůj	klíč
 nechala	si jsi
-nechali	mě
-nechat	o ostříhat
+nechali	mě jste
+nechat	opravit o ostříhat
 nechat o	samotě
 nechce	jít aby se být udělat pracovat
 nechce aby	se ses
 nechce být	v
 nechce jít	do
+nechce nic	jíst
 nechce se	mi
 nechce žít	v
 nechcete	se
 nechceš	abych jít si udělat vědět mluvit
-nechci	aby být se abys jít tě
+nechci	aby být abys se jít tě
 nechci aby	se mě si ses tam to
 nechci být	na jako
 nechci dělat	nic
 nechci jít	do
+nechci mít	nic
+nechci se	s
+nechci to	dělat
 nechci vědět	co
 nechodí	do
 nechodí do	školy
 nechoď	tam
 nechte	mě to
-nechtějí	aby abych mluvit
-nechtěl	jsem jít být aby abychom bych
+nechtějí	aby abyste abych mluvit
+nechtějí abyste	to
+nechtěl	jsem jít být aby bych abychom
 nechtěl abychom	se
+nechtěl bych	být
 nechtěl jsem	tě aby to jít je
+nechtěl jít	ven
 nechtěla	aby jít
 nechtěli	jsme
 nechám	tě si
 nechápal	co
 nechápe	jak
-nechápu	proč co jak
+nechápu	co proč jak
 nechápu proč	se
 nechávat	tak
 nechávat tak	dlouho
@@ -2544,7 +2808,8 @@ necítí	dobře
 necítím	se
 necítím se	na
 nedaleko	odsud
-nedokázal	jsem na vysvětlit
+nedokončil	jsem
+nedokázal	jsem na pomoct vysvětlit
 nedokázal jsem	se
 nedokáže	udělat vysvětlit
 nedokážu	si se
@@ -2563,15 +2828,18 @@ nedávno	jsem
 nedává	smysl
 nedívej	se
 nedívej se	na
+nedívá	na
+neděle	je
 nedělej	si to
 nedělej si	starosti z
 nedělejte	to
 neděli	do ráno
 neděli do	školy
+nedělá	nic
 nedělám	to
 neděláš	nic
 nehledě	na
-nehoda	se stala
+nehoda	se stala ho
 nehoda se	stala
 nehodu	přežil
 nehody	se
@@ -2579,20 +2847,24 @@ nehodě	přišel
 nehodě přišel	o
 nehraj	si
 nehádej	se
+nehádejte	se
 nejdu	do
 nejdřív	si
 nejhorší	věc
-nejlepší	přítel způsob je kamarád přátelé řešení
+nejlepší	přítel způsob je co kamarád přátelé
 nejlepší k	narozeninám
 nejlepší způsob	jak
+nejlépe	z
 nejprve	se
-nejsem	si tak žádný na tvůj doma
-nejsem si	jistý jist
+nejsem	si tak žádný na o doma
+nejsem o	nic
+nejsem si	jistý jist jistá
 nejsem tak	hloupý
 nejsi	v jediný sám moc tak na
 nejsi jediný	kdo
-nejsme	tak tady na
-nejsou	žádné ryby doma moje to vždycky
+nejsi o	nic
+nejsme	tak tady v na
+nejsou	žádné ryby doma moje to tady
 nejspíš	bude stále to nebude by
 nejstarší	bratr
 nejstarší bratr	je
@@ -2600,37 +2872,43 @@ nejvyšší	čas
 největší	město
 nelituji	času
 nelze	dosáhnout
+nelíbilo	to
+nelíbilo to	co
 nelíbí	se
 nelíbí se	mi
-nemají	rádi
+nemají	rádi žádný
 nemluv	s
-nemluvil	o
+nemluvil	o jsem
 nemluvte	tak
 nemluví	o
 nemluvím	s
 nemluvíš	o
 nemocná	v
 nemocný	ale a
-nemohl	jsem udělat bys bych najít přijít
+nemohl	jsem udělat bys najít přijít bych
 nemohl bys	mi
 nemohl dělat	nic
 nemohl jsem	se si najít ji
+nemohl přijít	na
 nemohla	jsem se udělat
 nemohli	jsme najít
 nemohlo	být
 nemohou	žít
 nemohou žít	bez
-nemohu	se si najít uvěřit to ti
+nemohu	si se najít to uvěřit ti
 nemohu se	dočkat
 nemohu si	dovolit vzpomenout
+nemohu to	udělat
 nemohu uvěřit	že
 nemusel	jsi jsem jít být
 nemusela	jsi
-nemuseli	jste jsme
-nemusí	dělat nic to jít se být
+nemuseli	jsme jste
+nemusí	dělat nic být to jít pomáhat
+nemusí být	nutně
 nemusí to	být
 nemusím	dělat snášet
-nemusíš	mi se dělat jít si to
+nemusíte	to
+nemusíš	se mi dělat jít si to
 nemusíš dělat	nic
 nemusíš jít	tančit
 nemyslel	jsem že
@@ -2641,6 +2919,7 @@ nemyslí	že
 nemyslí že	to
 nemyslím	si že
 nemyslím si	že
+nemyslím že	bych
 nemyslíš	vážně že
 nemá	rád smysl žádné co ráda nic
 nemá cenu	se
@@ -2648,40 +2927,49 @@ nemá co	dělat
 nemá dost	peněz
 nemá na	to
 nemá nic	společného
+nemá rád	nikoho
 nemá s	kým
 nemá smysl	se o
 nemá v	plánu
 nemá žádné	přátele právo
-nemám	rád čas žádné chuť na v
+nemám	rád čas žádné na chuť v
+nemám chuť	na
 nemám co	bych říct
+nemám dost	peněz
 nemám ho	rád
+nemám jinou	možnost
 nemám moc	rád
-nemám na	to
+nemám na	vybranou to
+nemám nic	co
 nemám nikoho	kdo
+nemám peníze	ale
 nemám ponětí	co
 nemám rád	když ani
 nemám v	úmyslu
 nemám čas	na
-nemáme	žádný moc jinou na nic čas
+nemáme	žádný moc nic čas jinou na
 nemáme moc	času
-nemáte	právo rádi
-nemáš	rád co žádný na mě v
+nemáte	žádný právo rádi
+nemáš	rád co žádný na mě se
 nemáš co	dělat
-neměl	jsem bys jsi dělat rád čas
+neměl	jsem bys jsi rád dělat čas
 neměl by	ses
 neměl bys	tu
 neměl jinou	možnost
-neměl jsem	se čas to jinou tušení
+neměl jsem	se čas tušení to jinou na
 neměl jsi	tam
-neměla	bys jsem ráda
+neměla	bys jsem ráda co
+neměla co	dělat
 neměli	byste jsme jste bychom dělat rádi
 neměli bychom	to
+neměli byste	se
+neměli jsme	jinou
 nemělo	stát
-nemůže	být přijít jít změnit nic mít
-nemůžeme	ji se
-nemůžete	udělat
-nemůžeš	to být mě mít řídit udělat
-nemůžu	uvěřit se tě najít ti to
+nemůže	být přijít nic jít změnit mít
+nemůžeme	ji se dovolit být
+nemůžete	udělat to
+nemůžeš	udělat to být mě mít řídit
+nemůžu	uvěřit se si tě najít ti
 nemůžu jít	dál
 nemůžu mu	odpustit
 nemůžu najít	svoje
@@ -2692,14 +2980,16 @@ nemůžu uvěřit	že
 nemůžu zapomenout	na
 nenapadlo	že mě
 nenapadlo mě	že
+nenašel	jsem
 nenech	se si mě
 nenechal	jsem
 nenechte	se
+nenechám	se
 nenechávej	mě
 nenávidí	mě
 nenávidím	a
 nenávidím a	miluji
-není	to tak nic možné můj v
+není	to tak můj nic možné pravda
 není divu	že
 není dobrý	nápad
 není důvod	se
@@ -2712,7 +3002,8 @@ není na	prodej
 není nic	horšího
 není náhoda	že
 není o	nic moc
-není pro	mě
+není pravda	že
+není pro	tebe mě
 není s	námi
 není tady	nic
 není tak	jednoduché starý
@@ -2721,7 +3012,10 @@ není to	tak co moje můj poprvé nic
 není třeba	se
 není v	pořádku
 není ve	svém
+není žádný	důvod
+neobtěžujte	mě
 neodvážil	vstoupit
+neopovažuj	se
 neotravuj	mě
 nepamatuji	si
 nepamatuji si	že co
@@ -2732,13 +3026,15 @@ nepochopil	jsem
 nepochybuji	že
 nepodařilo	se
 nepodařilo se	mi mu
+nepomůžu	ti
 neposlouchal	jsem
 neposlouchej	ho
+nepotřeboval	jsem
 nepotřebuje	peníze
-nepotřebuji	žádné
+nepotřebuji	žádné tě
 nepoznal	jsem
 nepravděpodobné	že
-neptal	jsem jestli
+neptal	jestli jsem
 neptal jsem	se
 neptej	se
 neptej se	mě na
@@ -2746,12 +3042,12 @@ nepřibližujte	se
 nepřibližujte se	k
 nepřijde	do
 nepřijde do	práce
-nepřišel	jsem pozdě do na
+nepřišel	jsem do pozdě na
 nepřišel jsem	se
-nepůjdu	tam do
-nerad	se pracuji mluvím
+nepůjdu	do tam
+nerad	se pracuji mluvím tě jím
 nerad pracuji	s
-nerozumím	tomu ani co
+nerozumím	tomu co ani
 nerozumím ani	slovo
 nerozumím tomu	co
 nerozuměl	jsem
@@ -2759,12 +3055,14 @@ nervového	zhroucení
 nesahej	na
 nesahej na	mě
 neslyšel	jsem
-nesmí	dělat chodit vidět
+nesmí	dělat vidět chodit
 nesmíš	se
 nesnaž	se
+nesnášejí	hmyz
 nesnáší	když tajemství
 nesnáší když	se
-nesnáším	když
+nesnáším	když lidi
+nesnáším lidi	kteří
 nesouhlasím	s
 nespal	jsem
 nestojí	za
@@ -2778,22 +3076,26 @@ netušil	jsem že co
 netušil co	se
 netušil jsem	že
 netuší	co jak
-netuším	kde
+netuším	kde co
 netvrdím	že
 neudělal	jsem nic to co
-neudělal jsem	nic to
+neudělal jsem	to nic
 neudělal to	co
 neudělala	jsem to
-neudělali	jste
+neudělali	nic jste
 neudělali jste	nic
 neudělá	to
 neudělám	to
-neumí	číst mluvit moc počítat řídit ani
+neumí	řídit moc číst mluvit počítat ani
 neumí moc	dobře
-neumím	hrát
-neuvědomil	že
+neumí řídit	auto
+neumím	si psát hrát
+neumím si	představit
+neuvědomil	že jsem
+neuvědomil jsem	si
 nevadilo	by
-nevadí	mi
+nevadilo by	ti
+nevadí	mi že když
 nevadí mi	že
 nevidí	to
 nevidím	důvod žádný
@@ -2806,31 +3108,37 @@ neviděli	jsme
 nevlastní	bratr otec
 nevypadá	to jako moc na
 nevypadáš	jako
+nevzdávej	se
 nevzpomínám	si
-neví	co jak že proč kam kde
-neví co	se je
+neví	co jak proč že kde nic
+neví co	se má je
 neví jak	se dlouho to
+neví kde	je
 neví kdy	se
-nevím	co jak jestli proč kde kam
-nevím co	se to mám říct je budu
-nevím jak	se to dlouho bych jsem
-nevím jestli	to je se mám si přijde
+neví nic	o
+neví proč	to
+nevím	co jak jestli proč kde kdo
+nevím co	se mám to říct je budu
+nevím jak	to se dlouho bych jsem
+nevím jestli	to je se jsem mám si
 nevím jistě	jestli
 nevím kam	to
 nevím kde	je mám
 nevím kdo	je to
 nevím nic	o
 nevím o	čem
-nevím proč	to se jsem mě bych
-nevíme	co proč
-nevíte	náhodou co kde
-nevíš	co jak kde kdo že jestli
+nevím proč	se to jsem mě bych
+nevíme	co proč kde
+nevíte	náhodou co kdy kde
+nevíš	co jak kde kdo že proč
+nevíš co	je
 nevíš jak	se
 nevíš kde	je
-nevěděl	jsem že co jak kde jsi
-nevěděl co	se má
+nevíš kdo	jsem
+nevěděl	jsem že co jak jsi kde
+nevěděl co	má se
 nevěděl jak	se
-nevěděl jsem	že co
+nevěděl jsem	že co kde
 nevěděl jsi	že
 nevěděl kde	je
 nevěděla	jsem co
@@ -2838,13 +3146,15 @@ nevěděla jsem	že
 nevěděli	že jsme jste
 nevěděli jste	že
 nevěřil	bys jsem že
-nevěří	v tomu
+nevěří	v na tomu
 nevěří tomu	co
 nevěřím	že v
+nevěřím že	se
+nevšiml	že
 new	yorku york
 nezajímá	mě o co
 nezapomenu	na
-nezapomeň	si na že zamknout to
+nezapomeň	si na že zamknout to prosím
 nezapomeň zamknout	dveře
 nezapomeňte	na
 nezbytné	aby abys
@@ -2859,29 +3169,31 @@ neznal	jsem odpověď
 neznamená	že
 nezná	rozdíl hranic
 nezná rozdíl	mezi
-neznám	její nikoho jeho
+neznám	její ho nikoho jeho
 neznáš	mě
-neztrácej	čas
+neztrácej	čas naději
 nezáleží	na
-nečekal	jsem že
+nečekal	že jsem
 nečekal jsem	že
-nečekal že	bude
+nečekal že	bude ho
 nečekej	že
 nečetl	jsem
-neřekl	že jsem pravdu jsi proč ani
+neřekl	že jsem ani pravdu nic jsi
+neřekl ani	slovo
 neřekl jsem	že mu
 neřekl že	jsi to
 neřekla	že
 neřekli	že
 neřekneš	co
-neřeknu	ti
+neřeknu	ti kde
 neříkal	jsem
 neříkej	mi to
 neříkej mi	že
 nešel	jsem do bych
 nešel bych	tam
+nešel do	školy
 nešel jsem	na
-než	já jsem ty se si to
+než	já jsem se ty si to
 než aby	se
 než jeho	bratr
 než jsem	si se čekal
@@ -2889,42 +3201,44 @@ než jsme	si očekávali čekali
 než kdy	předtím
 než půjdeš	spát
 než s	tebou
-než si	myslíš
+než si	myslíš myslíte
 než to	co
 ni	není příliš
 ni příliš	starý
-nic	není jiného společného jsem takového co
+nic	jiného není společného takového jsem co
 nic co	by bych
 nic horšího	než
-nic jiného	než
+nic jiného	než na jsem
 nic k	jídlu
 nic lepšího	než
 nic od	tebe
 nic proti	tomu
 nic si	od
-nic takového	neřekl
+nic takového	neřekl neudělal
 nic z	toho
 nic čím	by
 nich	je
-nikam	nepůjde nejdu
+nijak	zvlášť
+nikam	nepůjde nejdu nejde
 nikde	najít jsem k jsme jinde
 nikde k	nalezení
-nikdo	se neví z si to není
+nikdo	se neví z si mi není
 nikdo jiný	to
 nikdo kdo	by
 nikdo mi	neřekl
 nikdo nechápe	jak
-nikdo nemá	rád
+nikdo nemá	rád právo
 nikdo neví	co jak proč kde že kam
 nikdo nevěří	tomu
-nikdo se	mnou na
+nikdo se	mnou na o mě
 nikdo si	nevšiml
 nikdo to	nechtěl
 nikdo z	nás nich jeho
-nikdy	jsem se bych nebyl jsi předtím
-nikdy bych	se si
-nikdy jsem	se neviděl o tě nebyl neměl
+nikdy	jsem se bych nebyl předtím jsi
+nikdy bych	si se
+nikdy jsem	se neviděl neměl nebyl o tě
 nikdy jsi	mi
+nikdy jsme	to
 nikdy nebyl	v
 nikdy nemluví	o
 nikdy není	pozdě
@@ -2934,19 +3248,21 @@ nikdy předtím	jsem
 nikdy s	ním
 nikdy se	mi
 nikdy v	životě
-nikoho	jiného z jsem kdo nezajímá jsme
+nikoho	jsem kdo jiného z nezajímá kromě
 nikoho kdo	by
+nikoho kromě	tebe
 nikoho z	nás
-nikomu	nic neřeknu se jsem neřekl z
+nikomu	nic neřeknu neřekl se jsem z
+nikomu neřeknu	kde
 nikým	nemluvil
-nimi	chtěl
-ničeho	nutit nic se
+nimi	chtěl mluvil
+ničeho	nutit nic se nevšiml
 ničemu	z nerozumí
 ničemu z	toho
 no	tak a
 no a	co
 noc	jsem je jsme byla
-noci	jsem se vzhůru
+noci	jsem se bude vzhůru
 noci jsem	o
 nohou	v
 nohou v	hrobě
@@ -2954,20 +3270,22 @@ normální	člověk
 nos	do
 nosit	kontaktní
 nosit kontaktní	čočky
-nosí	sluneční klobouk
+nosí	klobouk sluneční
 nosí sluneční	brýle
 notebook	je
 novou	práci přítelkyni
 nová	práce
-nové	auto kolo šaty boty hodinky věci
-nového	učitele domu
+nové	auto kolo šaty boty věci hodinky
+nového	domu učitele
+novém	zélandu
 nový	dům počítač rok plán život oblek
 nových	přátel
-noční	můry můra můrou
+noční	můry můra můrou obloze
 nudím	se
 nutné	aby abys
 nyní	je žije
 nyní je	to
+náboženství	je
 nádherný	den
 nádrž	je
 náhle	zmizel
@@ -2975,24 +3293,29 @@ náhlé	zmizení
 náhoda	že
 náhoda že	jsem
 náhodou	jsem kde
-nám	to pomohl pomoct dnes o co
+nákladní	auto
+nám	to pomohl pomoct o co dnes
 nám došel	benzín
 nám něco	k
 námi	je chceš a
 námi chceš	jít
+námitky	proti
 nápad	se
+nápad se	mi
 nápoje	jsou
 nárok	na
 náročný	den
-nás	všech to všechny na není se
+nás	všech to všechny není na je
+následkem	nehody
+následující	den
 nástroj	pro
 názor	je se jako než
 názoru	je
-náš	dům nový syn otec tým let
+náš	dům tým nový syn otec život
 náš dům	je
 náš jenž	jsi
-ní	do líbí na mluvit
-ním	mluvit setkal mluvil do na je
+ní	do líbí na byl mluvit
+ním	mluvit setkal mluvil je do promluvit
 ně	naštvaný
 něco	k co jiného takového na říct
 něco co	se bych jsem
@@ -3000,20 +3323,24 @@ něco jsem	se
 něco k	jídlu pití
 něco na	co
 něco není	v
+něco s	čím
 něco starší	než
+něco takového	nikdy se
 něj	naštvaný se udělal
-nějak	si
+nějak	pomoci si
 nějakou	dobu práci
-nějakou dobu	pracoval neviděl
+nějakou dobu	neviděl pracoval
 nějaká	šance
 nějaká šance	že
 nějaké	peníze jídlo řešení problémy věci děti
+nějaké peníze	jestli ale
 nějakého	důvodu
 nějaký	čas film jiný koníček problém muž
 někam	jinam
-někde	jinde viděl v
-někdo	jiný by mi kdo se je
+někde	jinde v viděl jsem
+někdo	jiný by se mi kdo je
 někdo by	měl
+někdo hraje	na
 někdo kdo	se
 někdo klepe	na
 někdo mi	ukradl
@@ -3021,18 +3348,21 @@ někdo se	vloupal
 někdo to	tam
 někdo věděl	že
 někdo z	vás
-někdy	v je viděl se s jindy
+někdy	v je viděl se s na
+někdy banánový	koláč
+někdy cizího	člověka
 někdy je	lepší
 někdy navštívili	naši
 někdy v	zahraničí
-někoho	kdo jiného křičet jako
+někoho	kdo jiného křičet podezřelého jako
 někoho kdo	by umí
-několik	dní lidí otázek hodin měsíců let
+několik	dní lidí otázek hodin přátel měsíců
+několik minut	později
 několika	lety
 několikrát	jsem
 někomu	jinému
 některá	okna
-některé	věci z
+některé	z věci
 některé věci	se
 některým	lidem
 někteří	lidé z
@@ -3041,30 +3371,41 @@ někteří z	nás nich
 někým	jiným
 něčem	jiném co
 nůž	je není na
-o	pomoc čem to něco své co
-o co	se jde
-o deset	let
-o dost	starší
+o	pomoc čem to své něco tobě
+o co	se jde žádá
+o deset	let minut
+o dost	starší lépe
 o dva	roky
+o hodně	líp
 o kterém	jsem
 o moc	starší
 o nic	nežádal
 o něco	déle starší lépe později dřív
+o několik	minut
 o něčem	jiném
-o práci	a
+o pomoc	ale
+o práci	co a
 o pět	minut
+o svoji	rodinu
 o své	rodině děti minulosti budoucnosti
-o svém	životě věku
-o to	co požádá
+o svém	otci životě věku
+o to	co požádal že požádá
 o tohle	se
 o té	nehodě
 o tři	roky hodiny
-o čem	to mluvím jsme bavit mluvíš
-oba	jsme dva jsou moji jeho se
+o vánocích	doma
+o všem	co
+o změně	zaměstnání
+o čem	to mluvím jsme mluvíš bavit
+oba	jsme dva jsou se moji jeho
+oba jsme	byli
 oba víme	že
 obavy	o z
-obchod	je
+obavy z	výsledku
+obchod	je se
 obchodování	s
+obchodování s	lidmi
+obchody	jsou
 obdivoval	jsem
 obdržel	jsem
 obdržel jsem	dopis
@@ -3083,17 +3424,23 @@ oblíbený	spisovatel
 obrázky	jsou
 obtížnější	než
 obviněn	z
-obvykle	se to chodí na děláš
+obvykle	se to chodí na nosí děláš
 obyčejně	se
+obával	jsem
+obával jsem	se
 obávám	se
 obávám se	že
 obývací	pokoj
-občas	se napíše si
+občanský	průkaz
+občas	se si napíše
 obě	dvě nohy strany
 oběd	s a
+oběma	rukama
 oběsil	se
+ocet	je
 ochoten	to
 od	tebe té něj vás sebe ní
+od devíti	do
 od doby	kdy co
 od pondělí	do
 od rána	do
@@ -3101,18 +3448,21 @@ od samého	začátku
 od tebe	půjčit hodně hezké
 od té	doby
 odchodu	když
-ode	mne mě
-odejít	z do ale když dříve
+ode	mě mne
+odejít	z do když ale dříve
 odešel	z do domů bez brzy aniž
 odešel aniž	by
-odešel z	domu práce kanceláře
+odešel do	důchodu
+odešel z	domu práce mého kanceláře
 odešla	z do
-odjel	do před jsem
+odešli	domů
+odjel	do před z jsem
 odjel do	ameriky
 odjeli	jsme
 odjet	do
-odjíždí	za
-odkud	pochází je to jste máš
+odjet do	zahraničí
+odjíždí	za do
+odkud	pochází to je jste jsi máš
 odpoledne	bude hodně jsem
 odpoledne hodně	práce
 odpoledne jsem	strávil
@@ -3124,7 +3474,9 @@ odpověděl	jsem na
 odpovědět	na
 odpovědět na	všechny
 odpověz	na
+odpověz na	otázku
 odpověď	je a se
+odpověď je	správná
 odpusť	mi
 odpusťte	mi
 odsoudil	k
@@ -3133,6 +3485,7 @@ odsouzen na	doživotí
 odstěhovala	do
 odsud	daleko není odejít dostanu pryč
 odsud není	daleko
+odvézt	na
 oheň	je
 ohledně	toho
 ohledu	na
@@ -3140,30 +3493,37 @@ ohledu na	to
 okamžitě	po
 okna	otevřená a jsou v
 okno	je
+okouzlující	nebo
 olivový	olej
 omlouvám	se
 omlouvám se	že za ale
-omluvil	za se a
+omluvil	za se jsem a
 omluvil za	to
 omylem	jsem
-on	je se má to mě není
+on	je se má to mě si
 on a	já
 on je	v
+on řekl	že
 ona	je má se mě ho umí
 ona je	moje
 ona se	na
 ona umí	mluvit
 onemocnění	je
 oni	jsou si se to
+opilý	a
 opravdový	přítel
-opravdu	si se to tak jsem zůstat
+opravdu	si to se tak jsem zůstat
 opravdu je	to
+opravdu jsem	to
 opravdu si	myslíš myslíte
 opravdu zůstat	věčně
 opravil	auto
-opustil	dům svoji jsem
+opravit	auto hodinky moje to nebo
+opustil	svoji dům jsem
+opustil svoji	rodinu
+opustím	svou
+opustím svou	práci
 opět	jsem
-orientační	smysl
 osm	hodin let
 osm hodin	denně
 osmi	lety
@@ -3171,13 +3531,18 @@ osoba	která
 ostatní	dívky chlapci
 ostatních	lidí
 ostatními	dětmi
+osud	je
 otce	je aby
+otci	je a
 otcovy	strany
-otec	je mi zemřel byl se má
+otec	je zemřel mi se byl má
 otec je	lékař známý ve
 otec měl	ve
-otevřel	dveře okno jsem
+otec není	doma
+otevírá	okno
+otevřel	dveře jsem okno
 otevřel jsem	dveře
+otevřela	jsem
 otevřené	dveře
 otevřete	dveře
 otevři	dveře tu
@@ -3189,34 +3554,38 @@ otázka života	a
 otázku	odpovědět nemohu
 otče	náš
 otče náš	jenž
-ovoce	a je
+ovoce	je a
 oč	jsi byl
 očekával	jsem
 očekává	se
 očekává se	že
 očekávám	že
-oči	jsou a když
+oči	jsou a mi abych když
+oči mi	připomínají
 oženil	se s
 oženil se	s
 pacienta	se
 padesát	let
-pak	se jsme odešel začalo
+pak	se jsme odešel ho to začalo
 pamatuj	že
 pamatujete	si
 pamatuješ	si co jak
 pamatuješ co	jsem se
 pamatuješ si	to
 pamatuji	si
+pamatuji si	že
 pamatuju	si
 pan	smith brown
+pane	doktore
 panenku	do
 papír	je
 park	street
 parkoviště	je
 parku	je
-patnáct	let minut
-patří	mně k do
-peníze	na které ale aby a byly
+patnáct	let minut lidí
+patří	mně k jí do
+pauzu	na
+peníze	na které ale aby a jsou
 peníze které	jsem
 peněz	než na ale byl jsi kolik
 peněz byl	bych
@@ -3232,31 +3601,36 @@ piješ	čaj
 piju	kávu čaj
 pil	pivo jsem jsi
 pistoli	na
+pití	piva
 pivo	je
+pizza	je
 platit	hotově
 platím	já
 plnou	pusou
 plné	zuby
 plném	proudu
+plný	energie
 plus	jedna dva
 plán	se
 plánu	to
-plánuje	udělat jít
+plánuje	jít udělat
 plány	na
 pláž	s ale
 pláž ale	pak
 pláži	a
 plýtvat	časem
-po	smrti schodech telefonu svém cestě mně
+po	schodech smrti svém telefonu cestě mně
 po celou	dobu
 po celém	světě
 po celý	rok
 po cestě	domů
 po mě	chce
 po schodech	nahoru
+po sobě	zanechal
 po té	co
 poblíž	jezera
-pochopil	jsem že
+pobytu	v
+pochopil	jsem že jsi
 pochopit	co že proč
 pochybuji	že o
 pochybuji že	by
@@ -3268,8 +3642,8 @@ pod	stolem postelí postel podmínkou kontrolou vlivem
 pod jednou	střechou
 pod podmínkou	že
 pod postelí	je
-podařilo	se najít
-podařilo se	mi jí
+podařilo	se najít utéct
+podařilo se	mi nám jí
 podcenil	jsem
 podej	mi
 podej mi	sůl
@@ -3277,11 +3651,11 @@ podejte	mi
 podejte mi	sůl
 podezření	že
 podlaha	byla
-podle	mě vás mého jejich mne tebe
+podle	mě mého vás jejich mne tebe
+podlehnout	pokušení
 podmínkou	že
 podobá	své
 podobá své	matce
-podzim	padá
 podzimní	den
 podél	řeky
 podíval	se jsem na
@@ -3289,27 +3663,29 @@ podíval jsem	se
 podíval se	na
 podívala	se
 podívala se	na
-podívat	na se do jestli kdo
+podívat	na se jestli do co kdo
 podívat jestli	je
 podívej	se co
 podívej se	na co támhle
 podívejme	se
 podívejte	se
 podívejte se	na co
-podívám	se
+podívám	na se
 poděkoval	jsem za
 poděkovat	za
 pohlavní	styk
 pojede	do
 pojedu	do na tam
-pojď	se sem s
+pojď	se sem s blíž
+pojď blíž	k
 pojď s	námi
 pojď se	mnou
-pojďme	se si to do mluvit tu
+pojďme	se si to do mluvit spolu
 pojďme mluvit	o
+pojďme se	najíst
 pokaždé	když
-pokaždé když	se
-pokoj	je pro byl s
+pokaždé když	se vidím
+pokoj	je pro s byl
 pokoje	a
 pokoji	je jsou bylo
 pokouším	se
@@ -3319,7 +3695,7 @@ pokračovala	v
 pokračovali	v
 pokračovat	v ve
 pokračujte	v
-pokud	se vím to je nechceš chceš
+pokud	se vím to je bude nechceš
 pokud budu	mít
 pokud jde	o
 pokud je	to
@@ -3339,19 +3715,24 @@ policie	je našla
 politici	jsou
 politika	je
 položil	jsem otázku
-položit	otázku
+položit	otázku hloupou
+položit hloupou	otázku
 polévka	je
-políbil	ji mě
+políbil	ji mě jí
+políbil ji	na
+políbil mě	na
 polívka	co
 polívka co	jsem
 polštář	je
 pomalu	se
 pomerančový	džus
-pomoc	od
-pomoci	bych
+pomoc	od ale
+pomoci	bych ale
 pomoct	ale i
-pomohl	jsem s mi kdybys uklidit
+pomohl	jsem s mi bych kdybys uklidit
+pomohl jsem	jí
 pomohla	mu
+pomohu	ti
 pomoz	mi
 pomozte	mi
 pomož	mi
@@ -3360,11 +3741,12 @@ poměr	se
 pomůžete	mi
 pomůžeš	mi
 pomůžeš mi	s
-pomůžu	ti
+pomůžu	ti vám
 pondělí	jsem do je
 ponětí	co o
-poprvé	co
+poprvé	co jsem
 poprvé co	se jsem
+populární	v
 poradila	mu
 poradila mu	aby
 porovnání	s
@@ -3373,7 +3755,7 @@ posaď	se
 posaďte	se
 poslal	jsem mi ty
 poslali	ho
-poslední	dobou době kdo chvíli naděje den
+poslední	době dobou kdo den chvíli naděje
 poslední dobou	jsem
 poslední době	jsem hodně
 poslední kdo	ho
@@ -3389,11 +3771,13 @@ pospěšte	si
 postaral	o
 postarat	o
 postarej	se
-postará	o
+postará	o se
+postará se	o
 postarám	se
 postaráme	se
 postaráme se	o
 postav	se
+postaven	na
 postavil	dům
 postaví	do
 postaví do	cesty
@@ -3402,37 +3786,45 @@ posílám	ti
 potkal	jsem na jsi svého
 potkal jsem	ho ji
 potkali	jsme poprvé
-potom	co
+potkali jsme	se
+potom	co se
+potopil	na
 potvrdit	že
+potvrdit že	to
 poté	co
-potřeboval	jsem bych
-potřebovat	pomoc
-potřebuje	pomoc více kabát nové jen umýt
+potřeboval	jsem bych abych
+potřebovat	nebudeš pomoc
+potřebuje	pomoc více kabát nové peníze opravit
 potřebujeme	více ještě víc peníze je to
-potřebuješ	hodně abych na
-potřebuji	si se tě vědět tvoji abys
-potřebuju	něco nové někoho se
+potřebuješ	peníze ty hodně abych na
+potřebuješ ty	peníze
+potřebuji	si se trochu nové tě vědět
+potřebuju	něco někoho nové to se
 potřebují	k
 pouhé	tři
-pouze	jednou v na tři s
+pouze	jednou s v jedno na tři
 použít	můj
 používat	počítač
 používá	k
-považoval	jsem
+považoval	za jsem
+považovat	za
 považován	za
 považuje	za
 považuji	za
+považují	za
 povedlo	se
 povrchní	a
 povídal	s
 povídali	jsme
 povídali jsme	si
 povím	ti
+povím ti	o
 povědět	pravdu
 pověs	si
 pověs si	kabát
 pověz	mi
 pověz mi	něco co o
+povězte	mi
 pozdní	příchod
 pozdravuj	ode
 pozdě	do na a než spát
@@ -3449,29 +3841,32 @@ pozoroval	jak
 pozoru	před
 pozval	jsem na
 pozval jsem	ji
-pozval na	párty
+pozval na	večeři párty
 pozvat	na
 pozvat na	večeři
 počasí	je se bude není bylo
 počet	obyvatel
-počkat	na až do ještě tady déle
+počkat	na až do tady ještě déle
 počkat ještě	chvilku
-počkej	tady až na prosím
+počkej	na až tady prosím
 počkej na	mě
-počkejte	prosím na
+počkejte	na prosím
 počkám	tady na
 počkám tady	dokud
 počkáme	na
 počítat	do
 počítač	je
 počítej	do
-pořád	se si ještě jste tady v
+pořád	se si ještě jste na tady
 pořád jste	na
+pořád nechápu	co
+pořád se	na
 pořád to	samé
 pořádek	ve
 pořádně	neví
 pořádně neví	co
 pošli	mi
+pošlu	ti
 pošta	je
 poštovní	známky
 požadavky	jsou
@@ -3484,62 +3879,75 @@ požádal o	pomoc radu
 požádali	mě
 požádali mě	abych
 požádat	o
-požádat o	pomoc
+požádat o	pomoc radu povolení
 požár	se
 pracoval	jsem v na jako pro s
 pracovala	v
-pracovat	s v na přesčas a pro
+pracovat	s v na přesčas za a
 pracovat v	neděli
 pracovní	podmínky
 pracuje	v jako na pro ve s
 pracuje jako	řidič
-pracuje v	bance továrně
-pracuješ	v příliš s
+pracuje v	továrně bance
+pracuješ	s příliš v na pro
 pracuješ příliš	tvrdě
 pracuji	v s na jako tady sám
-pracují	v
+pracuju	v
+pracují	v společně
+pracují v	nemocnicích
 prací	je
 prací je	mytí
-praha	je
 pravda	že je
 pravda je	že
 pravda že	je
 pravdou	je
 pravdou je	že
-pravdu	o řekl ale že a
+pravdu	o že řekl ale a
 pravděpodobné	že
-pravděpodobně	to nebude je
+pravděpodobné že	by
+pravděpodobně	nebude je to
+pravděpodobně je	to
 pravidelně	do
-pravé	ruce noze oko
+pravidla	se
+pravou	ruku tvář
+pravé	oko ruce noze
+pravý	opak
 pro	mě tebe nás vás něj sebe
-pro mě	moc příliš těžké není udělal to
+pro koho	je
+pro mě	příliš těžké moc udělal není to
 pro naši	firmu
 pro nebo	proti
 pro ni	není příliš
-pro nás	není udělal udělá udělat snadné
+pro nás	není udělal snadné udělá udělat
 pro něj	udělal
 pro případ	že
 pro sebe	a
 pro svoji	dceru
-pro tebe	udělal
+pro tebe	udělal udělat
+pro to	abych
 pro tu	práci
 pro ty	co
 pro vaše	dobro
-pro vás	udělá
-problém	vyřešit je s vyřešil ne se
+pro vás	udělá něco
+problém	vyřešit je s vyřešil se ne
 problém ne	můj
 problémy	s se jsou
 problémy jsou	důsledkem
 problémy se	zákonem
+probudil	jsem
+probudil jsem	se
+procházel	jsem
+procházel jsem	se
 prochází	v
 prodal	jsem
-prodat	nemůžeš
+prodat	svůj nemůžeš
 prohráli	jsme
 projít	do
 projít do	parku
 promiň	že ale
 promiň že	jsem
 promiňte	ale
+promluvil	s
 promluvit	s o si
 promluvit si	s
 promluvme	si
@@ -3548,71 +3956,79 @@ promluvíme	si
 promluvíme si	o
 promočený	až
 promočený až	na
+proměnila	v
 propustili	ho z
 propustí	z
 propuštěn	z
 prosil	bych
 proslov	a
-prostě	to se chci jsem není mě
+prostě	to se jsem chci není mě
+prosí	o
 prosím	tě na vás že co říct
+prosím co	se
 prosím tě	zhasni
 prosím říct	proč
 prosím že	jsem to
-proti	tomu kašli lidskosti válce proudu sobě
+proti	tomu lidskosti kašli válce mně našemu
 proti našemu	plánu
 proto	jsem že se aby tu abych
 proto aby	se
 proto jsem	se
 proto se	ptám
-protože	jsem je se byl mám to
+protože	jsem je se byl to mám
 protože byl	unavený
 protože je	to
-protože jsem	si byl se měl neměl ji
+protože jsem	si byl se měl ji neměl
 protože mi	to
 protože mám	hlad
 protože se	mi
+provdala	se
+provdaná	za
 proč	jsi se to je jste si
-proč by	se to
+proč by	se to měl
 proč bych	měl to se
-proč chceš	abych
+proč chceš	abych aby
 proč je	tady to život smutný tu ten
 proč jsem	to se tak odešel sem
-proč jsi	tak to mi mě nepřišel včera
-proč jste	se mi to
+proč jsi	to tak mi mě nepřišel včera
+proč jste	mi se to
 proč mi	to
 proč myslíš	že
 proč s	tím
-proč se	na to mi tak lidé
+proč se	na to mi tak mnou lidé
 proč ses	rozhodl
 proč si	myslíš myslíte to
-proč to	udělal chceš děláš udělala ještě
-první	kdo pohled láska den cenu slovo
-první kdo	si
+proč to	udělal děláš chceš všechno udělala ještě
+první	kdo pohled den pokus láska cenu
+první den	ve
+první kdo	si to
 první podzimní	den
 první skupina	se
 prvé	řadě
 pryč	z a
-práce	je se autem domů a byla
+práce	je se autem pěšky byla domů
+práce je	pro
 práce na	kole
 práce se	mi
-práci	a na s jsem je v
+práci	a na s v jsem je
+práci firma	kolabuje
 prádlo	z
 právníka	který
-právo	na
+právo	na to
 právě	jsem teď řekl včas jsme vrátil
 právě jsem	se si
 právě teď	jsem
 psal	častěji
 psi	jsou
-psy	a
+psy	a ale
 psychiatrické	léčebny
-psát	neměla v neměli neměly
+psát	neměl neměla v neměli neměly
 psí	boudu
-ptal	na jsem
+ptal	na jsem ses
 ptal jsem	se
 ptali	se
 ptali se	mě
-ptáci	se
+ptej	se
 ptám	se
 ptám se	sám
 ptát	se
@@ -3620,47 +4036,58 @@ pustil	jsem do
 pustit	do
 pyšný	na
 pánem	situace
-pár	dní věcí lety minut otázek slov
+pár	dní věcí lety otázek minut slov
+pár dní	volno
 párty	dobře
 pátek	večer
 péct	chleba
 pít	čaj alkohol víc
-píše	básně dopisy o dopis
+píše	básně dopisy dopis o
 píšu	dopis
 pěkné	počasí
 pět	let minut hodin dolarů set dní
-pěti	let
-před	třemi dvěma námi pár rokem jídlem
+pěti	let lety
+pěšky	než
+přece	se
+přeci	jen
+před	třemi dvěma námi pár jídlem spaním
 před deseti	lety
 před dvaceti	lety
-před dvěma	lety týdny
+před dvěma	lety týdny dny
+před jídlem	si
 před mnoha	lety
 před mým	domem
 před několika	lety
 před osmi	lety
 před pár	lety měsíci
-před třemi	lety měsíci roky hodinami dny týdny
+před pěti	lety
+před třemi	lety měsíci dny roky hodinami týdny
 před více	než
 předal	jsem
 přede	mnou dveřmi
 přede dveřmi	je
+přednější	než
+předpokládá	se
+předpokládá se	že
 předpokládám	že
 předpověď	počasí
-představit	že jak
-představit že	by
+představit	že jak život
+představit že	by bych
 předstíral	že
 předstíral že	je
 předstírala	že
 předstírá	že
 předtím	než jsem
 předtím jsem	ho se
-předtím než	jsem
+předtím než	se jsem
 přehled	o
-přeji	si vám ti
+přeji	vám si ti
 přeji si	aby
+přeju	ti
 přejít	přes
 překlad	je
-překvapen	když
+překvapeně	když
+překvapeně když	jsem
 překvapilo	mě
 překvapilo mě	když
 překvapuje	mě
@@ -3671,17 +4098,19 @@ přemýšlel jsem	o
 přemýšlel nad	tím
 přemýšlí	o
 přemýšlím	o
-přes	noc ulici tři řeku plot hodinu
-přesně	to tak tohle co ten v
+přes	noc ulici tři plot řeku třicet
+přesně	to tak co tohle tam ten
 přesně na	čas
 přesně tak	jak
 přesně tam	kde
 přesně to	co
-přestal	jsem pít mluvit se
+přestal	jsem pít mluvit se jíst chodit
+přestali	mluvit
 přestat	s dělat pít myslet
-přestaň	se mi být si mě mluvit
+přestaň	se mi si být mluvit plýtvat
+přestaň si	stěžovat
 přestaňte	se
-přesto	jsem
+přesto	jsem jsi
 přestože	si byl
 přestěhoval	do
 přesvědčen	že
@@ -3689,21 +4118,23 @@ přesvědčil	jsem aby
 přesvědčit	aby
 přečetl	jsem
 přečti	si
-při	nehodě dopravní jídle cestě té odchodu
+při	nehodě jídle dopravní cestě té čtení
 při cestě	domů
 při dopravní	nehodě
 při každé	příležitosti
+při letecké	nehodě
 při té	nehodě
 přichází	k
 přidal	jsem
 přijal	jsem
-přijde	nebo domů draho
+přijde	nebo domů k na draho
 přijde nebo	ne
 přijdeme	pozdě
 přijdeš	pozdě nebo
 přijdeš nebo	ne
+přijdeš pozdě	do
 přijdu	k
-přijel	do jsem pozdě včas jsi domů
+přijel	do jsem včas pozdě jsi domů
 přijeli	do jsme
 přijít	na o tak zítra jestli protože
 přijít jestli	chceš
@@ -3715,7 +4146,7 @@ přijď ke	mně
 přikázal	mi
 přiměl	jsem
 přines	mi
-přinesl	jsem jsi
+přinesl	jsem jsi oběd
 přinesl jsem	ti
 přineste	mi
 přinesu	vám
@@ -3723,9 +4154,11 @@ připadá	mi
 připomínáš	mi
 připrav	se
 připrav se	na
-připraven	na zemřít k
+připraven	na k to zemřít
 připraven k	odchodu
+připraven to	udělat
 připravil	o
+připravit	na
 připravte	se
 připravte se	na
 připravuje	na
@@ -3740,33 +4173,37 @@ přiznala	se že
 přiznat	že
 přiznávám	že se
 přizpůsobit	se
-přišel	o jsem domů pozdě na k
+přišel	o jsem domů na pozdě k
 přišel jsem	sem na
 přišel o	práci zrak
 přišel pozdě	do
 přišla	domů o k
-přišli	jsme jste
+přišli	jsme o jste
+přišli jsme	sem
 přál	bych
 přál bych	si
 přáli	aby
 přání	se
+přátel	na
+přátel na	facebooku
 přátele	kteří na
 přátelství	je
-přátelé	jsou
+přátelé	jsou už
 příběh	je o se mi
 příběh je	pravdivý
 příběh mi	vyprávěl
-příliš	mnoho pozdě starý daleko rychle mladý
+příliš	mnoho pozdě starý mladý daleko rychle
 příliš hloupé	na
 příliš unavený	na
-přímo	před na
+přímo	před z na
 případ	že
 případě	požáru
 příroda	je
 přísahal	že
 přísahám	že
+přísahám že	jsem
 přístup	k
-přítel	je
+přítel	je a
 přítele	který
 přítelkyně	je se
 příští	týden rok měsíc stanici neděli pondělí
@@ -3780,52 +4217,57 @@ půjdeš	spát se do
 půjdeš se	mnou
 půjdu	s se na tam spát domů
 půjdu s	tebou vámi
+půjdu tam	s
 půjč	mi
-půjčil	jsem bys peníze
+půjčil	jsem bys své peníze
 půjčil bys	mi
 půjčil jsem	si
-půjčit	nějaké peníze tvoje tvůj
+půjčit	nějaké peníze tvůj tvoje
 půjčit nějaké	peníze
 půjčím	ti
-půl	třetí hodiny osmé sedmé
+půl	třetí hodiny sedmé osmé
 radost	že z když
 radím	ti vám
 radím ti	abys
 radím vám	abyste
-raději	bych bys by byste než kdyby
+raději	bych bys by než byste kdyby
 raději by	ses
-raději bych	se to zůstal šel si byl
+raději bych	to se zůstal šel si byl
 raději bys	měl neměl
 raději byste	měli
 raději do	kina
-raději kdyby	sem
+raději kdyby	to sem
 raději vzít	v
 radši	bych bys
 radši bych	tě
 ranní	ptáče
 reakce	mě
 restaurace	je
-roce	devatenáct v se
+roce	devatenáct v se kdy
 roce devatenáct	set
-rodina	je se si
+roce kdy	se
+rodina	je se si žije
+rodina žije	v
 rodině	jsou
 rodiče	jsou se mě nechtějí byli žijí
 rodiče nechtějí	abych
 rodné	město
 rok	co se budu to chci
-roky	mladší starší co jsem
+roky	mladší starší v co jsem
 roky mladší	než
 roky starší	než
 rostliny	potřebují
+rovnou	domů
 rovná	se
 rovně	a
-rozbil	okno jsi
+rozbil	okno jsi tu jsem
 rozdíl	mezi od
 rozdíl od	tebe
+rozešel	s
 rozhodl	jsem se že jít to odejít
 rozhodl jsem	se
-rozhodl se	stát
-rozhodl že	se
+rozhodl se	stát že
+rozhodl že	se už
 rozhodla	se jsem
 rozhodla jsem	se
 rozhodla se	že
@@ -3841,6 +4283,7 @@ rozumí	se
 rozumí se	samo
 rozumím	tvým
 rozuměli	jste
+rozvedla	se
 roční	období době
 ruce	a
 ruce a	obličej
@@ -3853,20 +4296,20 @@ ruské	filmy
 rusové	jsou
 ryba	je
 ryby	a jsou
-rychle	jsem jak se mění že
+rychle	jsem jak se mění že a
 rychle jak	jen to
 rychle jsem	se
 rychleji	než
 rychlejší	než
 rád	bych že se když si psy
-rád bych	věděl se si tě vám ti
+rád bych	věděl se si tě to vám
 rád chodí	na
 rád chodím	do
 rád když	se si
 rád psy	a
 rád se	procházím dívám
-rád že	jsem jsi se jsme ses je
-ráda	bych že čokoládu hudbu vás léto
+rád že	jsem se jsi jsme ses tu
+ráda	bych že čokoládu hudbu vás když
 ráda bych	věděla
 ráda léto	ale
 ráda že	jsi
@@ -3876,37 +4319,40 @@ rády	dívají
 rády dívají	na
 rána	do
 rána do	večera
-ráno	jsem v mě se si je
-ráno jsem	se
-ráno v	šest
+ráno	jsem v se mě je si
+ráno jsem	se si
+ráno v	šest sedm
 různé	druhy
 různí	lidé
-růže	je
+růže	je v
 růže je	krásná
 s	tebou tím ním námi ní nimi
-s kým	jsi se
+s dlouhými	vlasy
+s kým	jsi se si
 s malým	děckem
 s mojí	sestrou
 s naším	psem
 s nikým	nemluvil
-s nimi	chtěl
+s nimi	chtěl mluvil
 s námi	chceš
 s ní	mluvit do
-s ním	mluvit setkal mluvil do na je
+s ním	mluvit setkal mluvil je do promluvit
 s někým	jiným
 s ostatními	dětmi
 s plnou	pusou
 s sebou	do peníze
 s tebou	mluvit chce do o mluvím hádat
 s tou	dívkou
-s tím	že co něco nemůže jak nemá
+s tím	že co něco nemůže jak problém
 s vámi	souhlasím mluvit také
 s čím	přijde
 sama	do na
-sami	se byl je měl to chtěl
+sami	se byl je to měl chtěl
 samo	sebou
 samo sebou	že
+samou	chybu
 samozřejmost	že
+samozřejmé	že
 samozřejmě	že
 samé	co
 samého	začátku je
@@ -3915,6 +4361,8 @@ sbírku	známek
 schodech	nahoru
 schopen	to udělat
 schopen to	udělat
+schopný	tomu
+schopný tomu	pokušení
 schoval	jsem pod do
 schoval jsem	se
 schoval pod	postel
@@ -3922,6 +4370,7 @@ schází	mi
 schůzku	s
 sdílet	s
 se	mi na to že s mnou
+se bavit	o
 se bojí	že psů o
 se bude	vdávat
 se budeš	cítit
@@ -3930,13 +4379,15 @@ se bál	že
 se chce	naučit
 se chovat	jako
 se co	se si jsem dělají
+se cítím	dobře
 se dnes	večer
-se do	toho práce školy té své prstu
+se do	toho práce školy své té prstu
 se dobře	baví
 se dostal	do
 se dostali	do
 se dostanu	na
 se dostat	dovnitř do
+se dozvíš	pravdu
 se dočkat	až
 se dál	od
 se dámy	na
@@ -3948,33 +4399,36 @@ se dívám	na
 se díváš	na
 se děje	co když v
 se dělat	chyby
-se ho	na jestli ptát kdy
+se ho	jestli na ptát zabít kdy
 se jak	je se
 se jako	kdyby
 se jeho	radou
 se jen	tak
+se ještě	musí
 se jim	to
 se jmenoval	ten
 se jmenuje	tvoje tvůj tento tato vaše ten
 se jí	nelíbí
-se k	nám tomu tobě ní sobě němu
+se k	nám tomu tobě vám ní sobě
 se každé	ráno
 se každý	den
 se ke	mně
 se kvůli	tomu
+se liší	od
 se líbí	dívky
 se mezi	sebou
 se mi	líbí to nelíbí že o jak
 se mluví	v ve
-se mnou	mluvit jako nechce mluví takhle mluvíš
+se mnou	jako mluvit nechce nemluví mluvíš chtěl
 se mohlo	stát
-se mu	to něco
+se mu	to něco nelíbí
 se musí	změnit udělat
 se má	tvoje udělat
 se málem	utopil
 se máš	dobře
-se mě	zeptal zeptala jestli na bojí co
+se mě	zeptal na zeptala bojí jestli co
 se měl	vrátit naučit stydět
+se mělo	stát
 se můj	otec
 se může	stát
 se na	mě to něj tebe ten sebe
@@ -3982,11 +4436,15 @@ se nabídl	že
 se nachází	v na
 se narodil	v a ve
 se narodila	v
+se necítí	dobře
 se nedá	věřit nic
+se nedívá	na
 se nezajímá	o
 se nic	nestane nestalo
 se nikdy	nevrátí
-se něco	děje
+se nikomu	nic
+se nás	snaží
+se něco	děje stane
 se někdo	vloupal
 se o	to mě ni sebe tebe vás
 se od	tebe něj
@@ -3999,6 +4457,7 @@ se podíval	na
 se podívat	na jestli kdo
 se pokusil	vstát
 se postaral	o
+se postará	o
 se používá	k
 se pro	mě
 se prochází	v
@@ -4010,68 +4469,85 @@ se přiznal	že
 se přiznat	že
 se rozhodl	že jít to
 se rychle	mění
-se s	ním ní tebou nimi tím vámi
+se s	ním tebou ní nimi tím vámi
 se samo	sebou
 se schoval	do
 se se	mnou svým
 se sem	dostal dostali
 se setkal	s
 se seznámil	s
+se skládá	z
+se slzami	v
+se snažil	být
 se spoléhá	na
-se stalo	s potom něco v se
+se stalo	s potom něco se v
 se stane	něco když v
+se stará	o
 se stále	bojí
 se svojí	rodinou ženou sestrou matkou
 se svou	prací rodinou přítelkyní
-se svým	psem otcem manželem přítelem synem tělem
-se svými	dětmi rodiči přáteli sousedy
+se svým	psem otcem synem manželem přítelem tělem
+se svými	dětmi přáteli rodiči sousedy
 se sám	sebe
 se ta	nehoda
 se tady	děje
-se tam	dostat dostal vrátit s včas dostanu
+se tak	že
+se tam	dostat dostal s dostanu vrátit včas
 se ten	film problém
 se ti	to líbí na stalo ten ozvu
-se to	stalo dělá stane udělat nikdy řekne
+se to	stalo dělá stane udělat řekne nikdy
 se toho	hodně
+se tomu	říká
 se tu	děje
-se tě	zeptat na nebojím to
+se tě	zeptat na to nebojím netýká
+se u	mě nás
 se ujistit	že
 se ukázalo	jako
+se utopil	v
 se už	roky
 se v	roce lese pět americe řece sedm
-se ve	škole skutečnosti
+se ve	škole skutečnosti svém
+se velmi	dobře
 se vloupal	do
 se vrátil	domů do z
 se vrátila	do
 se vrátit	do domů
 se vrátí	brzy
+se vydával	za
 se vyhnout	setkání
+se vyrábí	z v
 se vám	to líbí na tady nelíbí
 se vás	na
 se z	toho okna něj
-se za	to něj ruce mne mě hodinu
+se za	to něj ruce sebe mne tři
 se zabít	čas
 se zajímá	o
 se zamiloval	do
 se začal	nudit
+se zdají	být
 se zdá	být
 se zdál	být
 se ze	všech
+se zeptal	marie
 se zpět	v
 se zranil	při
 se ztratil	v
-se že	to se jsem je mě tě
-sebe	do samého pozor sama dobrý doma
+se říká	že
+se šel	projít
+se že	to se jsem je mě jsi
+sebe	do samého sama pozor pyšný dobrý
 sebe do	zrcadla
 sebe samého	je
 sebeobrana	je
 sebevraždu	tak
 sebevraždu tak	že
 sebou	do že peníze
-sedm	hodin
+sebou do	práce
+sedm	hodin let dětí
 sedni	si
+sedni si	na
 sedněte	si
-sedí	na ve vedle
+sedí	na ve vedle u v
 sedí ve	vězení
 sedím	na
 seděl	na jsem u v a tam
@@ -4079,7 +4555,7 @@ seděl jsem	vedle
 seděl u	okna
 seděla	na
 seděli	jsme na
-sedět	vedle v
+sedět	vedle u v
 sejdeme	se
 sejdu	se
 sejdu se	s
@@ -4088,14 +4564,14 @@ sekundy	života
 sem	chodit přišel dostal a přijde nikdy
 sem a	tam
 sen	je se
-ses	s měl rozhodl na naučil vrátil
+ses	měl s rozhodl naučil na vrátil
 ses s	ní ním
-sestra	je se má si neumí mi
+sestra	je má se si neumí mi
 sestra je	o
 sestra má	ráda
-sestry	je
+sestry	je a
 set	sedmdesát
-setkal	s se jsem
+setkal	s jsem se
 setkal jsem	se
 setkat	s se
 setkat se	s
@@ -4104,28 +4580,35 @@ setkání	s
 seznámil	s jsem
 seznámil jsem	se
 seznámit	s
-si	že to na s myslí myslíš
+si	že to na myslí s myslíš
 si aby	mi
 si bez	tebe
+si bude	muset
 si celkem	jistý
 si chce	koupit
-si co	chceš se
+si co	chceš ti se
 si do	kafe čaje
 si docela	jistý
+si doma	zapomněl
 si dát	něco
-si ho	vezme
-si hraje	s
+si dělat	starosti
+si ho	vzít vezme
+si hraje	s se
 si hrají	s
+si hrát	s
 si jak	se
-si ještě	jednu
+si je	jistý
+si ještě	jednu jedno
 si jist	že
 si jistá	že
 si jistý	že jestli
 si kabát	na
 si kdy	jste
 si koupit	nový
+si lidé	myslí
 si mohl	vybrat
 si musel	vzít
+si muset	na
 si myslel	že
 si myslela	že
 si mysleli	že
@@ -4133,6 +4616,7 @@ si myslí	že
 si myslím	že
 si myslíte	že
 si myslíš	že o
+si měl	vzít
 si můžu	koupit
 si na	to mě tu sebe ně nic
 si najít	práci
@@ -4146,51 +4630,60 @@ si něco	k
 si o	něm mně
 si od	tebe
 si ode	mě
+si opravit	hodinky
 si povídal	s
 si pozor	na
 si pro	sebe
 si promluvit	s
 si proč	jsme
-si představit	že jak
+si pár	dní
+si představit	že jak život
 si přáli	aby
-si půjčit	tvoje tvůj
+si půjčit	tvůj tvoje
 si rozmysli	co
 si s	tebou sebou ním námi nimi tím
 si se	mnou svými
 si starosti	o
 si své	věci
 si ten	den
-si to	na dovolit promyslím zaslouží půjčit může
+si to	dovolit na promyslím nemyslím zaslouží co
 si toho	všiml nevšiml vědom dobře
 si tě	s najde
 si uklízí	pokoj
 si uvědomil	že
 si uvědomit	že
+si ve	svém
 si vybrat	ze
 si vyčistil	zuby
 si vyčistit	zuby
 si vzpomenout	na jak
 si všiml	že
 si všimla	že
-si ze	mě
+si ze	mě mne
 si zlomil	nohu
 si čistí	zuby
 si že	jsem to je se by jsi
 silnice	je se vede
+silnou	vůli
 silný	vítr
 silnější	než
-sis	to vzít že myslel měl koupila
+sis	to vzít na že myslel měl
 situace	se je
+situace se	změnila
 sklenice	je
 sklenici	vody
 sklenici vody	prosím
+skleničku	vína
 sklenku	vína
 sklo	je se
+skládá	z ze
+skončil	v
 skoro	každý nic nikdy tři nikdo jsem
+skoro deset	let
 skoro každý	den
 skoro nic	jsem
 skoro tři	hodiny
-skočil	do přes
+skočil	přes do
 skupina	se lidí
 skutečnosti	je
 skutečnosti je	starší
@@ -4200,14 +4693,19 @@ skvělý	nápad
 slabé	srdce
 sladký	čaj
 sledoval	jsem
+sledoval jsem	televizi
 sledovat	televizi ruské
 sledovat ruské	filmy
 sledování	televize
+sleduje	filmy
 slepice	jsou
-slepý	na
+slepý	na ale
 slepý na	jedno
+slib	mi
+slib mi	že
 sliboval	že
 slibuji	že
+slibuji že	nikomu
 sliby	se
 slouží	k
 slov	za pochází
@@ -4215,35 +4713,43 @@ slov pochází	z
 slov za	minutu
 slova	jsou
 slovní	zásobu
-slovo	které je má se píše a
+slovo	je které z má se píše
 slovo z	toho
 slovu	nerozumím
 složil	jsem
 složitý	problém
-slunce	je se pálí svítí
+složitější	než
+slunce	je se pálí vychází svítí
 sluneční	brýle soustavy
+slunečních	paprsků
 slušný	člověk
 služební	cestu auto cestě
 služební cestu	do
 slyšel	jsem jsi že jak
 slyšel jsem	že jak o někoho to ho
-slyšel jsi	o
+slyšel jsi	o to
 slyšela	jsem jsi
 slyšeli	jsme jste
 slyšeli jsme	jak
 slyšet	jak
 slyším	tě
 slyšíš	mě
+slzami	v
+slzami v	očích
 slíbil	že jsem jsi mi
+slíbil jsem	že
 slíbil jsi	že
+slíbil mi	že
 slíbil že	to už tu
 slíbila	že
 slíbila že	se to
 smažený	sýr
 smažený sýr	s
-smrt	byla je
+smrt	je byla
+smrti	a
 smutné	že
-smutný	když příběh
+smutný	příběh když
+smutně	se
 smysl	pro se života o
 smysl pro	humor
 smysl se	s
@@ -4254,13 +4760,14 @@ smířit	se
 směrem	k
 snad	to
 snadno	se
-snadné	jak se
+snadné	se jak
 snaž	se
-snažil	jsem říct se
+snažil	jsem se říct být
 snažil jsem	se
 snažila	se
 snažili	se
-snažit	o
+snažit	o ze
+snažit ze	všech
 snažte	se
 snaží	se
 snažím	se
@@ -4268,47 +4775,59 @@ snažím se	zjistit
 snažíme	se
 snažíš	se
 snažíš se	mě
-snil	o jsem
+snil	jsem o
+snil jsem	o
 sny	se
 snídaně	je jsem
 sním	o
 sobotu	do
-sobě	neměl měla
+sobě	neměl měla zanechal domů
 sotva	jsem se jsme
 soudce	ho
 soudce ho	odsoudil
 soudní	řízení
-souhlasil	že jsem s
-souhlasím	s
+souhlasil	že s jsem
+souhlasím	s se
 souladu	s
+souladu s	přírodou
 sousedé	jsou
 sousedé jsou	velmi
 soustředit	na
+souzeni	za
 současné	době
-součástí	jejich
+součástí	jejich života
 sovětský	svaz
-spadl	ze do z na
+spadl	ze do z na jsem
+spadl ze	střechy
 spadla	ze
-spal	jsem v na jsi
+spadlo	ze
+spadly	na
+spal	jsem v na jsi pod
 spala	jsem
 spatřil	jsem
 spi	dobře
 spisovatel	je
 spletl	jsem
 spletl jsem	si
+splnit	svou
+splnit svou	povinnost
 spojené	státy
 spojených	států státech
 spojit	s
 spokojený	se s
+spokojený se	svým
 spolehlivý	člověk
 společnost	je se
 společně	s
-spolu	na s jako chodíte
+spolu	na s tak jako chodíte
 spoléhá	na
+sport	který
 spousta	lidí
 spoustu	peněz času
+spočívá	v
 sprosté	vtipy
 správnou	věc odpověď
+správná	odpověď
 správné	od
 správné od	špatného
 správný	čas
@@ -4317,7 +4836,7 @@ spáchal	sebevraždu
 spáchala	sebevraždu
 spálil	jsem všechny
 spálil jsem	si
-spát	na v a dříve když
+spát	na v a dříve tady když
 spát na	gauči
 spát v	devět
 spí	na v ve jako se pod
@@ -4332,19 +4851,21 @@ stala	se
 stali	se
 stalo	se s potom něco v
 stalo se	to
-stane	něco se když v
+stane	se něco když v
 staral	o
+starala	se
+starala se	o
 starat	o se
 starat se	o
 starosti	o
-stará	o žena jako
-staré	auto
+stará	o je jako žena
+staré	auto kolo
 starého	přítele muže
-starý	muž jako dům na je přítel
+starý	muž jako na dům a je
 starý jako	já můj
 starý je	váš
 starý na	to
-starší	než bratr sestra sestry tím syn
+starší	než bratr sestra syn sestry dcera
 starší bratr	je
 starší než	já ty
 staršího	bratra
@@ -4352,36 +4873,40 @@ starším	bratrem
 stav	se
 staří	lidé přátelé
 stejnou	chybu dobu hudbu
+stejné	chyby jako
 stejného	věku
 stejný	názor problém jako
 stejný názor	jako
+stejný problém	jako
 stejným	způsobem
-stejně	jako to starý staří tak velký
+stejně	jako to starý staří tak tě
 stejně jako	já ty
 stejně stará	jako
 stejně starý	jako
 stejně to	udělal
 stejně velký	jako
-sto	let
+sto	let dolarů
 stojí	za to na tyto je
 stojí to	za
 stojí za	to přečtení
 stole	je jsou leží
-strach	z ze že
+stolem	a
+stolu	a
+strach	z ze že je
 strach z	toho výšek
 strach že	se
 strachu	že
 straně	ulice
-strava	je
 stroj	nefunguje
 strom	je byl
 stručně	řečeno
 stránka	je
-strávil	jsem celý s většinu tím
+strávil	jsem celý s tím tři většinu
 strávil celý	den
 strávil jsem	víkend
 strávil tím	že
 strávili	jsme
+strávili jsme	den
 strávit	zbytek noc
 strýc	je
 strč	prst
@@ -4392,15 +4917,17 @@ studenti	se byli
 studené	vody
 studený	vítr
 studoval	jsem
+stupních	celsia
 stupňů	celsia
 stydí	se
 stydím	se
-stádo	ovcí
+stydět	že
 stáhl	jsem
 stáhl jsem	si
-stál	ve před za
-stále	ještě v naživu není na se
+stál	na ve před za
+stále	ještě v naživu si se není
 stále jste	na
+stále v	něco
 stáli	jsme
 stálo	to
 stát	se na každému
@@ -4410,65 +4937,72 @@ stává	se
 stýská	se
 stýská se	mi
 stěžují	na
-střední	škole školy školu
+střední	škole školu školy
+středního	věku
 stůl	je
-sukně	je
+sukně	je se
 sundej	si
-svoje	děti jméno klíče auto peníze brýle
-svoji	práci dceru rodinu ženu vlastní novou
+svoje	děti jméno auto peníze klíče brýle
+svoje kontaktní	čočky
+svoje telefonní	číslo
+svoji	práci rodinu dceru ženu vlastní matku
 svojí	rodinou ženě ženou rodinu matkou sestrou
-svou	prací práci dceru chybu vlastní matku
+svou	prací práci dceru matku chybu vlastní
+svou práci	firma
 svá	vlastní
-své	děti vlastní auto matce přátele jméno
+své	děti vlastní matce auto přátele jméno
 své cestě	do
 své domácí	úkoly
 své vlastní	auto
 své výhody	i
 své věci	a
 svého	otce syna života přítele učitele domu
+svého jako	sebe
 svého otce	aby
-svém	pokoji životě autě volném domě srdci
+svém	pokoji životě domě autě volném otci
 svém volném	čase
 svému	otci synovi šéfovi příteli psovi
-svých	přátel vlastních rodičích rodičů
+svých	přátel rodičů rodičích vlastních
 svým	rodičům dětem otcem přátelům psem autem
 svým dětem	aby
 svým starším	bratrem
-svými	dětmi rodiči přáteli sousedy problémy
+svými	dětmi přáteli rodiči sousedy problémy
 svědí	mě
 svět	je se
 svět je	plný
 svět se	mění změní
-světlo	a v na je
+světlo	na a v je
 světlé	vlasy
 světová	válka
 světové	válce
 světový	mír
 světě	je jsou
 svěřil	že
-svůj	život věk vlastní dům pokoj slib
+svůj	život věk dům vlastní pokoj slib
 svůj domácí	úkol
 svůj vlastní	pokoj
 svůj volný	čas
 svůj život	aby
-syn	je se má si mě
+syn	je se zemřel má si mě
 syna	je a
 synovec	je
 synovi	je
 syrové	maso
 systém	se
-sám	sebe v sebou jsem sobě ve
+sám	sebe v sebou sobě jsem se
 sám o	sebe
 sám se	sebou
 sám ve	svém
+sám za	sebe
 sýr	a s
 sůl	prosím
-ta	dívka žena práce nehoda polévka loď
-ta dívka	je se co má
+ta	dívka žena práce polévka nehoda loď
+ta dívka	je co se má
 ta krabice	je
 ta nehoda	stala
+ta nejhorší	věc
 ta polívka	co
-tady	je se byl není už být
+tady	je byl se v už není
 tady dokud	nepřijde
 tady je	můj moje tvůj
 tady někdo	kdo
@@ -4476,7 +5010,7 @@ tady v	okolí bezpečí
 tahle	práce židle věc ulice řeka hra
 tahle růže	je
 tahle židle	je
-tak	jak jsem to dlouho se rychle
+tak	jak jsem dlouho to se rychle
 tak aby	to
 tak dlouho	čekat jak
 tak dobře	jako
@@ -4486,34 +5020,37 @@ tak horká	že
 tak jak	to jsem jsi
 tak jako	já dříve
 tak jen	měl mohl
-tak jsem	si se odešel mu
+tak jsem	si odešel se mu
 tak laskav	a
 tak rychle	jak že
 tak se	mi
+tak si	to
 tak snadné	jak
 tak to	není je
 tak unavený	že
-tak velký	jako
-tak že	se
+tak velký	jako dům
+tak často	jak
+tak že	jsem se
 takhle	se to jsem mluvit žít jednat
 takhle jsem	se
 takhle se	to
 takhle to	být
 takovou	věc
-taková	věc zima
-takové	věci slovo problémy štěstí horko
-takového	neřekl jaký jsem se
+taková	zima věc
+takové	věci slovo štěstí problémy horko
+takové štěstí	jako
+takového	neřekl neudělal se jaký nikdy jsem
 takovéto	věci počasí
 takový	hlad je jaký idiot strach hluk
 takový hlad	že
 takový pocit	že
-taky	ne
+taky	ne bych
 také	jsem ne v se to tam
 také jsem	si
-takže	jsem se co mám si jsme
+takže	jsem mám si se co jsme
 takže jsem	se musel
 talent	na
-tam	byl s jít kde je nebyl
+tam	s byl jít kde je nebyl
 tam a	tak
 tam byl	s také i
 tam jen	tak
@@ -4522,22 +5059,27 @@ tam kde	je jsi se
 tam musí	jít
 tam mám	být
 tam místo	mě
-tam na	mě
+tam na	mě vás
 tam nikdo	nebyl
 tam s	námi nimi vámi
 tam se	mnou
+tam v	tu
 tamhle	je
-tato	silnice práce židle budova země voda
+tato	práce budova silnice židle země voda
 tato cesta	je
 tato krabice	je
+tato práce	je
 tato voda	je
 tato zvířata	jsou
 taška	je
-tebe	udělal se čekat příliš půjčit úplně
+tebe	udělal se čekat hodně mám příliš
 tebe hezké	že
-tebou	mluvit chce do o tak mluvím
+tebou	mluvit chce tak do o mluvím
 tebou jít	na
+tebou tak	bych
 tehdy	jsem když
+tehdy jsem	si
+tehdy když	se
 tele	na
 telefon	je
 telefonní	číslo
@@ -4545,40 +5087,46 @@ televize	je
 ten	film problém kdo dům muž dopis
 ten den	kdy byl
 ten dům	je kde
-ten film	byl viděl se už
-ten kdo	si se má to
+ten film	byl viděl je se už
+ten kdo	si to se má
 ten kluk	je
 ten muž	je se který
 ten nápad	se
-ten problém	vyřešit vyřešil
+ten problém	vyřešit vyřešil je
+ten správný	čas
 ten závod	vyhrál
+ten účet	jsi
 ten člověk	je
-tenhle	film svetr dům klobouk příběh problém
+tenhle	film svetr příběh dům klobouk problém
 tenhle chlapík	je
 tenhle klobouk	je
 tenkrát	jsem
-tento	dům film problém týden lék příběh
+tento	dům problém film týden lék dopis
+tento dopis	je
 tento dům	je
 tento film	stojí
-tento muž	není
+tento muž	není je
 tento nůž	je
 tento pokoj	je
+tento problém	vyřešit
 tento překlad	je
 tento příběh	je
 tento starý	dům
+tento strom	je
 tento stůl	je
 tento víkend	se
 tento zvyk	pochází
 tento čaj	je
-tentokrát	se jsem to si
+tentokrát	to se jsem si byl
 teorie	je
 teplo	a
-teplota	klesla je
+teplota	klesla je venku
 teplá	voda
 teplé	oblečení jídlo
 teprve	až nedávno před
 teprve až	když
 test	z
+testu	z
 text	je
 teče	mi
 teče mi	z
@@ -4590,67 +5138,74 @@ teď měl	být
 teď není	čas
 teď se	mi můžeš
 teď už	je to vím
-ti	to řekl líbí že něco na
+teď v	nemocnici
+ti	to řekl že líbí za na
 ti až	se
 ti jak	se
-ti líbí	nejvíc na
+ti líbí	nejvíc na víc
 ti mohl	pomoci
+ti na	mě
 ti nic	není
 ti něco	říct
 ti s	tím
 ti tak	dlouho
-ti to	líbí říct bude řekl vysvětlit
+ti to	líbí řekl bude říct vysvětlit říci
 ti vadit	když
 ti všechno	co
 ti za	tvůj to
 ti řekl	že
-ti že	jsi je
+ti že	to jsi je
 tisíc	slov dolarů jenů
 tisíce	lidí
 tito	lidé
 tito lidé	jsou
 tlustý	jako
 to	je co udělat udělal není pro
-to aby	se si sis na to
-to abych	si to
+to aby	se si sis to na mu
+to abych	si se to
 to auto	je
-to bude	muset fungovat mít trvat potřebovat stát
+to bude	muset fungovat trvat potřebovat mít líbit
 to budeme	muset
-to by	mělo bylo mohlo se
+to budete	mít
+to by	mělo bylo mohlo mě se
 to bych	si
-to byl	neudělal nápad
-to byla	pravda jeho
-to bylo	za docela
+to byl	neudělal věděl nápad
+to byla	pravda jeho moje
+to bylo	za od docela
 to být	nemusí
+to chce	udělat
 to chceš	udělat vědět
 to chtěl	udělat
-to co	jsem se udělal jsi si je
+to co	se jsem udělal jsi si řekl
 to dlouho	co
 to dobrý	nápad
 to dítě	umí ještě se
-to dělat	s nebude nebudu nemůžeš
+to dělat	s nebude nebudu nemůžeš tady
 to dříve	či
 to jak	se
-to je	ale moje můj to vše velmi
+to je	ale moje můj vše to ten
 to jeden	z
 to jediné	co
-to jen	otázka proto
+to jen	otázka z proto
 to jestli	mi
 to ještě	jednou neudělal není bude
+to jsi	měl
+to jsou	moje
 to jste	psát
 to já	jsem kdo
 to jídlo	je
+to k	něčemu
 to kafe	je
 to každý	den
 to líbí	nebo
 to minulý	týden
-to moc	dobře líto drahé nelíbí
+to moc	dobře líto velké drahé nelíbí
 to mohl	udělat
-to moje	sestra chyba přítelkyně žena
+to moje	sestra chyba žena vina přítelkyně
 to možná	udělá
 to musel	udělat
 to muset	udělat
-to musí	dělat udělat být
+to musí	udělat dělat být
 to musím	udělat
 to musíme	dělat
 to myslíš	vážně
@@ -4666,19 +5221,20 @@ to můžeme	udělat
 to na	tobě mě papír stůl druhé
 to nebudeme	muset
 to nechce	dělat udělat
-to nechtěl	udělat
+to nechtěl	dělat udělat
 to nedokáže	udělat
 to nedovolí	udělat
+to nejlepší	co
 to nejsou	moje
 to nemohl	udělat
 to nemusí	dělat
 to nemusím	dělat
-to nemá	dělat
+to nemá	dělat čas
 to nemám	čas
 to neměl	dělat říkat
 to neměli	dělat
 to nemůže	změnit být
-to není	pravda možné moje tak to nic
+to není	pravda moje možné tak to nic
 to nesmí	dělat
 to neznamená	že
 to nikdy	nedělal
@@ -4687,92 +5243,122 @@ to odsud	daleko
 to opravdu	udělal tak
 to plánuje	udělat
 to poprvé	co
+to poslední	co
 to pro	mě tebe nás vás něj ně
 to prosím	zopakovat
 to proto	že
+to protože	jsem
 to přesně	tak
 to s	tebou
 to samé	co
-to se	mi stalo může ti mnou tě
+to se	mi stalo může ti nikdy mnou
 to skutečně	pravda
 to stejně	jako
 to tak	jak snadné není jednoduché těžké že
 to to	co
 to trvat	dlouho
-to udělal	pro sám ale
-to udělat	sám s bez dnes o sami
+to ty	jsi kdo
+to udělal	pro bez sám ale já i
+to udělat	s sám bez dnes o sami
 to udělá	až
 to už	je dávno
 to v	pořádku
+to vaše	nebo
 to ve	škole
+to vypadá	jako
 to vůbec	nestalo
+to z	míry
 to za	to
 to znamená	že
 to zní	jako
+to ztráta	času
 to záleží	na
 to říct	dřív včera
 to že	se jsem je jsi jste toho
+toaletní	papír
 tobě	se jsem abys hodně
 tobě se	to
-tohle	je není se jsem místo auto
-tohle auto	je
+tohle	je není se jsem auto místo
+tohle auto	je není
 tohle by	mělo
-tohle je	moje nejlepší ten to velmi pro
+tohle je	moje to nejlepší velmi ten pro
 tohle jsem	si
 tohle není	moje to
 tohle se	mi musí
 tohle všechno	je
 toho	co že hodně moc muže dne
 toho aniž	by bych
-toho co	jsem se jsi dělám
+toho co	jsem jsi se dělám
 toho dobře	vědom
-toho hodně	co
+toho hodně	co udělat
+toho není	moc
+toho nic	není
+toho stále	ještě
 toho ti	nic
-tohoto	projektu slova
-tolik	peněz co kolik jako jíst času
+tohoto	projektu slova pokoje
+tolik	peněz co jako kolik času jíst
 tolik peněz	kolik
-tomto	městě domě oboru místě světě pokoji
+tomto	městě domě oboru místě světě obchodě
 tomto městě	je
-tomu	co že aby se pokušení zabránit
+tomu	co že aby abych pokušení se
 tomu aby	se
-tomu co	řekl jsem
+tomu co	jsem řekl
 tomu mohl	zabránit
 tomu pokušení	odolat
 tomu se	říká
 tomu že	se
-toto	je není slovo město místo jezero
+toto	je slovo není místo město jezero
 toto je	moje
-tou	dívkou ženou
+tou	dívkou ženou osobou
 touhle	dobou
 touto	dobou prací
 touží	po
 trest	smrti
 trestní	oznámení
 trestním	rejstříku
-trochu	se vody peněz cukru víc času
+trochu	vody se cukru peněz času víc
+trošku	hlad
+trpí	nedostatkem
+trpělivost	je
 trup	lodi
 trup lodi	se
 trval	na
-trvala	tři
-trvalo	než to mi
+trvala	tři na
+trvalo	než to mi by
+trvalo by	věčnost
 trvalo než	jsem
-trvat	dlouho než
+trvat	dlouho než déle
 trvat než	se
 trvá	na to
+trápí	ho
 trávit	čas
-tu	práci není dobu zprávu být otázku
+tráví	večery vánoce
+tráví večery	před
+tu	práci zkoušku není dobu zprávu být
+tu dost	místa
 tu ještě	není
 tu krabici	otevřít
+tu nikdo	není
+tu noc	jsem
 tu někdo	kdo
+tu patnáct	lidí
 tu pro	tebe mě
+tu práci	dostal dokončil
+tu s	námi
+tu samou	chybu
 tu teď	být
-tuhle	práci otázku tašku psí hru chybu
+tu zkoušku	udělá
+tu záhadnou	vraždu
+tuhle	práci otázku píseň tašku psí hru
 tuhle psí	boudu
-tuto	práci otázku chvíli zemi možnost situaci
+tuto	otázku práci chvíli zemi možnost situaci
 tuto otázku	nemohu
 tušení	co
-tvoje	sestra žena jméno oblíbená matka dcera
+tušil	jsem
+tušil jsem	že
+tvoje	sestra žena jméno matka oblíbená dcera
 tvoje boty	jsou
+tvoje telefonní	číslo
 tvoji	rodiče pomoc sestru
 tvojí	pomoci
 tvou	pomoc radu
@@ -4782,46 +5368,54 @@ tvrdá	práce
 tvrdé	drogy
 tvrdí	že
 tvrdě	pracovat pracuje
-tvá	matka minulost
-tvé	auto vlasy rysy sny pomoci přátelství
-tvého	otce
+tvá	matka sestra minulost
+tvé	auto vlasy pomoci rysy jméno sny
+tvého	otce bratra
 tvém	věku místě
 tvém místě	bych
-tvůj	otec bratr oblíbený dům názor přítel
+tvému	otci
+tvým	přítelem
+tvůj	otec bratr oblíbený přítel dům názor
+tvůj dům	je
 tvůj nejlepší	přítel
-ty	jsi dveře peníze se víš mě
+ty	jsi dveře peníze se mě víš
 ty a	já
 ty dveře	otevřené jsou
-ty jsi	ten to mě nevěděl
+ty jsi	ten mě to nevěděl
+ty musíš	být
+ty tak	kdo
 ty víš	že
-tyhle	hodinky boty věci knihy šaty obrázky
+tyhle	hodinky věci boty knihy šaty obrázky
 tyhle boty	jsou
 tyhle hodinky	se
+tyhle knihy	jsou
 tys	mi
-tyto	knihy věci dveře otázky problémy noviny
+tyto	knihy dveře věci problémy otázky boty
 tyto problémy	jsou
 táta	je není mi
 té	doby době nehodě párty místnosti dívky
-té doby	jsem co se je
+té doby	co jsem se je
 té době	jsem
 téct	vodu
 téhle	místnosti zemi
+téhle místnosti	je
 téměř	nikdy každý vše všechno
-této	místnosti zemi knihy oblasti řece knize
+této	místnosti zemi knihy oblasti řece budově
 této místnosti	je
 této roční	době
-tím	že co jak lépe víc více
+tím	že co jak více lépe víc
 tím co	se
 tím lépe	pro
 tím nemá	nic
 tím nemůže	nic
 tím něco	dělat
-tím že	jsem se to
+tím že	se jsem si to
 tímto	způsobem
 týden	jsem na je v se jsme
 týden jsem	viděl se
 týden na	to
-tě	to miluji na tady viděl o
+týká	se
+tě	to na tady miluji o viděl
 tě do	toho
 tě k	tomu
 tě mají	rádi
@@ -4834,8 +5428,8 @@ tě víc	než
 tě zeptat	na
 tě zhasni	než
 těch	dvou lidí
-těchto	okolností
-tělo	se
+těchto	okolností dvou dnech věcí
+tělo	bylo se
 těm	kteří
 těší	se mě
 těším	se
@@ -4844,20 +5438,21 @@ těžko	se
 těžko se	mi
 těžkou	práci
 těžká	práce otázka na
-těžké	se uvěřit najít být to porozumět
+těžké	se uvěřit najít to být časy
 těžké se	naučit
 těžší	než
 třeba	udělat se to si
-třemi	lety měsíci roky hodinami dny týdny
+třemi	lety měsíci dny roky hodinami týdny
 třemi lety	jsem
+třetí	v
 tři	hodiny roky dny měsíce týdny sta
 tři dny	jsem
 tři roky	jsem
 tři sta	dolarů
 tři čtvrtě	na
 tři čtyři	pět
-třicet	let minut dolarů tři
-třikrát	větší denně
+třicet	let dolarů minut tři
+třikrát	denně větší
 třikrát větší	než
 třináct	let
 třídě	je
@@ -4866,13 +5461,13 @@ u mě	doma
 u nás	hodně
 u sebe	doma
 u svého	strýce
-uctívání	boha
-uctívání boha	je
 udržet	tajemství
-udělal	jsem to jsi chybu bych pro
+udělal	jsem to jsi chybu bylo co
 udělal bych	to
-udělal jsem	to všechno co chybu
+udělal i	když
+udělal jsem	to všechno co chybu ti
 udělal jsi	to
+udělal něco	špatného
 udělal to	co samé pro
 udělal velkou	chybu
 udělala	to jsem sama jsi
@@ -4880,7 +5475,7 @@ udělala jsem	to
 udělali	jsme jste to
 udělali jsme	to
 udělali jste	to
-udělat	to sám je dnes hned s
+udělat	to sám je dnes s hned
 udělat a	já
 udělat něco	takového
 udělat někdo	jiný
@@ -4888,8 +5483,8 @@ udělat to	co sám
 udělej	to co
 udělejme	to
 udělejte	to
-udělá	to až zítra znova chybu
-udělám	to co všechno pro vše ti
+udělá	to až zítra znova všechno chybu
+udělám	to co všechno pro cokoliv vše
 udělám co	budu
 udělám to	až jestli zítra
 uděláme	to
@@ -4898,33 +5493,38 @@ ujisti	se
 ujisti se	že
 ujistil	že jsem
 ujistit	že
+ukazuje	že
 ukaž	mi nám
 ukaž mi	to kde
 ukažte	mi nám
+uklidil	svůj
+uklidil svůj	pokoj
 uklidit	svůj
 uklidit svůj	pokoj
 uklidni	se
 uklízí	pokoj
 ukradl	mi nějaké peněženku jsem auto
 ukradli	mi
-ukázal	jsem jak cestu mi
+ukázal	jsem mi jak cestu
 ukázal jak	se
-ukázalo	jako že se
+ukázalo	se jako že
 ukázalo se	že
 ukázat	jak
 ukážete	mi
 ukážeš	mi
+ukáži	ti
 ukážu	ti
 ulice	je
+ulici	je a
 umyj	si
-umí	dobře mluvit hrát číst velmi jen
+umí	dobře mluvit hrát číst velmi běhat
 umí hrát	na
 umí velmi	dobře
-umím	běhat číst
+umím	číst běhat
 umýt	ruce auto nádobí
 umějí	létat
 umění	je
-unavený	a na šel že
+unavený	a že na šel
 unavený na	to
 uniklo	mi
 upadl	na
@@ -4932,15 +5532,17 @@ upadl na	zem
 uprostřed	noci
 upřímně	řečeno
 určena	pro
-určitě	jsi jsem si to je by
+určitě	jsi si jsem je to by
 usmívej	se
 usnula	jsem
 utekl	z jsem s
 utekl z	domova
 utopil	v
+utéct	z
 uvažuje	o
-uvidíme	se
-uvidíme se	zítra v později
+uvažuji	o
+uvidíme	se co
+uvidíme se	v zítra později
 uvidíš	to
 uvnitř	je
 uvědomil	že
@@ -4949,7 +5551,7 @@ uvědomit	že
 uvědomujete	si
 uvědomuješ	si
 uvěřit	že
-uvěřit že	jsi to je
+uvěřit že	to jsi je
 uznal	že
 uznat	že svoji
 uznat že	se
@@ -4968,14 +5570,15 @@ už bys	měl
 už deset	let
 už dlouho	jsem
 už dva	dny
+už dvě	hodiny
 už dál	čekat
 už dávno	jsem
-už je	to zase čas tam vdaná tak
-už jsem	to se si vám ti řekl
+už je	to zase čas tak tam mi
+už jsem	to se si ti vám řekl
 už jsi	někdy to byl v
-už jsme	tam
+už jsme	tam si spolu
 už jsou	tady
-už jste	někdy
+už jste	někdy to
 už mi	to
 už mám	dost toho
 už mě	nebaví unavuje
@@ -4983,49 +5586,52 @@ už měl	být
 už nejsem	tak
 už není	tak
 už nic	nechci
-už nikdy	nebude
+už nikdy	nebudu nebude nic
 už nějakou	dobu
-už někdy	v
-už od	dětství
+už někdy	v banánový
+už od	dětství samého
 už pět	let
 už přes	tři
 už s	ním námi
-už se	to znáte tě zase mnou nikdy
+už se	to na znáte tě zase mi
 už si	na
+už sis	někdy
 už tady	není
 už ti	to
-už to	není nikdy bude víckrát
-už tři	hodiny
+už to	není nikdy bude neudělá víckrát dělat
+už tři	roky dny hodiny
 už vím	co
 už začínám	mít
 užitečný	nástroj
 užitečný nástroj	pro
 užitečnější	než
-v	této noci práci tomto té pořádku
+v	noci této práci tomto té pořádku
 v blízké	budoucnosti
 v centru	města
 v devět	hodin
 v dnešní	době
 v dobrých	rukou
 v dohledné	době
+v domově	důchodců
 v dopravní	zácpě
 v jedné	restauraci
 v každém	případě
 v kolik	hodin jsi se
-v kuchyni	je a
+v kuchyni	a je
 v lednici	je
 v levé	ruce
 v londýně	je
 v malé	vesnici
+v malém	městě
 v mnoha	zemích
-v mé	rodině zemi kanceláři městské
-v mém	pokoji životě domě
+v mé	zemi rodině kanceláři městské
+v mém	životě pokoji domě městě
 v mých	očích
-v našem	týmu domě městě hotelu
-v naší	zemi
+v našem	týmu městě domě hotelu
+v naší	zemi třídě
 v neděli	do
 v new	yorku
-v noci	se jsem
+v noci	se jsem bude
 v osm	hodin
 v plném	proudu
 v plánu	to
@@ -5040,20 +5646,21 @@ v pátek	večer
 v pět	hodin
 v případě	požáru
 v půl	třetí
-v roce	devatenáct v
+v roce	devatenáct v kdy
 v sedm	hodin
 v sobotu	do
 v souladu	s
 v současné	době
 v ten	den
-v tomto	městě domě oboru světě pokoji ohledu
+v tomto	městě domě oboru světě obchodě pokoji
 v trestním	rejstříku
 v tu	dobu chvíli
 v tuto	chvíli dobu
 v tvém	věku
 v té	době místnosti krabici škole restauraci
 v téhle	místnosti
-v této	místnosti zemi oblasti řece budově knize
+v této	místnosti zemi řece oblasti budově restauraci
+v těchto	dnech
 v úmyslu	jít se to
 v úvahu	že
 v čem	je
@@ -5063,15 +5670,15 @@ v životě	jsem jsou
 v žádném	případě
 vadit	když
 varoval	jsem
-varoval jsem	ji
-vaše	jméno dcera děti dobro auto matka
+varoval jsem	tě ji
+vaše	jméno dcera děti otázky dobro auto
 vašeho	domu
 vašemu	zdraví psovi
 vaši	pomoc rodiče
-vaší	zemi pomoc pomoci rodině
+vaší	zemi pomoci pomoc rodině
 vchází	do
 vdala	se
-vdaná	za
+vdaná	za a
 vděčný	za
 ve	svém škole vězení své městě skutečnosti
 ve druhé	světové
@@ -5085,33 +5692,37 @@ ve skutečnosti	je
 ve spojených	státech
 ve srovnání	s
 ve stejnou	dobu
-ve své	kanceláři vlastní ložnici
-ve svém	pokoji životě volném domě srdci autě
+ve své	kanceláři vlastní ložnici práci
+ve svém	pokoji životě domě volném autě srdci
 ve tvém	věku
 ve tři	hodiny
 ve třídě	je
 ve vaší	zemi rodině
 ve velkém	domě
+ve škole	se
 vede	k
-vedle	mě tebe mne sebe
+vedle	mě tebe školy mne sebe
 vedlejší	místnosti
 vedlo	k
-vejce	na je jsou se
-velice	dobře atraktivní se zajímavá laskavé
+vejce	na se je jsou
+velice	dobře se atraktivní zajímavá laskavé
 velkou	žízeň chybu radost
-velká	země zima budova chyba
+velká	zima země budova chyba
 velké	problémy množství oči štěstí plány překvapení
 velkém	domě
 velký	hlad jako dům problém strach strom
+velkými	písmeny
 velmi	dobře rychle málo dobrý starý rád
+velmi málo	lidí
 velmi se	bojí
-velryby	jsou nejsou
-velryby nejsou	ryby
 vem	si
-ven	na za s zakouřit kvůli
+ven	na za s zakouřit kvůli když
+venkov	a
+venkov a	začal
 venkovní	teplota
 venku	je zima
 venuše	je
+vepřové	maso
 veselé	vánoce velikonoce
 vesmír	je
 vesnice	je byla
@@ -5121,15 +5732,17 @@ vezmi si	to s co
 vezmu	si
 vezměte	si mě
 večer	jsem se s budu budeme do
-večeři	se
+večery	před
+večeři	se rybu
 vešel	do
 vešel do	pokoje místnosti
 veškerou	svoji
 vešla	do
-vidí	věci
+vidí	věci to
 vidím	že ale poprvé na
+vidím že	jsi
 vidíš	na
-viděl	jsem jsi naposledy jak ufo co
+viděl	jsem jsi naposledy v jak jste
 viděl co	se
 viděl jak	to
 viděl jsem	ho tě jak ji tam vás
@@ -5144,15 +5757,17 @@ vinit	z
 vinu	na
 visí	na
 vlajka	je
-vlastní	pokoj dům oči auto chyby firmu
+vlastní	pokoj oči dům auto chyby děti
 vlastně	jsem
+vlastně jsem	to
 vlasy	a jsou
 vlasy a	modré
 vliv	na
+vliv na	lidi
 vloupal	do
 vloupal do	domu
 voda	je se v není
-vodu	do a z
+vodu	a z do
 vody	a prosím
 vodě	a je
 vojáci	se
@@ -5172,13 +5787,14 @@ vrací	se do
 vracíme	se
 vrah	byl
 vrať	se mi
-vrať se	do za
+vrať se	do za k
 vraťme	se
 vraťte	se
 vrchol	hory
 vrcholu	hory
 vrátil	domů se jsem do z zpět
 vrátil jsem	se
+vrátil se	z do
 vrátila	do
 vrátili	se jsme
 vrátili jsme	se
@@ -5186,21 +5802,22 @@ vrátit	do domů se to ke peníze
 vrátit do	práce
 vrátit se	do
 vrátit to	co
-vrátí	se do domů brzy z
+vrátí	se do domů z brzy
 vrátím	se
 vrátím se	za zpět
 vrátíme	se
+vsadil	bych
 vsadím	se
 vsadím se	že
-vstoupil	do jsem
+vstoupil	do dovnitř jsem
 vstoupil do	místnosti
 vstoupil jsem	do
 vstoupit	do
 vstup	do
 vstát	ale
-vstávat	brzy dřív tak
+vstávat	brzy tak dřív
 vstávat tak	brzy
-vy	jste dva se nemáte máte byste
+vy	jste dva se máte nemáte byste
 vy dva	spolu
 vy jste	to z
 vyber	si
@@ -5215,10 +5832,13 @@ vydali	jsme
 vydali jsme	se
 vydat	se
 vydat se	na
+vydával	za
 vydělat	peníze
 vyhnout	setkání
 vyhnout setkání	s
-vyhodili	ho
+vyhodil	z
+vyhodili	z ho
+vyhodili z	práce
 vyhodí	z
 vyhodí z	práce
 vyhrožoval	že
@@ -5226,29 +5846,29 @@ vyhrál	v jsem
 vyjde	najevo
 vyjít	ven
 vylepšit	svoji
+vyloučen	ze
 vylézt	na
 vyměnil	jsem
+vynést	odpadky
 vypadají	stejně
-vypadal	jsi
+vypadal	překvapeně jsi
 vypadalo	to
 vypadalo to	že
 vypadni	z
-vypadá	to jako dobře mladší unaveně šťastně
+vypadá	to jako dobře šťastně mladší že
 vypadá mladší	než
 vypadá to	že jako na
 vypadám	jako
-vypadáš	jako velmi že tak
+vypadáš	jako velmi že tak dnes
 vypil	jsem
 vypni	televizi
 vypnout	televizi
 vypnul	jsi
 vypořádat	s
-vyprovodit	na
-vyprovodit na	letiště
+vyprávěj	mi
 vyprávěl	o
 vyprávěl o	své
 vyprávět	o
-vypukl	požár
 vyrazili	na
 vyrazit	hned
 vyrobeno	v
@@ -5256,21 +5876,26 @@ vyrostl	jsem v
 vyrostla	v
 vyrostli	jsme
 vyrovnat	s
+vyrábí	z v
+vyskočil	z
 vysokou	školu
 vysoké	škole školy
 vysoký	jako muž
 vystoupil	z na
-vystoupit	z na
+vystoupit	na z
 vystoupit na	příští
 vysvětlení	nebylo
 vysvětli	mi
 vysvětlil	co jsem
 vysvětlit	co jak proč
 vysvětlit co	se
+vysvětlit proč	to
 vyzkoušel	jsem
+vyzvednu	vás
 vyčisti	si
 vyčistil	zuby
 vyčistit	zuby
+vyřešil	problém
 vyřešit	tento
 vyřešit tento	problém
 vyšel	ven z po
@@ -5281,61 +5906,65 @@ vyšli	z
 vyšší	než
 vyšší než	já
 vyžaduje	hodně
-vzal	si jsem to sis s jsi
+vzal	jsem si to sis s život
 vzal jsem	si to
 vzala	si
-vzali	jsme se
+vzali	jsme jste se
 vzali jsme	se
 vzbudil	jsem
 vzbudil jsem	se
-vzbuď	se
-vzdal	se
+vzbuď	mě se
+vzdal	učení se
 vzduch	je
 vzdálenost	mezi
 vzdát	se
 vzdávám	se
 vzdělání	je
 vzdělání je	důležité
-vzhůru	celou nohama
+vzhůru	celou a nohama
 vzhůru celou	noc
 vzkaz	od
-vzpomenout	na jak
+vzpomenout	na jak kam
 vzpomenout jak	se
 vzpomínky	na
 vzpomínám	si
-vzpomínám si	že na jak
+vzpomínám si	že jak na
 vzpomínáte	si
-vzpomínáte si	kdy na
-vzpomínáš	si
+vzpomínáte si	na kdy
+vzpomínáš	si co
 vzpomínáš si	na
 vztahu	s
-vzít	s v dovolenou den moje si
+vzít	s v dovolenou volno si den
 vzít den	volna
 vzít moje	auto
 vzít s	sebou
 vzít v	úvahu
-válka	je skončila
-vám	to řekl že na za abyste
+válka	je skončila trvala se
+vám	to řekl na že abyste za
 vám nic	není
+vám tady	líbí
 vám řekl	že
 vám že	je
 vámi	souhlasím nic mluvit také
-vánoční	dárky stromek dárek
-vás	o to bude na udělá s
+vánoce	jsou se
+vánocích	doma
+vánoční	dárky dárek stromek
+vás	to o bude na udělá s
 vás o	to pomoc
-váš	otec syn život názor oblíbený telefon
+váš	otec názor syn život dopis dům
 vážný	problém
 vážným	problémem
 vážně	to nemocný zraněn je dobrý jsem
+vážím	si
 ví	že co jak kdo o někdo
-ví co	to se je
+ví co	se to je
 ví jak	se
 ví kdo	to
-ví že	to jsem je
-víc	než peněz času jak se lidí
+ví že	to jsem mu je
+víc	než peněz času jak lidí se
 víc než	ty si jen já
 víc peněz	než
-více	než času peněz lidí zeleniny místa
+více	než času peněz zeleniny lidí místa
 více než	pěti jen
 více peněz	než
 více času	na
@@ -5343,22 +5972,22 @@ víckrát	se
 vídáme	ve
 vídáme ve	filmech
 víkend	se
-vím	že co o kde proč kdo
+vím	že co o proč kde kdo
 vím co	chceš udělal chci to
 vím kdo	to
 vím o	všech
 vím přesně	co
-vím že	jsi to se je mě máš
-víme	že kdo co kde jak o
+vím že	jsi to se je máš mě
+víme	že kdo co jak o kde
 víme jak	to
 víme že	to se
 víno	je
 víra	je
-víte	co kolik jak kde proč o
+víte	co kolik jak kde proč že
 víte jak	se
 víte proč	jsem
 vítejte	na v
-víš	že co kdo jak proč kde
+víš	že co kdo jak kde proč
 víš jak	se
 víš kdo	to
 víš že	to jsem nemám
@@ -5366,90 +5995,102 @@ výhled	na
 výhody	i
 výkyvy	nálad
 výlet	do
+výpadek	proudu
 výpravu	do
+výsledku	zkoušky
 výsledky	voleb
 výtahem	do
-včera	jsem večer v se jsme byl
-včera jsem	potkal se byl si šel viděl
+význam	tohoto
+význam tohoto	slova
+včera	jsem večer v se bylo jsme
+včera jsem	se potkal byl viděl si šel
 včera se	mi
 včera v	noci
 včera ve	škole
 včera večer	jsem
-věc	kterou se která a
-věci	které se a jsou s na
+věc	kterou se která a v
+věci	které se a jsou na s
 věci se	mi těžko
 věcí	které na
-vědí	že co
+vědí	že co jak
 věděl	jsem že co proč jestli jsi
 věděl co	se má
 věděl jestli	je
 věděl jsem	že
 věděl jsi	že to
 věděl kde	je
+věděl proč	se
 věděl že	se jsem to je nemá mám
-věděla	že jsem jste
+věděla	jsem že jste
 věděla jsem	že
 věděla že	ji
 věděli	jste že jsme co
 věděli jsme	že
 věděli jste	že
 věděli že	se
-vědět	co proč kde kdo že jak
-vědět co	se jsi
-vědět jak	se
+vědět	co proč že kde kdo jak
+vědět co	se je jsi
+vědět jak	se ses
 vědět kde	je
 vědět kdo	to
-vědět proč	to
+vědět proč	to jsem
+vědět že	to
+větrný	mlýn
 většina	lidí z
 většina lidí	má v
+většina z	nás
 většinou	s
 většinu	svého
 většinu svého	života
 větší	než pozor slevu cenu
 větší cenu	než
-větší než	já
+větší než	já můj
 vězení	za
+věčnost	než
 věř	mi si
-věřil	bys že jsem
+věřil	jsem bys že
 věřit	že co tomu
 věřit tomu	co
 věřte	mi
 věří	že v na
 věří v	boha
-věřím	že v
+věřím	že v tomu
 věřím že	je se to zítra
 věříte	v
 věříš	v na tomu
 však	že
-vše	co se oč bylo je
-vše co	jsem je potřebuji se o
+vše	co se oč bylo záleží je
+vše co	jsem je potřebuji se o potřebujeme
+vše záleží	na
 všech	sil zvířat těch nejvíce
 všechen	svůj
 všechen svůj	majetek
-všechna	zvířata okna moje ta
+všechna	okna zvířata moje ta
 všechna zvířata	jsou
 všechno	co je se jsem bylo na
 všechno bude	v
-všechno co	jsem víš vím se bylo potřebuji
+všechno co	jsem víš se vím o bylo
+všechno je	to
 všechno má	svůj
 všechno nejlepší	k
 všechno o	co
 všechno pod	kontrolou
 všechno v	pořádku
 všechno záleží	na
-všechny	své ty děti tyto peníze tyhle
+všechny	ty své tyto děti peníze tyhle
 všechny peníze	které
 všechny své	přátele peníze
 všechny ty	peníze stromy
-všechny tyto	knihy věci
+všechny tyto	věci knihy
 všechny vaše	otázky
-všem	se co je řekl
+všem	se co jsem je řekl
 všem se	ulevilo
 všemu	co
-všichni	se jsme jsou byli v na
+všichni	se jsme jsou byli v to
 všichni jsme	byli se tu
 všichni lidé	jsou
 všichni na	jedné
+všichni odešli	domů
 všichni si	přáli
 všichni to	pochopili
 všichni v	pořádku
@@ -5463,11 +6104,11 @@ vůbec	se jsem nic si není někdy
 vůbec jsem	nevěděl
 vůbec se	mi
 vůči	mně
-vždy	jsem se pravdu si je jsou
+vždy	jsem se si jsou pravdu je
 vždy jsem	se
 vždy říkat	pravdu
 vždycky	jsem se si je má tak
-vždycky jsem	si
+vždycky jsem	chtěl si
 vždycky má	v
 webovou	stránku
 webové	stránky
@@ -5477,12 +6118,13 @@ z celého	srdce světa
 z francie	a
 z jiné	planety
 z kanceláře	jako
+z komára	velblouda
 z matčiny	strany
-z mého	domu
-z mých	přátel oblíbených rodičů kolegů
+z mého	domu pokoje
+z mých	přátel oblíbených rodičů nejlepších kolegů
 z nich	je
 z ničeho	nic
-z nás	všech je se to dvou
+z nás	všech je to se dvou
 z nějakého	důvodu
 z otcovy	strany
 z práce	domů dříve
@@ -5490,35 +6132,40 @@ z ruky	do
 z toho	co že je
 z té	práce
 z těch	dvou
+z těchto	věcí
 z vysoké	školy
 z vás	nechce dvou chce sem
-za	to den co sebou měsíc své
+za	to den sebou co měsíc své
+za bohatého	muže
 za deset	minut
 za dva	týdny
+za jak	dlouho
 za jakým	účelem
 za každou	cenu
 za kolik	jste
 za něco	co
 za peníze	si
+za pár	dní
 za půl	hodiny
 za svoje	činy
 za své	chování
-za svůj	život
+za svůj	život úspěch
 za tento	měsíc
 za to	co že může bude vidět zaplatíte
 za těchto	okolností
-za tři	měsíce dny
+za tři	dny měsíce minuty
+za vše	co
 za žádných	okolností
 zabil	jsi se čas
 zabit	v
 zabít	čas
-zachránil	život
+zachránil	život před
 zacházet	do
 zachází	se
 zajímalo	by mě
 zajímalo by	mě mne
 zajímavý	příběh
-zajímá	o mě se tě co
+zajímá	o se tě mě co
 zajímá se	o
 zajímám	se
 zajímám se	o
@@ -5529,54 +6176,67 @@ zamiloval	do se
 zamiloval se	do
 zamilovala	se
 zamilovala se	do
+zamilovaná	do
 zamilovaný	do
+zamkl	jsem
 zamknout	dveře
 zanechat	vzkaz
 zaneprázdněný	a
+zapamatuj	si
 zaparkoval	své jsem
 zaparkoval své	auto
 zapiš	si
 zaplatil	jsem za
 zaplatit	za předem
-zaplatím	za ti vám
+zaplatím	vám za ti
 zaplavat	v
 zapni	si
 zapomenout	na
 zapomeň	na
 zapomeňte	na
-zapomněl	jsem jsi na co že peněženku
-zapomněl jsem	si na že jak co jeho
-zapomněla	jsem jsi
+zapomněl	jsem jsi na co peněženku že
+zapomněl jsem	si na že co jak jeho
+zapomněla	jsem na jsi
 zapomněla jsem	si
-zapomněli	jste
+zapomněli	jste jsme
 zapoměl	jsem
 zapotřebí	peněz
+zapsal	jsem
+zapsal jsem	si
 zas	tak
 zasadit	strom
 zase	uvidím jsem začít vidím v vidí
 zase začít	pracovat
 zaslouží	si
+zaslouží si	to
+zastávka	je
+zasáhl	blesk
 zatím	to
-zatímco	jsem on jiní
+zatímco	jsem jiní on já
 zatčen	za
+zatčeni	a
+zatčeni a	souzeni
 zavolal	jsem jsi
-zavolat	ale doktora policii
+zavolat	ale doktora policii později
 zavolej	mi mu
 zavolej mi	až
 zavolejte	mi
-zavolám	ti vám
+zavolám	ti vám policii
 zavřel	dveře jsem oči
 zavři	dveře oči ty okno
-zavřít	dveře
+zavřít	dveře okna
 zaútočil	na
-začal	jsem mluvit číst se dělat křičet
-začal jsem	se s
+zaútočila	na
+začal	jsem mluvit se číst křičet dělat
+začal jsem	se s číst
 začala	v válka jsem
 začali	jsme se
 začínal	jsem
 začíná	v být když ztrácet příští
-začínám	mít být
-začít	co znovu pracovat od
+začíná být	nesnesitelné
+začínám	mít se být
+začít	co znovu beze pracovat od hned
+začít beze	mě
 začít co	nejdříve
 zbavit	se
 zbraně	jsou
@@ -5586,19 +6246,21 @@ zbytek	života
 zbytku	posádky
 zbývá	hodně
 zcela	na
-zde	je prosím se není jsou
+zdají	být
+zde	je jsou se prosím není bude
 zdi	a
-zdravotní	sestra stav sestrou sestry
+zdravotní	sestra sestrou stav sestry
 zdraví	je a se
 zdravý	rozum jako
+zdravější	než
 zdá	se být o
 zdá se	že mi být to
 zdál	být
 zdálo	se o
-zdálo se	mi že
+zdálo se	že mi
 zdáš	se
 zdáš se	být
-ze	všech školy svých svého mě své
+ze	všech školy svých svého své mě
 ze dvou	jídel
 ze spojených	států
 ze strachu	že
@@ -5610,18 +6272,19 @@ zejména	v
 zelená	ti
 zelené	oči
 zelený	čaj
-zemi	je jsou se kde teď není
+zemi	je se jsou kde teď není
 zemi teď	žije
 zemí	v
 země	je se byla má
 zemřel	na před ve v když otec
 zemřel na	rakovinu
-zemřel před	rokem
+zemřel před	dvěma rokem
 zemřela	na
 zemřela na	rakovinu
-zeptal	jsem se jestli kde proč jak
+zeptal	jsem se jestli kde marie proč
 zeptal jestli	s
 zeptal jsem	se
+zeptal marie	jestli
 zeptal proč	jsem
 zeptal se	mě
 zeptala	se co jestli
@@ -5632,7 +6295,7 @@ zeptej	se
 zeptej se	ho
 zeptejte	se
 zhasni	než
-zima	je že a
+zima	že je a
 zjistil	že jsem co
 zjistil jsem	že
 zjistila	že
@@ -5644,7 +6307,8 @@ zklamal	jsi
 zkoušel	jsem
 zkouška	byla
 zkouška byla	velmi
-zkus	si to se
+zkoušku	udělá
+zkus	to si se
 zkusil	jsem
 zkusme	něco
 zkuste	se to
@@ -5653,6 +6317,7 @@ zlato	je
 zlato je	těžší
 zlo	na
 zlobí	se
+zlobí se	na
 zlobíte	se
 zlobíte se	na
 zlobíš	se
@@ -5668,46 +6333,50 @@ zlý	člověk
 zmeškal	jsem
 zmizel	z
 zmrzliny	prosím
-změna	klimatu
+změna	je klimatu
 změnil	jsem si
-změnit	svoje zaměstnání
+změnit	zaměstnání svoje
 změní	názor svět k
 změní k	lepšímu
-znal	jeho jsem
+změně	zaměstnání
+znal	jsem jeho
 znal jeho	adresu
 znalost	cizích
 znalosti	v
 znamená	že být
-znovu	vidět uvidím budeš
-zná	odpověď ji
-znám	ho ji jeho je
+znovu	vidět uvidím budeš budete
+zná	každý odpověď ji
+znám	ho je ji jeho mluví se
 známe	se
 známý	jako
 znát	pravdu
-znáš	ho někoho
+znáte	se někoho
+znáš	ho jeho někoho toho
 znáš někoho	kdo
 zní	jako to
 zodpovědnost	za
 zodpovědný	za
+zpočátku	jsem
 zpráva	o
 zprávy	od
 zpáteční	lístek
-zpátky	do na
+zpátky	do na domů
 zpátky do	hotelu
 zpíval	jsem
 zpívat	a
 zpět	do v
 zpětnou	vazbu
-způsob	jak myšlení jakým
+způsob	jak myšlení života jakým
 způsob jak	se to si
+způsobů	jak
 zranil	při
 zraněn	ve
 zraněn ve	válce
-zrovna	jsem teď se
+zrovna	jsem teď na se
 zrušen	kvůli
 ztracený	čas
-ztratil	jsem svůj svého v všechny se
-ztratil jsem	peněženku své svůj všechny
+ztratil	jsem svůj klíče svého v všechny
+ztratil jsem	peněženku své svůj se všechny
 ztratila	jsem
 ztratili	jsme
 ztrácet	čas
@@ -5722,6 +6391,8 @@ zvedněte	ruku
 zvládl	jsem
 zvládneme	to
 zvládnete	to
+zvládnete to	sami
+zvládneš	to
 zvládnu	to
 zvláštní	sen člověk
 zvolen	prezidentem
@@ -5730,15 +6401,20 @@ zvyk	pochází
 zvyk pochází	z
 zvykla	jsem
 zvykla jsem	si
+zvyknout	na
 zvířata	jsou se
+zvýšení	platu
 zvětšil	jsem
+záhadnou	vraždu
 zájem	o to
 zájem to	udělat
 zákaz	vycházení
 základní	školy
 základě	svých
+záleželo	na
 záleží	na je jen
 záleží jen	na
+záložní	plán
 západ	slunce
 západu	slunce
 závislá	na
@@ -5750,17 +6426,18 @@ záznam	v
 záznam v	trestním
 zázrak	že
 zíral	na
-zítra	bude je večer ráno budu se
+zítra	bude je ráno večer budu se
 zítra je	den
+zítra ráno	v
 zítra touhle	dobou
 zřejmé	že
 zřejmě	to
-zůstal	doma jsem celý přes tam
+zůstal	doma jsem celý tam přes
 zůstal přes	noc
-zůstali	v jsme doma
+zůstali	jsme v doma
 zůstane	tady
 zůstanu	doma tady
-zůstat	v doma s na věčně ale
+zůstat	v doma s na věčně do
 zůstat s	námi
 zůstat v	posteli
 zůstaň	tady s
@@ -5771,11 +6448,11 @@ zůstává	záhadou
 úkor	svého
 úmyslu	jít se to
 úpatí	hory
-úplně	jsem vyčerpaný prázdný sama zbláznil jiný
+úplně	jsem vyčerpaný sama jiný prázdný jedno
 úplně jsem	na
 úvahu	že
 úvahu že	už
-účet	na
+účet	na prosím jsi
 čaj	je nebo s
 čaj je	velmi
 čaj nebo	kávu
@@ -5788,72 +6465,76 @@ zůstává	záhadou
 čas na	rozmyšlenou oběd to
 čas od	času
 čas v	pondělí
-čase	aby
-často	se jsem chodí si na do
+čase	aby abys
+často	se jsem chodí jezdí v si
 častěji	než když
 častěji když	už
 času	na trávíš než
 času na	to
+časy	se
 čeho	se bát je jste
 čeho se	bojíš
-čekají	na
+čekají	na nás
 čekal	jsem na že až ve jsi
 čekal jsem	že na až
 čekal ve	frontě
 čekala	na jsem
-čekali	jsme na
+čekali	jsme jste na
 čekali jsme	na
-čekat	na tak tady až
+čekat	na tak tady do až
 čekat tak	dlouho
 čeká	na dítě ve
 čekám	na už až
 čekám na	tebe to
 čekáme	na
 čekáš	na
-čem	je to jsme mluvím záleží bavit
-čem je	problém
+čem	je to mluvím jsme záleží se
+čem je	problém moje
 čem to	mluvíš
-čemu	se je to potřebujete
+čem záleží	je
+čemu	je se to potřebujete
 černá	a
-černé	auto vlasy
+černé	vlasy auto
 čerstvý	vzduch
 červené	víno maso
 červeného	vína
 června	a
 české	republice republiky
 čestný	muž
-četl	jsem jsi si tuto
-četl jsem	ten si
+četl	jsem jsi si tu tuto
+četl jsem	si ten
+četli	jste
 či	později ne
 čisté	svědomí
 čistí	zuby
-člověk	je který by musí na kterého
+člověk	je který by kterého musí má
 člověk kterého	znám
 člověk na	světě
 člověka	je který kterého
 člověkem	který
 člověku	který
-čtu	knihy si noviny
+čtu	si knihy noviny
 čtvrt	na
 čtvrtě	na
-čtyři	roky hodiny pět roční plus bratry
+čtyři	roky hodiny pět roční sestry plus
 čtyři pět	šest
 čtyři roční	období
 čtyřicet	pět let
 čtyřicet pět	let
 čtyřma	očima
 část	města
+části	města
 čí	je jsou to
-čí je	to tato
+čí je	to tato ten
 čí jsou	to
 čí to	byl
 čím	dál více se víc je jsem
 čím chceš	být
-čím dál	víc tím více méně
+čím dál	víc více tím méně větší
 čím jsem	si
 čím se	to
 čína	je
-číst	a knížku knížky ani
+číst	a knížku knížky ani knihy
 číst a	psát
 číst ani	psát
 ďábel	je
@@ -5862,43 +6543,46 @@ zůstává	záhadou
 řadě	s je
 řece	je
 řeka	je se
-řekl	že jsem mi jsi co abych
+řekl	že jsem mi jsi pravdu co
 řekl aby	se
 řekl bych	že
 řekl je	pravda
-řekl jsem	ti mu jim jí to vám
+řekl jsem	ti mu jim jí že to
 řekl jsi	že mi
 řekl jí	že
 řekl mi	že
 řekl se	ukázalo
 řekl to	samé
-řekl že	se to je si mě má
+řekl všechno	co
+řekl že	to je se si nemá mě
 řekla	že mi jsem jsi mu je
 řekla mi	že abych
 řekla mu	že
-řekla že	je se si chce nemá ji
+řekla že	je se si chce ji to
 řekli	že mi jste
 řekli mi	že abych
-řekli že	to jsou se si nejsou
-řekni	mi jí mu to jim nám
+řekli že	se to jsou si nejsou
+řekni	mi jí mu to nám jim
+řekni co	chceš
 řekni jí	že
 řekni mi	co proč prosím o kdy pravdu
 řekni mu	že
 řeknu	ti to mu
 řekněte	mi jí nám
-řekněte mi	prosím
+řekněte mi	prosím co
 řečeno	že
 řidič	autobusu
 říci	že pravdu co jak kde ještě
 říci jak	se
 říci ještě	něco
 říci kde	je
-říct	že pravdu co proč o ne
+říct	že pravdu co proč ne o
 říct co	se
 říct jak	se
+říct všechno	co
 říct že	jsem se
 řídil	auto
-řídit	auto se jeho
+řídit	auto jeho se
 říkají	že
 říkají že	je to jsem
 říkal	že jsem jsi
@@ -5907,40 +6591,47 @@ zůstává	záhadou
 říkal že	se
 říkala	že
 říkali	že
-říkat	pravdu že co neměl
+říkat	pravdu co že neměl
+říkej	si
+říkej si	co
 říká	že se pravdu je
 říká se	že o
-říká že	je se to nemá má není
+říká že	je se to má nemá není
 říkám	že
 říkáš	že je mi
+řím	je
 šance	že
 šance že	se
-šanci	se
-šel	jsem do na domů s spát
-šel do	školy kuchyně obchodu nemocnice práce
-šel jsem	do na tam ven si se
-šel na	poštu
+šanci	se nedostane vyhrát
+šel	jsem do na s domů spát
+šel do	školy kuchyně obchodu práce nemocnice kina
+šel jsem	do na tam ven s si
+šel na	poštu ryby
+šel pěšky	než
+šel se	projít
 šel včera	spát
-šest	hodin let měsíců
+šest	hodin let měsíců krát
 šetří	na
+šicí	stroj
 široký	výběr
 škoda	že
 škoda že	jsi
 škodí	zdraví
 škola	je začíná
-škole	se
+škole	se jsem
 školní	rok
-školy	i jsou na pozdě s jako
+školy	pěšky i jsou na pozdě s
 školy i	když
 školy na	kole
 šla	jsem do na s spát domů
 šla do	školy
 šla jsem	na
 šla s	ním
-šli	jsme na do domů
-šli jsme	na se do po
+šli	jsme na do domů k
+šli jsme	si na se do po
 šli na	tu
 španělsko	je
+španělská	vesnice
 špatnou	náladu pověst
 špatné	zprávy počasí
 špatného	autobusu
@@ -5950,26 +6641,29 @@ zůstává	záhadou
 špatně	pochopil jsem
 špinavou	práci
 špinavé	ruce nádobí
-štěstí	že je se jako
+štědrý	večer
+štěstí	že je jako se
 švagr	je
-šálek	čaje je
+šálek	čaje je horké
 šátek	je
-šéf	mě
+šéf	je mě
 šílený	nápad
 šťastná	že
 šťastné	dny
-šťastný	že je nový
+šťastný	že je nový když
 šťastný nový	rok
 šťastný že	jsem
 šťastnější	než
 že	se to je jsem jsi si
 že brzy	bude
+že budeme	mít
 že budeš	mít
-že by	to se mohl byl měl ses
+že by	se to měl mohl byl ses
 že bych	to měl se s si
 že bychom	měli neměli
 že bys	měl to mohl mohla mi ho
 že bůh	existuje
+že chodí	s
 že dnes	odpoledne bude
 že doufá	že
 že dveře	jsou
@@ -5977,66 +6671,73 @@ zůstává	záhadou
 že je	to čas na nemocný velmi unavený
 že ji	miluje miluješ miluji
 že john	je
-že jsem	to se tě byl si ji
-že jsi	to na byl tady tam mě
+že jsem	to se tě byl si vás
+že jsi	to tady na byl tam mě
 že jsme	se to tady na
 že jste	tady si
 že jí	to
-že mi	to nikdo
-že mu	to nikdo
+že mi	pomůže to nikdo
+že mu	to pomůžu nikdo
 že musím	jít
 že má	poměr
 že mám	pravdu hlad hodně
-že máš	pravdu holku hlad
-že mě	miluje to nenávidí má
+že máš	pravdu hlad holku kluka
+že mě	to miluje nenávidí nevidí má
 že můj	život
-že na	to nás mě
-že nemám	na
+že na	to nás mě tebe
+že nemá	hlad pravdu
+že nemám	na rád
+že nemáš	rád
 že nevím	co
 že nikdy	nebyl
+že nikomu	neřeknu
 že něco	není
 že opustil	dům
-že s	tím námi tebou nikým ním
+že s	tím námi ním tebou nikým
 že se	to ti mu na stane mýlí
 že ses	vrátil
-že si	myslí to ji na myslel mě
+že si	myslí to na ji ho myslel
 že svět	se
-že tam	budu nebudu byl
-že ten	stroj
+že tam	budu byl nebudu
+že ten	problém stroj
 že ti	na
-že to	je není bude udělá udělal nebude
+že to	je není bude udělá udělal co
 že tohle	je
-že tu	není práci bude jsi
+že tu	zkoušku není práci bude jsi
 že tě	miluji vidím miluje to
 že udělal	chybu
 že už	to je jsem se jsi jsme
 že ví	že
+že vím	co
 že z	toho
 že za	to
 že země	je
+že zemřel	před
 že zítra	bude
 že život	je
 železo	je
-žena	je se kterou byla mi v
+žena	je se kterou byla v zemřela
 žena se	mě
 ženatý	a nebo
 ženou	na
-ženu	a
+ženu	a jako
 ženy	jsou mají se
 ženy jsou	krásné
 ženy mají	rády
 žes	to
 židle	je se
 žije	v na ve sám s pod
-žije v	zahraničí tomto
+žije v	tomto zahraničí
 žijeme	v
 žiješ	v
-žiju	v na
+žiju	v na ve
 žijí	v ve na
 žijí v	africe
-žil	v jsem
+žil	v jsem na
+žila	v
 žili	v
-život	je se není ve na začíná
+život	je není se bez ve na
+život by	byl
 život je	v plný krátký jako
 život na	zemi
 život ve	městě
@@ -6046,20 +6747,21 @@ zůstává	záhadou
 životní	prostředí náklady cíl
 životě	jsem jsou
 živý	plot
+žlutý	květ
 žádal	jsem
 žádat	o aby
 žádat o	pomoc
-žádnou	šanci pomoc
+žádnou	šanci chuť pomoc pozornost odpovědnost
 žádná	z naděje práce
 žádná z	těchto
-žádné	peníze problémy přátele další děti známky
+žádné	peníze přátele problémy další děti právo
 žádného	přítele
 žádném	případě
-žádný	důvod smysl problém z dárek důkaz
+žádný	důvod smysl problém z rozdíl důkaz
 žádný důvod	proč
 žádných	okolností
 žádost	o
 žádám	o
-žít	v bez na s sám sama
+žít	v bez na s sám podle
 žít v	míru
 žízeň	a

@@ -444,44 +444,6 @@ class StripAccuracyTest {
     }
 
     /**
-     * Context savings for languages the shipped fixtures cannot measure.
-     *
-     * The survey above runs blind everywhere, and the reason is contamination:
-     * for every language but English and Turkish the prose fixture and the
-     * n-grams come from the same Tatoeba corpus, so scoring the model on those
-     * sentences would be scoring it on what it counted. That is a mirror, not a
-     * measurement, and twenty-two of those would say less than the two honest
-     * ones.
-     *
-     * A split fixes it. `tools/eval_ngrams.py --fixtures` builds a model from
-     * nine tenths of a corpus and writes the tenth it never saw beside it, so
-     * a keystroke figure taken here means for Croatian what the shipped one
-     * means for English. Two models per language, at MIN_PAIR 3 and 2, because
-     * the question this was added to answer is whether the coverage that
-     * constant bought translates into keystrokes -- 1.45 MB was spent partly on
-     * languages whose end-to-end benefit had only ever been inferred.
-     *
-     * Measured 2026-08-28, four corpora of differing size, 140 held-out
-     * sentences each, keystrokes saved with context:
-     *
-     * ```
-     *      MIN_PAIR 3   MIN_PAIR 2   delta
-     * cs      28.3%        29.1%     +0.8
-     * da      40.9%        41.4%     +0.5
-     * hr      28.4%        29.3%     +0.9
-     * sk      29.7%        30.0%     +0.3
-     * ```
-     *
-     * Every one improves, and the smallest corpus improves most, which is what
-     * the coverage numbers implied but could not show: a denser model helps the
-     * languages that had the least. It is 0.6 points on average, not the 34%
-     * English gets -- worth the 1.45 MB, and worth knowing it is that size and
-     * not larger before someone spends the next megabyte on the same argument.
-     *
-     * Printed rather than asserted. These are small corpora and 140 sentences;
-     * the number is evidence for a decision, not a threshold to defend.
-     */
-    /**
      * The learned store must not cost keystrokes.
      *
      * Every other arm in this file runs `personalized = false`, so the thing
@@ -609,40 +571,185 @@ class StripAccuracyTest {
     }
 
 
+    /**
+     * Context savings for languages the shipped fixtures cannot measure, and
+     * the price of measuring them the easy way.
+     *
+     * The survey above runs blind everywhere, and the reason is contamination:
+     * for most languages the prose fixture and the n-grams come from the same
+     * Tatoeba corpus, so scoring the model on those sentences would be scoring
+     * it on what it counted. That is a mirror, not a measurement.
+     *
+     * A split fixes it. `tools/eval_ngrams.py --fixtures` builds a model from
+     * the corpus minus the sentences it is about to score, and writes those
+     * sentences beside it.
+     *
+     * ## What contamination is actually worth
+     *
+     * The mirror was named here from the beginning and never sized, so the
+     * `shipped` and `premium` columns size it. Same sentences, same engine,
+     * same measure; the only difference is whether the model was built from a
+     * corpus containing them.
+     *
+     * ```
+     *        corpus   blind   held-out   shipped   premium   control(n)
+     * hr      0.1 MB  34.3%     37.7%     53.2%     +15.5    -0.2 ( 32)
+     * sk      0.3 MB  33.8%     38.9%     49.1%     +10.2    +0.5 (133)
+     * da      0.8 MB  40.0%     48.4%     54.2%      +5.8    +1.1 (140)
+     * cs      1.0 MB  32.8%     36.7%     48.2%     +11.5    +0.1 (140)
+     * pl      1.7 MB  34.9%     41.3%     49.9%      +8.6    +0.1 (140)
+     * fi      1.9 MB  35.2%     40.6%     50.0%      +9.4    +0.0 (140)
+     * tr      8.2 MB  36.3%     40.5%     42.3%      +1.8    +0.2 (140)
+     * en     23.7 MB  41.9%     48.7%     49.6%      +0.9    +0.8 (140)
+     * ```
+     *
+     * **A Croatian figure taken the easy way is fifteen points of flattery; an
+     * English one is under a point.** It runs inversely with corpus size, which
+     * is what `build_ngrams.py` says about the gain from context generally and
+     * for the same reason: MIN_PAIR is a count threshold, and in a small corpus
+     * most surviving pairs sit exactly at it, so whether the scored sentence
+     * was counted decides whether its pairs exist at all.
+     *
+     * That is the number behind the survey running blind in all twenty-two
+     * languages rather than quoting the better-looking column. It was the right
+     * call for a reason that had never been priced: quoting context there would
+     * have credited Croatian with 53.2% against an honest 37.7%.
+     *
+     * ## The control, which is why those numbers are believable
+     *
+     * `premium` compares two models on text only one of them was built from,
+     * so it moves if the models differ in *strength* as well as in memory.
+     * `control` scores text they have **both** seen: it is what is left when
+     * memory is taken out, and it must be near zero or the premium above is
+     * measuring the wrong thing.
+     *
+     * It is near zero now. It was not when this was first run, and the two
+     * bugs it caught are why the assertion below exists:
+     *
+     * - `eval_ngrams.py` held out every tenth sentence while scoring 140 of
+     *   them. Throwing away a tenth of a *small* corpus is not a rounding
+     *   error: it cost English 4% of its model rows and Croatian **87%**. The
+     *   held-out model was not a weaker sample of the shipped one, it was a
+     *   different and much smaller model.
+     * - This arm compared against `pred2` for every language, and six of the
+     *   eight ship at MIN_PAIR 1: `MIN_PAIR_BY_LANG` moved eleven languages
+     *   there on 2026-08-30, two days after this arm's table was measured, and
+     *   nothing re-read the table. Croatian's shipped 9,342-row model was
+     *   being compared against a 1,174-row one.
+     *
+     * Together those read `control` at up to **+19.5** and made the premium
+     * meaningless -- it looked like memory and was mostly the held-out model
+     * being crippled. With both fixed every fixture lands at 89-100% of the
+     * rows its language actually ships and the control collapses to within a
+     * point. The threshold is now read from the tool that builds the assets
+     * rather than written down here, so the second bug cannot recur.
+     *
+     * What the assertion is proven to catch is that second bug: forcing
+     * [HeldOut] back to a flat MIN_PAIR 2 fires it on cs +8.4, da +4.5, fi
+     * +7.4, pl +6.9 and sk +7.2, and correctly stays quiet for English and
+     * Turkish, which do ship at 2. The first bug is not independently pinned,
+     * because reverting it means regenerating the fixtures rather than changing
+     * a line; what is recorded is that the pre-fix fixtures read this control
+     * at +19.5 where it now reads -0.2.
+     *
+     * ## The MIN_PAIR sweep this arm was added for
+     *
+     * Two models per language were originally written at MIN_PAIR 3 and 2, to
+     * ask whether the coverage that constant bought turns into keystrokes --
+     * 1.45 MB was spent partly on languages whose end-to-end benefit had only
+     * ever been inferred. Three are written now and the arm marks the one that
+     * ships with `<-`. The figures are printed rather than copied here, because
+     * the last copy went stale in two days and nobody noticed.
+     *
+     * They do finally price the step those six languages actually took.
+     * MIN_PAIR 2 to 1 is worth +0.6 points in Czech, Danish and Croatian, +0.9
+     * in Finnish, +1.0 in Polish and +1.5 in Slovak -- as much again as the 3
+     * to 2 step before it, and `83c1821` made that move on coverage alone. It
+     * is worth **0.0 in English and +0.1 in Turkish**, both of which are
+     * already at `build_ngrams.MAX_ROWS` and so cannot spend the extra rows.
+     * Leaving those two at 2 was right for the reason the builder gives, and
+     * this is the end-to-end number it did not have.
+     *
+     * Printed rather than asserted, except the control. These are small corpora
+     * and 140 sentences; the figures are evidence for a decision, not
+     * thresholds to defend. The control is different in kind -- it does not
+     * measure the keyboard, it measures whether this arm is entitled to its own
+     * output.
+     */
     @Test
-    fun `held-out context savings, for languages the fixtures cannot`() {
+    fun `held-out context savings, and what contamination is worth`() {
         val dir = File(fixtures(), "heldout")
         if (!dir.isDirectory) return
         val langs = dir.list().orEmpty()
             .filter { it.startsWith("prose_") && it.endsWith(".txt") }
             .map { it.removePrefix("prose_").removeSuffix(".txt") }
             .sorted()
+        val shipped = HeldOut.minPair()
         val out = StringBuilder()
+        val loud = mutableListOf<String>()
         for (lang in langs) {
             val locale = Locale.forLanguageTag(lang)
             val corpus = File(dir, "prose_$lang.txt").readLines().filter { it.isNotBlank() }
-            // Three models per language now, because the constant they sweep
-            // is per-language and these four all sit on the low side of it.
-            // Coverage is an input to keystrokes saved and not a synonym for
-            // it, which is the whole reason this arm exists, so a change that
-            // only ever quoted coverage would be quoting the wrong number.
-            val scores = listOf(3, 2, 1).map { mp ->
-                mp to measure(
-                    lang, locale, corpus, withContext = true,
-                    predictions = File(dir, "pred${mp}_$lang.txt").readText()
-                )
+            val mp = shipped.second[lang] ?: shipped.first
+            fun model(m: Int) = File(dir, "pred${m}_$lang.txt").readText()
+            val sweep = listOf(3, 2, 1).map { m ->
+                m to measure(lang, locale, corpus, withContext = true, predictions = model(m))
             }
-            out.append("    %-3s held-out context:".format(lang))
-            for ((mp, sc) in scores) {
-                out.append(
-                    "  MIN_PAIR %d saved %.1f%% (predicted %.0f%%)"
-                        .format(mp, sc.ksr * 100, sc.predicted * 100.0 / sc.words)
+            val blind = measure(lang, locale, corpus, withContext = false)
+            val honest = sweep.firstOrNull { it.first == mp }?.second
+                ?: error(
+                    "$lang ships at MIN_PAIR $mp and no fixture was built at" +
+                        " it. Add that threshold to the tuple in" +
+                        " tools/eval_ngrams.py and regenerate."
                 )
+            val dirty = measure(lang, locale, corpus, withContext = true)
+
+            // Text both models were built from. What survives here is the two
+            // models differing in strength rather than in memory, and it has
+            // to be small or `premium` is not measuring contamination.
+            val seenFile = File(fixtures(), "prose_$lang.txt")
+            val seen = if (seenFile.isFile) {
+                seenFile.readLines().filter { it.isNotBlank() }.take(CONTROL_SENTENCES)
+            } else emptyList()
+            var ctl = Double.NaN
+            if (seen.size >= 20) {
+                val a = measure(lang, locale, seen, withContext = true, predictions = model(mp))
+                val b = measure(lang, locale, seen, withContext = true)
+                ctl = (b.ksr - a.ksr) * 100
             }
-            out.append("%n".format())
+
+            out.append("    %-3s MIN_PAIR".format(lang))
+            for ((m, sc) in sweep) {
+                out.append(" %d %s%.1f%%".format(m, if (m == mp) "<-" else "  ", sc.ksr * 100))
+            }
+            out.append("   blind %.1f%%  held-out %.1f%%  shipped %.1f%%  premium %+.1f".format(
+                blind.ksr * 100, honest.ksr * 100, dirty.ksr * 100,
+                (dirty.ksr - honest.ksr) * 100))
+            out.append(
+                if (ctl.isNaN()) "  control n/a%n".format()
+                else "  control %+.1f (%d)%n".format(ctl, seen.size)
+            )
+            // Croatian's shipped fixture is 32 sentences, which is too few to
+            // read a point off. It is printed and not asserted on.
+            if (!ctl.isNaN() && seen.size >= CONTROL_MIN_SENTENCES &&
+                Math.abs(ctl) > CONTROL_TOLERANCE
+            ) {
+                loud += "%s %+.1f over %d sentences".format(lang, ctl, seen.size)
+            }
         }
         println(out)
         assertTrue("no held-out fixtures found", langs.isNotEmpty())
+        assertTrue(
+            "the held-out model no longer resembles the one that ships, so the" +
+                " contamination figures above are measuring model strength" +
+                " rather than memory. Rebuild with tools/eval_ngrams.py" +
+                " --fixtures, and check that it holds out only the sentences it" +
+                " scores and builds at each language's own MIN_PAIR:" +
+                System.lineSeparator() +
+                loud.joinToString(System.lineSeparator()) +
+                System.lineSeparator() + out,
+            loud.isEmpty()
+        )
     }
 
     private companion object {
@@ -683,6 +790,15 @@ class StripAccuracyTest {
          * the floor would let a regression in the completion path hide behind
          * the model having seen prose like this before.
          *
+         * That was an argument from the mechanism until 2026-09-05, when the
+         * held-out arm measured it: on the same sentences, the shipped model
+         * beats one built without them by **0.9 points in English and 1.8 in
+         * Turkish**. So the two context figures above are inflated by roughly
+         * that much and no more, which is small — these are the two largest
+         * corpora in the project. It is not small everywhere. The same
+         * measurement reads **+15.5 for Croatian**, which is why the
+         * twenty-two-language survey below quotes the blind column.
+         *
          * ## Re-measured 2026-09-04, and the floor tightened to match
          *
          *     en blind 40.3%    en context 48.8%
@@ -703,6 +819,24 @@ class StripAccuracyTest {
          * are worth thinking about.
          */
         const val KSR_FLOOR = 0.32
+
+        /**
+         * Sentences for the held-out arm's control, and what it may read.
+         *
+         * The control scores text both the shipped and the held-out model were
+         * built from, so it must come out near zero: it is the premium column
+         * with memory subtracted. Measured over the eight split languages it
+         * reads -0.2 to +1.1, and the two bugs the arm's KDoc describes read it
+         * at +19.5. Three points sits clear of the first and nowhere near the
+         * second.
+         *
+         * [CONTROL_MIN_SENTENCES] keeps Croatian out of the assertion. Its
+         * shipped fixture is 32 sentences, which is enough to print and not
+         * enough to fail a build on.
+         */
+        const val CONTROL_SENTENCES = 140
+        const val CONTROL_MIN_SENTENCES = 100
+        const val CONTROL_TOLERANCE = 3.0
 
         /**
          * Sentences per language in the survey.

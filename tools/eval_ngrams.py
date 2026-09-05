@@ -1,8 +1,16 @@
 """Held-out evaluation of the bundled next-word models.
 
-Splits each language's Tatoeba corpus 90/10 by sentence, builds the model from
-the 90 exactly as tools/build_ngrams.py does, and asks the held-out 10 how
-often the model has an opinion and how often it is right.
+Splits each language's Tatoeba corpus by sentence, builds the model from one
+side as tools/build_ngrams.py does, and asks the other how often the model has
+an opinion and how often it is right.
+
+--coverage sweeps thresholds and holds out every tenth sentence, which is the
+right split for a coverage percentage: it wants a large sample and does not
+care that the model is a tenth smaller than what ships.
+
+--fixtures writes models for the test suite to score a keyboard against, and
+wants the opposite. There it holds out only the 140 sentences it scores, so the
+model stays the size of the one users have -- see write_fixtures.
 """
 import collections, io, os, sys
 sys.path.insert(0, os.path.join(os.getcwd(), "tools"))
@@ -101,11 +109,25 @@ def write_fixtures(langs, held_sentences=140):
     from the same corpus, so the model would be scored on the sentences it was
     counted from. That is not a measurement, it is a mirror.
 
-    A split fixes it. The model here is built from nine tenths of the corpus and
-    the prose is the tenth it never saw, so a keystroke figure taken against it
-    means the same thing for Croatian as the shipped one does for English. Two
-    models are written per language, at MIN_PAIR 3 and 2, so the pair can be
-    compared honestly rather than by quoting coverage and hoping it translates.
+    A split fixes it. The model here is built from the corpus minus the
+    sentences it is about to be scored on, so a keystroke figure taken against
+    it means the same thing for Croatian as the shipped one does for English.
+
+    That last clause was written on 2026-08-28 and was false for every
+    small-corpus language until 2026-09-05, because this used to hold out every
+    tenth sentence while scoring 140 of them. MIN_PAIR is a count threshold, so
+    in a small corpus most surviving pairs sit exactly at it and a tenth fewer
+    sentences knocks them out:
+    dropping a tenth cost English 4% of its rows and Croatian 87%. The figures
+    were then read side by side as though they meant the same thing. Holding out
+    only what is scored costs nothing and puts every language within 89-100% of
+    the model it ships.
+
+    Three models are written per language, at MIN_PAIR 3, 2 and 1, so the pair
+    can be compared honestly rather than by quoting coverage and hoping it
+    translates -- and so that whichever threshold a language ships, a fixture
+    exists at it. build_ngrams.MIN_PAIR_BY_LANG decides that per language, and
+    the suite reads it from there.
     """
     root = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                         "app", "src", "test", "fixtures", "heldout")
@@ -114,8 +136,18 @@ def write_fixtures(langs, held_sentences=140):
         toks = corpus(lang)
         raws = raw_sentences(lang)
         freq = B.dictionary(lang)
-        train = [s for i, s in enumerate(toks) if i % 10 != 0]
-        held = [s for i, s in enumerate(raws) if i % 10 == 0][:held_sentences]
+        # Hold out the sentences that are scored, and only those.
+        #
+        # This used to drop every tenth sentence from training while scoring
+        # 140 of them, which throws away corpus for nothing -- and not evenly:
+        # MIN_PAIR is a count threshold, so in a small corpus almost every
+        # surviving pair sits exactly at it and a tenth fewer sentences knocks
+        # it out. Measured over the eight split languages, dropping a tenth
+        # cost English 4% of its rows and Croatian 87%. The resulting figures
+        # were then read side by side as if they meant the same thing.
+        cut = set(list(range(0, len(toks), 10))[:held_sentences])
+        train = [s for i, s in enumerate(toks) if i not in cut]
+        held = [s for i, s in enumerate(raws) if i in cut]
         with io.open(os.path.join(root, "prose_%s.txt" % lang), "w",
                      encoding="utf-8", newline="\n") as f:
             f.write("\n".join(held) + "\n")

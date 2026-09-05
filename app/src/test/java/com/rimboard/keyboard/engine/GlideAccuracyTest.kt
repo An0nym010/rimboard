@@ -839,15 +839,25 @@ class GlideAccuracyTest {
      * **+1.66**, with a knee, and with deliberate swipes starting to be
      * overruled past five.
      *
-     * `fixtures/heldout` is what `build_ngrams.py --fixtures` writes: a model
-     * built from nine tenths of a corpus and the remaining tenth beside it, for
-     * the seven languages that split exists for. This arm reads that pair, so its
-     * absolute numbers are lower than the contaminated arm's and are the ones
-     * to believe. At the shipped weight, 6,000 swipes:
+     * `fixtures/heldout` is what `tools/eval_ngrams.py --fixtures` writes: a
+     * model built from a corpus with the scored sentences taken out of it, and
+     * those sentences beside it, for the eight languages that split exists for.
+     * This arm reads that pair, so its absolute numbers are lower than the
+     * contaminated arm's and are the ones to believe. At the shipped weight,
+     * 8,000 swipes:
      *
-     *     DELIBERATE  87.1%      NATURAL  63.5%
-     *     SLOPPY      37.4%      HURRIED  41.0%
-     *     all         57.3% top-1, 81.3% in the strip's five
+     *     DELIBERATE  88.1%      NATURAL  65.1%
+     *     SLOPPY      39.5%      HURRIED  43.2%
+     *     all         59.0% top-1, 82.2% in the strip's five
+     *
+     * Those are 1.7 points above what this arm read on 2026-09-04, and none of
+     * it is the decoder improving: the split itself was wrong twice over. It
+     * discarded a tenth of every corpus to score 140 sentences, and this arm
+     * asked for `pred2` in all eight languages when six of them ship at
+     * MIN_PAIR 1. Both handed it a model weaker than the one users have.
+     * [HeldOut] now picks the threshold by reading the tool that builds the
+     * assets, and [StripAccuracyTest]'s held-out arm asserts that the model
+     * this arm loads still resembles the shipped one.
      *
      * The floors are a ratchet on the honest number. What they exist to catch
      * is a change that improves the contaminated arm and costs this one, which
@@ -867,13 +877,14 @@ class GlideAccuracyTest {
         var inFive = 0
         for (lang in langs) {
             val loc = Locale.forLanguageTag(lang)
-            // The model built from the other nine tenths. Anything else counts
-            // the same corpus twice.
+            // The model built from the corpus minus the sentences scored
+            // below. Anything else counts the same corpus twice -- and it has
+            // to be the threshold this language ships, which is not always 2:
+            // see HeldOut, which reads it from the tool that builds the asset.
             val files = mapOf(
                 "dictionaries/" + lang + ".txt" to
                     File(assets(), "dictionaries/" + lang + ".txt").readText(),
-                "predictions/" + lang + ".txt" to
-                    File(dir, "pred2_" + lang + ".txt").readText()
+                "predictions/" + lang + ".txt" to HeldOut.predictionsFor(dir, lang)
             )
             val engine = SuggestionEngine.forTesting(userData) { p -> files[p]?.byteInputStream() }
             val prox = KeyProximity.forLang(lang)
@@ -1157,23 +1168,51 @@ class GlideAccuracyTest {
 
         /**
          * Floors for `the decoder on sentences the model has not counted`,
-         * which is the honest arm for anything context-sensitive. Measured
-         * 57.3% / 81.3% overall; worst hand SLOPPY at 37.4% / 68.7% in five.
-         *
-         * English joined the split on 2026-09-05, so this is seven languages
-         * and 7,000 swipes rather than six and 6,000.
+         * which is the honest arm for anything context-sensitive.
          *
          * The top-1 floor is deliberately set *between* the value the borrowed
-         * correction weight gave (55.7%) and the one
-         * [SuggestionEngine.GLIDE_CONTEXT_WEIGHT] gives (57.3%), so putting
-         * that constant back fails this arm. A floor with the old value inside
-         * it would ratchet nothing: the whole point of this arm is that the
+         * correction weight gives and the one
+         * [SuggestionEngine.GLIDE_CONTEXT_WEIGHT] gives, so putting that
+         * constant back fails this arm. A floor with the old value inside it
+         * would ratchet nothing: the whole point of this arm is that the
          * contaminated one cannot tell the two apart -- it reads 63.7% against
          * 69.8% and calls the wrong one better by five times the real margin.
+         *
+         * ## Re-pinned 2026-09-05, because the fixtures moved under it
+         *
+         * Turkish joined the split, and both of the bugs described in
+         * [StripAccuracyTest]'s held-out arm were fixed: `eval_ngrams.py` was
+         * discarding a tenth of each corpus to score 140 sentences, and this
+         * arm asked for `pred2` in every language when six of the eight ship at
+         * MIN_PAIR 1. Both made the held-out model weaker than the one users
+         * have, so both were holding this arm's numbers down.
+         *
+         * ```
+         *                      top-1    in five   SLOPPY top-1
+         * GLIDE_CONTEXT_WEIGHT  59.0%    82.2%       39.5%
+         * the borrowed 1.25     57.1%    81.9%       35.9%
+         * old floors            0.56     0.77        0.33
+         * ```
+         *
+         * **The old top-1 floor passed at both values.** That is the same
+         * failure this floor exists to prevent, arriving by a route nobody
+         * watched: not a constant loosened, but a measurement improving until
+         * the ratchet it was set against sat below the regression. A floor is
+         * only a floor relative to what the arm currently reads, so re-pinning
+         * it is part of changing the fixtures, not a follow-up to it.
+         *
+         * 0.58 leaves 0.9 points over the reverted value and 1.0 under the
+         * measured one -- room for CI's JDK 17 against this machine's 21, and
+         * no more. The hand floor moves for the same reason and discriminates
+         * better: SLOPPY is where context matters most, 3.6 points apart.
+         *
+         * In five cannot discriminate the constant at all (0.3 points), so it
+         * is not asked to. It moves to 0.80 only because 0.77 was five points
+         * under the measurement, which `fcea63e` established is not a ratchet.
          */
-        const val HELDOUT_TOP1_FLOOR = 0.56
-        const val HELDOUT_IN_FIVE_FLOOR = 0.77
-        const val HELDOUT_HAND_TOP1_FLOOR = 0.33
+        const val HELDOUT_TOP1_FLOOR = 0.58
+        const val HELDOUT_IN_FIVE_FLOOR = 0.80
+        const val HELDOUT_HAND_TOP1_FLOOR = 0.37
 
         /**
          * Under the worst arm measured, with room for corpus noise.

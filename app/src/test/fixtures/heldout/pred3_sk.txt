@@ -1,9 +1,10 @@
-a	ty čo ja v boh na
+a	ty čo v ja na boh
 a ako	sa
 a alica	sú
 a b	c
-a boh	videl
+a boh	videl nazval
 a dostanete	hľadajte
+a dva	je
 a ja	som
 a nastal	večer
 a slabé	stránky
@@ -13,11 +14,11 @@ a ty	si
 a zajtra	bude
 a čo	si
 a čomu	veria
-aby	si som ste sa sme ma
+aby	si som ste sa sme to
 aby ju	mohol
-aby si	sa bol bola vedel tu ma
+aby si	sa bol bola vedel žil tu
 aby sme	išli
-aby som	to sa ti si zostal ho
+aby som	to sa ti ťa si zostal
 aby ste	išli
 aby ti	to
 aby zahral	na
@@ -25,18 +26,21 @@ ach	bože
 ahoj	ako
 ahoj ako	sa
 ahojte	všetci
-aj	ja ty keď v tak ako
+aj	ja keď v ty na ako
 aj ja	som
 aj keby	som
-ak	by sa chceš je to si
+ak	by sa chceš je to chcete
 ak budem	mať
 ak by	som ste si
+ak je	to
+ak mi	neveríš
 akej	farby
 akej farby	je
-ako	sa dlho to ja dobre si
+ako	sa dlho to dobre ja je
+ako bolo	dnes
 ako by	bol
 ako dlho	si trvá to ste žijú žije
-ako dobre	viete poznáte
+ako dobre	viete poznáte poznáš
 ako je	to
 ako jej	matka
 ako môj	otec
@@ -44,38 +48,40 @@ ako oko	v
 ako prestať	piť
 ako sa	to volá povie má máš ti
 ako si	myslíš sa
-ako som	vedel
+ako som	mohol vedel mohla
+ako ste	sa
 ako ti	môžem
 ako to	urobiť funguje
 ako veľmi	ťa
+ako ďaleko	je
 aká	je si bola krásna
 aká je	vaša tvoja
-aké	je sú bude máš
-aké je	tvoje vaše to
+aké	je sú bude to máš
+aké je	vaše tvoje to
 aké sú	vaše tvoje
-akú	hudbu máš som pizzu
-akú hudbu	počúvaš
+akého	dôvodu
+akú	máš som pizzu
 akú pizzu	máš
 akú som	kedy
-aký	je si som bol nádherný veľký
-aký je	tvoj váš to dnes zmysel rozdiel
+aký	je si som nádherný bol veľký
+aký je	tvoj váš dnes to zmysel rozdiel
 aký veľký	je
-ale	aj je nie pre nemôžem on
+ale	aj nie je nemôžem pre neviem
 ale aj	tak
 ale bez	zdravia
 ale je	to
 ale nie	je
 alebo	nie v kávu čo bez dievča
 alica	sú
-ani	slovo slova ja neviem trochu sa
+ani	slovo ja slova neviem sa písať
 ani slova	z
-ani slovo	z
+ani slovo	z po
 aspoň	raz
 auto	je
-až	do po taký v
+až	do po taký také v
 b	c
 b c	č
-bez	teba toho neho ohľadu vody dôkazu
+bez	teba ohľadu toho neho vody dôkazu
 bez ohľadu	na
 bez toho	aby
 bez zdravia	je
@@ -83,9 +89,10 @@ beží	rýchlejšie
 biele	ako
 blahoželám	k
 blond	vlasy
-boh	povedal videl je urobil stvoril
+boh	povedal videl je nazval urobil stvoril
 boh videl	že
 boha	a
+bohatý	muž
 bojí	tmy
 bojím	sa
 bojíš	sa
@@ -97,7 +104,7 @@ bol rád	že
 bol si	niekedy
 bol som	v veľmi na u
 bol tvoj	posledný
-bola	to som v si šťastná veľmi
+bola	to som v si veľmi šťastná
 bola rada	že
 bola si	niekedy
 bola som	v veľmi
@@ -106,14 +113,15 @@ bolesti	brucha hlavy
 bolesť	hlavy
 boli	sme ste otvorené zranení biele zabití
 boli sme	rovnako
-boli ste	niekedy
-bolia	ma
+boli ste	niekedy už
 bolo	to tam mi v od dnes
+bolo dnes	v
 bolo mi	ľúto
-bolo od	teba
-bolo tam	bolo
+bolo od	teba vás
+bolo tam	bolo veľa
 bolo to	veľmi
-bolí	ma hlava chrbát
+bolo v	škole
+bolí	ma hlava chrbát ťa
 brat	žije je
 brat žije	v
 bratia	a
@@ -123,40 +131,44 @@ brať do	úvahy
 brehu	rieky
 brána	je
 bránu	som
-bude	mať to zajtra stáť páčiť na
-budem	mať v tam sa doma
+bude	mať to stáť zajtra páčiť na
+budem	mať v tam sa doma načas
 budem mať	čas
 budeme	robiť
-budete	mať príjemne milo
+budete	mať milo
 budete mať	čas
-budeš	mať potrebovať robiť
+budeš	mať robiť potrebovať
+budeš mať	čas
 budeš robiť	zajtra
 budova	je
 budúci	mesiac týždeň rok
 budúci mesiac	budem
-buenos	aires
-buď	na ticho sám
+buď	sám na ticho šťastný
 buď sám	sebou
 buďte	opatrní
 by	som si ste sme to sa
 by bol	na tvoj
 by ma	prečo
-by sa	nikdy vám
+by mal	ísť
+by sa	nikdy ti vám
 by si	to mi byť mal sa chcela
 by sme	mali si
-by som	si sa ti mal mohol byť
-by ste	mi to byť chceli si sa
-by to	bolo
+by som	si sa mal ti mohol byť
+by ste	mi to chceli byť sa si
+by to	bolo mal
 byt	je
-byť	veľmi šťastný s v šťastní chorý
+byť	veľmi šťastný s v šťastná šťastní
 byť s	tebou
 byť v	posteli
+byť či	nebyť
+bál	som že
+bál som	sa
 býva	v na
 bývam	v
 c	č
 celkom	dobre dobrá
 celom	svete
-celé	ráno
+celé	popoludnie ráno
 celú	noc večnosť
 celú noc	som
 celý	deň čas týždeň život rok
@@ -165,10 +177,11 @@ ceny	idú
 cesta	je k
 ceste	do
 cez	les deň žalúdok
-chce	aby ísť byť sa pomôcť
+ch	i
+chce	ísť aby byť sa pomôcť
 chce aby	som
 chce ísť	domov do
-chcel	by som byť aby pomôcť povedať
+chcel	by som byť aby pomôcť ísť
 chcel by	som
 chcel som	sa
 chcela	by som ísť byť
@@ -177,15 +190,16 @@ chceli	by sme
 chceli by	ste
 chcem	aby sa vedieť byť to ísť
 chcem aby	si ste
-chcem byť	s
+chcem byť	šťastným s
 chcem sa	naučiť napiť stať
-chcem vedieť	čo kde
+chcem to	urobiť
+chcem vedieť	kde čo
 chcem ísť	do
 chceme	aby
-chcete	aby vedieť ísť sa
-chcete aby	som
+chcete	aby vedieť ísť sa povedať
+chcete aby	som sme
 chcete sa	naučiť
-chceš	aby ísť vedieť byť sa to
+chceš	aby ísť vedieť sa byť to
 chceš aby	som sme
 chceš byť	šťastný
 chceš sa	naučiť
@@ -193,12 +207,13 @@ chlapec	je sa alebo
 chlapec alebo	dievča
 chodí	do s
 chodí do	školy
-chodím	do
+chodím	do pešo
 chodím do	školy
-choď	do spať sa
+choď	do spať sa rovno
+choď rovno	potom
+choď sa	pozrieť
 choďte	rovno
 choďte rovno	potom
-chudobný	ako
 chutí	ti
 chuť	na
 chuť na	sladké niečo pizzu kávu
@@ -227,18 +242,19 @@ dali sme	si
 darček	pre
 dcéra	je
 deje	v
-desať	minút rokov hodín
+desať	minút rokov hodín centimetrov
+desiatej	doma
 deti	sa sú tri
 deti sa	hrajú
-deväť	hodín životov
+deväť	životov hodín
 deň	je v som sa matiek ako
-dievča	sa
+dievča	s sa
 dieťa	sa
 divný	sen
 dlho	som si sa čakať sme to
 dlho sme	sa
 dlho som	na ju
-dlhé	uši vlasy
+dlhé	vlasy uši
 dlhý	rozhovor
 dlhšie	ako než
 dnes	je má večer som ráno bude
@@ -247,50 +263,56 @@ dnes má	moja môj
 dnes ráno	som
 dnes som	sa
 dnes v	škole
+dnešnú	skúšku
 dní	v
-do	školy nemocnice toho kina kostola očí
+do	školy nemocnice kina kostola toho nej
 do pekla	s
 do tej	istej
-dobre	viete že tým po čo a
+dobre	viete že po tým čo a
 dobre tým	čo
 dobre vidíme	iba
 dobre viete	po
-dobrá	otázka správa v rada
+dobrá	otázka správa rada v
 dobré	správy ráno a
+dobré správy	pre
 dobrú	noc pamäť správu chuť
 dobrú pamäť	na
-dobrý	nápad človek deň večer šéf v
+dobrý	nápad človek deň večer v šéf
 dokonca	aj
 dokonca aj	v
+dole	ponožky
 dom	je v má sa
-dom je	veľmi
+dom je	veľmi veľký
+doma	hovoríme
 domom	je
-domov	o peši neskoro ak
+domov	o peši ak neskoro
 domáce	úlohy zviera
 domácu	úlohu
 dones	mi
 dostal	som list
 dostala	som
+dostanem	na
 dostanete	hľadajte
 dostanete hľadajte	a
 dostať	sa
-dosť	času peňazí
+dosť	času peňazí veľa
 dovoľte	mi
 doľava	a
 drevo	je
+druhej	strane
 druhu	a
 druhu a	boh
 držte	sa
 duša	je
-dva	je tri roky razy sa
+dva	je tri roky razy plus a
 dva tri	štyri
 dvadsať	rokov
 dvaja	chlapci robia
 dvaja robia	to
 dvakrát	do
 dvanásť	rokov
-dve	hodiny dcéry deti možnosti nohy uši
-dvere	boli a sú
+dve	hodiny dcéry deti uši možnosti nohy
+dvere	a boli sú neboli
 dvere a	okná
 dvere boli	otvorené
 dych	života
@@ -307,8 +329,8 @@ dôvera	sa
 dôvod	prečo
 dôvod prečo	som
 dúfam	že
-dúfam že	sa to som je
-ešte	som stále nie raz niečo voľné
+dúfam že	sa to som je si
+ešte	som stále nie raz voľné niečo
 ešte nie	je som sú
 ešte som	si nič to
 ešte stále	nie
@@ -316,32 +338,38 @@ f	g
 f g	h
 fakt	milé
 farba	je sa
+farba sa	vám
 farby	je sú
 film	a sa
 film a	prečo
 film sa	mi
 g	h
+g h	ch
 gratulujem	k
+h	ch
+h ch	i
 heslo	je
 hlavu	do
 hlavu do	piesku
-hneď	ako za prídem sa by som
-ho	na ale ako miluješ videl už
+hnedé	oči
+hneď	ako prídem sa som za by
+ho	na ako ale vidím poznáš miluješ
 ho ako	oko
 hocičo	sa
 hodín	a denne
 hore	na
 hore na	oblohu
-hovoria	po že o
+hovoria	že po o
 hovoril	som s
 hovoril som	s
 hovorila	som
 hovorila som	s
 hovoriť	po
-hovorí	po že sa iba so dobre
+hovorte	pomalšie
+hovorí	po že sa v iba so
 hovorí sa	že
-hovorí že	sa nikdy
-hovorím	po o pravdu
+hovorí že	sa nikdy chce
+hovorím	po o trochu pravdu
 hovoríme	po
 hovoríte	po
 hovoríš	po dobre
@@ -354,7 +382,6 @@ hrozný	koniec
 hrozný koniec	ako
 hrá	na s
 hudba	je
-hudbu	počúvaš
 hudobný	nástroj
 hľadajte	a
 hľadajte a	nájdete
@@ -362,17 +389,20 @@ hľadal	som
 hľadala	som
 hľadá	nájde
 i	j keď
-iba	som to srdcom sa v
+iba	som to srdcom v sa
 iba sa	pozerám
 iba srdcom	to
-ich	na semeno
+ich	na semeno všetky naposledy všetkých
 ich na	stôl
 ide	do o to tento
 idem	do na si
-idem do	školy
+idem do	kina školy
 ideme	do
-im	aby to že zajtra
+ihlu	v
+ihlu v	kope
+im	aby že to zajtra čo povedal
 im zajtra	keď
+im že	si
 informácia	ktorá
 inú	možnosť
 iskra	nádeje
@@ -385,28 +415,28 @@ istí	že
 istú	chybu
 istý	že či
 istý či	vám ti
-istý že	to nechceš
+istý že	to nechceš chceš
 izba	je
 izbe	je
 izbu	s
 išiel	do som domov sám
 išiel som	do
-išla	do domov
+išla	domov som do
+išla som	do
 išli	sme
 j	k
 ja	som viem nie ťa mám ho
 ja by	som
 ja nie	som
-ja som	tiež v ten ju si tvoj
+ja som	tiež v tvoj ten jej ju
 ja viem	že
 je	to veľmi v môj moja na
-je chudobný	ako
 je deväť	hodín
 je dnes	deň
-je dobrá	v
+je dobrá	v správa
 je dobrý	človek nápad v
 je dôvod	prečo
-je ešte	v
+je ešte	v voľné
 je ich	semeno
 je jeden	z zo
 je jediný	kto
@@ -414,13 +444,16 @@ je jedno	z
 je jedným	z
 je jeho	pravé
 je jej	pravé
+je krajšia	než
 je krásna	a
 je krásne	dievča
 je mi	to ľúto jedno
 je mladá	a
 je mladý	a
+je moja	sestra
 je moje	tajomstvo
 je môj	otec syn kľúč priateľ
+je na	zozname letisku
 je najlepší	priateľ
 je najvyšší	čas
 je naša	posledná
@@ -428,7 +461,9 @@ je niečo	čo
 je od	teba vás nej
 je odo	mňa
 je oveľa	väčšia menšia
+je očividné	že
 je pod	stolom
+je posledný	deň
 je pravda	že
 je pre	mňa teba nás
 je prvý	deň
@@ -438,14 +473,15 @@ je s	vami
 je také	krásne jednoduché
 je ten	muž ktorý chlapec
 je teraz	hodín
-je to	pravda pre dobré za po len
-je toto	miesto za
-je tu	veľa veľmi niekto ticho problém
-je tvoj	obľúbený otec pes brat názor
+je to	pravda pre po dobré za veľmi
+je toto	za miesto
+je tu	veľa veľmi niekto ešte ticho problém
+je tvoj	obľúbený brat názor otec
 je už	tu
 je v	poriadku tejto nebezpečenstve kuchyni tvojom bezpečí
-je veľmi	dobrá dobrý veľká pekné dôležitý
+je veľmi	dobrá dobrý veľká pekné inteligentný dôležitý
 je viac	ako
+je vo	väzení
 je váš	obľúbený názor
 je väčšia	ako
 je väčšie	ako
@@ -453,6 +489,7 @@ je všetko	čo v ničím
 je za	nami
 je známy	svojou
 je čas	na
+je časová	jednotka
 je človek	ktorý
 je šikovný	ako
 je život	taký
@@ -465,8 +502,8 @@ jediné	čo
 jediný	kto dôkaz
 jediný kto	môže
 jedla	som si
-jedli	sme
-jedlo	bolo je
+jedlo	je bolo
+jedna	z
 jedno	z čo dieťa
 jednou	z
 jednu	z
@@ -474,14 +511,14 @@ jedného	dňa
 jednému	z
 jedným	z
 jedol	som
-jeho	meno žena otec dom srdce odpoveď
+jeho	meno žena otec dom rodina srdce
 jeho pravé	meno
 jeho skutočné	meno
 jeho vlasy	sú
 jeho žena	je
 jej	meno to že pomôcť jediná vlasy
 jej dobrú	noc
-jej jediná	nádej
+jej jediná	nádej šanca
 jej muž	je
 jej otec	je
 jej pravé	meno
@@ -491,38 +528,45 @@ jesť	viac mäso sladké v
 jesť v	kuchyni
 ježiš	povedal
 ježiš povedal	odpusť
-ju	spievať mohol milujem prekvapiť uvidel pobozkal
+ju	spievať mohol milujem prekvapiť nemáte uvidel
 južnej	amerike
-k	narodeninám srdcu nám čomu nej
-kam	ide si ísť by ideš
+k	narodeninám čomu nej srdcu nám
+k nej	hovorí
+kam	ide ísť ideš si by
 kameň	kde
+kanada	je
 kapitola	sama
 kapitola sama	o
 každom	prípade
 každé	ráno
-každý	deň má z rok človek vie
+každý	deň má človek vie kto z
 každý deň	je
 každý kto	prosí
 každý má	právo svoj
 každý z	nás
-kde	je sa sú si ste to
+každý človek	je
+kde	je sa si sú to ste
 kde bolo	tam
 kde je	môj tvoja moja tvoj vaša najbližšie
+kde sa	nachádzame
 kde si	bol
 kde sú	moje toalety
-kde to	našiel
+kde to	našiel je
 keby	som si
-keby som	mal to bola
+keby som	mal to bol bola
 kedy	si sa ste je to príde
 kedy sa	vrátiš vráti
 kedy si	naposledy videl
 kedy ste	naposledy
+kedy začína	skúška
 kedysi	som
 kedysi som	chcel
-keď	sa som je si budete to
+keď	sa som je si budete budeš
 keď budete	mať
+keď budeš	mať
 keď dvaja	robia
 keď sa	vrátim to chce
+keď si	sa
 keď som	bol
 kiež	by
 kiež by	som sa
@@ -533,49 +577,59 @@ klame	ten
 koho	je som si
 koho je	to
 kolená	a
+komu	môžete
+konečne	som
 koniec	ako
-koľko	stojí máš peňazí máte to rokov
+kope	sena sám
+kope sám	do
+koľko	stojí máš máte to peňazí rokov
 koľko je	teraz
 koľko rokov	má
 koľko stojí	táto
-koľko to	všetko
+koľko to	všetko stojí
 koľko členov	má
 koľkokrát	si ste
 koža	je
+krajšia	než
+kravy	sú
 krok	dopredu
 krv	je
 krvný	tlak
 krásna	a
 krásne	dievča
 krásny	deň
-krátke	vlasy
-kto	je to napísal má sa bol
+krátke	vlasy nohy
+kto	je to napísal má sa som
 kto hľadá	nájde
 kto je	ten tvoj to tá
 kto klame	ten
 kto má	dnes
 kto môže	zastaviť
 kto napísal	túto tieto
+kto sú	títo
 kto ti	to
-kto to	bol urobil
-ktorej	som
+kto to	bol urobil povedal
+ktorej	som strane
 ktorom	sa hoteli
 ktorá	sa je má farba
-ktoré	sa si by som nie je
+ktorá farba	sa
+ktoré	sa si by som urobil nie
 ktorí	sa vás
 ktorí vás	nenávidia
 ktorú	som si
-ktorý	je sa som má žije urobil
+ktorý	je sa som má žije si
 ktorý je	tvoj váš
 ktorých	je
 ktorým	sa
 ktorým sa	hovorí
 ku	mne
 kuchyni	je
+kvety	a
 kvôli	tebe
 káva	je bola
 káva je	silná
 kávu	alebo
+kôň	je
 kúp	mi
 kúpil	som si koňa
 kúpil som	si
@@ -585,13 +639,14 @@ kým sa	nevrátim
 l	m
 l m	n
 lebo	oni v
-len	na dve som to jednu jedno
+len	na dve som to jednu sa
 len dve	možnosti
 len na	seba
 lepšie	ako než
 lepší	nápad
+leto	je
 lev	je
-list	je z
+list	je z od
 list je	určený
 listy	na
 loď	sa
@@ -599,24 +654,26 @@ láska	je
 lásku	na
 lásku na	prvý
 m	n
-ma	to na bolí o prečo že
+ma	to na bolí o že prečo
 ma aby	som
 ma bolí	chrbát hlava
-majú	rady dlhé veľké radi svoj krídla
-mal	by som si na pravdu ísť
+ma zľahka	na
+majú	rady radi dlhé veľmi krídla veľké
+mal	by som si pravdu na ísť
 mal by	si som
 mal si	pravdu
-mala	by som pravdu na byť si
+mala	by som pravdu na si byť
 mala by	si som
 mala na	sebe
-mali	by ste sme byť
+mali	by ste byť sme
 mali by	ste sme
+malé	dieťa
 mama	je
 manžel	je
 manželka	je
 mars	je
 mary	je
-matka	je
+matka	je mala
 mať	čas vždy v psa
 mať vždy	pravdu
 medveď	je
@@ -628,21 +685,23 @@ meno nie	je
 mená	sú
 menšia	ako
 menšie	ako
-mesiac	je v budem má
-mi	to čo prosím že povedal o
+mesiac	je v svieti budem má
+mi	to čo povedal prosím že o
 mi aby	som
 mi do	očí
 mi je	lepšie
 mi jedno	čo
 mi kto	je
+mi nepovedala	že
 mi nepovedali	že
+mi neveríš	choď
 mi niečo	na
 mi o	tebe sebe
 mi podať	pohár
 mi povedal	že čo
 mi povedala	čo že
-mi prosím	podať
-mi to	ľúto jedno
+mi prosím	podať požičať
+mi to	ľúto jedno páči
 mi trocha	vody
 mi vedieť	ak
 mi čo	sa si
@@ -650,7 +709,7 @@ mi ľúto	čo
 mi že	si sa
 mieste	by
 mieste by	som
-miesto	na je
+miesto	je na kde
 miestom	v
 miestom v	spoločnosti
 miliárd	ľudí
@@ -660,7 +719,7 @@ milujú	vodu
 minule	som
 minulé	leto
 minulú	noc
-minulý	týždeň rok
+minulý	týždeň rok mesiac
 minulý týždeň	som
 mladá	a
 mladý	a
@@ -676,45 +735,53 @@ mohli	by
 mohli by	ste
 mohol	by byť
 mohol by	si som
-moja	sestra vina matka mama dcéra priateľka
+moja	sestra matka vina mama dcéra priateľka
 moja dcéra	je
 moja mama	je
 moja manželka	je
+moja matka	mala
+moja najlepšia	priateľka
 moja priateľka	je
 moja rodina	je
 moja sestra	sa pracuje
 moja žena	je
 moje	meno kľúče priezvisko srdce narodeniny tajomstvo
 moje meno	je
+moje pravé	meno
 moje priezvisko	je
 mojej	matky
 moji	rodičia priatelia bratia
 moji rodičia	sú
 mojich	silách
-moju	otázku sestru ženu kávu pomoc
+moju	ženu otázku sestru kávu dcéru pomoc
 mojím	domom snom bratom
+mojím domom	je
 mojím snom	je
+mokré	vlasy
 more	bolo
-možno	som to by je sa
+možno	som to sa by je
 mrzí	ma
 mu	to že pomôcť aby o dnes
 mu to	dať
 musel	som ísť
 musia	byť
 musí	byť mať to ísť
-musím	ísť sa ti to urobiť byť
+musí mať	vždy
+musím	ísť ti sa byť to urobiť
+musím ti	povedať
 musím ísť	do na von
-musíme	sa to ísť pomáhať byť
+musíme	sa to ísť byť pomáhať
 musíme to	urobiť
-musíte	sa byť viacej mu
+musíte	sa byť viacej mu jej
 musíte byť	veľmi
-musíš	byť sa ísť mu
-muž	je a
+musíš	byť sa ísť to viacej mu
+muž	je a má
 muži	sú
-my	všetci máme sme sa vieme
+my	všetci sme sa máme vieme s
 my máme	pravdu
-myslel	som že
+myslel	som že to
 myslel som	že si
+myslel to	isté
 myslela	som
 myslela som	že
 mysleli	sme
@@ -727,18 +794,19 @@ myslí si	že
 myslí že	je
 myslím	že si na
 myslím si	že
-myslím že	je by som budete to si
+myslím že	by je som budete to sa
 myslíte	že si
 myslíte si	že
 myslíte že	je to
 myslíš	že si ty len
 myslíš len	na
 myslíš si	že
-myslíš že	je som to ti
+myslíš že	je som to ti sa
 myšlienky	sú
 myšlienky sú	slobodné
-má	rád veľa dve veľmi štyri dnes
+má	rád veľa štyri dve veľmi dnes
 má deväť	životov
+má dlhé	vlasy
 má dnes	narodeniny
 má dom	v
 má dve	tváre
@@ -748,6 +816,7 @@ má právo	na
 má päť	prstov
 má svoje	vlastné
 má vždy	pravdu
+má štyri	nohy
 mám	rád rada pre sa veľa veľmi
 mám chuť	na
 mám dobré	správy
@@ -761,42 +830,46 @@ máme	pre dve na tri len robiť
 máme pre	vás teba
 máte	radi rady rád rada pravdu nejaké
 máte chuť	na
+máte dobrú	pamäť
 máš	rád rada pravdu čas na veľa
 máš chuť	na
 máš dobrú	pamäť
-môj	otec brat syn manžel priateľ pes
+môj	otec brat syn manžel priateľ muž
 môj brat	žije je
 môj byt	je
 môj manžel	je
-môj muž	je
+môj muž	je má
 môj najlepší	priateľ
 môj obľúbený	predmet
-môj otec	je mi mal
-môjho	názoru otca mladšieho
+môj otec	je mi bol má mal
+môjho	otca názoru mladšieho
 môjho mladšieho	brata
-môže	byť pomôcť mať to urobiť prísť
+môže	byť pomôcť urobiť to mať prísť
 môže to	byť
-môžem	pomôcť sa si ti vás použiť
+môžem	pomôcť sa si ti ťa použiť
 môžem naučiť	po
 môžem sa	na
 môžem si	požičať to
 môžeme	pomôcť urobiť sa
-môžete	mi to ísť
+môžete	mi to ísť sa
 môžete mi	pomôcť
 môžete to	urobiť
 môžete ísť	domov
-môžeš	mi to ísť počítať urobiť zostať
+môžeš	mi to ísť počítať urobiť sa
 môžeš ísť	domov
 môžu	byť
 mýliš	sa
-mýliť	sa
-mýliť sa	je
 mňa	príliš o
-na	to svete mňa teba zemi vás
+na	to svete mňa teba ňu zemi
 na celom	svete
 na ceste	do
+na dnešnú	skúšku
+na druhej	strane
 na kolená	a
+na ktorej	strane
 na moju	otázku
+na našej	ulici
+na nášho	syna
 na prvý	pohľad
 na rozdiel	od
 na seba	príliš
@@ -806,10 +879,12 @@ na svoje	deti
 na svojho	otca
 na svoju	dcéru
 na teba	zabudnúť
-na to	že aby čo
+na to	že aby čo ako sa
 na treťom	poschodí
+na tri	časti
 na tvojom	mieste
-na túto	prácu
+na tú	otázku
+na túto	otázku prácu
 na vás	hrdý
 na zemi	je
 na čo	sa
@@ -817,12 +892,15 @@ na ňu	veľmi
 nabudúce	by
 nabudúce by	si
 najhoršie	je
+najhoršie je	za
+najlepšia	priateľka obrana
 najlepšie	k ako čo
 najlepšie ako	som
 najlepšie k	narodeninám
 najlepší	priateľ priatelia
-najlepší priateľ	človeka
+najlepší priateľ	je človeka
 najlepších	hráčov
+najradšej	mám
 najviac	na
 najviac na	svete
 najvyšší	čas
@@ -831,7 +909,8 @@ naozaj netuším	o
 naozaj si	myslíte myslíš
 naposledy	videl
 napriek	tomu
-napísal	túto som list tieto
+napísal	túto som list mi tieto
+napísal túto	báseň
 napísala	som
 napíš	mi
 narodeniny	sú
@@ -844,14 +923,17 @@ naučil	som
 naučil som	sa
 naučila	som
 naučila som	sa
-naučiť	sa hrať po variť
+naučiť	sa hrať po variť cudzí
 naučiť hrať	na
 naučiť sa	po
+naučte	sa
 naučím	ťa
-naša	posledná jediná rodina
+naňho	hrdý
+naša	jediná posledná rodina
 naša jediná	nádej
-naše	peniaze
-našej	krajine školy škole
+naše	postele peniaze
+naše postele	sú
+našej	škole krajine školy ulici
 našich	myšlienok
 našiel	som
 našla	som
@@ -862,43 +944,47 @@ nebo	bolo a
 nebo a	zem
 neboj	sa
 nebojím	sa
-nebol	v som doma to
+nebol	v som doma to si
 nebol v	škole
-nebola	to moja
+nebola	to som moja
 nebolo	to by
 nebolo by	to
 nebude	to trvať
 nebudem	sa ti jesť
 nebudem jesť	sladké
-nebuď	taký
+nebudem sa	hnevať
+nebuď	taký taká
+nebuďte	na
 nech	sa žije si odíde je
 nech je	s
 nech sa	ti páči
-nechaj	ma
+nechaj	ma to
+nechaj to	na
 nechajte	ma
 nechať	ísť
-nechce	ísť aby sa
+nechce	ísť byť aby sa
 nechce sa	mi
 nechcel	som
 nechcel som	ich
 nechcela	som
 nechcela som	ich
-nechcem	aby počuť o ísť ťa sa
+nechcem	aby ísť počuť o ťa sa
 nechcem aby	si
 nechcem počuť	ani
 nechceme	aby ísť
-nechceš	ísť
+nechceš	ísť aby
 nechápem	ako
 necíti	dobre
 necítim	sa
 nedá	sa
 nedá sa	mi
-nedáva	zmysel
+nedáva	zmysel to
 nehode	vedomie
 nehovorí	po
-nej	už hovorí
+nej	hovorí už
 nej už	niekedy
-nejaké	otázky
+nejako	pomôcť
+nejaké	otázky ďalšie
 nejakého	dôvodu
 nemajú	radi zuby
 nemal	som by
@@ -907,11 +993,12 @@ nemohla	by
 nemohla by	si
 nemohli	by
 nemohli by	ste sme
-nemohol	by som prísť
+nemohol	by som prísť urobiť
 nemohol by	si
 nemožno	žiť
 nemožno žiť	bez
 nemusí	byť
+nemyslel	som
 nemyslí	že
 nemyslím	si že
 nemyslím si	že
@@ -919,16 +1006,16 @@ nemyslíte	si že
 nemyslíte si	že
 nemyslíš	si že vážne
 nemyslíš si	že
-nemá	rád rada
-nemám	rád rada chuť čas ani žiadne
+nemá	rád rada zmysel
+nemám	rád rada chuť ani čas žiadne
 nemáme	čas
 nemáte	za
 nemáte za	čo
-nemáš	čo rád pravdu za rada
+nemáš	rád čo pravdu za rada mi
 nemáš za	čo
 nemáš čo	robiť
 nemôže	byť
-nemôžem	uveriť si nájsť sa to ti
+nemôžem	uveriť si ti nájsť sa to
 nemôžem sa	dočkať
 nemôžem si	spomenúť
 nemôžem ti	pomôcť
@@ -936,11 +1023,11 @@ nemôžem uveriť	že
 nemôžeš	ísť
 nepamätám	si
 nepovedal	že som
-nepovedala	som
+nepovedala	som že
 nepovedali	že
 nepovedali že	ste
 nepoznal	som
-nepoznám	vaše ju
+nepoznám	vaše ju tvoje
 nepoznám vaše	meno
 nepočul	som
 nepočula	som
@@ -950,11 +1037,12 @@ nerozumiem	čo ani
 nerozumiem ani	slovo
 neskôr	mi
 neskôr mi	všetko
-nesmej	sa
 nespoznal	som
 netušila	som
-netuším	o kto
+netuším	o kde kto
 netuším o	čom
+netvár	sa
+netvár sa	že
 nevadí	mi
 nevadí mi	to
 nevedel	som si že
@@ -966,18 +1054,23 @@ nevedela som	že
 nevedeli	ste
 nevedeli ste	že
 nevedia	čo
+neveríš	choď
+neveríš choď	sa
 nevidel	som
+nevidel som	ťa
 nevidela	som
-nevie	čítať ako prečo čo
+nevie	čo čítať ako prečo
 nevie čo	chce
-neviem	čo prečo ako či kde kto
+neviem	čo prečo či ako kde kto
 neviem ako	sa to
-neviem kde	je
+neviem kde	je som
 neviem kedy	sa
 neviem prečo	ju
+neviem sa	rozhodnúť
 neviem si	spomenúť
-neviem či	je
-neviem čo	sa to som
+neviem či	je sa
+neviem čo	som sa to mám
+neviete	kde
 nevieš	kde
 nevieš kde	je
 new	york
@@ -989,22 +1082,24 @@ nich	je
 nich je	ich
 nie	je som si sú ste sme
 nie je	to moja v môj pravda veľmi
-nie som	si veľmi z dosť spokojný taký
+nie nie	som
+nie si	v môj
+nie som	si veľmi z dosť taký ako
 nie sú	doma spolu
 nie to	nie
 niekde	inde
-niekedy	v opicu ducha videla videli o
+niekedy	v ducha videl opicu videla videli
 niekedy v	mexiku
-niekoho	na kto
+niekoho	kto na
 niekoho na	pláži
-niekoľko	otázok rokov dní
+niekoľko	otázok rokov slov dní
 niekto	kto z musí
 niektorí	ľudia
 niekým	iným
-niečo	nové čo iné na sladké také
-niečo na	jedenie písanie
+niečo	nové čo iné na sladké povedať
+niečo na	jedenie čo písanie
 niečo nie	je
-niečo nové	naučil naučila
+niečo nové	naučila naučil
 niečím	pomôcť
 nikdy	som sa predtým viac to nie
 nikdy by	som
@@ -1013,42 +1108,52 @@ nikdy predtým	som
 nikdy si	mi
 nikdy som	ťa vás nevidel si
 nikdy viac	to
-nikto	tu nevie nie ťa o nám
+nikto	nevie tu nie ťa o mi
 nikto nie	je
 nimi	v
-nič	nie som o nepovedal mi také
+nič	nie som o nepovedal mi iné
 nič nie	je
 ničoho	sa
 no	tak
 noc	som
 noci	je
+nohy	sú
 nová	skúsenosť
-nové	auto šaty naučil naučila
+nové	auto šaty naučila naučil
 novú	prácu
 nový	rok dom bicykel život
+nočný	vták
 nádherný	výhľad kameň
 nádherný kameň	kde
 náhradný	kľúč
 nájsť	si
-nám	dávajú nič treba
+nám	dávajú treba nič
+nám treba	viacej
 národ	proti
-nás	veľmi je nechať
+nás	veľmi je prepustiť nechať
 nás nechať	ísť
 názor	sa na
-náš	pes dom
+názor sa	nepočíta
+náš	dom
+nášho	syna
 nôž	je
-o	čom nej tebe pol sebe svojom
+o	čom nej tebe pol svojom sebe
+o desiatej	doma
+o našej	škole
 o nej	už
 o pol	tretej
 o svojom	veku
+o tebe	nikdy
 o tri	roky
 o vás	nikdy
-o čom	hovoríš hovoríte
+o čom	hovoríš hovoríte to
 obaja	sme
 období	v
 obe	sme
 obed	je
 obleč	sa
+obraz	vyzerá
+obraz vyzerá	skvele
 obviňovať	bez
 obviňovať bez	dôkazu
 obávam	sa
@@ -1056,16 +1161,19 @@ obávam sa	že
 obľúbený	predmet film
 od	teba slnka vás nej mojej koho
 od teba	veľmi pekné
+od vás	veľmi
 odchádza	o
-odišiel	z
+odišiel	z do
 odkedy	sa
-odkiaľ	sa si vieš
+odkiaľ	sa si vieš poznáš
 odkiaľ vieš	že
+odmietol	pomôcť
 odo	mňa
 odo mňa	o
 odpovedať	na
 odpovedz	mi
 odpoveď	je bola na
+odpoveď bola	správna
 odpoveď je	správna
 odpusť	im
 odvtedy	som
@@ -1077,40 +1185,47 @@ okno	je
 oko	v
 oko v	hlave
 okolo	sveta
-okrem	boha teba
+okrem	boha teba toho
 omnoho	lepšie
 on	je má ma vie hovorí nie
 on je	môj
 on nie	je
 on pozná	new
 ona	je hovorí sa má nie nemá
-ona je	moja
+ona je	moja iba
 ona nie	je
-oni	sú to
+oni	to sú všetci sa
 opýtal	sa
 opýtam	sa
 osem	miliárd
 osem miliárd	ľudí
 ospravedlňujem	sa
-otec	je mi by bol mal
+osud	je
+otec	je mi bol by má mal
 otec by	bol
 otvor	dvere
-otvoril	okno
+otvoril	okno dvere
 otvoriť	okno
 otázka	je
 oveľa	lepšie viac väčšia menšia
 oveľa menšia	ako
+ovláda	tri
 oči	sú a
 očividne	je
+očividné	že
 p	r
 padla	na
 padla na	kolená
+padol	na
+padol na	kolená
 pamätám	si
 pamätáte	si
 pamätáš	si
+pamätáš si	čo
 pamäť	na
 pamäť na	mená
 papier	a
+parkovanie	na
 paríž	je
 patria	medzi k
 patrí	medzi k do mne
@@ -1118,27 +1233,32 @@ pekla	s
 pekne	za ďakujem
 pekný	deň
 peniaze	späť
-pes	je sa má
 peňazí	na
-pil	som
+piatej	som
+piatich	mužov
+pieseň	je
+piješ	kávu
+pil	som si
+pila	si
 pizzu	máš
 platí	pre
 plná	hviezd
 plus	dva päť
+plus dva	je
 po	obede celý prvýkrát
 po celom	svete
 po celý	život
 po nehode	vedomie
 po prvýkrát	čo
-pobozkal	ma
+pobozkal	ma na
 pochádza	z
 pochádzajú	z
 pocit	že
-pod	stolom posteľou vodou kontrolou zub
+pod	stolom posteľou zub vodou kontrolou
 podaj	mi
 podarilo	sa
 podarilo sa	ti
-podať	pohár
+podať	to pohár
 podať pohár	vody
 podobá	na
 podstatné	mená
@@ -1157,51 +1277,61 @@ pomôžte	mi
 pomýlil	som
 ponáhľaj	sa
 popri	rieke
+poprosil	ma
+poprosil ma	aby
 poradí	od
 poradí od	slnka
 poriadku	a
 poslednom	čase
 posledná	príležitosť šanca
 posledné	slovo
+posledný	deň
 posledných	voľbách
 postavil	som
+postele	sú
 potom	boh som
 potom boh	povedal
 potreboval	som
-potrebujem	tvoju ťa izbu čas
+potrebujem	tvoju ťa nové izbu čas
 potrebujeme	viac
 potrebuješ	veľa
 používa	na iba
 považuje	za
 povedal	že som mi pravdu nie si
 povedal by	som
-povedal mi	aby že
+povedal mi	že aby
 povedal odpusť	im
-povedal som	mu že vám
-povedal že	sa je to nie príde tu
+povedal som	mu ti vám že
+povedal že	sa je to by nie príde
 povedala	že som pravdu čo
-povedala som	ti vám
-povedala že	je sa má
+povedala som	mu ti vám
+povedala že	je chce sa má
 povedali	že
 povedali že	sú
-povedať	čo to pravdu
+povedať	čo pravdu to prečo
 povedz	mi to im mu že jej
 povedz im	aby že
-povedz mi	čo kto prečo všetko to
+povedz mi	čo kto prečo pravdu všetko to
+povedz mu	že
 povedz to	po
-povedzte	mi jej mu nám
+povedzte	mi jej mu im nám
 povedzte mi	čo pravdu
 povie	po pravdu v
-poviem	ti vám
+poviem	ti vám mu im
+poviem im	že
 poviem ti	čo
+povieš	na
+povolenie	na
+povolenie na	vstup
 pozná	new pravdu
 pozná new	york
 poznám	ho ju
 poznáme	sa
 poznáte	ich odpoveď
-poznáš	po ich to ho
+poznáš	ich po to ju ho
 pozor	na
-pozrel	sa
+pozrel	sa na
+pozrela	sa
 pozri	sa na čo
 pozri na	tú
 pozri sa	na hore
@@ -1212,21 +1342,24 @@ pozrite čo	som
 počkaj	tu kým
 počkajte	tu
 počkám	na
-počkám na	vás
+počkám na	vás teba
 počul	som si
 počul som	že ho
 počula	som si
+počula som	ho
 počuť	ani
 počuť ani	slovo
 počítač	je
-počúvam	hudbu
 poď	sem so
 poď so	mnou
 poďme	do
+pošli	mi
 pošlite	mi
+požiadal	o som
 požičal	som
 požičal som	si
 požičať	svoj
+pracoval	som ako
 pracovať	v
 pracuje	v ako tvoja
 pracujem	v ako
@@ -1236,15 +1369,16 @@ pravda	že je
 pravdepodobne	spí trochu sa
 pravdepodobne trochu	starší
 pravdepodobnosť	že
-pravdu	a
+pravdu	a pretože
+pravdu pretože	som
 pravej	ruke
 pravé	meno
 pravú	lásku
-pre	mňa teba vás nás ňu neho
+pre	mňa teba vás nás ňu humor
 pre mňa	príliš
 pre nás	veľmi
 pre teba	dobré
-pred	mojím tromi nami zákonom vami
+pred	mojím tromi zákonom nami vami
 pred mojím	domom
 pred tromi	rokmi
 predal	som
@@ -1254,24 +1388,29 @@ preklad	je
 prepáč	že ale
 prepáč že	som
 prepáčte	že nerozumiem kde
-presne	ako to tak
+presne	ako o to tak
 prestal	som
 prestala	som
-prestať	fajčiť piť
+prestať	piť fajčiť
+presvedčený	že
 preto	sa aby
 pretože	som to
+pretože som	sa
 prečo	si sa ste je to som
-prečo je	život káva
+prečo by	si
+prečo je	to život káva
 prečo ju	nemáte
-prečo sa	to ho ma na
-prečo si	sa mi myslíte myslíš to bol
+prečo listy	na
+prečo nie	si
+prečo sa	to ho na ma smeješ usmievaš
+prečo si	sa mi myslíš myslíte včera to
 prečo som	tu
-prečo ste	sa boli mi vždy
+prečo ste	sa boli mi vždy tu
+prečo to	robia
 prečo tu	nie
 prečítaj	si
-prečítajte	si
 prešiel	cez
-pri	okne písaní
+pri	okne ohni písaní
 priamo	do
 priamo do	očí
 priatelia	budú
@@ -1283,17 +1422,21 @@ prineste	mi
 priniesol	som
 pripravení	na
 pripraviť	na
-prišiel	som do si domov na
+prišiel	som do si na domov
 prišla	som domov
-prišli	ste
+prišli	sme ste
+problém	s
 proste	a
 proste a	dostanete
 prosím	povedz ťa povedzte vás zostaň podať
+prosím podať	to
 prosím povedz	to
 prosím povedzte	mi
+prosím sadni	si
+prosím sadnite	si
 prosím vás	kde
 proti	tomu vojne
-prvý	pohľad deň raz krok
+prvý	pohľad raz deň krok
 prvý deň	v
 prvý raz	v
 prvýkrát	čo
@@ -1304,14 +1447,16 @@ práve som	sa
 právo	na
 príde	domov alebo
 príde alebo	nie
+príde domov	o
 prídem	včas na
 prídeš	do
-príliš	veľa ťažká málo neskoro rýchlo drahé
+príliš	veľa ťažká neskoro málo drahé rýchlo
+prípade	požiaru
 príroda	je
 prísť	na zajtra
 psa	a
 psi	sú
-pán	boh
+pán	boh doktor
 pár	minút
 páči	sa moja
 páči sa	mi ti vám
@@ -1320,15 +1465,15 @@ páčia sa	mi
 páčiš	sa
 päť	je prstov plus rokov sa
 päť plus	dva
-píše	list a na
+píše	list na a
 píšem	list
 píšu	listy
 pôjde	do
 pôjdem	do
-rada	že by kávu počúvam hudbu ťa
+rada	že počúvam by kávu ťa futbal
 rada by	som
 rada ťa	vidím
-rada že	som ťa je
+rada že	som sa ťa je
 radšej	by
 radšej by	som
 rastie	veľa
@@ -1345,17 +1490,18 @@ robiť	zajtra v keď
 robiť keď	je
 robte	dobre
 robte dobre	tým
-robí	tvoj tvoja
+robí	tvoj tvoja majstra
 robíme	chyby
-robíš	zajtra vo
+robíš	v zajtra vo
 rodina	je
 rodina je	veľká veľmi
 rodiny	v
-rodičia	sú
+rodičia	sú nie
+rodičia nie	sú
 rohu	miestnosti
 rok	má veľa
 rok má	štyri
-rokov	má
+rokov	má v a
 roky	vo
 roky vo	väzení
 rovno	potom
@@ -1365,26 +1511,29 @@ rozdiel od	väčšiny
 rozhodla	som
 rozhodla som	sa
 rozhodli	sa
+rozhodnúť	kde
+rozhodnúť kde	to
 rozhodol	som sa
 rozhodol som	sa
 rozpráva	sa
 rozumeli	ste
 rozumiem	ti vám
+rozumieme	si
 rozumiete	po
 rozumieš	po čo tomu
-ročné	obdobia obdobie
+ročné	obdobie obdobia
 ruka	má
 ruka má	päť
 ruky	a preč hore
 rusko	je
-rád	že by počúvam ťa pizzu sa
+rád	že by počúvam kávu ťa pizzu
 rád by	som
 rád ťa	vidím
-rád že	ste sa vás
-ráno	som deň sa mi
-rýchlejšie	ako
+rád že	ste som sa vás je
+ráno	deň som sa mi
+rýchlejšie	ako než
 rýchlo	sa
-s	tebou ním tým ňou nami kým
+s	tebou ňou tým ním nami kým
 s kým	si sa
 s niečím	pomôcť
 s nimi	v
@@ -1393,46 +1542,50 @@ s vami	všetkými
 sa	mi to na ti že volá
 sa ako	doma
 sa bojí	tmy
+sa bál	že
 sa cítim	omnoho
 sa deje	v
 sa do	nej
 sa dobre	ďakujem a
+sa dostanem	na
 sa ho	na
 sa hore	na
-sa hovorí	že po v
+sa hovorí	v že po
 sa hrá	s
 sa je	ľudské
 sa ma	spýtal
-sa mi	páči to táto že za pozrieť
+sa mi	to páči táto že za pozrieť
 sa minulý	týždeň
 sa mu	to
 sa má	tvoja
 sa máš	dobre
 sa môžem	naučiť
-sa na	mňa neho to ňu strop seba
+sa na	mňa to neho ňu seba strop
 sa narodil	v
-sa naučiť	hrať
+sa naučiť	hrať cudzí
 sa necíti	dobre
 sa niečo	nové
-sa o	ňu kameň pol politiku to
+sa o	ňu kameň pol politiku to seba
 sa podobá	na
 sa používa	na
 sa povie	po
 sa pripraviť	na
 sa píše	a
+sa rozhodnúť	kde
 sa s	ním ňou tebou tým
 sa sem	pred
 sa so	mnou
 sa stalo	včera s
-sa ti	páči to
+sa ti	páči to tu
 sa to	povie stalo urobiť stane bude
 sa v	tejto
 sa volá	tvoj tvoja
+sa von	oknom
 sa vám	to páči
 sa za	ňu
 sa zase	niečo
 sa začína	o v
-sa že	spím je ťa to sa
+sa že	spím je ťa to na nie
 sadni	si
 sadnite	si
 sadol	si
@@ -1448,11 +1601,11 @@ sedím	v
 sedíme	na
 sem	príde pred
 sem pred	tromi
-sestra	sa má pracuje
+sestra	sa je má pracuje
 sestra pracuje	ako
 si	že to sa si mi niekedy
 si bol	v šťastný s
-si bola	šťastná
+si bola	s šťastná
 si dal	do
 si ešte	niečo
 si istá	že či
@@ -1460,43 +1613,49 @@ si istí	že
 si istý	že či
 si je	toho
 si jesť	viac
-si mi	o to prosím povedal povedala
+si mi	o prosím to povedal povedala nepovedala
 si moju	sestru
-si myslel	že
+si myslel	že to
 si myslia	že
 si myslí	že
 si myslíte	že
 si myslíš	že ty
 si na	to neho
 si nemyslí	že
-si niekedy	v videla o videl
+si niekedy	v videl videla o
 si novú	prácu
 si o	nej
 si robil	včera
 si robila	včera
 si s	nimi
-si sa	ho naučil narodil s stala
+si sa	s ho naučil narodil stal stala
 si si	istý istá niekedy
 si so	mnou
 si spomenúť	na
 si to	ty napísať urobil predstaviť
+si toho	vedomá
 si tu	zostal
 si už	niekedy
 si v	poriadku
 si vidieť	čo
 si všetko	čo
 si zo	mňa
-si že	je som to sa budeš sú
+si že	je som to sa si budeš
 siedmich	dní
-silné	a
+silnejší	ako
+silnejší ako	ženy
+silné	zviera a stránky
 silné a	slabé
 silný	a
 situácia	je
+situácia je	veľmi
 skoro	som na každý spať
+skoro každý	deň
 skutočnosti	nie
 skutočnosti nie	sú
 skutočné	meno
 skutočný	dôvod
+skvele	ale
 skvelý	nápad
 skákať	na
 skôr	či ako než
@@ -1504,20 +1663,23 @@ skôr či	neskôr
 skús	to
 skúseností	ako
 slabé	stránky
+sladké	sny
 slepý	ako
 slnečné	okuliare
-slnko	je svieti vychádza
+slnko	je svieti vychádza zapadá
 sloboda	je
 slova	z
 slova z	toho
-slovo	má z je ktoré v znamená
+slovo	má je z po ktoré v
 slovo z	toho
 slová	ktoré ma
 slušne	som
-sme	sa si z v to do
+sme	sa si mali v to z
 sme sa	nevideli
 sme si	že mysleli
 smiať	sa na
+snažil	som
+snažil som	sa
 snažila	som
 snažila som	sa
 snažím	sa
@@ -1525,51 +1687,56 @@ snom	je
 so	mnou sebou svojimi svojím všetkými svojou
 so mnou	môžeš prosím
 so svojím	miestom
-som	sa si že to ti ho
+som	sa si že to na ho
 som ako	sa ty
-som bol	v
+som bol	v tebou
 som byť	s
 som chcel	byť
-som do	školy kaviarne nemocnice
+som do	školy nemocnice kaviarne
 som ho	ale videl
+som hovoril	s
 som hrdý	na
 som jej	dobrú že
 som ju	spievať uvidel
+som mal	peniaze
+som mohol	byť
 som mu	o aby
 som na	teba to vás ňu
+som naňho	hrdý
 som niečo	čo
 som o	piatej
 som popri	rieke
 som pretože	som
 som rada	že
 som rád	že
-som s	ňou ním nimi
-som sa	v že s so vrátil to
-som si	istý že istá to myslel tvoj
+som s	ňou nimi ním
+som sa	v s že so vrátil to
+som si	istý že istá myslel to tvoj
 som spadla	z
 som spadol	z
 som spokojný	s
 som tak	rád
-som ti	to že všetko
-som to	pre ja urobil predala isté urobiť
+som ti	že to všetko
+som to	pre ja urobil predal predala najlepšie
 som toho	o
 som tu	aby jediný
 som tvoj	otec
 som tvoja	matka
 som tú	hru
-som v	poriadku práci nemocnici
+som v	poriadku práci ríme nemocnici posteli
 som vaše	meno
 som veľmi	unavený šťastný unavená rád
-som vám	že všetko dobre
+som vám	že všetko to dobre
 som všetky	jeho
 som z	toho
 som čo	si mám
-som ťa	nevidela
-som že	sa je si to ste tu
+som ťa	nevidela nevidel
+som že	sa si je to ste tu
 spadla	z
 spadol	z som
 spadol z	koňa
 spal	som
+spala	som
 spať	pred
 spojených	štátov
 spojených štátov	amerických
@@ -1581,6 +1748,7 @@ spravil	som
 spravila	som
 správa	je sa
 správnu	odpoveď
+správy	pre
 späť	do
 spôsob	ako
 spôsob ako	to
@@ -1600,23 +1768,27 @@ starší	ako
 stavím	sa
 stavím sa	že
 stať	sa
-ste	sa to si mi niekedy tu
-ste mi	nepovedali prosím
+ste	si sa mi to niekedy tu
+ste mi	prosím povedali nepovedali o
 ste niekedy	v videli
 ste sa	stal stala
-ste si	istý istí istá toho
-ste to	videli
+ste si	istý istí istá toho ma
+ste to	videli urobili
 ste už	niekedy
 ste v	poriadku
+ste videli	niekedy
 ste začať	čo
+steny	majú
 sto	rokov
 stojí	táto na lístok v pri
 stolička	je
 stolička je	veľmi
 stratil	som
-stratil som	sa
+stratil som	sa svoj
 stratila	som
 stratila som	sa
+stretli	sme
+stretli sme	sa
 stretneme	sa
 stretnime	sa
 stretnime sa	o
@@ -1628,127 +1800,149 @@ strop svojej	izby
 strávil	tri
 studené	ruky
 stvoril	boh
-stále	si sú je nie sa zima
+stále	sú si je nie sa zima
 stále tomu	nemôžem
 stáli	tie
 stôl	je
 svet	je
 svet je	v
 svete	je
-svoj	sľub život názor vlastný kľúč
-svoje	deti vlastné meno dieťa sľuby
+svetlé	farby
+svoj	sľub život názor vlastný cieľ kľúč
+svoje	deti meno vlastné dieťa sľuby
 svoje meno	na
 svojej	izbe matke izby
-svojho	druhu otca brata psa
+svojho	otca druhu psa brata
 svojho druhu	a
-svojich	priateľov snov nepriateľov
+svojich	nepriateľov priateľov snov
 svojom	veku dome
-svoju	dcéru matku izbu prácu pravdu
+svoju	dcéru matku prácu pravdu izbu rodinu
 svojím	miestom
 svojím miestom	v
 syn	je
 sám	seba sebou do
-sú	veľmi v si na ako tieto
+sám do	nej
+sú	veľmi v si na tieto to
 sú moje	kľúče
-sú moji	priatelia
+sú moji	priatelia rodičia
 sú si	všetky
 sú tvoje	silné
+sú títo	ľudia
+sú v	múzeu
+sú vaše	silné
 súhlasím	s
-sľubujem	že
+sľubujem	že ti
+sľubujem ti	že
 sľubujem že	tam
 sľúbil	že
 t	u
-tak	ako dlho sa dobre rýchlo veľa
+tak	ako dlho sa rýchlo dobre skoro
 tak ako	by
 tak dlho	čakať
 tak rád	že
 tak skoro	spať
-takmer	nikdy každý
+tak vysoký	ako
+takmer	nikdy každý nič
 takmer každý	deň
-taká	smutná
-také	jednoduché krásne ťažké zábavné
-taký	smutný je aký dobrý hladný
+takmer nič	o
+taká	smutná hladná
+také	jednoduché ťažké krásne zábavné
+taký	smutný je aký dobrý hladný hlúpy
 taký aký	je
 taký je	život
-tam	kde ísť je bolo budem veľa
+takže	čo
+tam	kde je ísť budem bolo veľa
+tam budem	načas
 taška	je
 teba	veľmi zabudnúť dobré pekné
 teba dobré	správy
-tebe	sa
-teda	som
+tebe	sa nikdy
+teda	som nie
 tej	istej
 tej istej	rieky
-tejto	knihe budove
+tejto	knihe izbe budove
 telefónne	číslo
-ten	ktorý muž dom list kto chlapec
-tento	dom víkend kameň rok nôž list
+ten	ktorý muž kto dom list chlapec
+tento	nôž dom víkend kameň rok list
 tento chlapec	je
 tento dom	je
 tento pohár	je
 tento preklad	je
-teraz	som je môžeš hodín sa mám
+teraz	som je môžeš robiť nie hodín
 teraz môžeš	ísť
 teraz nie	je
 teraz pracuje	v
 teraz pracujem	v
 teraz som	v
 teší	ma
+teší ma	že
 teším	sa
 teším sa	na
-ti	to páči všetko pomôcť že za
+ti	to páči všetko že pomôcť za
 ti keď	sa
 ti môžem	pomôcť
 ti páči	moja
 ti to	povedal
+ti veľmi	pekne
 ti všetko	najlepšie čo
-ti že	sa
-tie	peniaze isté
+ti že	sa to
+tie	peniaze isté dvere
 tie isté	chyby
-tieto	veci
+tieto	dvere veci
 tmavé	vlasy
-to	je nie čo pre isté urobiť
+to	je nie čo pre urobiť isté
 to bolo	od
-to by	bolo
+to bude	fungovať
+to by	bolo bola
+to chcel	urobiť
 to chcem	urobiť
 to chcete	vedieť
+to chceš	vedieť
 to dobrý	nápad
+to ešte	raz
 to isté	platí
-to je	všetko môj od moja veľmi tvoja
+to ja	som
+to je	všetko môj od veľmi moja tvoja
 to jej	jediná
+to mal	urobiť
 to moja	vina chyba
 to môže	urobiť
 to najhoršie	je
 to najlepšie	ako
+to naša	jediná
 to nebola	moja
 to nemôže	byť
 to nie	je
 to niečo	čo
 to povie	po v
-to pre	mňa teba neho nás vás ňu
+to pre	mňa teba neho nás ňu vás
+to príliš	drahé
 to sa	mi
 to si	už
 to som	ja
 to tvoja	vina
+to ty	si
 to urobiť	sám sama
 to v	poriadku
 to vôbec	nie
 to všetko	bude
 to za	to
 to zlá	vec
-to čo	sa si
+to čo	sa si ste
 to ľudská	kosť
 to že	som
-toho	čo aby o svedkom istého pieseň
+toho	čo aby o svedkom istého vedomá
 tomto	meste obchode
 tomu	čo nemôžem kto
 tomu nemôžem	uveriť
-toto	je sú slovo nie miesto som
-toto je	moja môj naša tvoj dom tvoja
+toto	je slovo sú nie miesto som
+toto je	moja môj tvoj naša dom to
 toto miesto	je
 toto nie	je
 toto sa	stáva
-toto sú	jej
-treba	urobiť
+toto slovo	je
+toto sú	jej moji
+treba	urobiť viacej
 tretí	deň
 treťom	poschodí
 tri	roky hodiny deti týždne mesiace body
@@ -1759,22 +1953,25 @@ trocha	vody
 trochu	po starší
 tromi	rokmi
 trvať	dlho
-tu	je nie na veľa už sa
+tu	je na nie veľa už sa
 tu aby	som
+tu boh	povedal
 tu je	moje
 tu jediný	kto
 tu na	mňa
 tu nie	je
 tu sa	hovorí
-tvoj	otec obľúbený syn názor brat list
-tvoja	matka dcéra odpoveď žena sestra vina
+tvoj	otec obľúbený syn brat názor list
+tvoja	matka dcéra odpoveď sestra žena rodina
 tvoja odpoveď	je
 tvoje	meno silné slabé sny
+tvojej	otázke
 tvojho	života
 tvoji	rodičia
 tvojom	mieste živote
 tvojom mieste	by
-tvoju	pomoc správu
+tvoju	správu pomoc
+tvrdí	že
 ty	si vieš nie sa nevieš a
 ty nie	si
 ty si	môj to
@@ -1782,22 +1979,25 @@ typ	človeka
 tá	káva
 tá káva	je
 táto	pieseň otázka taška izba budova
+táto budova	je
 táto otázka	je
 táto taška	je
 tí	ktorí
+títo	ľudia
 tú	otázku hru istú budovu kosť
 tú istú	chybu
-túto	pieseň prácu
-tým	čo ktorí že nič má menej
+túto	prácu pieseň báseň otázku
+tým	čo ktorí že skôr nič má
 tým ktorí	vás
-tým čo	vás
-týždeň	je som
+tým čo	si vás
+týždeň	som je
 u	nás mňa lekára zubára
 ukázala	mi
 ukáž	mi
 ukážem	ti vám
 ukážte	mi
-umy	si
+ulica	bola
+uložené	v
 upokoj	sa
 urazil	som
 urob	to
@@ -1808,26 +2008,27 @@ urobil som	to
 urobila	som si
 urobila si	to
 urobila som	to
-urobili	ste
+urobili	ste sme
 urobili ste	to
-urobiť	sám dnes sama
+urobiť	sám dnes ale sama
 určite	si
 utiecť	z
 utiecť z	väzenia
 uveriť	že vlastným
 uveriť že	si
 uvidíme	sa
-uvidíme sa	zajtra
+uvidíme sa	zajtra neskôr
 učiť	sa
 už	si som niekedy ste je nie
 už nie	je sú
-už niekedy	opicu ducha
+už niekedy	opicu ducha v
 už si	niekedy si dnes
 už som	ti to
-už ste	niekedy
-v	poriadku noci tejto tomto kuchyni škole
+už ste	niekedy videli
+v	poriadku noci tejto tomto škole kuchyni
 v jej	izbe
 v každom	prípade
+v kope	sena
 v ktorých	je
 v kuchyni	je
 v lásku	na
@@ -1839,29 +2040,34 @@ v poriadku	a
 v poslednom	čase
 v posledných	voľbách
 v pravej	ruke
+v prípade	požiaru
 v rohu	miestnosti
 v skutočnosti	nie
-v tejto	budove
+v tejto	izbe budove
 v tomto	meste obchode
 v tvojom	živote
 vami	všetkými
-vaša	odpoveď dcéra žena
+vaša	odpoveď dcéra žena rodina
 vaša odpoveď	je
-vaše	meno slabé
+vaše	meno silné slabé
 vašej	otázke
-vašu	správu pomoc odpoveď
+vaši	priatelia
+vašom	živote
+vašu	správu pomoc láskavosť odpoveď
 veci	ktoré
+vecí	ktoré
 vedel	som že si
 vedel som	že
 vedela	že som
 vedia	že
 vedie	cez
 vedie cez	žalúdok
-vedieť	čo ak prečo kde
+vedieť	čo ak kde prečo
 vedomosti	sú
 vedomosti sú	sila
 vedú	do
 verí	v
+verím	v
 veríte	v
 veríš	v
 veríš v	lásku
@@ -1873,13 +2079,14 @@ vezmi papier	a
 vezmite	si
 večer	a som
 večera	je
-veľa	peňazí času vody šťastia priateľov som
+veľa	peňazí času vody priateľov ľudí šťastia
 veľa som	toho
 veľa to	pre
 veľkej	británie
 veľké	oči šťastie a
-veľký	je
-veľmi	rád dobre pekne sa dobrá rada
+veľkú	rodinu
+veľký	dom je
+veľmi	rád dobre pekne sa dobrý dobrá
 veľmi krásny	deň
 veľmi mi	chýba
 veľmi pekne	za ďakujem
@@ -1889,37 +2096,40 @@ veľmi ti	ďakujem
 veľmi ťa	milujem
 vhodné	pre
 vhodný	čas
-viac	než ako času peňazí to vody
+viac	ako než času peňazí to vody
 viac nebudem	jesť
+viac skúseností	ako
 viac to	tak
 viacej	by
 viacej by	som
 videl	som si že
-videl si	niekedy už
+videl si	niekedy už moju
 videl som	ho ju
 videl že	je
 videla	si som
 videla si	niekedy už
 videla som	ho ju
-videli	ste
+videli	ste niekedy
 videli ste	niekedy už moju
-vidieť	čo
+vidieť	čo viac
 vidieť čo	som
+vidím	piatich
 vidíme	sa iba
 vidíme iba	srdcom
-vie	že hovoriť dobre všetko kde čo
+vie	že hovoriť všetko kde dobre čo
 viem	že čo kde ako aký prečo
 viem dobre	čo
 viem o	čom
 viem prečo	sa
 viem že	je to si sa
 vieme	že
-viete	hovoriť po čo kto ako že
+viete	hovoriť po čo kto ako hrať
 viete ako	sa
+viete aké	sú
 viete hovoriť	po
 viete hrať	na
 viete kto	napísal
-vieš	čo kto hovoriť po že hrať
+vieš	čo kto hovoriť že po hrať
 vieš ako	sa
 vieš aké	sú
 vieš hovoriť	po
@@ -1928,9 +2138,10 @@ vieš kto	napísal
 vieš že	som nie
 vitajte	v na vo
 vlasy	sú a
-vo	väzení svojej svojom vode vesmíre vašom
+vo	väzení svojej vode svojom vesmíre vašom
 vo svojej	izbe
 vo svojom	dome
+vo vašom	živote
 vo vesmíre	je
 vo voľnej	prírode
 voda	je
@@ -1939,10 +2150,12 @@ vojna	sa je
 volal	som
 volá	tvoj tvoja
 volám	sa
+von	oknom
 vonku	je bolo
 vopred	vám
 voľnej	prírode
 voľné	miesto
+voľný	čas
 vraví	že
 vraví že	sa
 vrátil	sa
@@ -1964,36 +2177,46 @@ vyhlásil	že
 vyhral	som si
 vyhrala	som
 vyhrali	ste
+vyrobená	z
 vyrobené	v
+vysoká	ako
+vysoký	ako
 vystúpil	na
-vyzerá	to ako byť presne
+vyzerá	to ako byť presne skvele
 vyzerá presne	ako
+vyzerá skvele	ale
 vyzerá to	že ako
-vyzeráš	ako
+vyzerám	ako
+vyzeráš	ako naozaj
+vyšiel	z
+vzal	som
+vzal som	si
 vzala	som
 vzala som	si
-vám	to za že pomôcť môžem všetko
+vám	to za že veľmi pomôcť všetko
 vám môžem	pomôcť
 vám veľmi	pekne
 vám všetko	čo
 vám že	sa
-vás	vidím veľmi nenávidia to bolí tu
+vás	vidím veľmi nenávidia to bolí niečo
+vás so	sebou
 váš	názor obľúbený brat list
 vášho	života
 väčšia	ako
 väčšie	ako
 väčšina	ľudí
 víno	je
-vôbec	nie nič sa som
+vôbec	nie nič som sa netuším
 vôbec nie	je
 východ	slnka
 výhľad	na
-včera	som večer bol ráno bola si
-včera som	dostal bol ho dostala
+včera	som večer bol bola ráno bolo
+včera som	ho dostal dostala bol
+včerajšie	zatmenie
 vďaka	že za bohu
 vďaka že	si
-všade	som
-všetci	sme sú ľudia ste sa milujú
+všade	som boli
+všetci	sme sú ľudia ste sa hovoria
 všetci robíme	chyby
 všetci ľudia	sú
 všetko	čo je najlepšie v sa bolo
@@ -2002,22 +2225,26 @@ všetko je	v
 všetko najlepšie	k
 všetko v	poriadku
 všetko čo	o chcem potrebujem si sa sme
-všetky	jeho dvere deti vaše možnosti tvoje
+všetky	dvere jeho deti vaše možnosti tvoje
 všetky dvere	a
 všetkému	čo
 všetkých	čias síl som
+všimol	som
+všimol som	si
 vždy	som pravdu sa so keď všetko
+vždy k	nej
 vždy so	mnou
-vždy som	mu jej
+vždy som	jej mu
 z	toho nich nás domu čoho neho
+z akého	dôvodu
 z najlepších	hráčov
 z nejakého	dôvodu
 z nich	je
 z toho	čo
 z čoho	sa
-za	to čo nami vašu všetko opýtanie
+za	to čo nami všetko vašu ruku
 za desať	minút
-za to	čo
+za to	čo že
 zabil	som
 zabila	som
 zabudla	som si
@@ -2028,12 +2255,13 @@ zabudnime na	to
 zabudnite	na
 zabudnúť	na
 zabudol	som si že
-zachovajte	pokoj
 zahral	na
-zajtra	bude ráno sa je poobede večer
+zajtra	bude je ráno sa poobede budem
 zajtrajší	deň
 zamiloval	som
 zamiloval som	sa
+zapadá	na
+zapadá na	západe
 zase	niečo raz
 zase niečo	nové
 zaslúžiš	si
@@ -2053,15 +2281,16 @@ zavrieť	dvere
 začal	učiť jesť
 začať	čo
 začať čo	najskôr
-začína	o v
+začína	o skúška v
 zdravia	je
 zdravia je	všetko
+zdravie	je
 zdravím	som ja
 zdravím ja	som
 zdá	sa
 zdá sa	že mi
 zem	je a sa na zem
-zem je	oveľa
+zem je	tretia oveľa
 zemi	je
 zima	je
 zlato	je
@@ -2074,14 +2303,18 @@ zmysel	pre života
 zmysel pre	humor
 znamená	to že toto
 znamená to	že
+znamená toto	slovo
+znova	uvidím
 známy	svojou
 zo	všetkých mňa svojich stromu strechy svojej
 zo siedmich	dní
 zo všetkých	síl
-zobudil	som ma
+zobudil	ma som
+zobuď	ma
 zomrel	na
 zomrel na	rakovinu
 zopár	slov
+zostal	v
 zostaň	so doma
 zostaň so	mnou
 zostaňte	so
@@ -2097,57 +2330,70 @@ záchod	je
 záleží	na len
 záleží len	na
 zďaleka	nie
+zľahka	na
 áno	som je rozumiem hovorím
 áno je	to
-ísť	do domov na s von spať
+ísť	do domov s na von spať
 ísť do	školy
 ísť domov	ak
 ísť s	tebou nami
+ísť so	mnou
+úlohu	v
 úplne	som v neprijateľné
-úplne som	zabudol
+úplne som	zabudol zabudla
 úplnú	pravdu
+úprimnú	sústrasť
 úžasné	správy
 čakal	som
 čakať	do
 čakám	na
 čas	na je sa ísť
 čas na	zmenu
+časová	jednotka
 často	sa
 často sa	hovorí
-času	ktorá
-či	je neskôr sa vám ti príde
+času	na ktorá
+či	je sa neskôr vám ti to
 či je	to
 či neskôr	mi
 či príde	alebo
 či ti	môžem
 či vám	môžem
+čia	je
+čia je	táto
+čierne	vlasy
 čiernej	hory
+čisté	svedomie
 členov	má
 človek	je ktorý
 človeka	a ktorý poznáš je po
 človeku	nemožno
 človeku nemožno	žiť
-čo	si sa je som by to
+čo	je sa si som by ste
 čo ak	sa
 čo bolo	v
 čo budeme	robiť
+čo budeš	robiť
 čo by	som si ste
-čo je	to v na vlastne toto lepšie
+čo je	to v na toto vlastne lepšie
 čo mi	dal
 čo myslíš	že
 čo mám	robiť
 čo máme	robiť
 čo máš	na
+čo môžeme	urobiť
 čo môžeš	urobiť
 čo pomáha	na
+čo povieš	na
 čo robiť	keď v
 čo robí	tvoj tvoja
 čo robíš	zajtra
 čo s	tým
 čo sa	stalo deje ti stane dnes tu
-čo si	o myslíš povedal sa myslíte mi
-čo som	našiel urobil našla urobila im si
+čo si	o myslíš povedal mi sa robil
+čo som	našiel urobil urobila našla im si
 čo ste	povedali
+čo sú	to
 čo ti	hovorím
 čo to	znamená je
 čo toto	znamená
@@ -2160,66 +2406,76 @@ zďaleka	nie
 čoho	sa
 čoho sa	najviac
 čokoľvek	sa
-čom	hovoríš hovoríte je
+čom	hovoríš hovoríte je to
 čomu	veria
+čoskoro	sa ju
 čí	je
-čím	sa
+čím	sa skôr
 číslo	je
 čítal	som
 čítať	ani
 čítať ani	písať
 ďakujem	za vám ti že veľmi
-ďakujem ti	za
+ďakujem ti	za veľmi
 ďakujem veľmi	pekne
 ďakujem vám	za veľmi
-ďakujem za	vašu opýtanie všetko
+ďakujem za	vašu opýtanie všetko to
 ďakujem že	ste si
-ďaleko	od
+ďaleko	od je
 ďaleko od	stromu
-ľahko	sa
+ďalšia	otázka
+ľahko	sa dostupný
 ľahni	si
 ľahni si	na
-ľudia	sú sa majú veria hovoria si
+ľudia	sú sa majú veria hovoria nemajú
 ľudia sú	si
 ľudská	kosť
+ľudí	si
 ľúbim	ťa
 ľúto	čo
 ňu	veľmi
-šiel	som do domov na spať
+šiel	do som domov na k spať
 šiel do	školy
 šiel som	do
 šikovný	ako
-šla	som domov
+šla	som domov do
 šla som	do
 štvrtok	piatok
+štvrť	na
 štyri	päť deti nohy
 štátov	amerických
+šťastia	a
 šťastie	že
 šťastný	nový že
 šťastný nový	rok
 ťa	vidím milujem to vidieť veľmi pobozkať
 ťa so	sebou
 ťažkosti	s
+ťažké	časy
 že	je sa to som si by
-že budete	príjemne milo
-že by	si som to sme sa
+že budete	milo
+že by	si sa som to mal ste
 že chce	ísť
 že chceš	aby
 že ešte	nie
 že ho	miluješ
 že hovorí	po
-že je	to nevinný čas nevinná
+že je	to nevinný čas mojím nevinná
 že ma	vyhodia
 že má	pravdu strach
+že máte	pravdu
+že máš	pravdu
 že nechceme	ísť
+že nechceš	ísť
 že nie	som je
 že nám	treba
-že sa	to ti stane mýli o na
-že si	to mi tu sa si
-že som	sa ťa si vás tu naňho
+že sa	to ti stane mýli o jej
+že si	mi to tu sa si
+že som	ťa sa vás tu si naňho
 že ste	tu si
 že tam	budem
 že to	bude urobil nie bol pre bola
+že toto	je
 že tu	budeš bude
 že tá	káva
 že vás	vidím
@@ -2231,17 +2487,16 @@ zďaleka	nie
 ženy	sú rady
 žiadna	správa
 žiadne	peniaze
-žiadny	problém zmysel
+žiadny	dôkaz problém zmysel
 žije	v vo na
 žijem	v
 žijeme	v
-žijete	v
 žiješ	v
 žijú	v na
 žil	na
 žil na	zemi
 žili	v
 život	je taký ide
-život je	v
+život je	v krátky
 žiť	v bez na večne
 žiť v	tomto

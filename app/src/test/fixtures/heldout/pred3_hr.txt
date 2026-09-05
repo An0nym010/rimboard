@@ -1,13 +1,14 @@
 a	da on
 ako	ne ti
-ali	ne mi je nije
+ali	ne mi to je nije
 auto	je
-bi	se trebali bilo li trebao
-bih	te da
+bi	se trebali mogao bilo ti dobro
+bih	trebao te da
 bila	je u sam
-bilo	je na bi
+bilo	je bi na
 bio	je sam u
 biti	u ovdje
+bitno	je
 bog	zna
 bog zna	sve
 bojim	se
@@ -15,15 +16,18 @@ bojiš	li
 bojiš li	se
 boli	me
 bolje	je
+brat	je
 briga	za
 budući	da
 cijeli	dan
 cijelo	popodne
-da	je se bi će sam ne
-da je	to ovo
+da	je bi će se sam ne
+da je	to on ovo
 da mi	se
 da ne	znam
 da se	ne
+da to	nije
+da će	ti
 daj	mi
 daleko	od
 dan	je
@@ -39,17 +43,24 @@ do	kraja
 dobar	dan
 dobio	sam
 dobri	prijatelji
-dobro	je se sam uvijek
-dok	je
+dobro	sam je se za vidi uvijek
+dobro vidi	bitno
+događa	ovdje
+dok	je sam
 donesi	mi
+doći	u
 došao	je sam na
 drugi	ne
 dva	sata
-dvije	godine stvari
+dvije	godine kćeri stvari
+evo	moje
+evo moje	tajne
 ga	je ne učiniti se
-gdje	je si su se sam ste
+ga ne	može
+gdje	je si se su sam ste
 glavni	grad
 godine	je
+govoriš	li
 grad	je
 hotel	u
 hoće	li
@@ -65,25 +76,28 @@ idem	u
 idem u	školu
 idemo	na
 idu	u
-ili	ne
+ili	ne poslije
 ima	mnogo li puno
 imali	smo
-imam	dvije
-imao	sam je
+imam	dvije problem
+imao	je sam dovoljno
 imate	li
 imaš	li
 ime	je
 iz	škole
 izgleda	da
 ići	u na ću s kući
-ići u	školu
+ići u	školu krevet
 išao	u na je
+išli	smo
 ja	sam ću nisam ne se volim
 ja mislim	da
+ja ne	mogu
 ja sam	iz
 jako	dobro mi
 jako mi	se
 je	li u bio bila to moj
+je bio	u
 je da	je
 je glavni	grad
 je li	to ovo on
@@ -91,35 +105,38 @@ je moj	prijatelj
 je moja	žena
 je na	stolu
 je ono	što
+je otišao	na
 je otvorio	vrata
 je rekao	da
 je rekla	da
+je rođen	u
+je u	opasnosti
 je zar	ne
 jedan	od
 jedna	od
 jednu	osobu
-jer	je sam
+jer	je sam su
 jesi	li
-jesi li	ti već
+jesi li	ti već se
 jeste	li
 jesu	li
 jesu li	ti
 joj	je se
-još	uvijek nije jednom jednu
+još	uvijek nije jednu jednom
 još uvijek	ne
-ju	je
-kad	sam je
+ju	je volio
+kad	sam je bi
 kad sam	se
 kada	se je će sam si
 kada će	se
-kako	se si bi je sam mogu
+kako	se si bi je mogu sam
 kako je	to
-kako se	kaže zove to zoveš
-kao	dijete i da
+kako se	kaže zove zoveš to
+kao	dijete i da što
 kao dijete	sam
 kaže	da
 kod	kuće
-koja	je živi
+koja	je se živi
 koja živi	u
 koje	je ne
 kojeg	sam
@@ -133,20 +150,20 @@ koliko je	sati
 kutija	je
 kutija je	bila
 kuća	je
-li	ti mi se to da ovo
+li	ti mi se to da me
 li da	je
 li mi	reći pomoći
 li ti	se
 li to	tvoj
 lijep	dan
-ljudi	su
+ljudi	su koji
 majka	je
 mala	djeca
 manje	od
-me	je ne da na
+me	je ne da uopće na nazvati
 me na	miru
-mi	je se smo da reći ne
-mi je	rekao rekla sve
+mi	je se smo reći da ne
+mi je	rekao rekla dao sve
 mi reći	gdje
 mi se	sviđa
 mi živi	u
@@ -158,13 +175,13 @@ misliš	li o da
 misliš li	da
 mišljenje	je
 mnogo	vremena je novca
-mogao	sam razumjeti to
-mogu	li se vjerovati vidjeti to
-mogu li	se dobiti
+mogao	sam to razumjeti
+mogu	li se vjerovati vidjeti te to
+mogu li	dobiti se
 moguće	je
-moj	otac prijatelj brat je stariji
-moja	žena majka sestra kuća obitelj
-moje	ime
+moj	otac brat prijatelj je stariji djed
+moja	žena majka sestra kuća soba obitelj
+moje	ime tajne
 moje ime	je
 moji	roditelji
 molim	te vas
@@ -173,47 +190,53 @@ moram	ići
 moram ići	u
 morao	sam
 moraš	se
+more	je
 može	biti li
 možete	li
 možete li	mi
-možeš	li doći
+možeš	li doći ići
 možeš li	mi
-mu	je
+mu	je se
 na	svijetu svoj posao stolu mene vrijeme
 na putu	do
 na stolu	je
 na svoj	način
 nadam	se
 nadam se	da
+nakon	što
 nam	je se
 napravio	sam
 nas	je to
+naučio	sam
 nazovi	me
 ne	mogu znam može želim bi možeš
 ne idem	u
 ne mogu	vjerovati se
 ne može	biti
 ne razumijem	zašto
+ne zaboravi	me
 ne znam	što hoću
 nebo	je
-nego	što on je
+nego	što u on je
 neki	ljudi gospodin
 nema	smisla života
 nemaju	zube
 nemam	vremena pojma puno
+nemamo	izbora
 netko	je
 new	yorku york
 neće	biti
 nećeš	biti
 neću	ići
-nešto	što
+nešto	što ne
 nešto što	nitko
 ni	jednu
-nije	bio bilo bila znao baš tako
+nije	bio bilo bila me znao dobro
 nije bio	u
+nije dobro	za
 nikad	ne nisam nije
 nikada	nisam ne
-nisam	mogao se te to imao
+nisam	mogao imao te se to bio
 nisam mogao	razumjeti
 nitko	nije ne drugi
 nitko drugi	ne
@@ -221,6 +244,7 @@ ništa	ne nije se
 njegov	otac
 njegovo	mišljenje ime
 nosila	je
+novca	da
 o	tome tebi čemu ovome
 obećao	je
 od	mene njega tebe svih nas sebe
@@ -228,7 +252,7 @@ odgovor	je
 on	je se ima će nije ne
 on ima	mnogo
 on je	moj dobar
-ona	je se nije ima će živi
+ona	je se nije živi ima će
 ona je	moja
 ona se	zove
 onaj	tko
@@ -239,7 +263,7 @@ ostati	u
 ostavi	me
 otac	je
 otići	u
-otišao	je sam u
+otišao	je sam u na
 otišao je	na
 otišao sam	u
 otvorio	vrata
@@ -254,9 +278,12 @@ paket koji	sam
 pas	je
 pio	sam
 pitao	sam
+po	prvi
 pokaži	mi
-prije	nego tri
+prije	nego tri ili
+prije ili	poslije
 prije nego	što
+pričati	s
 proveo	sam
 prošle	godine
 ptica	je
@@ -270,21 +297,24 @@ rat	je
 razgovarati	s
 razumijem	zašto
 reci	mi
-rekao	da si je
+rekao	da si sam je
 rekla	da
-reći	gdje da
+reći	gdje ću da
+riješiti	problem
 roditelji	su
+rođen	u
 ruci	nego
 s	tobom njom njim nama njima
-sa	mnom svojim
-sam	se u na da ga ju
+sa	mnom svojim sobom
+sada	se
+sam	se na u da ju ga
 sam da	je
 sami	je
 samo	se
 se	ne da zove na u sviđa
 se da	je
 se ne	može sviđam
-si	mi učinio bio tako nas ti
+si	mi učinio tako bio to nas
 siguran	da
 sin	je
 sina	i
@@ -293,6 +323,7 @@ sjećam	se
 sljedeći	tjedan
 slobodan	dan
 smatra	da
+smatram	da
 smijem	li
 smo	u se bili odlučili
 soba	je
@@ -301,32 +332,37 @@ stići	u na
 stol	je
 stolu	je
 stvari	koje
-su	se bili dobri u ga ti
+stvari koje	ne
+stvarno	nisam
+su	se bili dobri u ti ga
 sutra	ujutro
 sva	vrata
 svake	godine
 svaki	dan put
-sve	što je više dok najbolje o
+sve	što je više dok najbolje da
 sve što	je
-svi	smo su
-sviđa	li mi
+svi	su smo
+svi su	se
+sviđa	mi li
 sviđa li	ti
 sviđa mi	se
 svog	djeda
-svoj	način posao
+svoj	posao način
 svojim	roditeljima
 svojoj	sobi majci
 svoju	majku djecu sobu
 svome	ocu
 taj	čovjek
 tajna	je
+tako	sam
 takvo	što
 tamo	gdje
-te	vidjeti ne pitati ovdje
-ti	si je se to ne
-tko	je su te
+te	ne vidjeti pitati ovdje čekati
+ti	si je se to ne rekao
+tko	je su ti te
 tko je	taj
-to	je nije što ne učiniti napraviti
+tko ti	je
+to	je nije što učiniti ne napraviti
 toga	za
 trebamo	više
 trebao	bi si biti sam
@@ -334,7 +370,7 @@ tri	godine dana
 tvoj	telefon otac auto
 tvoja	majka
 tvoju	adresu
-u	školu pravu svojoj ovom gradu ovoj
+u	školu pravu svojoj gradu ovoj crkvu
 u new	yorku
 u ovoj	zemlji
 u ruci	nego
@@ -343,20 +379,23 @@ umro	je
 uopće	ne
 upravo	sam
 uskoro	ću
-uvijek	je sam u ne
-učinio	sam
+uvijek	sam ne je u
+učinio	sam je
 vam	se je
 vas	ne
-već	je sam imaju
+već	imaju je sam
 većina	ljudi
 vi	ste
+vidi	bitno
+vidi bitno	je
 vidio	sam
 vidjeli	smo
 više	od nego vremena nije
 vjeruje	u
 vjetar	je
+vlak	je
 voda	je
-volim	ga
+volim	te ga
 volio	bih
 voliš	li
 voziti	auto
@@ -367,6 +406,8 @@ vrijeme	je u
 vrijeme je	da
 vrlo	je dobro
 za	mene tebe razumjeti nas vrijeme obaviti
+zaboravi	me
+zaboravi me	nazvati
 zadnji	put
 zar	ne stvarno
 zato	što se
@@ -384,22 +425,25 @@ znam što	je
 znao	da sam
 znao sam	da
 znate	li
+znate li	vas
 znaš	li o
 zove	se
 zovem	se
 će	se biti ti doći danas sutra
 će se	vratiti
+ćeš	raditi to
 ću	ti te se ih
 čak	i
 čini	se
 čini se	da
+činjenica	da
 čovjek	je se
 čuo	sam
-što	je si se sam radiš znači
+što	je si se sam mi radiš
 što je	to rekao
 što misliš	o
 što nitko	drugi
-što se	dogodilo
+što se	dogodilo događa
 što si	učinio radio
 što znaš	o
 žao	mi
