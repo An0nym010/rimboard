@@ -3,8 +3,13 @@
 
     python tools/build_prose_fixture.py            # every shipped language
     python tools/build_prose_fixture.py en tr      # just these
+    python tools/build_prose_fixture.py --paired   # both selection rules
 
 Writes app/src/test/fixtures/prose_<lang>.txt, one sentence per line.
+
+`--paired` writes app/src/test/fixtures/openvocab/{strict,loose}_<lang>.txt
+instead: the same corpus under both selection rules, for the arm that measures
+what the rule below costs. See "What this corpus can and cannot measure".
 
 Why a fixture and not the corpus
 --------------------------------
@@ -73,12 +78,24 @@ than in English.
 
 The fixture is left as it is, and the figures above are the correction to
 apply when reading it. Regenerating would move every recorded number in the
-repository -- twenty-one of them by less than the noise -- to fix one, and the
-finding underneath is not really about the benchmark: 3% of Finnish words are
-absent from a 200,000-word dictionary and the strip can offer nothing for
-them. That is a gap in the keyboard, not in the fixture. See
-`Morphology.isAgglutinative`, which is `lang == "tr"`, and the counted
-60-ending Finnish suffix inventory that generation does not consult.
+repository -- twenty-one of them by less than the noise -- to fix one.
+
+They are not left as a table to be trusted, though. `--paired` writes both
+rules into fixtures/openvocab/ and `StripAccuracyTest.what the fixture's
+selection rule costs` reads the pair, so the correction is re-measured on every
+run rather than quoted from here. That arm also asserts the two fixtures are
+what they claim -- no out-of-dictionary word in the strict one, some in the
+loose -- because a regeneration that quietly lost either would still print a
+plausible table.
+
+The finding underneath is not really about the benchmark: 3% of Finnish words
+are absent from a 200,000-word dictionary and the strip can offer nothing for
+them. That is a gap in the keyboard, not in the fixture, and it is the largest
+one measured in this project. `Compounds.writesClosed` is `lang == "de"` and
+`Morphology.isAgglutinative` is `lang == "tr"`; between them they could reach
+about half of what Finnish is missing. Anything built for that half has to be
+scored against the loose fixture, because the shipped ones cannot see the words
+it would fix.
 
 The bundled *n-gram predictions* are counted from Tatoeba itself, so any
 measurement that passes a preceding word is scoring the model on the data it
@@ -109,6 +126,18 @@ ISO3 = {
 
 WANT = 200
 OUTLIER = 8.0
+
+# `--paired` writes both selection rules side by side, so the cost of the
+# unknown-word rejection can be read in the suite instead of trusted from the
+# table in this docstring.
+PAIR_DIR = os.path.join(OUT_DIR, "openvocab")
+# Three times WANT. The effect being measured is about a point in most
+# languages and the sampling noise between two draws is half of that, so the
+# pair needs more sentences than the shipped fixture to say anything.
+PAIR_WANT = 600
+# The five the table above covers: an unaffected control, two mid, and the two
+# with enough out-of-dictionary text to move.
+PAIR_LANGS = ("en", "da", "cs", "tr", "fi")
 STRIP = ".,!?;:\"'()[]{}«»‘’“”…-—"
 
 # Ordinary prose: no digits, no quotation, ends like a sentence. Digits are out
@@ -141,7 +170,7 @@ def tokens(text):
     return [w for w in ws if w and w.isalpha()]
 
 
-def build(lang):
+def build(lang, paired=False):
     code3 = ISO3.get(lang)
     src = os.path.join(CORPUS, "%s_sentences.tsv.bz2" % code3)
     if not os.path.exists(src):
@@ -161,40 +190,66 @@ def build(lang):
         print("  %s: empty corpus" % lang)
         return
 
-    def ordinary(w):
+    def ordinary(w, judge_unknown=True):
         d = freq.get(w, 0)
         if d == 0:
-            return False
+            # A word the dictionary has never seen cannot be tested for
+            # over-representation. Calling that a failure is what conditions
+            # the whole fixture on the dictionary -- see the module docstring.
+            return not judge_unknown
         return (unigram[w] / total) / (d / total_dict) <= OUTLIER
 
-    hits = []
-    seen = 0
-    for text in sentences(src):
-        if not SHAPE.match(text):
-            continue
-        ws = tokens(text)
-        if not 5 <= len(ws) <= 14:
-            continue
-        if not all(ordinary(w) for w in ws):
-            continue
-        seen += 1
-        # Every 37th, a prime, so the stride cannot land in step with any batch
-        # structure in the export.
-        if seen % 37 == 0:
-            hits.append(text)
-            if len(hits) >= WANT:
-                break
-    out = os.path.join(OUT_DIR, "prose_%s.txt" % lang)
-    with open(out, "w", encoding="utf-8", newline="\n") as fh:
-        fh.write("\n".join(hits) + "\n")
+    def select(want, judge_unknown):
+        hits = []
+        seen = 0
+        for text in sentences(src):
+            if not SHAPE.match(text):
+                continue
+            ws = tokens(text)
+            if not 5 <= len(ws) <= 14:
+                continue
+            if not all(ordinary(w, judge_unknown) for w in ws):
+                continue
+            seen += 1
+            # Every 37th, a prime, so the stride cannot land in step with any
+            # batch structure in the export.
+            if seen % 37 == 0:
+                hits.append(text)
+                if len(hits) >= want:
+                    break
+        return hits, seen
+
+    def write(path, hits):
+        with open(path, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write("\n".join(hits) + "\n")
+        toks = sum(len(tokens(t)) for t in hits)
+        unk = sum(1 for t in hits for w in tokens(t) if freq.get(w, 0) == 0)
+        return toks, unk
+
+    if paired:
+        os.makedirs(PAIR_DIR, exist_ok=True)
+        for name, judge in (("strict", True), ("loose", False)):
+            hits, seen = select(PAIR_WANT, judge)
+            toks, unk = write(
+                os.path.join(PAIR_DIR, "%s_%s.txt" % (name, lang)), hits)
+            print("  %-3s %-6s %4d sentences (of %6d qualifying), %5d tokens,"
+                  " %4.1f%% out of dictionary"
+                  % (lang, name, len(hits), seen, toks,
+                     100.0 * unk / max(toks, 1)))
+        return
+
+    hits, seen = select(WANT, True)
+    write(os.path.join(OUT_DIR, "prose_%s.txt" % lang), hits)
     print("  %s: %d sentences (of %d qualifying)" % (lang, len(hits), seen))
 
 
 def main():
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    paired = "--paired" in sys.argv
     os.makedirs(OUT_DIR, exist_ok=True)
-    langs = sys.argv[1:] or sorted(ISO3)
+    langs = args or (sorted(PAIR_LANGS) if paired else sorted(ISO3))
     for lang in langs:
-        build(lang)
+        build(lang, paired)
 
 
 if __name__ == "__main__":

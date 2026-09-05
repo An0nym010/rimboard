@@ -164,6 +164,25 @@ class StripAccuracyTest {
         return SuggestionEngine.forTesting(userData) { p -> files[p]?.byteInputStream() }
     }
 
+    /**
+     * The words of a sentence as `build_prose_fixture.tokens` sees them.
+     *
+     * Whitespace-split, punctuation trimmed from either end, and anything not
+     * wholly letters dropped. Used only to check a fixture against the promise
+     * its builder made about it — [wordsOf] is what the keyboard sees and is
+     * what every measurement here runs on.
+     *
+     * Lowercased **without** a locale, because Python's `str.lower()` has none.
+     * With one, Turkish maps `I` to dotless `ı` where the builder wrote `i`,
+     * and the check reported two words in 3,698 as missing from a dictionary
+     * that has them. Locale-correct casing is right for the keyboard and wrong
+     * for reproducing another program's arithmetic.
+     */
+    private fun builderTokens(text: String): List<String> =
+        text.split(' ', '\t', '\n', '\r')
+            .map { it.trim { c -> BUILDER_STRIP.indexOf(c) >= 0 }.lowercase() }
+            .filter { it.isNotEmpty() && it.all { c -> c.isLetter() } }
+
     /** The words of a sentence, in order, as the keyboard would compose them. */
     private fun wordsOf(sentence: String, locale: Locale): List<String> =
         sentence.split(Regex("[^\\p{L}']+"))
@@ -602,6 +621,132 @@ class StripAccuracyTest {
 
 
     /**
+     * What the fixture's own selection rule costs, measured rather than argued.
+     *
+     * `build_prose_fixture.py` keeps a sentence only if every word passes its
+     * outlier test, and a word the dictionary does not contain fails that test
+     * by construction — it cannot be tested for over-representation, and the
+     * rule reads "cannot judge" as "reject". So `fixtures/prose_*.txt` holds no
+     * word the dictionary is missing, and the blind arm above, which this file
+     * calls the one to trust, never meets the one case where the strip can
+     * offer nothing at all.
+     *
+     * `--paired` writes both rules side by side over 600 sentences, differing
+     * in that one line and nothing else — same corpus, same shape and length
+     * rules, same every-37th stride. This reads the pair.
+     *
+     * ```
+     *      out of dict   blind KSR       delta
+     * en      0.0%      40.22 -> 40.68   +0.46
+     * da      0.5%      41.60 -> 40.84   -0.77
+     * cs      0.6%      36.39 -> 35.95   -0.44
+     * tr      1.7%      37.41 -> 36.94   -0.47
+     * fi      3.1%      40.64 -> 37.47   -3.17
+     * ```
+     *
+     * English has no out-of-dictionary words to lose, so its `+0.46` is the
+     * sampling noise between two draws of the same corpus and the scale the
+     * rest is read against. Three languages sit inside it. **Finnish does
+     * not.**
+     *
+     * The reason is length, not count: the words the rule drops average 12.5
+     * characters against 5.8 for the ones it keeps, so 3% of the tokens are
+     * about 6% of the typing. They are ordinary Finnish compounds, not corpus
+     * junk, and Turkish's are the same shape.
+     *
+     * **Read the Finnish row of every other table in this file as about three
+     * points high.** The rest stand. The shipped fixtures are deliberately not
+     * regenerated — that would move every recorded number in the repository,
+     * twenty-one of them by less than the noise, to correct one — so this arm
+     * exists to keep the correction reproducible instead of quotable.
+     *
+     * ## What is asserted
+     *
+     * Only that the two fixtures are what they claim: the strict one holds no
+     * out-of-dictionary word and the loose one holds some. Those are the
+     * defining properties, and a regeneration that lost either would make the
+     * table above meaningless while still printing something. The keystroke
+     * figures are printed and not asserted, as everywhere else here.
+     *
+     * ## Why this matters beyond the benchmark
+     *
+     * 4.5% of Finnish corpus tokens are absent from a 200,000-word dictionary
+     * and nothing in the strip can reach them. That is the largest unserved gap
+     * measured in this project, and it is invisible to every other arm in this
+     * file. See [com.rimboard.keyboard.model.Compounds] and
+     * [com.rimboard.keyboard.model.Morphology.isAgglutinative], which between
+     * them could reach about half of it and are gated to German and Turkish.
+     * Any future attempt at that half has to be scored here, because the
+     * shipped fixtures cannot see the words it would fix.
+     */
+    @Test
+    fun `what the fixture's selection rule costs`() {
+        val dir = File(fixtures(), "openvocab")
+        if (!dir.isDirectory) return
+        val langs = dir.list().orEmpty()
+            .filter { it.startsWith("loose_") && it.endsWith(".txt") }
+            .map { it.removePrefix("loose_").removeSuffix(".txt") }
+            .sorted()
+        assertTrue("no paired fixtures found", langs.isNotEmpty())
+        val out = StringBuilder()
+        var sawUnknown = false
+        for (lang in langs) {
+            val strictFile = File(dir, "strict_$lang.txt")
+            assertTrue("loose_$lang.txt has no strict counterpart", strictFile.isFile)
+            val locale = Locale.forLanguageTag(lang)
+            val strict = strictFile.readLines().filter { it.isNotBlank() }
+            val loose = File(dir, "loose_$lang.txt").readLines().filter { it.isNotBlank() }
+            val n = minOf(strict.size, loose.size)
+
+            val dict = realEngine(lang).dictionary(lang, locale)
+            // Counted the way `build_prose_fixture.tokens` counts, not the way
+            // [wordsOf] does. The builder's guarantee is about its own
+            // tokenisation, and the two do not agree everywhere: `wordsOf`
+            // splits on the hyphen and keeps the apostrophe, where the builder
+            // drops any token that is not all letters. Checking the guarantee
+            // under the other definition failed on a single Czech word in 3,698
+            // — a difference between two tokenisers, not a broken fixture.
+            fun outOfDict(lines: List<String>): Pair<Int, Int> {
+                var words = 0
+                var missing = 0
+                for (line in lines.take(n)) for (w in builderTokens(line)) {
+                    words++
+                    if (!dict.contains(w)) missing++
+                }
+                return words to missing
+            }
+            val (sw, sm) = outOfDict(strict)
+            val (lw, lm) = outOfDict(loose)
+            // The strict rule's defining property. Anything else and the
+            // comparison below is not the one the table documents.
+            assertTrue(
+                "strict_$lang.txt holds $sm of $sw words the dictionary is" +
+                    " missing, and by construction it can hold none." +
+                    " Regenerate with tools/build_prose_fixture.py --paired.",
+                sm == 0
+            )
+            if (lm > 0) sawUnknown = true
+
+            val a = measure(lang, locale, strict.take(n), withContext = false)
+            val b = measure(lang, locale, loose.take(n), withContext = false)
+            out.append(
+                "    %-3s n=%d  out of dict %.1f%%  blind %.2f%% -> %.2f%%  delta %+.2f%n"
+                    .format(lang, n, 100.0 * lm / lw, a.ksr * 100, b.ksr * 100,
+                        (b.ksr - a.ksr) * 100)
+            )
+        }
+        println(out)
+        // The loose rule's defining property, over the set rather than per
+        // language: English legitimately has almost none to find.
+        assertTrue(
+            "no loose fixture holds a word the dictionary is missing, so the" +
+                " two rules are selecting the same sentences and this arm is" +
+                " measuring nothing:" + System.lineSeparator() + out,
+            sawUnknown
+        )
+    }
+
+    /**
      * Context savings for languages the shipped fixtures cannot measure, and
      * the price of measuring them the easy way.
      *
@@ -885,6 +1030,16 @@ class StripAccuracyTest {
          * are worth thinking about.
          */
         const val KSR_FLOOR = 0.32
+
+        /**
+         * The punctuation `build_prose_fixture.STRIP` trims, character for
+         * character.
+         *
+         * Kept in step with it by hand. Drift here can only loosen a fixture
+         * self-check; it can never move a measurement, because nothing but that
+         * check uses it.
+         */
+        const val BUILDER_STRIP = ".,!?;:\"'()[]{}«»‘’“”…-—"
 
         /**
          * Sentences for the held-out arm's control, and what it may read.
