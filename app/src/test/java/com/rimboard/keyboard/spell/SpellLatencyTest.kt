@@ -130,17 +130,32 @@ class SpellLatencyTest {
         // sees as one sentence because nothing in it ends one. Turkish prose
         // with the full stops removed and the lines run together is exactly
         // that, and every word of it is unknown to an English dictionary.
-        val paste = listOf(
-            sentences("tr", 60).joinToString(" ") { it.trimEnd('.', '!', '?') }
-        )
+        //
+        // Built as [PASTE_WALLS] separate walls rather than one, because
+        // [timeMs] divides by `corpus.size` and warms on `corpus.take(20)`: a
+        // corpus of one is one warm-up pass and one timed pass, which is a
+        // sample of size one for the two figures the assertion below divides
+        // into each other. Measured that way it read 1.13x, 1.88x and 2.9x on
+        // three consecutive runs and failed two of them -- the budget had not
+        // stopped bounding anything, the harness had stopped measuring it.
+        //
+        // The walls are cut from different parts of the fixture so their words
+        // differ. Repeating one wall would be worse than useless: the second
+        // pass would answer from the cache, which this comment's own subject --
+        // a wall of words each wrong once -- never gets in the field.
+        val trPool = sentences("tr", PASTE_WALLS * PASTE_SENTENCES)
+        val paste = (0 until PASTE_WALLS).map { w ->
+            trPool.subList(w * PASTE_SENTENCES, (w + 1) * PASTE_SENTENCES)
+                .joinToString(" ") { it.trimEnd('.', '!', '?') }
+        }
 
         val own = timeMs(judge, ordinary, SpellJudge.CORRECTION_BUDGET)
         val alien = timeMs(judge, paste, SpellJudge.CORRECTION_BUDGET)
         val unbounded = timeMs(judge, paste, 100_000)
 
-        val words = SpellTokens.of(paste.first()).size
+        val words = paste.sumOf { SpellTokens.of(it).size } / paste.size
         val report = ("English prose                    %.2f ms/sentence\n" +
-            "pasted foreign wall ($words words)\n" +
+            "pasted foreign walls (${paste.size} x $words words)\n" +
             "   budgeted                      %.2f ms\n" +
             "   unbounded                     %.2f ms").format(own, alien, unbounded)
         println(report)
@@ -169,7 +184,33 @@ class SpellLatencyTest {
          * the editor asks and draws the underlines when the answer comes — so
          * this is looser than [com.rimboard.keyboard.engine.StripLatencyTest]'s
          * ceiling by design.
+         *
+         * **It was 8.0, and ordinary prose measures 0.04.** Two hundred times
+         * under the thing it guards is not a ceiling; a change making the
+         * common case a hundredfold slower would have passed it without a
+         * word, which is the same defect `fcea63e` found in three floors and
+         * this one survived.
+         *
+         * Measured 0.01 warm inside the full suite and 0.04–0.05 cold on its
+         * own, so the honest range is a fivefold one on a single machine.
+         * 0.5 is ten times the worst of those. Tighter would be better and
+         * wants a figure from CI, which runs a machine this repository has
+         * never timed; ten times the worst local reading is what can be
+         * justified without one, and it is sixteen times tighter than what it
+         * replaces.
          */
-        const val ORDINARY_CEILING_MS = 8.0
+        const val ORDINARY_CEILING_MS = 0.5
+
+        /**
+         * Walls of unenabled-language text, and sentences in each.
+         *
+         * Five rather than one so the two paste timings are means of five
+         * passes instead of single samples; forty sentences each so a wall is
+         * several hundred words and still runs far past the twenty-four-word
+         * budget that is the point of the measurement. Five times forty is the
+         * whole Turkish fixture.
+         */
+        const val PASTE_WALLS = 5
+        const val PASTE_SENTENCES = 40
     }
 }
