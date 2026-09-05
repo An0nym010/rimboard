@@ -36,8 +36,49 @@ which capitalises every noun.
 
 What this corpus can and cannot measure
 ---------------------------------------
-The bundled *dictionaries* come from OPUS OpenSubtitles, so completing a word
-from its prefix is measured here against an independent corpus.
+The bundled *dictionaries* come from OPUS OpenSubtitles, so the *prose* here is
+independent of them. The *selection* is not, and every figure this fixture has
+ever produced was read as though it were.
+
+`ordinary()` has two effects and is documented above for one of them. It
+rejects a word over-represented against the frequency dictionary, which is the
+Tom problem. It also returns False when `freq.get(w, 0) == 0` -- a word the
+dictionary has never heard of cannot be tested for over-representation -- and
+since a sentence is kept only if *every* word passes, any sentence containing
+an out-of-dictionary word is dropped whole.
+
+So the fixture is a sample in which the dictionary knows every word, and the
+blind arm is conditioned on that. Measured 2026-09-05 against the same builder
+with only that second effect removed, 600 sentences each way:
+
+              out of dict   blind KSR      delta
+    en           0.0%      40.22 -> 40.68  +0.46
+    da           0.5%      41.60 -> 40.84  -0.77
+    cs           0.6%      36.39 -> 35.95  -0.44
+    tr           1.7%      37.41 -> 36.94  -0.47
+    fi           3.1%      40.64 -> 37.47  -3.17
+
+English has no out-of-dictionary words to lose, so its +0.46 is the sampling
+noise between two draws and the scale everything else is read against. Four
+languages sit inside it. **Finnish does not**: its figure is inflated by about
+three points, and the reason is not the count but the length -- the words being
+dropped average 12.5 characters against 5.8 for the rest, so 3% of the tokens
+are about 6% of the keystrokes.
+
+They are not corpus junk. They are `kaksikymmentäneljävuotias`,
+`amerikanenglannista`, `hampurilaisissaan` -- ordinary Finnish compounds, and
+Turkish's are the same shape. The filter removes exactly the words a keyboard
+has the most to offer on, and removes eighty times more of them in Finnish
+than in English.
+
+The fixture is left as it is, and the figures above are the correction to
+apply when reading it. Regenerating would move every recorded number in the
+repository -- twenty-one of them by less than the noise -- to fix one, and the
+finding underneath is not really about the benchmark: 3% of Finnish words are
+absent from a 200,000-word dictionary and the strip can offer nothing for
+them. That is a gap in the keyboard, not in the fixture. See
+`Morphology.isAgglutinative`, which is `lang == "tr"`, and the counted
+60-ending Finnish suffix inventory that generation does not consult.
 
 The bundled *n-gram predictions* are counted from Tatoeba itself, so any
 measurement that passes a preceding word is scoring the model on the data it

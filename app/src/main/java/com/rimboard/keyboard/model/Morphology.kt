@@ -28,9 +28,11 @@ package com.rimboard.keyboard.model
  * inventory at all, and this paragraph used to say that Finnish and Hungarian
  * were "left until someone who knows them can add one" — which stopped being
  * true when `tools/derive_suffixes.py` started *counting* inventories from each
- * language's own word list rather than guessing at them. Eighteen languages
+ * language's own word list rather than guessing at them. Twenty languages
  * ship one now, Finnish and Hungarian among them, and a reader who took this
  * paragraph at its word would go and write a list that already exists.
+ * (Eighteen when that was written; `MorphologyInventoryTest` now counts them,
+ * so the sentence cannot go stale again without a build failing.)
  *
  * What Turkish still has alone is vowel harmony, which is a fact about the
  * language that no amount of counting discovers. See [stemIsKnown]'s two
@@ -39,6 +41,45 @@ package com.rimboard.keyboard.model
  */
 object Morphology {
 
+    /**
+     * Which languages get *generated* completions, as opposed to validated ones.
+     *
+     * Validation is the walk below and it runs wherever a counted inventory
+     * exists, which is twenty languages. Generation — offering a form the word
+     * list does not contain, built from a stem that it does — is gated here,
+     * and here it is Turkish alone.
+     *
+     * **Finnish has the strongest measured claim to join it, and does not.**
+     * Measured 2026-09-05 over held-out Tatoeba prose, share of word tokens
+     * absent from the shipped 200,000-word dictionary, which is the ceiling on
+     * what generation could ever recover:
+     *
+     *     fi 3.8%   tr 4.1%   hr 1.6%   cs 1.6%   pl 1.6%   sk 1.3%
+     *     da 0.9%   en 0.2%
+     *
+     * Finnish sits beside Turkish and clear of everything else, and the words
+     * are not a rounding error in keystrokes: they average **12.5 characters**
+     * against 5.8 for the words the dictionary does hold, so 3% of the tokens
+     * are about 6% of the typing. `build_prose_fixture.py` records what that
+     * is worth: around three points of keystroke savings — larger than any
+     * single constant measured in this engine, `GLIDE_CONTEXT_WEIGHT`'s 1.66
+     * included.
+     *
+     * Not done here, because it is not a one-line change and must not be
+     * pretended into one. The generator is `TurkishMorph.completionsFor`,
+     * whose tables are Turkish; Finnish has its own vowel harmony and its own
+     * morphophonology, and the counted 60-ending inventory deliberately
+     * carries neither — the note above this object explains why a derived list
+     * is held to a stricter floor than a written one. Generating from it
+     * unguarded would put wrong forms in front of Finnish users, and the note
+     * at the generation call site in `SuggestionEngine` records generated
+     * Turkish candidates *costing* 0.6 points when they merely sat too high in
+     * the ranking — and those were correct forms.
+     *
+     * What the numbers above establish is that the work is worth doing, and
+     * roughly what it is worth. What they do not establish is that it is safe,
+     * and that is the part still owed.
+     */
     fun isAgglutinative(lang: String): Boolean = lang == "tr"
 
     /**

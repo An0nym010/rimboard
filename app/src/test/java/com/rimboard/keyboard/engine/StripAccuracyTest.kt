@@ -43,7 +43,19 @@ import kotlin.random.Random
  *  - **blind** — no preceding word, so the strip is pure prefix completion out
  *    of the bundled dictionary. Those dictionaries are built from OPUS
  *    OpenSubtitles, a different corpus entirely, so this arm is an honest
- *    out-of-domain measurement and the one to trust.
+ *    out-of-domain measurement and the one to trust — with one condition on
+ *    it, added 2026-09-05. `build_prose_fixture.py` keeps a sentence only if
+ *    every word passes its outlier test, and a word the dictionary does not
+ *    contain fails that test by construction. **The fixture therefore holds no
+ *    word the dictionary is missing**, which is the one case where the strip
+ *    can offer nothing at all.
+ *
+ *    Costed there, 600 sentences under each rule: four languages move less
+ *    than the +0.46 that English — which has no such words to lose — moves on
+ *    sampling alone. **Finnish moves 3.2 points**, because the words the rule
+ *    drops average 12.5 characters against 5.8 for the rest. Read the Finnish
+ *    row of every table in this file as about three points high; the others
+ *    stand.
  *  - **context** — the real configuration, with the preceding words passed.
  *    The bundled n-grams are *counted from Tatoeba*, so this arm scores the
  *    model partly on its own training data and is a ceiling rather than a

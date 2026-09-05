@@ -2771,7 +2771,7 @@ class SuggestionEngine private constructor(
      * Prefixes [lang] builds words with, counted from its own dictionary by
      * `tools/derive_prefixes.py` and shipped as assets/prefixes/<lang>.txt.
      *
-     * Six languages have one against eighteen with endings, and that gap is
+     * Twelve languages have one against twenty with endings, and that gap is
      * the measurement rather than an unfinished job: a prefix inventory is
      * held to the same point of destruction prevented, and priced together
      * with the endings against the same ceiling, so a language whose endings
