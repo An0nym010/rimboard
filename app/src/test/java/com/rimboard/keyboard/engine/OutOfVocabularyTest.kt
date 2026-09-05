@@ -17,12 +17,27 @@ import java.util.Locale
  *
  * ## Why nothing found this before
  *
- * The prose fixtures cannot see it. They are drawn from the same corpora the
- * dictionaries were counted from, so **every shipped language scores about 0.0%
+ * The prose fixtures cannot see it. **Every shipped language scores about 0.0%
  * unrecognised on its own fixture** — Finnish and Hungarian included. That is
  * not a keyboard with full coverage, it is a test set inside the training set.
  * Any measurement of vocabulary coverage built on those files will report
  * success no matter what the keyboard does.
+ *
+ * This used to say the reason was that the fixtures come from the corpora the
+ * dictionaries were counted from. They do not: the dictionaries are OPUS
+ * OpenSubtitles and the fixtures are Tatoeba, and `build_prose_fixture.py`
+ * says so in as many words. The observation was right and the cause was not,
+ * which matters — it makes the problem look like something a different corpus
+ * would fix.
+ *
+ * The actual cause was measured on 2026-09-05 and is a filter, not a corpus.
+ * `build_prose_fixture.py` keeps a sentence only if every word passes its
+ * outlier test, and a word the dictionary has never seen cannot be tested for
+ * over-representation, so it fails. **Any sentence containing an
+ * out-of-dictionary word is dropped whole**, from whatever corpus it came.
+ * `StripAccuracyTest.what the fixture's selection rule costs` prices that at
+ * 3.2 points of keystroke savings in Finnish and under the sampling noise in
+ * English, and `fixtures/openvocab` holds the pair it is measured on.
  *
  * So the dictionary is truncated to its commonest [KEEP] entries and the words
  * that were cut are offered to the corrector as if typed. They are mostly
@@ -299,8 +314,10 @@ class OutOfVocabularyTest {
             val rate = unknown * 100.0 / words.size
             assertTrue(
                 "prose_$lang.txt reports ${"%.2f".format(rate)}% unrecognised, which " +
-                    "would make it look like a coverage test. It is not one: these " +
-                    "files come from the corpora the dictionaries were counted from.",
+                    "would make it look like a coverage test. It is not one: " +
+                    "build_prose_fixture.py keeps a sentence only if every word " +
+                    "passes its outlier test, and a word the dictionary does not " +
+                    "hold fails that test by construction.",
                 rate < 1.0
             )
         }
