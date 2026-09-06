@@ -142,6 +142,33 @@ def chosen(found):
 # "unhelpful" -- is not rescued by any of these anyway, because it needs
 # "helpfully" to be a frequent stem and it is not.
 #
+# Czech was a fourth, and nobody noticed because this file opens by using it as
+# the example of what the method produces -- "ordinary grammar -- Czech `ne- po-
+# vy- za-`". Those four are real, they are exactly what a two-character floor
+# derives, and Czech has never been in ENABLED. Measured 2026-09-06:
+#
+#              min 3        min 2
+#     cs    0.2 / 0.8%   1.7 / 1.9%   <- refused, and the first refused on cost
+#
+# At two it derives eighteen prefixes and prevents 1.7 points, the same as
+# Slovak, which ships. It costs 1.9% against a 1.5% ceiling and cannot be
+# taken. At three it derives nine and costs only 0.8%, and prevents 0.2.
+#
+# **Czech cannot afford prefixes because its endings are already expensive.**
+# The cost column here is the *whole walk*, and Czech's endings alone are 0.6%
+# where Slovak's and Russian's are 0.0% and Polish's 0.7% -- so Czech starts
+# nearest the ceiling and the multiplicative prefix bill, which the note below
+# on MIN_STEMS describes, lands it over. Slovak buys the same 1.7 points for
+# 0.8% because it has 0.0% of endings behind it.
+#
+# That is worth knowing beyond Czech: this bar is not a property of a
+# language's prefixes, it is a property of everything the walk already does.
+# A language whose endings are cheap can afford prefixes that an identical set
+# of prefixes cannot buy elsewhere. Czech and Slovak are the pair that shows
+# it, being as close as two languages here get.
+#
+# Not a reason to move the ceiling, for the reason the Greek note gives.
+#
 # Slovak, Ukrainian and Greek were the three that had never been measured here
 # at all. The first two were starved by the stem floor -- Ukrainian had 833
 # stems to count prefixes in front of -- and derive ordinary Slavic verbal

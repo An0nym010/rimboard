@@ -659,6 +659,40 @@ class Dictionary(
          * measurement, not a preference: it changes what the morphology walk
          * will vouch for, and `SuffixInventoryTest` prices it.
          */
+        /**
+         * And the measurement, so the next language is added on one.
+         *
+         * The note above says adding a language here is a measurement without
+         * saying which. It is stem starvation: the flat floor is a count, and
+         * a count against a small corpus leaves a 200,000-word list with too
+         * few words frequent enough to be a stem at all — which is what
+         * `derive_suffixes.py` records for Ukrainian, "910 stems cannot support
+         * an ending on 150 of them".
+         *
+         * Words of at least three letters clearing the floor, measured
+         * 2026-09-06 over the shipped lists:
+         *
+         * ```
+         *      at the flat 500   scaled     factor
+         * uk         833          29,162     x35     scaled
+         * sk       6,999          23,344     x3.3    scaled
+         * fi      18,160          27,725     x1.5
+         * cs      25,575          25,575     x1.0    corpus over the reference
+         * ```
+         *
+         * **The two that are scaled are the two that were starved**, and
+         * nothing else comes near them: Finnish has two and a half times
+         * Slovak's flat-floor count before any scaling, and Czech more again.
+         * Loosening a floor that is not starving anything spends false accepts
+         * for stems the walk already had — Finnish sits at 1.2% wrongly
+         * accepted against a 1.5% ceiling, so there is a third of a point to
+         * spend and 18,160 stems saying it need not be.
+         *
+         * So Finnish is not a candidate, which is worth writing down because
+         * its scaled floor is the largest drop of any unscaled language and it
+         * is the language this project has the most reason to want to help.
+         * Whatever Finnish is short of, it is not stems.
+         */
         private val SCALED_STEM_LANGS = setOf("sk", "uk")
 
         /**
