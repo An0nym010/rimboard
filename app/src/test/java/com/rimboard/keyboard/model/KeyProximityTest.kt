@@ -7,6 +7,50 @@ import org.junit.Test
 /**
  * Guards the geometry behind adaptive tap targeting. These would have caught a
  * layout change silently drifting away from the proximity model.
+ *
+ * ## What these cannot see, and what checked it
+ *
+ * Everything here compares the model to `Layouts`, which is the right
+ * comparison and only half of one. `ef6ba0f` fixed five layouts whose row
+ * offsets were the QWERTY constant rather than what they draw, and its own
+ * post-mortem says why a suite this size missed it: `AutocorrectAccuracyTest`
+ * builds its typos with `KeyProximity.neighbours()` and `GlideAccuracyTest`
+ * draws its paths from `gridX`/`gridY`, so **the corpus and the subject were
+ * wrong in the same way and cancelled**. A test that reads `Layouts` closes
+ * that loop by one link and leaves the last one open: nothing here knows
+ * whether the pixels on the glass agree with `Layouts` either.
+ *
+ * Measured on the device, 2026-09-06, Redmi Note 8 at 1080x2340. Key centres
+ * found by locating the glyph clusters in a screenshot of the running
+ * keyboard, which is outside the loop entirely -- it consults neither the
+ * model nor the layout, only what was drawn.
+ *
+ * Stated as offsets between rows, in key widths, because those do not depend
+ * on where the row happens to start on the screen:
+ *
+ * ```
+ *              rows     key width   (row2-row1)/w   (row3 letter-row1)/w
+ *   Turkish   12/11/9     88.6px        0.508              1.501
+ *   English   10/ 9/7    106.7px        0.506              1.500
+ *   the model                           0.5                1.5
+ * ```
+ *
+ * Two row structures, two key widths, both inside a pixel. The drawing
+ * pipeline is faithful to `Layouts`, so a test in this file that pins the
+ * model to `Layouts` is also pinning it to the glass.
+ *
+ * That is the transferable half. The five layouts `ef6ba0f` changed -- es, fr,
+ * ru, uk, el -- were not on the device to measure, because the install has
+ * English and Turkish enabled and the shipped build is not debuggable, so its
+ * preferences cannot be reached with `run-as`. They differ from these two only
+ * in row *contents*: 10, 11 and 9 keys against the 10 and 12 measured here,
+ * through the same arithmetic on the same drawing code. What was verified is
+ * the pipeline, not those five files.
+ *
+ * Reproducing it needs no build: raise the keyboard on the setup screen's
+ * "Try typing here" field, screencap, and cluster the columns that differ from
+ * the key fill. Two screenshots of the same layout gave x centres identical to
+ * the pixel, so the measurement is stable enough to repeat.
  */
 class KeyProximityTest {
 
