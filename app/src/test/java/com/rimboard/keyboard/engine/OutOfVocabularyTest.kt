@@ -176,6 +176,45 @@ import java.util.Locale
  * thing: [com.rimboard.keyboard.model.Morphology.isAgglutinative], which is
  * still `lang == "tr"`.
  *
+ * ## How much of it a user can teach away, which is the wrong half
+ *
+ * None of the above is the steady state, because the keyboard learns. Undoing
+ * an autocorrect calls `UserData.markKnown` on the word that was taken away,
+ * and a known word is accepted and never corrected again -- four separate
+ * paths in `SuggestionEngine` check it. One backspace protects a word for
+ * good.
+ *
+ * That only reaches a word typed twice. Counting the out-of-dictionary tokens
+ * of each corpus by whether their type ever occurs again:
+ *
+ * ```
+ *        missing   types seen once   tokens from once-only types
+ * fi      4.52%         81.6%                  58.4%
+ * hu      3.92%         80.8%                  55.9%
+ * tr      2.44%         78.9%                  46.7%
+ * en      0.55%         75.0%                  11.0%
+ * ```
+ *
+ * **Learning is regressive here.** English's missing words are names and terms
+ * that come back -- only an eighth of the damage is unrepeatable, so a user who
+ * corrects the keyboard once stops meeting it. Finnish's are inflected forms
+ * and compounds built for one sentence: **58.4% of the damage is done to a word
+ * that never appears again**, and no amount of correcting teaches it away.
+ *
+ * Multiplied through, the harm that survives a diligent user:
+ *
+ *     fi   4.52% x 28.3% x 58.4%  =  0.75% of everything typed
+ *     en   0.55% x 20.2% x 11.0%  =  0.012%
+ *
+ * **Sixty times, where the figure before learning was eleven.** The mechanism
+ * that mitigates this helps most exactly where there was least to mitigate.
+ *
+ * The multiplication assumes a word's chance of being destroyed does not depend
+ * on how often it occurs, and that is the soft joint. If anything it is
+ * conservative: a word seen once has less around it in the dictionary to
+ * support a correct reading, so the once-only half is the half more likely to
+ * be destroyed, not less.
+ *
  * ## Four cheaper answers, measured and rejected
  *
  * Morphology is the expensive answer, so the cheap ones were tried first. All
