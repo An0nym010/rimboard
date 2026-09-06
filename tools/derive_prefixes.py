@@ -169,6 +169,27 @@ def chosen(found):
 #
 # Not a reason to move the ceiling, for the reason the Greek note gives.
 #
+# The obvious follow-up is to find which Czech endings carry that 0.6% and drop
+# them, and there are two reasons not to. The first is principle: these
+# inventories are counted so that nobody curates them, and the suffix file's own
+# note says a hand-edited ending is the 10.2% row that nothing else would
+# notice. The principled knob is MIN_STEMS, which admits fewer and
+# better-supported endings, not a pair of scissors.
+#
+# The second is arithmetic. Prefixes add 1.3 points of cost to Czech's walk
+# (0.6% of endings to 1.9% of everything), so the endings would have to come
+# down to 0.2% for the pair to fit under 1.5% -- a two-thirds cut, paid for in
+# ending gain, to buy 1.7 points of prefix. Nothing in the MIN_STEMS sweep below
+# moves a cost column that far.
+#
+# Attempted cheaply first and it does not work: a Python typo model over the
+# word list reads Czech at 0.50% and **Slovak at 0.49%**, where the bar this
+# file holds reads 0.6% and 0.0%. Slovak was the control and it says the model
+# measures something else -- the bar damages held-out words from a truncated
+# list, not typos of common ones. Anyone taking this further has to do it
+# through the engine's own walk, the same conclusion CompoundCostTest reached
+# for the same reason.
+#
 # Slovak, Ukrainian and Greek were the three that had never been measured here
 # at all. The first two were starved by the stem floor -- Ukrainian had 833
 # stems to count prefixes in front of -- and derive ordinary Slavic verbal
