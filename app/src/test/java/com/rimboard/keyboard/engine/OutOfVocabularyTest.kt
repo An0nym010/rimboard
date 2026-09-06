@@ -176,6 +176,42 @@ import java.util.Locale
  * thing: [com.rimboard.keyboard.model.Morphology.isAgglutinative], which is
  * still `lang == "tr"`.
  *
+ * ## Confirmed on the phone, against the shipped dictionary
+ *
+ * Everything above is a proxy. The dictionary is truncated to [KEEP] entries
+ * and the words cut are offered to the corrector, because words past the
+ * shipped 200,000 cannot be sampled any other way. A proxy earns trust by
+ * predicting something it was not fitted to, so on 2026-09-06 it was asked to.
+ *
+ * The engine was given the shipped Turkish list -- untruncated, all 200,000 --
+ * and asked which real corpus words it would rewrite. It named ten. Two were
+ * then typed on the phone, key by key, on RimBoard 2.9.1-online with its own
+ * assets and no learned history, and committed with the space bar:
+ *
+ * ```
+ * kahvaltısından   typed 14 keys   committed kahvaltısından   survived
+ * geçiştirdi       typed 10 keys   committed geliştirdi       rewritten
+ * ```
+ *
+ * **Both went the way the model said, and the second went there exactly.** The
+ * probe printed `geçiştirdi -> geliştirdi` before a key was pressed and the
+ * device produced that word and not another. "Brushed it off" was committed as
+ * "developed it": a different verb, silently, on a space bar.
+ *
+ * The first is the other half of the claim this file makes. `kahvaltısından`
+ * is not in the list either, and it survived because
+ * [com.rimboard.keyboard.model.Morphology] peels `-sı` and `-ndan` down to
+ * `kahvaltı`, which is -- so it is vouched for and never offered a correction.
+ * That is the 43.5% acceptance row doing its work on real hardware, and it is
+ * why Turkish sits lowest of the inflecting languages here.
+ *
+ * What this does and does not establish. It confirms the *mechanism* end to
+ * end: the shipped build, the shipped dictionary, a real commit, and the
+ * predicted word. It says nothing about whether 20.5% is the right rate --
+ * that is two words, chosen because the model had already sorted them into
+ * opposite bins. What would have refuted the proxy is either word going the
+ * other way, and neither did.
+ *
  * ## How much of it a user can teach away, which is the wrong half
  *
  * None of the above is the steady state, because the keyboard learns. Undoing
