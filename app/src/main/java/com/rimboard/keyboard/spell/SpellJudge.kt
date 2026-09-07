@@ -292,7 +292,13 @@ internal class SpellJudge(
                     personalized = personalized, mayLoad = false
                 ).map { it.lowercase(loc) }
             },
-            continues = { a, b -> engine.continues(a, b, lang, loc, personalized) }
+            continues = { a, b -> engine.continues(a, b, lang, loc, personalized) },
+            writtenFits = { a, b ->
+                engine.continues(
+                    a, b, lang, loc, personalized,
+                    minLearned = SuggestionEngine.HABIT
+                )
+            }
         ) ?: return null
         return WordCase.match(word, fix, loc)
     }

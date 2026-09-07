@@ -191,6 +191,7 @@ class PostCorrectionAccuracyTest {
             followerCorrected = false,
             candidates = cands,
             continues = { e.continues(it, follower, lang, locale, personalized = false) },
+            writtenFits = { e.continues(it, follower, lang, locale, personalized = false) },
             confident = {
                 dict.autoCommitConfident(lower, it.lowercase(locale), prox, false, slack)
             }

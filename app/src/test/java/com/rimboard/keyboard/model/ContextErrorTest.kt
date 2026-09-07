@@ -20,12 +20,19 @@ class ContextErrorTest {
         word: String = "form",
         next: String = "the",
         predictions: List<String> = listOf("from", "in", "at"),
-        pairs: Set<Pair<String, String>> = setOf("from" to "the")
+        pairs: Set<Pair<String, String>> = setOf("from" to "the"),
+        /**
+         * The pairs the user has written *often enough* to call the rule off.
+         * Separate from [pairs] because the two directions hold to different
+         * bars -- see the tests at the end of this file.
+         */
+        habits: Set<Pair<String, String>> = pairs
     ): String? = ContextError.suggest(
         word = word,
         next = next,
         predictions = { predictions },
-        continues = { a, b -> (a to b) in pairs }
+        continues = { a, b -> (a to b) in pairs },
+        writtenFits = { a, b -> (a to b) in habits }
     )
 
     @Test
@@ -37,6 +44,29 @@ class ContextErrorTest {
     fun `a word the following word supports is left alone`() {
         // "form the" is itself an attested pair, so the sentence is happy.
         assertNull(decide(pairs = setOf("from" to "the", "form" to "the")))
+    }
+
+    @Test
+    fun `one sighting of the written pair is not enough to call it off`() {
+        // The bug this asymmetry exists for. The pair is attested once -- which
+        // is what typing it does -- but is not yet a habit, so the rule stands.
+        assertEquals(
+            "from",
+            decide(
+                pairs = setOf("from" to "the", "form" to "the"),
+                habits = setOf("from" to "the")
+            )
+        )
+    }
+
+    @Test
+    fun `a pair the user really writes does call it off`() {
+        assertNull(
+            decide(
+                pairs = setOf("from" to "the", "form" to "the"),
+                habits = setOf("from" to "the", "form" to "the")
+            )
+        )
     }
 
     @Test
@@ -74,7 +104,8 @@ class ContextErrorTest {
             word = "form",
             next = "the",
             predictions = { built++; listOf("from") },
-            continues = { _, _ -> true }
+            continues = { _, _ -> true },
+            writtenFits = { _, _ -> true }
         )
         assertEquals(0, built)
     }

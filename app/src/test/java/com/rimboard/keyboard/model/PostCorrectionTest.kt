@@ -28,10 +28,12 @@ class PostCorrectionTest {
         followerCorrected: Boolean = false,
         candidates: List<String> = listOf("the", "hate"),
         continues: (String) -> Boolean = { it == "the" },
+        /** The written word, held to the habit bar. Mirrors [continues] unless a test says otherwise. */
+        writtenFits: (String) -> Boolean = continues,
         confident: (String) -> Boolean = { true }
     ): String? = PostCorrection.replacementFor(
         typed, committed, separator, follower, followerCorrected,
-        candidates, continues, confident
+        candidates, continues, writtenFits, confident
     )
 
     @Test
@@ -70,10 +72,18 @@ class PostCorrectionTest {
     }
 
     @Test
+    fun `one sighting of the typed pair is not enough to call it off`() {
+        // The pair is attested once -- which is what typing it does -- but is
+        // not a habit, so the repair still happens. See ContextError on why
+        // these two directions hold to different bars.
+        assertEquals("the", decide(continues = { true }, writtenFits = { false }))
+    }
+
+    @Test
     fun `a word that already fits the follower is left alone`() {
         // "hte cat" has been seen before -- in the user's own typing, most
         // likely -- so the follower is not new evidence about anything.
-        assertNull(decide(continues = { true }))
+        assertNull(decide(continues = { true }, writtenFits = { true }))
     }
 
     @Test

@@ -705,6 +705,16 @@ class SuggestionEngine private constructor(
          * rather than breaking a tie in it. Four is a tie.
          */
         private const val POST_CORRECTION_DEPTH = 4
+
+        /**
+         * How many times the user must have written a pair before their own
+         * history may *withhold* a correction.
+         *
+         * One would mean the act of making a mistake files the evidence that
+         * the mistake was meant -- see [com.rimboard.keyboard.model.ContextError].
+         * Two is the bar [UserData.isKnown] holds a learned word to.
+         */
+        const val HABIT = 2
     }
 
     /** Multiplier applied to a completion's frequency for its context rank. */
@@ -904,14 +914,28 @@ class SuggestionEngine private constructor(
         // store and the only one that had no flag to forget -- so incognito
         // withheld the user's words from the candidate list and then ordered
         // what was left by the pairs they had typed. See SpellRightContextTest.
-        personalized: Boolean
+        personalized: Boolean,
+        /**
+         * How many times the user must have written the pair for their own
+         * history to answer yes.
+         *
+         * One for the question this was written for -- does a *candidate* fit
+         * the follower -- where a single typed pair is the right bar for
+         * evidence and a very low one for a leak.
+         *
+         * Two where the answer *withholds* a correction, which is the other
+         * direction and was not distinguished until it caused a bug in each of
+         * the two features that ask it. There the pair on file is very often
+         * the mistake: the keyboard records it as the user types it, and then
+         * reads its own record back as proof the pair was meant. See
+         * [com.rimboard.keyboard.model.ContextError].
+         */
+        minLearned: Int = 1
     ): Boolean {
         if (word.isEmpty() || next.isEmpty()) return false
         val a = word.lowercase(locale)
         val b = next.lowercase(locale)
-        // A membership test, not a count: one typed pair moves a candidate,
-        // which is the right bar for evidence and a very low one for a leak.
-        if (personalized && userData.follows(a, b)) return true
+        if (personalized && userData.follows(a, b, minLearned)) return true
         // The learned bigrams above are a concurrent map and always safe to
         // ask. The curated model is not loaded on demand here: doing so would
         // parse an asset on a binder thread, and a missing answer is only a
@@ -1991,6 +2015,9 @@ class SuggestionEngine private constructor(
             followerCorrected = followerCorrected,
             candidates = candidates,
             continues = { continues(it, follower, lang, locale, personalized) },
+            writtenFits = {
+                continues(it, follower, lang, locale, personalized, minLearned = HABIT)
+            },
             confident = {
                 dict.autoCommitConfident(
                     lower, it.lowercase(locale), prox, cautiousAutocorrect,

@@ -146,7 +146,7 @@ class ContextErrorAccuracyTest {
                 .map { it.lowercase(loc) }
         }
         return when (v) {
-            Variant.SHIPPED -> ContextError.suggest(w, next, left, continues)
+            Variant.SHIPPED -> ContextError.suggest(w, next, left, continues, continues)
             Variant.RIGHT_ONLY -> {
                 // No left-hand requirement at all, so the candidates cannot
                 // come from the context and the dictionary has to supply them.

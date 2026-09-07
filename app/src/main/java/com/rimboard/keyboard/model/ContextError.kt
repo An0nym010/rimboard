@@ -82,18 +82,36 @@ object ContextError {
      * @param word  the word as written, lower case. Known to be a real word.
      * @param next  the word after it. Empty means "unknown", not "none".
      * @param predictions what the preceding context predicts, best first.
-     * @param continues   whether the n-grams have seen `a` before `b`.
+     * @param continues   whether the n-grams have seen `a` before `b`. Used to
+     *                    promote a candidate, where one sighting is evidence.
+     * @param writtenFits whether the pair as *written* is attested strongly
+     *                    enough to call this rule off. A separate predicate
+     *                    because it holds to a higher bar; see below.
      */
     fun suggest(
         word: String,
         next: String,
         predictions: () -> List<String>,
-        continues: (String, String) -> Boolean
+        continues: (String, String) -> Boolean,
+        writtenFits: (String, String) -> Boolean
     ): String? {
         if (word.isEmpty() || next.isEmpty()) return null
         // The sentence supports the word as written. Nothing to say, and this
         // is one map lookup, so it is asked before anything is built.
-        if (continues(word, next)) return null
+        //
+        // **A different predicate from [continues], and the difference is a
+        // bug that shipped.** With the user's own n-grams in play, this asked
+        // whether the pair had ever been typed -- and the pair had, because
+        // typing it is what put it on file. The keyboard records the mistake as
+        // it is made and then reads its own record back as proof the mistake
+        // was intended, so the errors a user actually makes are the ones this
+        // goes blind to. Verified in `ContextErrorPersonalTest`: flagged on a
+        // fresh install, silent ever after one slip.
+        //
+        // The bar is now a habit rather than a sighting. The signal is right --
+        // somebody who really does write "form data" should stop being asked --
+        // it was the threshold that could not tell them apart.
+        if (writtenFits(word, next)) return null
         val left = predictions()
         if (left.isEmpty()) return null
         // The preceding context predicts it too. Two independent signals both

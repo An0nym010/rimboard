@@ -557,9 +557,21 @@ class UserData private constructor(dir: File) {
      * No blocked check, unlike [predictScores]: this is asked about a word the
      * user has actually typed, as evidence, not about a word being offered to
      * them.
+     *
+     * [minTimes] is what separates a habit from a slip, and which of those is
+     * wanted depends on who the evidence is being used against. Promoting a
+     * candidate on one sighting is right -- that is the user's own vocabulary
+     * speaking, and the cost of being wrong is a suggestion nobody takes.
+     * *Vetoing* a correction on one sighting is not, because the sighting is
+     * very often the mistake itself: the keyboard files the pair as the user
+     * types it and then reads its own record back as proof the pair was
+     * intended. Two is the same bar [isKnown] holds a learned word to, chosen
+     * for the same reason.
      */
-    fun follows(prev: String, next: String): Boolean =
-        bigrams[prev]?.containsKey(next) == true
+    fun follows(prev: String, next: String, minTimes: Int = 1): Boolean {
+        val n = bigrams[prev]?.get(next) ?: return false
+        return n >= minTimes
+    }
 
     fun predictScores(prev2: String, prev1: String): Map<String, Double> {
         val scores = HashMap<String, Double>()

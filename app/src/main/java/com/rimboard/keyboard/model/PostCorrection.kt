@@ -53,10 +53,14 @@ package com.rimboard.keyboard.model
  *    silent change per commit. Two would leave the revert chip able to undo
  *    only one of them, and a chip that undoes half of what just happened is
  *    worse than no chip.
- *  - **The typed word must not already fit the follower.** If the pair has been
- *    seen — including in the user's own typing, which is where "hte cat" would
- *    have got to if they meant it — then there is no new evidence and this has
- *    nothing to add.
+ *  - **The typed word must not already fit the follower.** If the pair is
+ *    attested then there is no new evidence and this has nothing to add. The
+ *    user's own typing counts here, but only as a **habit** and not as a
+ *    sighting: the keyboard files the pair as it is typed, so a bar of one
+ *    would mean making a mistake is what proves the mistake was meant. Two,
+ *    the same bar `UserData.isKnown` holds a learned word to. See
+ *    [ContextError], where the same asymmetry cost a shipped feature its
+ *    whole purpose.
  *  - **Some candidate must fit the follower.** The whole trigger. A boolean, as
  *    it is everywhere else this signal is read: evidence breaks ties, it does
  *    not overrule the channel model.
@@ -139,6 +143,12 @@ object PostCorrection {
      *                   `correctionCandidates`. Empty for any word the engine
      *                   considers real, which is the guarantee above.
      * @param continues  whether the n-grams have this word before [follower].
+     *                   Used to promote a candidate, where one sighting is
+     *                   evidence worth acting on.
+     * @param writtenFits whether the word *as typed* is attested strongly
+     *                   enough to call this off. Held to a higher bar than
+     *                   [continues] for the reason [ContextError] documents:
+     *                   the pair on file is very often the mistake itself.
      * @param confident  whether the candidate is close enough to [typed] to be
      *                   applied — the auto-commit distance bar, at [SLACK].
      */
@@ -150,6 +160,7 @@ object PostCorrection {
         followerCorrected: Boolean,
         candidates: List<String>,
         continues: (String) -> Boolean,
+        writtenFits: (String) -> Boolean,
         confident: (String) -> Boolean
     ): String? {
         if (typed.isEmpty() || follower.isEmpty()) return null
@@ -160,7 +171,7 @@ object PostCorrection {
         // Asked before the candidates are walked, not after: this is one map
         // lookup and it refuses the whole question, where the loop below costs
         // a lookup and a distance measurement per candidate.
-        if (continues(typed)) return null
+        if (writtenFits(typed)) return null
         // First fit in the engine's own order, rather than the best fit. The
         // ordering is the channel model's, and taking the fittest candidate
         // instead would let the follower promote a distant word over an
