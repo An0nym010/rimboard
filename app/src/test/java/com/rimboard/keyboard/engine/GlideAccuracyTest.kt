@@ -2069,4 +2069,108 @@ class GlideAccuracyTest {
         assertTrue("and sigma itself must still be admitted", gp.couldEnd(sigma))
     }
 
+    /**
+     * Whether a *prefix* decoder could carry a live preview, which the shipped
+     * one cannot.
+     *
+     * The "Measured and rejected" note above prices the shipped decoder
+     * mid-stroke and the answer is no, for a structural reason rather than a
+     * tuning one: `couldEnd` anchors candidates to words *ending* where the
+     * finger happens to be. This asks the question that reason implies -- score
+     * the partial stroke against the **opening** of each word, via
+     * [GlidePath.prefixCostOf] -- and the answer is different in kind.
+     *
+     * Measured 2026-09-07, English, natural hand, n=60, against the shipped
+     * decoder's figures on the same corpus:
+     *
+     *     stroke done       40%   50%   60%   70%   80%   90%   100%
+     *     prefix top-1      30%   35%   43%   48%   45%   80%    85%
+     *     prefix top-3      47%   57%   70%   82%   70%   93%    98%
+     *     shipped top-1      -     3%    7%    7%    7%   47%   100%
+     *
+     * At seven tenths of a stroke the shipped decoder names the right word 7%
+     * of the time and this one has it in the top three 82% of the time. **The
+     * blocker is removed.** What that does not settle is the product question:
+     * top-1 at 48% is a preview that changes its mind, so the shape worth
+     * building is probably three chips rather than one committed-looking word.
+     *
+     * What a shipping version still needs, and it is the whole cost: a prune to
+     * stand in for `couldEnd`, which currently leaves ~1,700 of 300,000 words
+     * standing. The candidate is the crossed-key sequence `KeyboardView`
+     * already tracks in `glideSeq` -- a word survives if its opening letters
+     * appear in that sequence in order, which is a linear character walk and
+     * prunes to a comparable order. This arm deliberately does not use it: it
+     * scores a frequency-ordered slice of the real list instead, which is
+     * generous to the decoder and honest about being so, because the question
+     * it exists to answer is whether the accuracy is there at all.
+     *
+     * The 80% dip is not explained and n is 60; treat the curve's shape as the
+     * result and any single cell as noise.
+     */
+    @Test
+    fun `a prefix decoder reads a part-drawn stroke, where the shipped one cannot`() {
+        val lang = "en"
+        val locale = Locale.ENGLISH
+        val prox = KeyProximity.forLang(lang)
+        val dict = listFor(lang, locale)
+        // A frequency-ordered candidate pool. The real decoder would prune by
+        // shape; this stands in for that with "the words people actually type",
+        // which is generous to the decoder and honest about being so.
+        val pool = File(assets(), "dictionaries/$lang.txt").useLines { lines ->
+            lines.take(20_000)
+                .mapNotNull { it.split(' ').firstOrNull() }
+                .filter { it.length in 3..12 && it.all { c -> c.isLetter() } }
+                .toList()
+        }
+        val fracs = listOf(0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
+        val rnd = Random(seed = 20260907)
+        val words = sample(lang, 60)
+        val hit = IntArray(fracs.size)
+        val top3 = IntArray(fracs.size)
+        var asked = 0
+        for (w in words) {
+            val pts = path(w, Hand.NATURAL, prox, rnd) ?: continue
+            if (GlidePath.of(pts, prox) == null) continue
+            asked++
+            val n = pts.size / 2
+            for ((fi, f) in fracs.withIndex()) {
+                val take = maxOf(2, (n * f).toInt())
+                val gp = GlidePath.of(pts.copyOfRange(0, take * 2), prox) ?: continue
+                // Shape against frequency, the same trade the real decoder
+                // makes; the constant is the shipped one.
+                val scored = ArrayList<Pair<String, Double>>(64)
+                for (cand in pool) {
+                    if (!gp.couldStart(cand[0])) continue
+                    val c = gp.prefixCostOf(cand)
+                    if (c == Double.POSITIVE_INFINITY) continue
+                    val freq = dict.frequency(cand.lowercase(locale))
+                    if (freq <= 0) continue
+                    scored.add(cand to (ln(freq + 1.0) - Dictionary.GLIDE_SHAPE_WEIGHT * c))
+                }
+                scored.sortByDescending { it.second }
+                if (scored.isEmpty()) continue
+                if (scored[0].first == w) hit[fi]++
+                if (scored.take(3).any { it.first == w }) top3[fi]++
+            }
+        }
+        val report = "prefix decoder, en, n=" + asked + ": " + fracs.mapIndexed { i, f ->
+            "%.0f%%: top1 %.0f%% top3 %.0f%%".format(
+                f * 100, hit[i] * 100.0 / asked, top3[i] * 100.0 / asked
+            )
+        }.joinToString("  ")
+        println(report)
+
+        assertTrue("nothing was measured", asked >= 30)
+        // The finding, held as a floor: at seven tenths of a stroke the word is
+        // in the top three. Measured 82%; the floor is well under it because
+        // the corpus and the dictionary both move. If this fails,
+        // [GlidePath.prefixCostOf] has regressed and the case for a live
+        // preview has gone with it -- the shipped decoder manages 7% here.
+        val at70 = fracs.indexOf(0.7)
+        assertTrue(
+            "top-3 at 70% of the stroke fell to " +
+                "%.0f%% -- %s".format(top3[at70] * 100.0 / asked, report),
+            top3[at70] * 100.0 / asked >= 60.0
+        )
+    }
 }

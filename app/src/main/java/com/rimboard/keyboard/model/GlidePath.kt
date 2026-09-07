@@ -276,6 +276,86 @@ class GlidePath private constructor(
     }
 
     /**
+     * The cost of this path as the **beginning** of [word], rather than the
+     * whole of it.
+     *
+     * [costOf] asks "is this stroke this word", and every part of it assumes
+     * the finger has finished: the ideal polyline runs to the last letter, and
+     * the dictionary scan that feeds it has already required the path to *end*
+     * on a key that word ends with. Mid-stroke that is the wrong question, and
+     * asking it anyway is why a live preview reads as nonsense for nine tenths
+     * of a swipe -- measured in `GlideAccuracyTest`.
+     *
+     * This asks the other one: could the stroke so far be the opening of this
+     * word? The word's ideal line is truncated after each of its first letters
+     * in turn and the path is scored against that prefix exactly as [costOf]
+     * scores against the whole; the answer is the best any prefix manages.
+     *
+     * **Deliberately a search and not a length estimate.** The obvious cheap
+     * version -- measure how far the finger has travelled and cut the ideal
+     * line at the same arc length -- is biased and not slightly: a hand cuts
+     * corners, so the drawn path is measurably shorter than the polyline
+     * through the key centres it is tracing, and the cut lands early on every
+     * word. Searching costs a factor of the word's stop count and answers the
+     * question that was actually asked.
+     *
+     * **This is not fast enough to run per keystroke over a dictionary**, and
+     * it is not meant to be. It exists so the accuracy of a prefix decoder can
+     * be measured before anyone pays for one: that is the question that can
+     * kill the feature, and it does not need the fast implementation to answer.
+     * A shipping decoder needs a prune that stands in for `couldEnd` -- which
+     * currently leaves about 1,700 of 300,000 words standing, and which a
+     * prefix search cannot use.
+     */
+    fun prefixCostOf(word: String): Double {
+        val m = collapseInto(word)
+        if (m < 2) return Double.POSITIVE_INFINITY
+        var total = 0f
+        for (k in 0 until m) {
+            val slot = slotOf(letters[k])
+            if (slot < 0) return Double.POSITIVE_INFINITY
+            idealX[k] = keyX[slot]
+            idealY[k] = keyY[slot]
+            if (k > 0) total += hypot(idealX[k] - idealX[k - 1], idealY[k] - idealY[k - 1])
+            cum[k] = total
+        }
+        var best = Double.POSITIVE_INFINITY
+        // Every prefix of two stops or more. One stop draws no line and cannot
+        // be told from a smudge, which is the same bound [costOf] works to.
+        for (j in 1 until m) {
+            val c = costAgainstPrefix(j)
+            if (c < best) best = c
+        }
+        return best
+    }
+
+    /**
+     * [costOf]'s comparison against the ideal line truncated after stop [j].
+     *
+     * Reads the polyline [prefixCostOf] has already laid into the scratch
+     * arrays, so the geometry is built once per word rather than once per
+     * prefix.
+     */
+    private fun costAgainstPrefix(j: Int): Double {
+        val len = cum[j]
+        if (len <= 0f) return Double.POSITIVE_INFINITY
+        val n = px.size
+        var sum = 0f
+        var seg = 0
+        val step = len / (n - 1)
+        for (i in 0 until n) {
+            val along = i * step
+            while (seg < j - 1 && cum[seg + 1] < along) seg++
+            val segLen = cum[seg + 1] - cum[seg]
+            val t = if (segLen <= 0f) 0f else ((along - cum[seg]) / segLen).coerceIn(0f, 1f)
+            val qx = idealX[seg] + (idealX[seg + 1] - idealX[seg]) * t
+            val qy = idealY[seg] + (idealY[seg + 1] - idealY[seg]) * t
+            sum += hypot(px[i] - qx, py[i] - qy)
+        }
+        return sum.toDouble() / n
+    }
+
+    /**
      * [word] with runs of the same letter reduced to one, into [letters],
      * returning the length.
      *
