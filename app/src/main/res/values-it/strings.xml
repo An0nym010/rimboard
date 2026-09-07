@@ -50,6 +50,10 @@
     <string name="pref_suggestions_summary">Suggerimenti di parole durante la digitazione</string>
     <string name="pref_autocorrect_cautious_title">Correzione prudente</string>
     <string name="pref_autocorrect_cautious_summary">Cambia meno parole digitate correttamente, correggendo qualche errore in meno</string>
+
+    <string name="pref_postcorrect_title">Correzione successiva</string>
+    <string name="pref_postcorrect_summary">Corregge un errore di battitura una parola dopo, quando la parola seguente chiarisce cosa volevi scrivere</string>
+
     <string name="pref_predictions_title">Predizione della parola successiva</string>
     <string name="pref_predictions_summary">Suggerisci la parola successiva in base alla tua cronologia</string>
     <string name="pref_double_space_title">Punto con doppio spazio</string>

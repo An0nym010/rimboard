@@ -2248,9 +2248,27 @@ class Dictionary(
      * the length is the whole point — it is what makes two edits acceptable in
      * a long word and refused in a short one, which is exactly the difference
      * between "accomodation" and turning somebody's name into a different word.
+     *
+     * [slack] widens whichever bar is in force, and exists for exactly one
+     * caller: [com.rimboard.keyboard.model.PostCorrection], which asks this
+     * question a second time once the *following* word has arrived. **It ships
+     * at 1.0**, so in production this changes nothing — the sweep that
+     * parameter exists for found that widening the bar loses repairs as well as
+     * causing damage, and the reasoning is in that class. What it is for now is
+     * keeping the sweep runnable against a dictionary that will be regenerated.
+     *
+     * It multiplies the cautious ceiling as well as the ordinary one, so that a
+     * future non-1.0 value cannot quietly make post-correction the one place
+     * where turning cautious on changes nothing. Cautious is a *relative*
+     * statement — "hold to a stricter bar than you otherwise would" — and
+     * scaling both keeps it stricter.
      */
     fun autoCommitConfident(
-        typedLower: String, candidate: String, prox: KeyProximity?, cautious: Boolean = false
+        typedLower: String,
+        candidate: String,
+        prox: KeyProximity?,
+        cautious: Boolean = false,
+        slack: Double = 1.0
     ): Boolean {
         if (typedLower.isEmpty() || candidate.isEmpty()) return false
         if (sameWordDifferentlyWritten(typedLower, candidate, prox)) return true
@@ -2284,7 +2302,7 @@ class Dictionary(
             if (cautious) AUTO_MAX_COST_PER_CHAR_CAUTIOUS
             else AUTO_MAX_COST_PER_CHAR *
                 (if (looksLikeAWord(typedLower)) WORDLIKE_TIGHTEN else 1.0)
-        return spatialCost(typedLower, candidate, prox) / len <= bar
+        return spatialCost(typedLower, candidate, prox) / len <= bar * slack
     }
 
     /**

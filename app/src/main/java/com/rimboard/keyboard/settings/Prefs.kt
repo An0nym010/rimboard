@@ -15,6 +15,7 @@ object Prefs {
     const val KEY_AUTOCAPS = "autocaps"
     const val KEY_AUTOCORRECT = "autocorrect"
     const val KEY_AUTOCORRECT_CAUTIOUS = "autocorrect_cautious"
+    const val KEY_POST_CORRECT = "post_correct"
     const val KEY_INLINE_AUTOFILL = "inline_autofill"
     const val KEY_SUGGESTIONS = "suggestions"
     const val KEY_PREDICTIONS = "predictions"
@@ -149,6 +150,24 @@ object Prefs {
      */
     fun cautiousAutocorrect(c: Context) =
         get(c).boolOr(KEY_AUTOCORRECT_CAUTIOUS, false)
+
+    /**
+     * Whether the word before the one just committed may still be repaired.
+     *
+     * On, and dependent on autocorrect in the settings screen, because it is
+     * strictly narrower than the thing it depends on: it can only reach words
+     * autocorrect already found a fix for and declined to apply, and it needs
+     * the following word to agree before it applies one. Somebody who wants
+     * autocorrect wants this; somebody who has turned autocorrect off has said
+     * do not guess at my words, and this is a guess.
+     *
+     * It is a separate switch rather than part of that one because it is the
+     * only edit this keyboard makes to text the user has already read past.
+     * That is a different thing to be uneasy about than a word changing under
+     * the cursor, and it deserves its own answer. See
+     * [com.rimboard.keyboard.model.PostCorrection].
+     */
+    fun postCorrect(c: Context) = get(c).boolOr(KEY_POST_CORRECT, true)
 
     /**
      * Whether the strip offers what a password manager wants to fill.

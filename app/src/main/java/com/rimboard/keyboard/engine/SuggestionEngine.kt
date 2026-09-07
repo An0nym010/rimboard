@@ -690,6 +690,21 @@ class SuggestionEngine private constructor(
          * that dropping one leaves something behind it. See the call site.
          */
         private const val CORRECTION_POOL = 20
+
+        /**
+         * How far down the correction list post-correction will look for a
+         * candidate the following word agrees with.
+         *
+         * Small on purpose, and not the cost control it looks like — the scan
+         * behind it runs over every eligible word whatever this says, so the
+         * number only decides where the list is cut. What it bounds is *reach*.
+         * The distance bar already refuses a repair that moves the word too
+         * far, but nothing stops the tenth-ranked candidate being the one word
+         * in the list that happens to share a bigram with the follower, and
+         * promoting it would be the follower overruling the channel model
+         * rather than breaking a tie in it. Four is a tie.
+         */
+        private const val POST_CORRECTION_DEPTH = 4
     }
 
     /** Multiplier applied to a completion's frequency for its context rank. */
@@ -1896,6 +1911,93 @@ class SuggestionEngine private constructor(
         // however far it sat from what was actually typed, which destroyed most
         // correctly-typed words the dictionary happens not to contain.
         return if (autoCommitConfident(typed, best, lang, locale)) best else null
+    }
+
+    /**
+     * The repair for the word *before* [follower], or null to leave it alone.
+     *
+     * The engine half of [com.rimboard.keyboard.model.PostCorrection]: that
+     * object owns the policy and can be read without any of this, and this owns
+     * the three questions it cannot answer for itself — what the corrections
+     * are, whether the n-grams join a word to the follower, and how far the
+     * repair moves the text.
+     *
+     * **Nothing here may load an asset.** This runs on the typing path, one
+     * call per committed word, and both readers of the prediction model below
+     * are the non-loading kind: [contextRankFor] passes `mayLoad = false`, and
+     * [continues] answers `false` rather than parsing when the model is cold.
+     * A cold first sentence therefore gets no post-correction, which is the
+     * same fallback the strip and the spell checker take and for the same
+     * reason. See the note on `predictions(mayLoad =)`.
+     *
+     * The work is also arranged to cost nothing in the ordinary case. Almost
+     * every word committed is a real one, and for those `correctionCandidates`
+     * returns an empty list off a dictionary hit — so the expensive part, the
+     * edit-distance scan, only runs for a word the keyboard already believes is
+     * a typo, which is the same population `suggestionsFor` was going to scan
+     * for the strip anyway.
+     *
+     * @param typed      what was typed for the earlier word.
+     * @param committed  what went into the field for it.
+     * @param separator  what was typed between the two words.
+     * @param follower   the word just committed.
+     * @param followerCorrected whether that word was itself changed on commit.
+     * @param prevWord2 / @param prevWord the context that stood *before* the
+     *        earlier word, so the candidate ranking is the one the commit saw
+     *        rather than one shifted a word along.
+     * @param touch     the touch offsets recorded for the earlier word, carried
+     *        from the commit. Post-correction is the same ruling asked a second
+     *        time, so it is asked with the same evidence; dropping the trail
+     *        here would let the two disagree about which candidate leads for a
+     *        reason that has nothing to do with the follower.
+     */
+    fun postCorrectionFor(
+        typed: String,
+        committed: String,
+        separator: String,
+        follower: String,
+        followerCorrected: Boolean,
+        lang: String,
+        locale: Locale,
+        altLang: String? = null,
+        altLocale: Locale? = null,
+        prevWord2: String = "",
+        prevWord: String = "",
+        touch: FloatArray? = null,
+        personalized: Boolean = true
+    ): String? {
+        // The cheap refusals first, and without building anything: this is the
+        // common path, since the overwhelming majority of committed words are
+        // followed by another ordinary word and were never corrections.
+        if (committed != typed || separator != " ") return null
+        if (followerCorrected || follower.isEmpty() || typed.isEmpty()) return null
+        val candidates = correctionCandidates(
+            typed, lang, locale, altLang, altLocale, POST_CORRECTION_DEPTH,
+            contextRankFor(
+                prevWord2, prevWord, lang, locale, altLang, altLocale, personalized
+            ),
+            touch,
+            personalized
+        )
+        if (candidates.isEmpty()) return null
+        val dict = cachedDictionary(lang) ?: return null
+        val prox = KeyProximity.forLang(lang)
+        val lower = typed.lowercase(locale)
+        return com.rimboard.keyboard.model.PostCorrection.replacementFor(
+            typed = typed,
+            committed = committed,
+            separator = separator,
+            follower = follower,
+            followerCorrected = followerCorrected,
+            candidates = candidates,
+            continues = { continues(it, follower, lang, locale, personalized) },
+            confident = {
+                dict.autoCommitConfident(
+                    lower, it.lowercase(locale), prox, cautiousAutocorrect,
+                    slack = com.rimboard.keyboard.model.PostCorrection.SLACK
+                )
+            }
+        )
     }
 
     /**

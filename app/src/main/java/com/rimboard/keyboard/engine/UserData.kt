@@ -292,6 +292,27 @@ class UserData private constructor(dir: File) {
         dirty = true
     }
 
+    /**
+     * Take back one occurrence of [word], because the commit that recorded it
+     * has been undone.
+     *
+     * The counterpart to [learnWord] and the mirror of [forgetNgram]: a count
+     * here is evidence rather than a tally, so a commit that turns out to have
+     * been a typo has to leave the tally where it was rather than one higher.
+     * Post-correction is the caller, and without this it would be the feature
+     * that trains the keyboard to accept the very typos it repairs — two
+     * repairs of the same slip put the count at [isKnown]'s threshold, and a
+     * known word is one `correctionCandidates` will not touch.
+     *
+     * Never below zero, and the row is dropped when it empties, so this cannot
+     * leave a word behind at count zero for the file writer to persist.
+     */
+    fun unlearnWord(word: String) {
+        val now = (learned[word] ?: return) - 1
+        if (now <= 0) learned.remove(word) else learned[word] = now
+        dirty = true
+    }
+
     /** Mark a word as known so it is never auto-corrected again (used on revert). */
     fun markKnown(word: String) {
         learned[word] = maxOf(learned[word] ?: 0, 2)

@@ -129,6 +129,15 @@ The latest release is **2.9.1**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
 - Auto-capitalization (sentence-aware), double-tap Shift for caps lock
 - Autocorrect (edit distance ≤ 2 against a frequency dictionary) with a
   one-tap "↩ original" revert chip that also teaches the keyboard your word
+- **Post-correction** — a typo the space bar was not confident enough to fix
+  gets one more look the moment the *next* word arrives, because the word after
+  it is evidence that did not exist when the space bar had to decide. Measured
+  over the typos autocorrect declines: **81% of English and 80% of Turkish are
+  repaired**, against 0.6% and 0.1% of correctly-typed words the dictionary does
+  not hold being rewritten. It applies nothing autocorrect's own confidence bar
+  would have refused — all the following word changes is *which* of the
+  candidates gets picked — and the same "↩ original" chip undoes it.
+  Settings → Corrections.
 - Suggestion strip: up to five chips — what you typed, the best match and the
   alternatives — with the word that will be auto-committed shown in
   bold/accent; a narrow row drops chips from the right rather than squeezing
