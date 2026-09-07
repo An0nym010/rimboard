@@ -54,6 +54,8 @@
     <string name="pref_postcorrect_title">Corrección posterior</string>
     <string name="pref_postcorrect_summary">Corrige una errata una palabra después, cuando la siguiente aclara lo que querías escribir</string>
 
+    <string name="pref_smartdash_title">Guion inteligente</string>
+    <string name="pref_smartdash_summary">Convierte dos guiones en una raya — así</string>
     <string name="pref_predictions_title">Predicción de la siguiente palabra</string>
     <string name="pref_predictions_summary">Sugerir la siguiente palabra según tu propio historial</string>
     <string name="pref_double_space_title">Punto con doble espacio</string>

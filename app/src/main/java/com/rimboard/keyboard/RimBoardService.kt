@@ -1640,6 +1640,59 @@ class RimBoardService : InputMethodService(),
     private fun isSeparator(c: Char): Boolean = c == ' ' || c in ".,;:!?)]}\u2026"
 
     /**
+     * Turn a second hyphen into an em dash, and say whether it did.
+     *
+     * The one substitution this keyboard makes to a character that was typed
+     * correctly and on purpose, which is why it is off by default and why the
+     * guards below are wider than they look. `--` is prose in an email and a
+     * command-line flag everywhere else, and the field alone does not say
+     * which \u2014 so the refusals are for the places where the answer is knowable:
+     * an address or URL field, a password box, and a run of three or more
+     * hyphens, which is a rule, a separator or a diff and never punctuation.
+     *
+     * Composing is guaranteed empty here: a hyphen ends a word, so the previous
+     * character being one means the word before it was already flushed.
+     */
+    private fun smartDashApplies(): Boolean {
+        if (!Prefs.smartDash(this)) return false
+        if (!fieldTakesProse || identifierContext) return false
+        val ic = currentInputConnection ?: return false
+        val before = ic.getTextBeforeCursor(2, 0)?.toString() ?: return false
+        if (before.isEmpty()) return false
+        // A hyphen typed straight onto an em dash means a rule was being typed
+        // and this got in the way at the second character: put both hyphens
+        // back and let the third one land, so `---` survives.
+        //
+        // Stateless, which takes one assumption: that an em dash sitting
+        // immediately before the cursor is one this rule put there. It could
+        // instead have been reached through the long-press popup, and then this
+        // undoes something deliberate \u2014 but only for somebody who has switched
+        // this setting on, and who has typed a hyphen directly onto an em dash
+        // they chose by hand. Tracking the substitution would settle it exactly
+        // and would need the flag carried across `clearWordState` the way the
+        // pending word is, for one keystroke, to answer a question that has an
+        // almost-always-right answer without any state at all.
+        if (before.last() == '\u2014') {
+            ic.beginBatchEdit()
+            ic.deleteSurroundingText(1, 0)
+            ic.commitText("---", 1)
+            ic.endBatchEdit()
+            afterEdit()
+            return true
+        }
+        if (before.last() != '-') return false
+        // "--" already sitting there is a rule being typed rather than a dash
+        // being finished, so the third hyphen is left alone from the start.
+        if (before.length == 2 && before[0] == '-') return false
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(1, 0)
+        ic.commitText("\u2014", 1)
+        ic.endBatchEdit()
+        afterEdit()
+        return true
+    }
+
+    /**
      * Whether the mark behind the cursor is sentence punctuation that wants a
      * space after it.
      *
@@ -1712,6 +1765,9 @@ class RimBoardService : InputMethodService(),
             afterEdit()
         } else if (text.length == 1 && isSeparator(c)) {
             handleSeparator(text)
+        } else if (c == '-' && text.length == 1 && smartDashApplies()) {
+            // Nothing else to do: the replacement has already gone into the
+            // field, second hyphen and all.
         } else {
             commitTextRaw(text)
         }

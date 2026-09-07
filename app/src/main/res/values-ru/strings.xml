@@ -54,6 +54,8 @@
     <string name="pref_postcorrect_title">Отложенное исправление</string>
     <string name="pref_postcorrect_summary">Исправляет опечатку на слово позже, когда следующее слово проясняет замысел</string>
 
+    <string name="pref_smartdash_title">Умное тире</string>
+    <string name="pref_smartdash_summary">Превращает два дефиса в тире — вот так</string>
     <string name="pref_predictions_title">Предсказание следующего слова</string>
     <string name="pref_predictions_summary">Предлагать следующее слово на основе вашей истории ввода</string>
     <string name="pref_double_space_title">Точка двойным пробелом</string>

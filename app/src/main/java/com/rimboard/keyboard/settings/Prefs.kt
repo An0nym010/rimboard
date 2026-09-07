@@ -16,6 +16,7 @@ object Prefs {
     const val KEY_AUTOCORRECT = "autocorrect"
     const val KEY_AUTOCORRECT_CAUTIOUS = "autocorrect_cautious"
     const val KEY_POST_CORRECT = "post_correct"
+    const val KEY_SMART_DASH = "smart_dash"
     const val KEY_INLINE_AUTOFILL = "inline_autofill"
     const val KEY_SUGGESTIONS = "suggestions"
     const val KEY_PREDICTIONS = "predictions"
@@ -168,6 +169,18 @@ object Prefs {
      * [com.rimboard.keyboard.model.PostCorrection].
      */
     fun postCorrect(c: Context) = get(c).boolOr(KEY_POST_CORRECT, true)
+
+    /**
+     * Whether two hyphens become an em dash as you type.
+     *
+     * Off. Every other substitution this keyboard makes is either a repair of
+     * something misspelled or an expansion the user wrote down themselves; this
+     * one changes a character that was typed correctly, on purpose, into a
+     * different correct character. It is a convenience for prose and a nuisance
+     * in a terminal, a diff, or a command line, and the keyboard cannot tell
+     * those apart from the field alone -- `--` is how flags are written.
+     */
+    fun smartDash(c: Context) = get(c).boolOr(KEY_SMART_DASH, false)
 
     /**
      * Whether the strip offers what a password manager wants to fill.

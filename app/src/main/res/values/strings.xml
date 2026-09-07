@@ -76,6 +76,8 @@
     <string name="pref_postcorrect_title">Post-correction</string>
     <string name="pref_postcorrect_summary">Fix a typo one word late, once the next word shows what was meant</string>
 
+    <string name="pref_smartdash_title">Smart dash</string>
+    <string name="pref_smartdash_summary">Turn two hyphens into an em dash — like this</string>
     <string name="pref_predictions_title">Next-word prediction</string>
     <string name="pref_predictions_summary">Suggest the next word from your own typing history</string>
     <string name="pref_double_space_title">Double-space period</string>

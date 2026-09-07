@@ -58,6 +58,8 @@
     <string name="pref_postcorrect_title">Sonradan düzeltme</string>
     <string name="pref_postcorrect_summary">Bir yazım hatasını bir kelime sonra, sonraki kelime ne demek istendiğini gösterince düzeltir</string>
 
+    <string name="pref_smartdash_title">Akıllı tire</string>
+    <string name="pref_smartdash_summary">İki kısa çizgiyi uzun çizgiye çevirir — böyle</string>
     <string name="pref_predictions_title">Sonraki kelime tahmini</string>
     <string name="pref_predictions_summary">Kendi yazma geçmişinden sonraki kelimeyi öner</string>
     <string name="pref_double_space_title">Çift boşlukla nokta</string>

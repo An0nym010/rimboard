@@ -54,6 +54,8 @@
     <string name="pref_postcorrect_title">Correction différée</string>
     <string name="pref_postcorrect_summary">Corrige une faute un mot plus tard, quand le mot suivant révèle ce qui était voulu</string>
 
+    <string name="pref_smartdash_title">Tiret intelligent</string>
+    <string name="pref_smartdash_summary">Remplace deux tirets courts par un tiret cadratin — comme ceci</string>
     <string name="pref_predictions_title">Prédiction du mot suivant</string>
     <string name="pref_predictions_summary">Suggérer le mot suivant selon votre propre historique</string>
     <string name="pref_double_space_title">Point par double espace</string>

@@ -150,6 +150,9 @@ The latest release is **2.9.1**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
   two-word contexts across 22 languages) merged with what you have typed
   yourself, which is weighed as trigrams
 - Double-space inserts ". ", hold-and-slide the spacebar to move the cursor
+- Optional smart dash: two hyphens become an em dash. Off by default, because
+  `--` is a command-line flag at least as often as it is punctuation and the
+  field cannot tell the keyboard which one you meant
 - Long-press popups for accents, digits and symbols; key preview bubbles
 - Two symbol pages, a phone/number pad for numeric fields, 1,500+ emoji with
   categories and recents (anything your Android version can't render is hidden)
