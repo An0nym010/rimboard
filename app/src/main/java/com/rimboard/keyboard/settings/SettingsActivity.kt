@@ -20,6 +20,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceGroup
 import com.rimboard.keyboard.R
 import com.rimboard.keyboard.engine.UserData
 import java.io.File
@@ -430,6 +431,49 @@ class SettingsActivity : LocalisedActivity() {
             ActivityResultContracts.OpenDocument()
         ) { uri -> if (uri != null) importDict(uri) }
 
+        /**
+         * Let a preference title wrap instead of being cut off mid-word.
+         *
+         * `preference_material.xml` -- androidx's own row layout, which this
+         * app does not replace -- declares the title
+         * `android:singleLine="true"` with `android:ellipsize="marquee"`, and
+         * a marquee that is never selected is just truncation. So every title
+         * too long for one line ended in an ellipsis. Seen on the Advanced
+         * screen of a 1080px phone, where the setting could not be read at all:
+         *
+         *     Return to keyboard after pastin..     (after pasting a clip)
+         *     Long-press symbols key for nu..       (for numpad)
+         *
+         * Nine of this app's preference titles run past 26 characters, so those
+         * two are the ones that were caught rather than the extent of it.
+         *
+         * `Preference.setSingleLineTitle` is the documented way out and it has
+         * a catch worth writing down, checked against the bytecode of
+         * `preference-1.2.1.aar` rather than recalled: `onBindViewHolder`
+         * applies `mSingleLineTitle` **only if `mHasSingleLineTitleAttr`**, and
+         * that flag is set by the XML attribute or by this setter and by
+         * nothing else. So the field defaulting to `true` is not what does the
+         * damage and clearing it is not enough either -- with the flag unset
+         * the binder never touches the view and the layout's own
+         * `singleLine="true"` stands. Calling the setter is what makes the
+         * binder speak at all.
+         *
+         *     javap -c -p androidx.preference.Preference   # onBindViewHolder
+         *
+         * Done here, over the whole tree, rather than as `app:singleLineTitle`
+         * on each row: there are nine preference XML files and a new row is
+         * added by writing markup, so an attribute is a thing to remember and
+         * this is a thing that cannot be forgotten. It also covers the rows
+         * this app builds in code.
+         */
+        private fun unclipTitles(group: PreferenceGroup) {
+            for (i in 0 until group.preferenceCount) {
+                val p = group.getPreference(i)
+                p.isSingleLineTitle = false
+                if (p is PreferenceGroup) unclipTitles(p)
+            }
+        }
+
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             preferenceManager.setStorageDeviceProtected()
             // Before the screen inflates: androidx.preference seeds a widget
@@ -439,6 +483,7 @@ class SettingsActivity : LocalisedActivity() {
             Prefs.seedComputedDefaults(requireContext())
             val xmlRes = arguments?.getInt(ARG_XML, 0)?.takeIf { it != 0 } ?: R.xml.preferences
             setPreferencesFromResource(xmlRes, rootKey)
+            unclipTitles(preferenceScreen)
             val screens = mapOf(
                 "screen_general" to R.xml.prefs_general,
                 "screen_theme" to R.xml.prefs_theme,
