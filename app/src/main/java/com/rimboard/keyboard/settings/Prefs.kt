@@ -17,6 +17,7 @@ object Prefs {
     const val KEY_AUTOCORRECT_CAUTIOUS = "autocorrect_cautious"
     const val KEY_POST_CORRECT = "post_correct"
     const val KEY_SMART_DASH = "smart_dash"
+    const val KEY_CONTEXT_SPELL = "context_spell"
     const val KEY_INLINE_AUTOFILL = "inline_autofill"
     const val KEY_SUGGESTIONS = "suggestions"
     const val KEY_PREDICTIONS = "predictions"
@@ -169,6 +170,24 @@ object Prefs {
      * [com.rimboard.keyboard.model.PostCorrection].
      */
     fun postCorrect(c: Context) = get(c).boolOr(KEY_POST_CORRECT, true)
+
+    /**
+     * Whether the spell checker may underline a correctly-spelled word the
+     * sentence contradicts -- "form" where the sentence wanted "from".
+     *
+     * On, and read only by the system spell checker: this draws a squiggle and
+     * has no path into what the keyboard commits. Measured over prose fixtures
+     * it marks 0.12% of correctly-typed English words and 0.04% of Turkish
+     * ones -- about one wrong underline per thousand words -- and catches
+     * around a tenth of real-word errors, which nothing in this app caught
+     * before at all. See [com.rimboard.keyboard.model.ContextError].
+     *
+     * Separate from every other correction switch because it is the only rule
+     * here that suspects a word that is spelled correctly, and somebody who
+     * finds that presumptuous should be able to say so without turning off the
+     * spell checker.
+     */
+    fun contextSpell(c: Context) = get(c).boolOr(KEY_CONTEXT_SPELL, true)
 
     /**
      * Whether two hyphens become an em dash as you type.

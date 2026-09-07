@@ -54,6 +54,9 @@
     <string name="pref_postcorrect_title">Correção posterior</string>
     <string name="pref_postcorrect_summary">Corrige um erro de digitação uma palavra depois, quando a palavra seguinte esclarece o que queria escrever</string>
 
+    <string name="pref_contextspell_title">Verificação pelo contexto</string>
+    <string name="pref_contextspell_summary">Sublinha uma palavra real que a frase contradiz, como “form” em vez de “from”</string>
+
     <string name="pref_smartdash_title">Travessão inteligente</string>
     <string name="pref_smartdash_summary">Transforma dois hifens num travessão — assim</string>
     <string name="pref_predictions_title">Previsão da próxima palavra</string>

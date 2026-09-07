@@ -76,6 +76,9 @@
     <string name="pref_postcorrect_title">Post-correction</string>
     <string name="pref_postcorrect_summary">Fix a typo one word late, once the next word shows what was meant</string>
 
+    <string name="pref_contextspell_title">Context spell check</string>
+    <string name="pref_contextspell_summary">Underline a real word the sentence contradicts, like “form” where you meant “from”</string>
+
     <string name="pref_smartdash_title">Smart dash</string>
     <string name="pref_smartdash_summary">Turn two hyphens into an em dash — like this</string>
     <string name="pref_predictions_title">Next-word prediction</string>

@@ -54,6 +54,9 @@
     <string name="pref_postcorrect_title">Nachträgliche Korrektur</string>
     <string name="pref_postcorrect_summary">Behebt einen Tippfehler ein Wort später, sobald das nächste Wort ihn klärt</string>
 
+    <string name="pref_contextspell_title">Kontext-Rechtschreibprüfung</string>
+    <string name="pref_contextspell_summary">Unterstreicht ein echtes Wort, das dem Satz widerspricht — etwa „form“ statt „from“</string>
+
     <string name="pref_smartdash_title">Intelligenter Gedankenstrich</string>
     <string name="pref_smartdash_summary">Macht aus zwei Bindestrichen einen Gedankenstrich — so</string>
     <string name="pref_predictions_title">Nächstes-Wort-Vorhersage</string>

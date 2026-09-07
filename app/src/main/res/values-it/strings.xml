@@ -54,6 +54,9 @@
     <string name="pref_postcorrect_title">Correzione successiva</string>
     <string name="pref_postcorrect_summary">Corregge un errore di battitura una parola dopo, quando la parola seguente chiarisce cosa volevi scrivere</string>
 
+    <string name="pref_contextspell_title">Controllo ortografico per contesto</string>
+    <string name="pref_contextspell_summary">Sottolinea una parola reale che la frase contraddice, come “form” al posto di “from”</string>
+
     <string name="pref_smartdash_title">Trattino intelligente</string>
     <string name="pref_smartdash_summary">Trasforma due trattini in una lineetta — così</string>
     <string name="pref_predictions_title">Predizione della parola successiva</string>

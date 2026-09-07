@@ -54,6 +54,9 @@
     <string name="pref_postcorrect_title">Отложенное исправление</string>
     <string name="pref_postcorrect_summary">Исправляет опечатку на слово позже, когда следующее слово проясняет замысел</string>
 
+    <string name="pref_contextspell_title">Проверка по контексту</string>
+    <string name="pref_contextspell_summary">Подчёркивает реальное слово, противоречащее фразе, например «form» вместо «from»</string>
+
     <string name="pref_smartdash_title">Умное тире</string>
     <string name="pref_smartdash_summary">Превращает два дефиса в тире — вот так</string>
     <string name="pref_predictions_title">Предсказание следующего слова</string>

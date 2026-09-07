@@ -54,6 +54,9 @@
     <string name="pref_postcorrect_title">Corrección posterior</string>
     <string name="pref_postcorrect_summary">Corrige una errata una palabra después, cuando la siguiente aclara lo que querías escribir</string>
 
+    <string name="pref_contextspell_title">Corrección por contexto</string>
+    <string name="pref_contextspell_summary">Subraya una palabra real que contradice la frase, como “form” donde querías “from”</string>
+
     <string name="pref_smartdash_title">Guion inteligente</string>
     <string name="pref_smartdash_summary">Convierte dos guiones en una raya — así</string>
     <string name="pref_predictions_title">Predicción de la siguiente palabra</string>

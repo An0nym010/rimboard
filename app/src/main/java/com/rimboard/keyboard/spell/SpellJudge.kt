@@ -2,7 +2,9 @@ package com.rimboard.keyboard.spell
 
 import android.view.textservice.SuggestionsInfo
 import com.rimboard.keyboard.engine.SuggestionEngine
+import com.rimboard.keyboard.model.ContextError
 import com.rimboard.keyboard.model.SpellCandidacy
+import com.rimboard.keyboard.model.WordCase
 import java.util.Locale
 
 /** How many expensive answers are left in the call being served. */
@@ -70,7 +72,21 @@ internal class SpellJudge(
      * keyboard is still never underlined. Incognito withholds what would be
      * suggested, not what is already on the screen.
      */
-    private val personalized: Boolean = true
+    private val personalized: Boolean = true,
+    /**
+     * Whether a correctly-spelled word may be underlined because the sentence
+     * contradicts it. User setting, and spell-checker-only by design.
+     *
+     * Unlike `blockOffensive` and `cautiousAutocorrect` this is deliberately
+     * **not** a settable property on [SuggestionEngine], so the note beside
+     * those two -- "when adding a settable engine property, wire *both*
+     * services" -- does not apply and is not being ignored. The keyboard has no
+     * business with this rule: it draws no underlines, and the evidence here is
+     * good enough to mark a word and not good enough to replace one. Keeping it
+     * a constructor argument of the judge is what makes that structural rather
+     * than a habit.
+     */
+    private val contextErrors: Boolean = true
 ) {
 
     /**
@@ -100,6 +116,15 @@ internal class SpellJudge(
         // autocorrect must leave alone -- Spanish "aqui", Croatian "zasto",
         // Greek "ειναι". See Dictionary.accentedUnderlineFor for the sweep.
         if (engine.acceptedWord(word, lang, loc, altLang, altLoc, underlining = true)) {
+            // A real word, which for every other rule in this file is the end
+            // of the matter. It is not the end of it when both neighbours say
+            // the sentence wanted a different real word -- see [ContextError],
+            // and note this is the one verdict here reached *without* the
+            // correction scan below, so it costs a prediction lookup and a
+            // handful of character comparisons rather than a walk.
+            contextErrorFor(word, prev2, prev, next)?.let {
+                return Verdict(SuggestionsInfo.RESULT_ATTR_LOOKS_LIKE_TYPO, listOf(it))
+            }
             return Verdict(SuggestionsInfo.RESULT_ATTR_IN_THE_DICTIONARY, emptyList())
         }
 
@@ -236,6 +261,40 @@ internal class SpellJudge(
             attrs = attrs or SuggestionsInfo.RESULT_ATTR_HAS_RECOMMENDED_SUGGESTIONS
         }
         return Verdict(attrs, out)
+    }
+
+    /**
+     * The word the sentence wanted in place of this correctly-spelled one.
+     *
+     * Cased back onto what was typed, because [ContextError] works in lower
+     * case and only this class knows the locale -- offering "From" for "Form"
+     * at the start of a sentence and "from" in the middle of one is the same
+     * courtesy every other replacement in this app extends.
+     */
+    private fun contextErrorFor(
+        word: String,
+        prev2: String,
+        prev: String,
+        next: String
+    ): String? {
+        if (!contextErrors) return null
+        val lower = word.lowercase(loc)
+        val fix = ContextError.suggest(
+            word = lower,
+            next = next.lowercase(loc),
+            // mayLoad = false for the reason the rank map below gives: this is
+            // a binder thread and the model must never be parsed on it. A cold
+            // model means no opinion, which is the same fallback every other
+            // context rule here takes.
+            predictions = {
+                engine.predictions(
+                    prev2, prev, lang, loc, ContextError.DEPTH,
+                    personalized = personalized, mayLoad = false
+                ).map { it.lowercase(loc) }
+            },
+            continues = { a, b -> engine.continues(a, b, lang, loc, personalized) }
+        ) ?: return null
+        return WordCase.match(word, fix, loc)
     }
 
     companion object {

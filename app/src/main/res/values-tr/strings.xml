@@ -58,6 +58,9 @@
     <string name="pref_postcorrect_title">Sonradan düzeltme</string>
     <string name="pref_postcorrect_summary">Bir yazım hatasını bir kelime sonra, sonraki kelime ne demek istendiğini gösterince düzeltir</string>
 
+    <string name="pref_contextspell_title">Bağlama göre yazım denetimi</string>
+    <string name="pref_contextspell_summary">Cümlenin çeliştiği gerçek bir kelimenin altını çizer; “from” yerine “form” gibi</string>
+
     <string name="pref_smartdash_title">Akıllı tire</string>
     <string name="pref_smartdash_summary">İki kısa çizgiyi uzun çizgiye çevirir — böyle</string>
     <string name="pref_predictions_title">Sonraki kelime tahmini</string>

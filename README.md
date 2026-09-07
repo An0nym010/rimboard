@@ -521,6 +521,26 @@ platform's. This is worth doing mainly for Turkish and the other accented
 languages: RimBoard peels suffixes, so `kitaplarımızdan` is not flagged, and it
 knows the words you have taught the keyboard.
 
+**It also catches the word that is spelled correctly and still wrong.**
+"I heard it *form* a friend" is invisible to any spell checker built on a word
+list, because "form" is a word — it is also the mistake most likely to survive
+being proofread, since the eye reads what it expected. RimBoard underlines it
+when *both* neighbours disagree: the following word has never been seen after
+what you wrote, and the words before it predict something one keystroke away
+that the following word does fit.
+
+Measured over prose fixtures with a real-word error injected one word at a
+time, it marks **0.12% of correctly-typed English words and 0.04% of Turkish
+ones** — roughly one stray underline per thousand words — while catching about
+a **tenth of real-word errors**, and when it does fire it names the word you
+meant 93% of the time in English and 99% in Turkish. Requiring only the
+following word to agree would catch three times as many and underline one
+correctly-typed word in twenty, which is why it asks for both.
+
+It underlines and never rewrites: nothing here can change what you typed, and
+the keyboard's own autocorrect deliberately cannot reach these words at all.
+Turn it off at **Settings → Corrections → Context spell check**.
+
 **Settings → Additional settings → Languages & input → Spell checker →
 RimBoard spell checker.** No separate install and no new permission — it is a
 second component in the same APK, inert until you select it. Or from a

@@ -54,6 +54,9 @@
     <string name="pref_postcorrect_title">Correction différée</string>
     <string name="pref_postcorrect_summary">Corrige une faute un mot plus tard, quand le mot suivant révèle ce qui était voulu</string>
 
+    <string name="pref_contextspell_title">Correction contextuelle</string>
+    <string name="pref_contextspell_summary">Souligne un mot réel que la phrase contredit, comme « form » au lieu de « from »</string>
+
     <string name="pref_smartdash_title">Tiret intelligent</string>
     <string name="pref_smartdash_summary">Remplace deux tirets courts par un tiret cadratin — comme ceci</string>
     <string name="pref_predictions_title">Prédiction du mot suivant</string>

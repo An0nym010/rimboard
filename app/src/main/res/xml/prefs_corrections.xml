@@ -29,6 +29,12 @@
             android:defaultValue="true" />
 
     <SwitchPreferenceCompat
+            android:key="context_spell"
+            android:title="@string/pref_contextspell_title"
+            android:summary="@string/pref_contextspell_summary"
+            android:defaultValue="true" />
+
+    <SwitchPreferenceCompat
             android:key="smart_dash"
             android:title="@string/pref_smartdash_title"
             android:summary="@string/pref_smartdash_summary"

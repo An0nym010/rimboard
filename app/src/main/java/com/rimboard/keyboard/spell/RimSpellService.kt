@@ -266,13 +266,19 @@ class RimSpellService : SpellCheckerService() {
         private data class Live(
             val personalized: Boolean,
             val blockOffensive: Boolean,
-            val cautious: Boolean
+            val cautious: Boolean,
+            val contextErrors: Boolean
         )
 
         private fun live() = Live(
             personalized = !Prefs.incognitoOn(service),
             blockOffensive = Prefs.blockOffensive(service),
-            cautious = Prefs.cautiousAutocorrect(service)
+            cautious = Prefs.cautiousAutocorrect(service),
+            // The fourth thing read per framework call rather than at bind
+            // time, for the reason the other three are: a session lives as
+            // long as the field, and a setting changed while it is open must
+            // reach the next word judged rather than the next field opened.
+            contextErrors = Prefs.contextSpell(service)
         )
 
         /**
@@ -284,7 +290,10 @@ class RimSpellService : SpellCheckerService() {
          * never builds one, because a hit has nothing to judge.
          */
         private fun ruleFor(live: Live) =
-            SpellJudge(engine, lang, loc, altLang, altLoc, live.personalized)
+            SpellJudge(
+                engine, lang, loc, altLang, altLoc, live.personalized,
+                contextErrors = live.contextErrors
+            )
 
         override fun onCreate() {
             // The system hands over the locale it bound this session for, which
@@ -505,6 +514,19 @@ class RimSpellService : SpellCheckerService() {
             val blockOffensive: Boolean,
 
             /**
+             * Whether a real word could be underlined for its context.
+             *
+             * Seventh, and it flips a verdict outright rather than reordering
+             * one: with the setting on a word can come back as a typo carrying
+             * a suggestion, and with it off the same word in the same sentence
+             * is simply in the dictionary. Cache one and serve it after the
+             * switch moved and the underline either will not appear or will
+             * not go away -- and this component's staleness is always quiet,
+             * because nothing errors and the squiggle is just wrong.
+             */
+            val contextErrors: Boolean,
+
+            /**
              * Which dictionary answered.
              *
              * Fourth instance, and the first that was not here from the start
@@ -556,6 +578,7 @@ class RimSpellService : SpellCheckerService() {
                 cautious = live.cautious,
                 personalized = live.personalized,
                 blockOffensive = live.blockOffensive,
+                contextErrors = live.contextErrors,
                 dict = DictVersion.v
             )
             var v = verdicts.get(ask)
