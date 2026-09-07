@@ -3,6 +3,8 @@ package com.rimboard.keyboard.engine
 import com.rimboard.keyboard.model.Languages
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import java.io.File
 
@@ -37,13 +39,55 @@ import java.io.File
  * and blocked "cocked", "pricked", Turkish "mali" (financial) and "mallar"
  * (goods).
  *
- * `assets/predictions/` is the evidence for (d), and it is good evidence
- * because it was built for something else entirely: everyday sentences with
- * corpus artifacts already filtered out. A word that model has an opinion
- * about is one ordinary people write in ordinary messages. It costs 96 of the
- * 293 additions, and that is the right side to err on -- failing to block is
- * the state this found, while blocking someone's ordinary vocabulary is a new
- * fault, and one they cannot diagnose.
+ * `assets/predictions/` is the evidence for (d), and it was chosen because it
+ * was built for something else entirely: everyday sentences with corpus
+ * artifacts already filtered out. A word that model has an opinion about is one
+ * ordinary people write in ordinary messages.
+ *
+ * ## What (d) costs, measured 2026-09-07, and why nothing cheaper works
+ *
+ * The cost used to be written here as "96 of the 293 additions... the right
+ * side to err on". That is the count of things withheld, which is not the same
+ * as the count of things a user meets. **86 forms are withheld across the
+ * twelve languages, and 61 of them the keyboard will still put on the strip
+ * with the setting switched on** -- `shits` after four letters, `retards`
+ * after six, `bastards` after four, German `negern` after five, French
+ * `enculee` after six -- while 38 are offered as the repair for a typo of
+ * themselves. See the test below, which measures both through the engine
+ * rather than reasoning about the lists.
+ *
+ * Every one of the 86 is withheld by the same half of (d): the *base* word is
+ * in the model, so the walk skips it and never reaches its forms. The other
+ * half -- `form not in common` -- has **never fired once**. It is a dead clause
+ * in the sense `fcea63e` found three of.
+ *
+ * Two cheaper rules were measured and both are worse:
+ *
+ *  - **Ask about the form instead of the base.** Admits 69 and keeps out 17,
+ *    and it sorts them the wrong way round: the 17 it keeps out are
+ *    `bastards`, `fucks`, `bitching`, `bitchy`, and the 69 it admits include
+ *    `cocky`, `cocking`, `cockers`, `dicker`, `dickers`, `dicky`, `dickies`,
+ *    `bastardy`, Danish `svine`/`svins`/`svinen`, French `cones` -- ordinary
+ *    words, which is the one fault worse than the one being fixed.
+ *  - **A frequency ratio to the base.** Completely interleaved: ordinary
+ *    `cocky` at 0.242 sits between `bastards` at 0.284 and `retards` at 0.222,
+ *    and at the bottom ordinary `dickers`, `cockers`, `dickies` and `bastardy`
+ *    sit at 0.001 among `assholey`, `shites` and `fuckings`. No threshold
+ *    exists.
+ *
+ * **The reason both fail is the same one, and it is worth naming.** Every
+ * signal available here is some form of *how much ordinary text contains this
+ * word* -- and for profanity that is exactly what a swear word has. The
+ * evidence is selected by the very property the two classes share, so it
+ * cannot separate "an ordinary word that looks derived from a slur" from "an
+ * inflection of a slur people write a lot". That is a question about meaning,
+ * one word at a time.
+ *
+ * So (d) stays, and the 86 stay out, and this is recorded rather than repaired.
+ * The English 38 could be sorted by hand; the other 48 are Danish, German,
+ * French, Dutch, Spanish, Italian, Polish, Portuguese and Turkish, and sorting
+ * those is the same standing blocker as the ten missing ending sets below --
+ * it wants a speaker, not another measurement.
  *
  * All twelve the tool covers, and the endings are read out of the tool rather
  * than transcribed here. This checked three of them against its own copy of
@@ -56,6 +100,23 @@ import java.io.File
  * endings. See the test below, which names them.
  */
 class OffensiveInflectionTest {
+
+    private lateinit var dir: File
+    private lateinit var userData: UserData
+
+    @Before
+    fun setUp() {
+        dir = File.createTempFile("rimboard-offinfl", "").let {
+            it.delete(); it.mkdirs(); it
+        }
+        userData = UserData.inDir(dir)
+    }
+
+    @After
+    fun tearDown() {
+        userData.shutdown()
+        dir.deleteRecursively()
+    }
 
     /**
      * The tool's own table, read rather than copied.
@@ -202,6 +263,126 @@ class OffensiveInflectionTest {
                 "dictionary and rarer than the word they come from, and the " +
                 "filter would offer them: " + missing.joinToString(", "),
             missing.isEmpty()
+        )
+    }
+
+    /**
+     * Every form condition (d) withholds: a listed word plus one of the tool's
+     * own endings, attested in the shipped dictionary, no more frequent than
+     * its base, and skipped because the base is a word the prediction model
+     * knows.
+     */
+    private fun withheld(): List<Pair<String, String>> {
+        val out = ArrayList<Pair<String, String>>()
+        for ((lang, sufs) in endings()) {
+            val off = listed(lang)
+            val freq = frequencies(lang)
+            val common = everyday(lang)
+            for (w in off) {
+                val base = freq[w] ?: continue
+                if (w !in common) continue
+                for (s in sufs) {
+                    val form = w + s
+                    if (form in off) continue
+                    val f = freq[form] ?: continue
+                    if (f <= base) out.add(lang to form)
+                }
+            }
+        }
+        return out
+    }
+
+    /**
+     * What the exemption actually leaves on the strip.
+     *
+     * The class note above argues that (d) has to stay and that no counting
+     * rule replaces it. This is the other half of that honesty: the price is
+     * not an abstract count of withheld additions, it is words the keyboard
+     * offers to somebody who asked it not to. Asked through the engine, with
+     * "Block offensive words" on, exactly as the strip and the space bar ask.
+     *
+     * Both bounds are ratchets rather than targets, and both sit close to the
+     * measurement on purpose: `fcea63e` found eleven floors set so far under
+     * what they guarded that they could not fail. The first draft of this one
+     * had the same fault -- at a ceiling of 100 it survived four extra English
+     * endings being added to the tool, which took the reachable count from 61
+     * to 68 and should have been caught. Five clear of 61 and 38, checked by
+     * making that change and watching it trip.
+     *
+     * The floor is the guard on the guard -- a scan that reaches nothing
+     * reports clean and looks exactly like a scan that found nothing. If the
+     * gap is ever closed this trips too, which is the intended outcome: the
+     * note above wants rewriting, not the number relaxing.
+     */
+    @Test
+    fun `the forms condition (d) withholds are still offered, and how many`() {
+        val all = withheld()
+        assertTrue(
+            "nothing is being withheld at all, so either the rule changed or " +
+                "this scan has stopped finding the assets",
+            all.size in 60..140
+        )
+        var completed = 0
+        var corrected = 0
+        val shown = ArrayList<String>()
+        for ((lang, forms) in all.groupBy({ it.first }, { it.second })) {
+            val locale = Languages.byCode(lang).locale
+            val files = HashMap<String, String>()
+            for (n in listOf(
+                "dictionaries/$lang.txt", "predictions/$lang.txt",
+                "offensive/$lang.txt", "offensive/en.txt"
+            )) {
+                val f = File(assets(), n)
+                if (f.isFile) files[n] = f.readText()
+            }
+            val engine = SuggestionEngine.forTesting(userData) { p ->
+                files[p]?.byteInputStream()
+            }
+            // The setting under test. Its own summary reads "Never suggest or
+            // autocorrect to profanity".
+            engine.blockOffensive = true
+            for (form in forms) {
+                var hit = false
+                for (k in 2 until form.length) {
+                    val res = engine.suggestionsFor(
+                        form.substring(0, k), lang, locale,
+                        allowAutocorrect = true, personalized = false
+                    )
+                    if (res.items.any { it.equals(form, ignoreCase = true) }) {
+                        completed++
+                        hit = true
+                        shown.add("$lang $form after $k")
+                        break
+                    }
+                }
+                // A typo of the word itself, which is the other way a word
+                // reaches somebody who did not ask for it.
+                val typo = form.dropLast(1) + (if (form.last() == 'x') 'z' else 'x')
+                if (engine.correctionCandidates(typo, lang, locale, limit = 3)
+                        .any { it.equals(form, ignoreCase = true) }
+                ) {
+                    corrected++
+                    if (!hit) shown.add("$lang $form as a repair")
+                }
+            }
+        }
+        println(
+            "condition (d) withholds ${all.size} forms; the strip completes " +
+                "$completed of them and corrects to $corrected, with the " +
+                "setting on"
+        )
+        assertTrue(
+            "no withheld form is reachable any more, which would be very good " +
+                "news and wants the note above rewritten rather than this " +
+                "number quietly relaxed",
+            completed >= 50
+        )
+        assertTrue(
+            "more of the withheld forms reach the strip than when this was " +
+                "measured (61 completed, 38 corrected of 86). Something " +
+                "widened the ending sets or the lists: " +
+                shown.take(12).joinToString(", "),
+            completed <= 66 && corrected <= 43
         )
     }
 
