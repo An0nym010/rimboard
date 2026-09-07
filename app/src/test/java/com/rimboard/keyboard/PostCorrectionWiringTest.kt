@@ -99,6 +99,43 @@ class PostCorrectionWiringTest {
     }
 
     @Test
+    fun `the previous word is judged before this commit files evidence about it`() {
+        val body = bodyOf(serviceSource(), "private fun commitComposedWord(")
+        val ask = body.indexOf("maybePostCorrect(")
+        val file = body.indexOf("userData.recordNgram(")
+        assertTrue("commitComposedWord no longer calls maybePostCorrect", ask >= 0)
+        assertTrue("commitComposedWord no longer files an n-gram", file >= 0)
+        assertTrue(
+            "this commit files the pair (previous word -> this word) into the " +
+                "user's own bigrams before the previous word has been judged. " +
+                "The first thing that judgement asks is whether the n-grams " +
+                "already have the typed word before this follower -- and a line " +
+                "after filing it, the answer is always yes. Post-correction " +
+                "then declines every time, on evidence this keyboard wrote " +
+                "itself one statement earlier. Nothing else in this suite " +
+                "can see it: every other test passes personalized = false, so " +
+                "the learned bigrams are never consulted and only the curated " +
+                "model answers. It was found by typing on a phone.",
+            ask < file
+        )
+    }
+
+    /**
+     * Note on the assertion above, since it cannot currently be falsified.
+     *
+     * Swapping the two statements back does not compile: the n-gram is filed
+     * under `ctxNow`, which reads `post`, so the repair has to have happened
+     * before the filing can name its context. The order is held by a data
+     * dependency and not by convention, which is the strongest form this can
+     * take and better than any test.
+     *
+     * The assertion stays because that dependency is one refactor from gone. A
+     * change that files under `ctxBefore` again -- perfectly reasonable-looking,
+     * and what the code did until a phone said otherwise -- compiles fine and
+     * silently returns post-correction to declining every time.
+     */
+
+    @Test
     fun `the previous word is reconsidered before the pending slot is overwritten`() {
         val body = bodyOf(serviceSource(), "private fun commitComposedWord(")
         val ask = body.indexOf("maybePostCorrect(")

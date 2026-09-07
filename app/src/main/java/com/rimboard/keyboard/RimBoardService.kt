@@ -1929,26 +1929,50 @@ class RimBoardService : InputMethodService(),
             userData.learnWord(typed.lowercase(loc))
         }
         val fw = finalWord.lowercase(loc)
-        var recordedAs: Pair<String, String>? = null
-        if (canLearn && Prefs.predictions(this) && wordish && (prevWordForBigram.isNotEmpty() || atSentenceStart)) {
-            userData.recordNgram(ctxBefore.first, ctxBefore.second, fw)
-            recordedAs = ctxBefore
-        }
-        // Armed after the n-gram, so it can carry what was filed and where.
-        revert =
-            if (finalWord != typed) Revert(typed, finalWord, separator, ngramContext = recordedAs)
-            else null
-        // The word before this one gets its second and last look, now that
-        // this one is known. Run before the pending slot is overwritten below,
-        // and after `revert` is armed, because a post-correction takes the chip
-        // over — the change the user can see is the one behind them.
-        maybePostCorrect(
+        // The word before this one gets its second and last look, and it has to
+        // happen **before this commit files anything**.
+        //
+        // Filing first is what made post-correction dead on a real phone while
+        // every test passed. `recordNgram` below writes the pair
+        // (previous word -> this word) into the user's own bigrams, and the
+        // first thing the decision asks is "do the n-grams already have the
+        // typed word before this follower?" -- which, a line after filing it,
+        // is *always yes*. The keyboard taught itself the pair and then
+        // accepted its own evidence that the pair was intended. The unit tests
+        // could not see it: they pass `personalized = false`, so the learned
+        // bigrams are never consulted and only the curated model answers.
+        val post = maybePostCorrect(
             ic,
             follower = finalWord,
             followerSeparator = separator,
-            followerCorrected = finalWord != typed,
-            followerNgram = recordedAs?.let { Triple(it.first, it.second, fw) }
+            followerCorrected = finalWord != typed
         )
+        // Filed under the previous word as it now stands. When post-correction
+        // has just repaired it, the pair worth remembering is the repaired one
+        // -- which also means there is no longer a wrong row to go back and
+        // fix, the way there was when this ran the other way round.
+        val ctxNow =
+            if (post != null) ctxBefore.first to post.fix.lowercase(loc) else ctxBefore
+        var recordedAs: Pair<String, String>? = null
+        if (canLearn && Prefs.predictions(this) && wordish && (ctxNow.second.isNotEmpty() || atSentenceStart)) {
+            userData.recordNgram(ctxNow.first, ctxNow.second, fw)
+            recordedAs = ctxNow
+        }
+        // Armed after the n-gram, so it can carry what was filed and where. A
+        // post-correction takes the chip over: the change the user can see is
+        // the one behind them, not this word.
+        revert = when {
+            post != null -> Revert(
+                original = post.original,
+                committed = post.fix,
+                separator = " ",
+                ngramContext = post.ngramContext,
+                tail = finalWord + separator,
+                followerNgram = recordedAs?.let { Triple(it.first, it.second, fw) }
+            )
+            finalWord != typed -> Revert(typed, finalWord, separator, ngramContext = recordedAs)
+            else -> null
+        }
         // Armed only for a word this keyboard left exactly as typed and
         // followed with a plain space. Everything else is either already
         // decided or in a shape the n-grams cannot be asked about; see
@@ -1966,9 +1990,30 @@ class RimBoardService : InputMethodService(),
                 )
             } else null
         prevWordForBigram = if (wordish) fw else ""
+        // `prevWordForBigram`'s setter shifts whatever *was* there into
+        // `prevWord2`, and what was there is the word post-correction has just
+        // replaced. Restored after the assignment rather than before it, which
+        // is where the first version put it and where the setter promptly
+        // overwrote it again.
+        if (post != null && wordish) prevWord2 = post.fix.lowercase(loc)
         atSentenceStart = false
         composing.setLength(0); touchTrail.clear()
     }
+
+    /**
+     * What post-correction did, handed back so the caller can file this
+     * commit's n-gram under the corrected word and arm the chip for it.
+     *
+     * Returned rather than applied in place because both of those have to
+     * happen *after* the repair and *before* anything else is recorded, and
+     * a function that reached out and did them itself is what put the two in
+     * the wrong order to begin with.
+     */
+    private class PostFix(
+        val original: String,
+        val fix: String,
+        val ngramContext: Pair<String, String>?
+    )
 
     /**
      * Reconsider the word before [follower], and repair it in place if the
@@ -2000,18 +2045,17 @@ class RimBoardService : InputMethodService(),
         ic: InputConnection,
         follower: String,
         followerSeparator: String,
-        followerCorrected: Boolean,
-        followerNgram: Triple<String, String, String>?
-    ) {
-        val p = pendingPost ?: return
+        followerCorrected: Boolean
+    ): PostFix? {
+        val p = pendingPost ?: return null
         pendingPost = null
-        if (!Prefs.postCorrect(this)) return
+        if (!Prefs.postCorrect(this)) return null
         // The word was one autocorrect was not allowed to touch — a name in
         // mid-sentence, an address, a password field. The follower is evidence
         // about spelling and none at all about whether this keyboard has any
         // business changing the word.
-        if (!p.mayCorrect) return
-        if (!autocorrectActive) return
+        if (!p.mayCorrect) return null
+        if (!autocorrectActive) return null
         val fix = engine.postCorrectionFor(
             typed = p.typed,
             committed = p.typed,
@@ -2026,10 +2070,10 @@ class RimBoardService : InputMethodService(),
             prevWord = p.ctx1,
             touch = p.touch,
             personalized = !isIncognito()
-        ) ?: return
+        ) ?: return null
         val tail = " " + follower + followerSeparator
         val expect = p.typed + tail
-        if (ic.getTextBeforeCursor(expect.length, 0)?.toString() != expect) return
+        if (ic.getTextBeforeCursor(expect.length, 0)?.toString() != expect) return null
         ic.beginBatchEdit()
         ic.deleteSurroundingText(expect.length, 0)
         ic.commitText(fix + tail, 1)
@@ -2046,33 +2090,17 @@ class RimBoardService : InputMethodService(),
         // would teach the keyboard to stop noticing it, and post-correction
         // would be the thing that taught it.
         if (p.learned) userData.unlearnWord(typedLower)
-        val refiling = Prefs.learnWords(this) && !isIncognito() && Prefs.predictions(this)
-        if (refiling) {
+        // Only the row this word's *own* commit filed a word ago needs moving.
+        // The pair it forms with the follower has not been filed yet -- the
+        // caller files it after this returns, under the corrected word -- which
+        // is the whole reason this runs first.
+        if (Prefs.learnWords(this) && !isIncognito() && Prefs.predictions(this)) {
             p.ngramContext?.let { (c2, c1) ->
                 userData.forgetNgram(c2, c1, typedLower)
                 userData.recordNgram(c2, c1, fixLower)
             }
-            followerNgram?.let { (c2, _, next) ->
-                userData.forgetNgram(c2, typedLower, next)
-                userData.recordNgram(c2, fixLower, next)
-            }
         }
-        // The follower is still the last word, so the bigram slot does not
-        // move; the word behind it does. Assigning through `prevWordForBigram`
-        // would shift the follower out of its own context.
-        prevWord2 = fixLower
-        // The chip now points at the change the user can actually see. The
-        // follower's own commit armed nothing (a post-correction is refused
-        // when the follower was itself corrected), so nothing is being thrown
-        // away here.
-        revert = Revert(
-            original = p.typed,
-            committed = fix,
-            separator = " ",
-            ngramContext = p.ngramContext,
-            tail = follower + followerSeparator,
-            followerNgram = followerNgram?.let { (c2, _, next) -> Triple(c2, fixLower, next) }
-        )
+        return PostFix(original = p.typed, fix = fix, ngramContext = p.ngramContext)
     }
 
     private fun handleSpace() {
