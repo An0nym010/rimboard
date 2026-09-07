@@ -215,7 +215,76 @@ class RimSpellService : SpellCheckerService() {
          * framework is not contractually obliged to call onCreate before it
          * asks anything.
          */
-        private var rule = SpellJudge(engine, lang, loc)
+        /**
+         * The three preferences a verdict depends on, read where they are
+         * used rather than where the session begins.
+         *
+         * All three were read in [onCreate]. A `Session` belongs to one bound
+         * text field and lives as long as the user is in it, so "per session"
+         * is not "per settings change" — it is *frozen for exactly the stretch
+         * of time in which the user changes them*, and the comma popup's
+         * incognito switch is thrown mid-field by design.
+         *
+         * Incognito is the one that mattered. `SpellIncognitoTest` proves the
+         * flag is a real input — with it off, a typo of a word the keyboard
+         * had learned was offered that word, and the whole candidate list was
+         * re-ranked by the user's own n-grams. Turn incognito on before typing
+         * something private and the keyboard obeys at once, while this service
+         * went on suggesting from history until the field was left, which is
+         * after the private thing has been typed. "Never learn or suggest from
+         * history" is what the switch says.
+         *
+         * The other two were stale in a subtler way, and the cache is why.
+         * [Ask] carries `cautious` with a note explaining that a session
+         * outliving a trip to the settings screen would otherwise serve the
+         * flag it decided under the old setting. It could not: the key was
+         * built from `engine.cautiousAutocorrect`, which was itself the value
+         * decided at bind time, so **a key made of stale state cannot detect
+         * staleness**. It worked only by accident, when a *second* session's
+         * onCreate happened to overwrite the shared engine's flag underneath
+         * the first. Reading the preference here is what makes that entry mean
+         * what its own comment says.
+         *
+         * Read once per framework call rather than per word: that call is the
+         * unit the framework asks in, it happens on every keystroke, and a
+         * sentence's worth of words judged under two different settings would
+         * be a worse answer than either.
+         *
+         * What this cannot make atomic is the shared engine's own two flags:
+         * every session of this service writes them, so it is last-writer-wins
+         * and a setting changed between one session reading it and another
+         * writing it can still cross a word. That was true before and the
+         * window was a whole session; it is now one word.
+         *
+         * `altLangFor` is the fourth thing [onCreate] freezes and is
+         * deliberately still frozen. It decides which dictionaries this
+         * session warms and declares, so re-reading it per call is a different
+         * change with a cost on a binder thread — and it can only go stale for
+         * someone with three or more languages enabled, since with two the
+         * answer is the same whatever the recency list says.
+         */
+        private data class Live(
+            val personalized: Boolean,
+            val blockOffensive: Boolean,
+            val cautious: Boolean
+        )
+
+        private fun live() = Live(
+            personalized = !Prefs.incognitoOn(service),
+            blockOffensive = Prefs.blockOffensive(service),
+            cautious = Prefs.cautiousAutocorrect(service)
+        )
+
+        /**
+         * The rule for judging one word, built from the call's own [Live].
+         *
+         * It holds no state — the session owns the cache and the budget — so
+         * this is one small allocation per cache *miss*, where it used to be
+         * one per session holding a preference that had since moved. A hit
+         * never builds one, because a hit has nothing to judge.
+         */
+        private fun ruleFor(live: Live) =
+            SpellJudge(engine, lang, loc, altLang, altLoc, live.personalized)
 
         override fun onCreate() {
             // The system hands over the locale it bound this session for, which
@@ -258,30 +327,12 @@ class RimSpellService : SpellCheckerService() {
             // word while the spell checker goes on refusing to, leaving an
             // underline that cannot be fixed from the popup that put it there.
             //
-            // Read per session rather than once, for the same reason the
-            // keyboard reads it per focus change — the setting can be
-            // changed at any moment and a spell checker service outlives a
-            // great many trips to the settings screen.
-            engine.blockOffensive = Prefs.blockOffensive(service)
-            // The spell checker uses the same bar to decide whether its first
-            // suggestion may be called *recommended*, so the setting has to
-            // reach here too or it would govern half the app.
-            engine.cautiousAutocorrect = Prefs.cautiousAutocorrect(service)
+            // The three settings a verdict depends on are no longer read here.
+            // See [Live]: a session is bound to a text field and lives as long
+            // as the user is in it, so reading them once at bind time froze
+            // them for exactly the stretch in which they get changed.
             com.rimboard.keyboard.engine.ContactStore.warm(service)
             com.rimboard.keyboard.engine.UserDictionaryStore.warm(service)
-
-            // Read per session, for the same reason as the two above: a
-            // spell checker service outlives a great many trips to the
-            // settings screen, and the per-session switch on the comma popup
-            // can be thrown between one field and the next.
-            //
-            // The keyboard's `isIncognito()` is this plus the focused field's
-            // type, which this service is never told. What it can see is the
-            // half that is a preference, and that is the half the switch is.
-            rule = SpellJudge(
-                engine, lang, loc, altLang, altLoc,
-                personalized = !Prefs.incognitoOn(service)
-            )
 
             SuggestionEngine.declareNeeded(
                 SuggestionEngine.NEEDED_SPELL, setOfNotNull(lang, altLang)
@@ -314,10 +365,15 @@ class RimSpellService : SpellCheckerService() {
             suggestionsLimit: Int
         ): Array<SentenceSuggestionsInfo> {
             val infos = textInfos ?: return emptyArray()
-            return Array(infos.size) { k -> judgeSentence(infos[k], suggestionsLimit) }
+            // One read for the whole call, so every word in a sentence is
+            // judged under the same settings. See [Live].
+            val live = live()
+            return Array(infos.size) { k -> judgeSentence(infos[k], suggestionsLimit, live) }
         }
 
-        private fun judgeSentence(info: TextInfo, limit: Int): SentenceSuggestionsInfo {
+        private fun judgeSentence(
+            info: TextInfo, limit: Int, live: Live
+        ): SentenceSuggestionsInfo {
             val text = info.text.orEmpty()
             val tokens = SpellTokens.of(text)
             // One budget for the sentence, not for each word in it.
@@ -346,7 +402,8 @@ class RimSpellService : SpellCheckerService() {
                 // sentence starts here" rather than "this is a name".
                 out[i] = judge(
                     t.text, prev2, prev, SpellTokens.followerOf(tokens, i),
-                    limit, sentenceInitial = t.startsSentence, budget = budget
+                    limit, sentenceInitial = t.startsSentence, budget = budget,
+                    live = live
                 )
                     .also { it.setCookieAndSequence(info.cookie, info.sequence) }
                 prev2 = prev
@@ -373,7 +430,8 @@ class RimSpellService : SpellCheckerService() {
                 sentenceInitial = null,
                 // One word asked about on its own is never the pathological
                 // case this bounds, so it gets exactly what it needs.
-                budget = Budget(1)
+                budget = Budget(1),
+                live = live()
             )
 
         /**
@@ -425,6 +483,28 @@ class RimSpellService : SpellCheckerService() {
             val cautious: Boolean,
 
             /**
+             * Whether the user's own vocabulary was allowed to answer.
+             *
+             * Fifth instance, and the one that was not a cache fault at all
+             * until this key entry existed to make it one. `personalized` was
+             * baked into the [SpellJudge] at bind time and never read again,
+             * so incognito thrown mid-field did nothing here; now it is read
+             * per call, and this is what stops a verdict reached before the
+             * switch being served after it. See [Live].
+             */
+            val personalized: Boolean,
+
+            /**
+             * Whether profanity was filtered out of the suggestions.
+             *
+             * Sixth, and it reaches further than the flag above: "Block
+             * offensive words" removes candidates from the list this verdict
+             * *is*, so a cached answer is a list assembled under the old
+             * setting. Same fix, same reason.
+             */
+            val blockOffensive: Boolean,
+
+            /**
              * Which dictionary answered.
              *
              * Fourth instance, and the first that was not here from the start
@@ -461,17 +541,26 @@ class RimSpellService : SpellCheckerService() {
             next: String,
             suggestionsLimit: Int,
             sentenceInitial: Boolean?,
-            budget: Budget
+            budget: Budget,
+            live: Live
         ): SuggestionsInfo {
+            // The engine is shared by every session of this service, and these
+            // two are read off it deep inside the correction walk. Written
+            // from the call's own [Live] rather than from whichever session
+            // last began, which is what they used to be.
+            engine.blockOffensive = live.blockOffensive
+            engine.cautiousAutocorrect = live.cautious
             val ask = Ask(
                 word, prev, prev2, next, sentenceInitial, suggestionsLimit,
                 contextual = engine.predictionsReady(lang),
-                cautious = engine.cautiousAutocorrect,
+                cautious = live.cautious,
+                personalized = live.personalized,
+                blockOffensive = live.blockOffensive,
                 dict = DictVersion.v
             )
             var v = verdicts.get(ask)
             if (v == null) {
-                v = rule.verdictFor(
+                v = ruleFor(live).verdictFor(
                     word, prev2, prev, next, suggestionsLimit, sentenceInitial, budget
                 )
                 // Only once there is a dictionary to have judged against. Until
