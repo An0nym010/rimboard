@@ -37,6 +37,30 @@ import kotlin.random.Random
  *
  * ## Measured and rejected
  *
+ * **A live preview of the word while the finger is still down** (Gboard
+ * `enable_incremental_gesture_input`). Measured 2026-09-07 by decoding each
+ * generated path truncated to a fraction of its samples -- the same question a
+ * mid-stroke decoder is asked, "what would commit if the finger lifted here" --
+ * and comparing that against what the whole path decodes to. Natural hand, 120
+ * words, en/tr:
+ *
+ *     stroke done    50%   60%   70%   80%   90%   100%
+ *     en agrees       3%    4%    7%    7%   47%   100%
+ *     tr agrees       2%    1%    1%    2%   17%   100%
+ *
+ * So a preview built on this decoder would show a wrong word, changing
+ * constantly, for about nine tenths of every swipe, and snap to the right one
+ * only as the finger stopped. **Latency is not what stands in the way** -- one
+ * decode is 1.11 ms in English and 0.76 ms in Turkish, comfortably throttleable.
+ * [GlidePath.couldEnd] is: it anchors candidates to words *ending* where the
+ * finger currently is, which mid-stroke is a different question from the one a
+ * preview wants. Doing this properly needs a prefix mode in
+ * [Dictionary.glideScored] that scores a word against a *partial* traversal
+ * with no end anchor -- and note that the end anchor is also the strongest
+ * pruning filter there is, so dropping it costs more than the 1.11 ms above,
+ * not less. Worth doing only with that decoder, and worth re-measuring with
+ * this arm before believing any of it changed.
+ *
  * **Weighting the ends of the stroke more than the middle.** The first and last
  * points are aimed at from and to rest, so they ought to be the most reliable,
  * and a swipe of "hello" offering "help" first is exactly a last-letter
@@ -2044,4 +2068,5 @@ class GlideAccuracyTest {
         )
         assertTrue("and sigma itself must still be admitted", gp.couldEnd(sigma))
     }
+
 }
