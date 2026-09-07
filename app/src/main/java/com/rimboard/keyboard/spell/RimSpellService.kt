@@ -57,7 +57,17 @@ class RimSpellService : SpellCheckerService() {
 
     private val userData: UserData by userDataLazy
 
-    private val engineLazy = lazy { SuggestionEngine(this, userData) }
+    private val engineLazy = lazy {
+        SuggestionEngine(this, userData).also {
+            // The stores themselves, not a snapshot of them — see
+            // [SuggestionEngine.contactNames]. This service's `onTrimMemory`
+            // calls `forget()` on both, and a copy held here would have
+            // outlived it.
+            it.contactNames = com.rimboard.keyboard.engine.ContactStore::names
+            it.userDictionaryWords =
+                com.rimboard.keyboard.engine.UserDictionaryStore::words
+        }
+    }
 
     private val engine: SuggestionEngine by engineLazy
 
@@ -258,9 +268,7 @@ class RimSpellService : SpellCheckerService() {
             // reach here too or it would govern half the app.
             engine.cautiousAutocorrect = Prefs.cautiousAutocorrect(service)
             com.rimboard.keyboard.engine.ContactStore.warm(service)
-            engine.contactNames = com.rimboard.keyboard.engine.ContactStore.names()
             com.rimboard.keyboard.engine.UserDictionaryStore.warm(service)
-            engine.userDictionaryWords = com.rimboard.keyboard.engine.UserDictionaryStore.words()
 
             // Read per session, for the same reason as the two above: a
             // spell checker service outlives a great many trips to the

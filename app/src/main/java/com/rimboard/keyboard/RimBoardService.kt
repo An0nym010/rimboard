@@ -274,6 +274,13 @@ class RimBoardService : InputMethodService(),
         userData = UserData(this)
         userData.loadAsync()
         engine = SuggestionEngine(this, userData)
+        // Wired once, to the stores rather than to a snapshot of them. See
+        // [SuggestionEngine.contactNames]: a copy taken per focus survived the
+        // `forget()` in `onTrimMemory` below, which is where the whole point of
+        // forgetting is that the process may be about to be killed.
+        engine.contactNames = com.rimboard.keyboard.engine.ContactStore::names
+        engine.userDictionaryWords =
+            com.rimboard.keyboard.engine.UserDictionaryStore::words
         val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clipL = ClipboardManager.OnPrimaryClipChangedListener { captureClip() }
         clipChangedListener = clipL
@@ -853,14 +860,12 @@ class RimBoardService : InputMethodService(),
             }
             engine.blockOffensive = Prefs.blockOffensive(this)
             engine.cautiousAutocorrect = Prefs.cautiousAutocorrect(this)
-            // Queued on the first focus that is allowed to read them, and
-            // picked up on this and every later one. Empty until it lands,
-            // which costs one focus change of names still being underlined
-            // and no wait at all.
+            // Queued on the first focus that is allowed to read them. The
+            // engine reads the stores rather than a copy taken here, so the
+            // names arrive the moment the query lands instead of on the focus
+            // after it — and a later `forget()` reaches them.
             com.rimboard.keyboard.engine.ContactStore.warm(this)
-            engine.contactNames = com.rimboard.keyboard.engine.ContactStore.names()
             com.rimboard.keyboard.engine.UserDictionaryStore.warm(this)
-            engine.userDictionaryWords = com.rimboard.keyboard.engine.UserDictionaryStore.words()
             kv.hapticFeedback = Prefs.haptic(this)
             kv.oneHanded = (if (Prefs.floating(this)) 0 else Prefs.oneHanded(this))
             kv.keyHeightFactor = Prefs.heightFactor(this)

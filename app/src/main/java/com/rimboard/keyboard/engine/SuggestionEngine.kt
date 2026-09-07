@@ -927,28 +927,51 @@ class SuggestionEngine private constructor(
     var cautiousAutocorrect = false
 
     /**
-     * Names from the address book, or empty when the user has not asked for
-     * them — which is the default, and stays the default until they both
-     * turn the setting on and grant the permission.
+     * Where to ask for the names in the address book, or empty when the user
+     * has not asked for them — which is the default, and stays the default
+     * until they both turn the setting on and grant the permission.
      *
-     * Settable rather than read from here, for the same reason
-     * [blockOffensive] is: this class has no Context and no business acquiring
-     * one. Both services set it, so both stop flagging the people you write to.
+     * Supplied rather than read from here, for the same reason
+     * [blockOffensive] is settable: this class has no Context and no business
+     * acquiring one. Both services wire it, so both stop flagging the people
+     * you write to.
+     *
+     * **A source rather than a copy, and that is the whole of it.** This held
+     * the set itself, assigned on every focus change and every spell-checker
+     * session. Both services also call
+     * [com.rimboard.keyboard.engine.ContactStore.forget] from `onTrimMemory`,
+     * for a reason written down beside it: holding somebody's address book in
+     * a process the system is deciding whether to kill is the wrong side of
+     * that bargain. **It freed nothing.** `forget` dropped the store's
+     * reference; the two engines in the process went on holding the same set,
+     * and at `TRIM_MEMORY_COMPLETE` there is no next focus to overwrite it
+     * with an empty one. Measured at 96 bytes a name part -- 94 KB at a
+     * thousand parts, 376 KB at the cap
+     * [com.rimboard.keyboard.model.PersonalWords.MAX_NAMES] -- so the trim
+     * gave up none of it, and bought a re-query of every contact for the
+     * next focus.
+     *
+     * Reading the store instead makes forgetting complete by construction
+     * rather than by remembering to clear a second place, which is the fault
+     * this repository has found four times elsewhere. It also closes the lag
+     * the old comment at the call site admitted to: the read is queued on a
+     * background thread, so a copy taken at focus was empty until the *next*
+     * focus, where a source is right the moment the query lands.
      *
      * Empty is not a special case anywhere below; an empty set simply never
      * matches.
      */
     @Volatile
-    var contactNames: Set<String> = emptySet()
+    var contactNames: () -> Set<String> = { emptySet() }
 
     /**
-     * Words from Android's own personal dictionary, or empty. Same contract as
-     * [contactNames], separate property because they answer to separate
-     * settings and separate permissions — turning one off must not silently
-     * take the other with it.
+     * Where to ask for the words in Android's own personal dictionary. Same
+     * contract as [contactNames], separate property because they answer to
+     * separate settings and separate permissions — turning one off must not
+     * silently take the other with it.
      */
     @Volatile
-    var userDictionaryWords: Set<String> = emptySet()
+    var userDictionaryWords: () -> Set<String> = { emptySet() }
     /**
      * Per instance, unlike the dictionaries and the prediction models, and
      * deliberately so.
@@ -1560,10 +1583,12 @@ class SuggestionEngine private constructor(
         // name in any of them: "Yilmaz" is not a Turkish stem with a suffix on
         // it and not an English word, and both of those would be the wrong
         // question to ask about somebody's surname.
-        if (com.rimboard.keyboard.model.PersonalWords.contains(contactNames, typed)) return true
+        if (com.rimboard.keyboard.model.PersonalWords.contains(contactNames(), typed)) {
+            return true
+        }
         // The list the user typed by hand to say "this is a word". It outranks
         // every guess below and is the closest thing here to being told.
-        if (com.rimboard.keyboard.model.PersonalWords.contains(userDictionaryWords, typed)) {
+        if (com.rimboard.keyboard.model.PersonalWords.contains(userDictionaryWords(), typed)) {
             return true
         }
         // An *attested* accented word still wins: the corpus holds it, so the
