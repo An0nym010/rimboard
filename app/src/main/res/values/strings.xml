@@ -92,6 +92,8 @@
     <string name="cat_privacy">Privacy</string>
     <string name="pref_learn_title">Learn new words</string>
     <string name="pref_learn_summary">Remember words you type (stored only on this device)</string>
+    <string name="pref_remembercase_title">Remember capitals</string>
+    <string name="pref_remembercase_summary">Offer names and words with the capital letters you write them with</string>
     <string name="pref_clipboard_title">Clipboard suggestion</string>
     <string name="pref_clipboard_summary">Offer a Paste chip in an empty field, for a minute after you copy</string>
     <string name="pref_incognito_title">Always incognito</string>
@@ -481,7 +483,7 @@ Your search words or selected text go to the service that answers them. Nothing 
     <string name="pref_contact_names_title">Names from contacts</string>
     <string name="pref_contact_names_summary">Stop underlining the people you write to. Asks permission when turned on; names are read into memory only, never sent anywhere.</string>
     <string name="pref_system_dict_title">Words from the personal dictionary</string>
-    <string name="pref_system_dict_summary">Also accept the words saved under Settings → Personal dictionary, which your other apps share. Read only, never added to. Asks permission when turned on.</string>
+    <string name="pref_system_dict_summary">Accept and suggest the words saved under Settings → Personal dictionary, which your other apps share. Read only, never added to. Asks permission when turned on.</string>
 
     <!-- Extended dictionaries -->
     <string name="pref_dicts_title">Extended dictionaries</string>

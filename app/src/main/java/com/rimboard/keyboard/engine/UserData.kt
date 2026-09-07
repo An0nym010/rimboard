@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import com.rimboard.keyboard.model.GlidePath
+import com.rimboard.keyboard.model.PersonalCase
 import java.io.File
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
@@ -123,6 +124,21 @@ class UserData private constructor(dir: File) {
     private val main by lazy { Handler(Looper.getMainLooper()) }
 
     private val learned = ConcurrentHashMap<String, Int>()
+
+    /**
+     * The capitals each learned word is written with, as a running majority
+     * vote. See [PersonalCase], which owns the rule; this owns the counting.
+     *
+     * A strict subset of [learned]'s keys, and everything that drops a word
+     * drops its vote with it. A row outliving its word would come back the
+     * moment the word was typed again, carrying a capitalisation from before
+     * the user deleted it -- the same promise [pinned] is documented against.
+     */
+    private val cased = ConcurrentHashMap<String, CaseVote>()
+
+    /** The spelling currently holding the majority, and by how much. */
+    private data class CaseVote(val form: String, val lead: Int)
+
     private val blocked: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
     /**
@@ -170,6 +186,7 @@ class UserData private constructor(dir: File) {
         loadBlocked()
         io.execute {
             learned.clear()
+            cased.clear()
             bigrams.clear()
             trigrams.clear()
             dirty = false
@@ -252,6 +269,7 @@ class UserData private constructor(dir: File) {
         io.execute {
             blocked.clear()
             learned.clear()
+            cased.clear()
             bigrams.clear()
             trigrams.clear()
             dirty = false
@@ -264,7 +282,20 @@ class UserData private constructor(dir: File) {
         try {
             if (learnedFile.exists()) learnedFile.forEachLine { line ->
                 val p = line.split('\t')
-                if (p.size == 2) p[1].toIntOrNull()?.let { learned[p[0]] = it }
+                // Two columns is what every install before case memory
+                // wrote and is still what most rows are, since the capitals
+                // are written only where there are any -- see [learnedText].
+                // So the tail is optional in both directions: a newer build
+                // reads an older file and finds no opinions, and an older
+                // build reads a newer one and ignores the columns it does not
+                // know.
+                if (p.size >= 2) p[1].toIntOrNull()?.let {
+                    learned[p[0]] = it
+                    if (p.size >= 4 && p[2].isNotEmpty()) {
+                        val lead = p[3].toIntOrNull() ?: 0
+                        if (lead > 0) cased[p[0]] = CaseVote(p[2], lead)
+                    }
+                }
             }
             if (bigramFile.exists()) bigramFile.forEachLine { line ->
                 val p = line.split('\t')
@@ -293,6 +324,42 @@ class UserData private constructor(dir: File) {
     }
 
     /**
+     * Record that [word] was written the way it was written.
+     *
+     * Called beside [learnWord] and only from there -- one commit, one vote --
+     * so the count in [learned] and the vote here move together. The caller
+     * decides whether the commit is evidence at all; see [PersonalCase.counts],
+     * which is where the sentence-initial and caps-lock refusals live.
+     *
+     * [locale] rather than a plain fold, for the reason [addUserWord] gives at
+     * length: Turkish folds `I` to a different letter than every other locale
+     * does, and a key built without it is one nothing will ever look up.
+     */
+    fun noteCase(word: String, locale: Locale) {
+        if (word.length < 2 || word.length > 24) return
+        val key = word.lowercase(locale)
+        // Only for a word the store actually holds. That keeps [cased] a
+        // subset of [learned] by construction, which is what lets every
+        // eviction path drop a vote by dropping a word.
+        if (!learned.containsKey(key)) return
+        val held = cased[key]
+        val (form, lead) = PersonalCase.vote(held?.form ?: "", held?.lead ?: 0, word)
+        cased[key] = CaseVote(form, lead)
+        dirty = true
+    }
+
+    /**
+     * The spelling [key] should be offered in, or null for no opinion.
+     *
+     * [key] is a word as this store holds it: lower case, in its own
+     * language's rules.
+     */
+    fun casedForm(key: String): String? {
+        val v = cased[key] ?: return null
+        return PersonalCase.formFor(key, v.form, v.lead)
+    }
+
+    /**
      * Take back one occurrence of [word], because the commit that recorded it
      * has been undone.
      *
@@ -309,7 +376,12 @@ class UserData private constructor(dir: File) {
      */
     fun unlearnWord(word: String) {
         val now = (learned[word] ?: return) - 1
-        if (now <= 0) learned.remove(word) else learned[word] = now
+        if (now <= 0) {
+            learned.remove(word)
+            cased.remove(word)
+        } else {
+            learned[word] = now
+        }
         dirty = true
     }
 
@@ -337,6 +409,7 @@ class UserData private constructor(dir: File) {
     fun blockWord(word: String) {
         blocked.add(word)
         learned.remove(word)
+        cased.remove(word)
         // A pin outliving the word it pinned is a promise nobody made. It would
         // also sit in the file for good, and quietly re-apply itself if the
         // word were ever typed again.
@@ -360,6 +433,7 @@ class UserData private constructor(dir: File) {
      */
     fun removeLearned(word: String) {
         val wasPinned = pinned.remove(word)
+        cased.remove(word)
         if (learned.remove(word) != null || wasPinned) {
             io.execute {
                 flushLearned()
@@ -391,11 +465,44 @@ class UserData private constructor(dir: File) {
         }
     }
 
+    /**
+     * The whole word file as text, and the only place its format is written.
+     *
+     * There are two writers -- [flushLearned] for the edits that must land at
+     * once, and [saveIfDirty] for the periodic one -- and they had drifted
+     * into two different serialisers of the same data before the case columns
+     * were added. A format with an optional tail cannot afford that: one
+     * writer would have kept the capitals and the other would have dropped
+     * them on the next save, which reads as the keyboard forgetting a name
+     * whenever the app happened to be trimmed.
+     *
+     * **A vote for the word's own lower-case spelling is not written**, which
+     * is a deliberate trade and not an omission. Almost every word anybody
+     * types is one nobody capitalises, so writing that vote out would roughly
+     * double a file that is read at every cold start -- and an IME process is
+     * killed constantly, so "every cold start" is many times a day -- in
+     * order to record the absence of an opinion. What it costs is the
+     * counterweight: a word written a hundred times in lower case comes back
+     * from disk with no lead, so two deliberate mid-sentence capitals in one
+     * session could reach [PersonalCase.MIN_LEAD]. That corrects itself in
+     * two further commits of the ordinary spelling, because the next
+     * lower-case sighting spends the lead and the one after it takes the slot
+     * back -- and for a word common enough to have earned a hundred sightings,
+     * two further commits is the same afternoon.
+     */
+    private fun learnedText(): String {
+        val sb = StringBuilder(learned.size * 16)
+        for ((w, c) in learned) {
+            sb.append(w).append('\t').append(c)
+            cased[w]?.takeIf { it.form != w }?.let { sb.append('\t').append(it.form).append('\t').append(it.lead) }
+            sb.append('\n')
+        }
+        return sb.toString()
+    }
+
     private fun flushLearned() {
         try {
-            val sb = StringBuilder()
-            for ((w, c) in learned) sb.append(w).append('\t').append(c).append('\n')
-            writeAtomically(learnedFile, sb.toString())
+            writeAtomically(learnedFile, learnedText())
         } catch (_: Exception) {
         }
     }
@@ -662,10 +769,7 @@ class UserData private constructor(dir: File) {
         io.execute {
             try {
                 pruneIfNeeded()
-                writeAtomically(
-                    learnedFile,
-                    learned.entries.joinToString("\n") { "${it.key}\t${it.value}" }
-                )
+                writeAtomically(learnedFile, learnedText())
                 val sb = StringBuilder()
                 for ((a, m) in bigrams) for ((b, c) in m) {
                     sb.append(a).append('\t').append(b).append('\t').append(c).append('\n')
@@ -778,6 +882,20 @@ class UserData private constructor(dir: File) {
                 .take(learned.size - LEARNED_CAP)
                 .forEach { learned.remove(it.key) }
         }
+        // Whatever the two rules above dropped, its capitalisation goes with
+        // it. Done here rather than inside each branch because both of them
+        // remove in bulk, and a set intersection is cheaper than a lookup per
+        // eviction either way.
+        //
+        // Unconditionally, and the first draft of this line was not: it was
+        // guarded on `cased.size > learned.size`, which is never true. The
+        // case table is a small subset of the word table by construction, so
+        // the guard skipped the cleanup in exactly the case it was written
+        // for -- a handful of evicted words leaving a handful of orphans
+        // behind, in a map that is still a fraction of the size of the one
+        // they were evicted from. A guard whose condition the invariant
+        // forbids is a guard that never fires.
+        cased.keys.retainAll(learned.keys)
         evictWeakest(bigrams, BIGRAM_CAP)
         evictWeakest(trigrams, TRIGRAM_CAP)
     }
@@ -806,6 +924,7 @@ class UserData private constructor(dir: File) {
     fun clearAll() {
         pinned.clear()
         learned.clear()
+        cased.clear()
         bigrams.clear()
         trigrams.clear()
         dirty = false

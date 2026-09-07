@@ -24,6 +24,7 @@ object Prefs {
     const val KEY_DOUBLE_SPACE = "double_space"
     const val KEY_GLIDE = "glide_typing"
     const val KEY_LEARN = "learn_words"
+    const val KEY_REMEMBER_CASE = "remember_case"
     const val KEY_CLIPBOARD = "clipboard_suggest"
     const val KEY_LANGUAGES = "languages"
     const val KEY_INCOGNITO_ALWAYS = "incognito_always"
@@ -536,6 +537,28 @@ object Prefs {
 
     /** "off", "left" or "right". */
     fun learnWords(c: Context) = get(c).boolOr(KEY_LEARN, true)
+
+    /**
+     * Whether the keyboard offers a word with the capitals you write it with.
+     *
+     * On. Every word list this app ships is entirely lower case, so without
+     * this a name the keyboard has watched you write forty times comes back
+     * off the strip in lower case, and a next-word chip -- which has no typed
+     * letters to take a case from at all -- can only ever offer one.
+     *
+     * A switch of its own rather than part of "Learn from your typing",
+     * because it is a different promise. That one is about *which* words the
+     * keyboard knows; this is about the keyboard changing a letter you did
+     * not type. Somebody who wants their vocabulary learned and still wants
+     * every capital to be their own doing should be able to say so, and the
+     * evidence is worth keeping either way -- turning this off stops the
+     * capitals being offered, not the counting, so turning it back on does not
+     * start again from nothing.
+     *
+     * See [com.rimboard.keyboard.model.PersonalCase] for what counts as
+     * evidence and why the rule can only ever add a capital.
+     */
+    fun rememberCase(c: Context) = get(c).boolOr(KEY_REMEMBER_CASE, true)
     fun clipboardSuggest(c: Context) = get(c).boolOr(KEY_CLIPBOARD, true)
 
     fun languages(c: Context): List<String> {

@@ -74,6 +74,8 @@
     <string name="cat_privacy">Gizlilik</string>
     <string name="pref_learn_title">Yeni kelimeleri öğren</string>
     <string name="pref_learn_summary">Yazdığın kelimeleri hatırla (yalnızca bu cihazda saklanır)</string>
+    <string name="pref_remembercase_title">Büyük harfleri hatırla</string>
+    <string name="pref_remembercase_summary">Adları ve sözcükleri senin yazdığın büyük harflerle öner</string>
     <string name="pref_clipboard_title">Pano önerisi</string>
     <string name="pref_clipboard_summary">Kopyaladıktan sonra bir dakika boyunca boş alanda Yapıştır çipi göster</string>
     <string name="pref_incognito_title">Her zaman gizli mod</string>
@@ -315,7 +317,7 @@
     <string name="pref_contact_names_title">Kişilerden isimler</string>
     <string name="pref_contact_names_summary">Yazıştığın kişilerin adlarının altı çizilmesin. Açılınca izin ister; isimler yalnızca belleğe okunur, hiçbir yere gönderilmez.</string>
     <string name="pref_system_dict_title">Kişisel sözlükteki kelimeler</string>
-    <string name="pref_system_dict_summary">Ayarlar → Kişisel sözlük altına kaydedilen ve diğer uygulamaların da paylaştığı kelimeleri de kabul et. Yalnızca okunur, hiçbir şey eklenmez. Açılınca izin ister.</string>
+    <string name="pref_system_dict_summary">Ayarlar → Kişisel sözlük altına kaydedilen ve diğer uygulamaların da paylaştığı kelimeleri kabul et ve öner. Yalnızca okunur, hiçbir şey eklenmez. Açılınca izin ister.</string>
 
     <string name="pref_dicts_title">Genişletilmiş sözlükler</string>
     <string name="pref_dicts_summary">Bir dil için daha kapsamlı kelime listesi ekle</string>

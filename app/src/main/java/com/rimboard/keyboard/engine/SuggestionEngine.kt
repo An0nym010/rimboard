@@ -715,6 +715,20 @@ class SuggestionEngine private constructor(
          * Two is the bar [UserData.isKnown] holds a learned word to.
          */
         const val HABIT = 2
+
+        /**
+         * What a word declared in Android's personal dictionary counts as.
+         *
+         * Three uses, which is exactly what [UserData.addUserWord] writes when
+         * somebody adds a word through RimBoard's own personal-dictionary
+         * screen, and three is the bar the completion loop holds a learned
+         * word to. The point is the parity rather than the number: the two
+         * screens are the same act -- a person typing a word out to say "this
+         * is a word" -- and until now one of them put the word on the strip
+         * immediately and the other never did. Typing `anthro` for a declared
+         * `anthropic` offered `anthem`.
+         */
+        private const val DECLARED_USES = 3
     }
 
     /** Multiplier applied to a completion's frequency for its context rank. */
@@ -951,6 +965,47 @@ class SuggestionEngine private constructor(
     var blockOffensive = true
 
     /**
+     * [word] in the capitals the person typing writes it with, or unchanged.
+     *
+     * The store half of [com.rimboard.keyboard.model.PersonalCase]: that object
+     * owns every rule and this owns the lookup. Deliberately **not** applied
+     * inside the ranking methods, and not a settable property either, which is
+     * the one design decision here worth defending.
+     *
+     * The two other user settings on this class are properties, and their doc
+     * carries an obligation that has already been broken once: *both services
+     * have to set them*. This rule needs no such obligation because the spell
+     * checker never asks. It has no text to write — it draws underlines and
+     * offers replacements through `correctionCandidates`, which is untouched —
+     * and both of its prediction reads fold the answer to lower case on the
+     * next line anyway. So rather than wire a preference into a service where
+     * it can do nothing, and add a field to a verdict cache key to guard
+     * against it going stale, this is a function the keyboard calls at the
+     * four places it writes a word and the spell checker does not call at all.
+     */
+    fun personalCase(word: String): String =
+        com.rimboard.keyboard.model.PersonalCase.cased(word) {
+            userData.casedForm(it) ?: declaredSpelling(it)
+        }
+
+    /**
+     * The spelling [key] was declared with in Android's personal dictionary.
+     *
+     * The second source of an opinion about capitals, and it needs no vote
+     * behind it: somebody opened a settings screen and typed the word out.
+     * Asked after the learned one, so a word that is both declared and
+     * habitually written some other way follows the hand rather than the
+     * declaration -- the hand is the more recent statement, and it is the one
+     * being made over and over.
+     *
+     * The map's own construction guarantees the pair is a casing of the key,
+     * so the check [PersonalCase.formFor] does for the learned side has
+     * nothing to do here.
+     */
+    private fun declaredSpelling(key: String): String? =
+        userDictionary()[key]?.takeIf { it != key }
+
+    /**
      * Whether autocorrect should hold to the stricter bar. User setting.
      *
      * The second settable property on this class, and it carries the same
@@ -1004,13 +1059,21 @@ class SuggestionEngine private constructor(
     var contactNames: () -> Set<String> = { emptySet() }
 
     /**
-     * Where to ask for the words in Android's own personal dictionary. Same
-     * contract as [contactNames], separate property because they answer to
-     * separate settings and separate permissions — turning one off must not
-     * silently take the other with it.
+     * Where to ask for the words in Android's own personal dictionary, each
+     * with the spelling it was written with. Same contract as [contactNames],
+     * separate property because they answer to separate settings and separate
+     * permissions — turning one off must not silently take the other with it.
+     *
+     * A map rather than a set, unlike contacts, and the difference is what the
+     * two are *for*. A contact name is a shield: it stops the spell checker
+     * underlining somebody's surname, and the folded key is all that takes.
+     * These are offered, and an entry in that list is a declaration of a
+     * spelling — capitals included, which is why "Kubernetes" is in there and
+     * not "kubernetes". Handing the strip the folded key would take the
+     * declaration and drop the half of it that was hardest to type.
      */
     @Volatile
-    var userDictionaryWords: () -> Set<String> = { emptySet() }
+    var userDictionary: () -> Map<String, String> = { emptyMap() }
     /**
      * Per instance, unlike the dictionaries and the prediction models, and
      * deliberately so.
@@ -1443,7 +1506,14 @@ class SuggestionEngine private constructor(
         val personal =
             if (!personalized) emptyList()
             else userData.correctionCandidates(lower, Dictionary.maxEditDistance(lower.length))
-        return (listOfNotNull(elongated, accented) + fromDict + personal)
+        // And a typo of a declared word, for the same reason and in the same
+        // place. A word added through RimBoard's own screen is corrected
+        // toward at [DECLARED_USES]; one added through Android's was not, and
+        // the two screens are the same act.
+        val declared = com.rimboard.keyboard.model.PersonalWords.within(
+            userDictionary(), lower, Dictionary.maxEditDistance(lower.length)
+        ) { a, b -> Dictionary.editDistance(a, b, Dictionary.maxEditDistance(a.length)) }
+        return (listOfNotNull(elongated, accented) + fromDict + personal + declared)
             .distinct()
             .asSequence()
             // Never correct one word *toward* a corpus bare form: "don" must
@@ -1627,7 +1697,7 @@ class SuggestionEngine private constructor(
         }
         // The list the user typed by hand to say "this is a word". It outranks
         // every guess below and is the closest thing here to being told.
-        if (com.rimboard.keyboard.model.PersonalWords.contains(userDictionaryWords(), typed)) {
+        if (com.rimboard.keyboard.model.PersonalWords.contains(userDictionary().keys, typed)) {
             return true
         }
         // An *attested* accented word still wins: the corpus holds it, so the
@@ -2188,6 +2258,28 @@ class SuggestionEngine private constructor(
                 if (c < 3 || userData.isBlocked(w)) continue
                 merged[w] = 1_000_000_000L + c * 1000L
             }
+        }
+        // Android's own personal dictionary, on the same scale and at
+        // [DECLARED_USES]. It fed exactly one caller before this --
+        // [acceptedWord], which only ever answers "leave that word alone" --
+        // so a word somebody had typed into the system settings screen
+        // specifically to have it recognised was recognised and never once
+        // offered.
+        //
+        // **Not gated on [personalized], unlike the learned words above.**
+        // That flag means "the user's own history", and it is what an
+        // incognito field switches off. This list is not history: it is a
+        // declaration, held by the system, shared with every app on the
+        // phone, and already behind its own setting and its own permission.
+        // [acceptedWord] consults it in an incognito field today; a shield
+        // and an offer answering different questions about the same list is
+        // the shape of fault this project has found repeatedly.
+        for (w in com.rimboard.keyboard.model.PersonalWords.startingWith(
+            userDictionary(), composing, 8
+        )) {
+            if (userData.isBlocked(w)) continue
+            val score = 1_000_000_000L + DECLARED_USES * 1000L
+            if ((merged[w] ?: 0L) < score) merged[w] = score
         }
         for ((w, f) in dict.byPrefix(lower, COMPLETION_FETCH)) {
             if (userData.isBlocked(w)) continue

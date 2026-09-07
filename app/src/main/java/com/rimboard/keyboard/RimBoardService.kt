@@ -48,6 +48,7 @@ import com.rimboard.keyboard.model.Languages
 import com.rimboard.keyboard.model.LayoutKind
 import com.rimboard.keyboard.model.Layouts
 import com.rimboard.keyboard.model.PanelRouting
+import com.rimboard.keyboard.model.PersonalCase
 import com.rimboard.keyboard.model.TapTiming
 import com.rimboard.keyboard.settings.L10n
 import com.rimboard.keyboard.settings.Prefs
@@ -342,8 +343,8 @@ class RimBoardService : InputMethodService(),
         // `forget()` in `onTrimMemory` below, which is where the whole point of
         // forgetting is that the process may be about to be killed.
         engine.contactNames = com.rimboard.keyboard.engine.ContactStore::names
-        engine.userDictionaryWords =
-            com.rimboard.keyboard.engine.UserDictionaryStore::words
+        engine.userDictionary =
+            com.rimboard.keyboard.engine.UserDictionaryStore::index
         val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clipL = ClipboardManager.OnPrimaryClipChangedListener { captureClip() }
         clipChangedListener = clipL
@@ -1453,7 +1454,11 @@ class RimBoardService : InputMethodService(),
                 cap -> w.replaceFirstChar {
                     if (it.isLowerCase()) it.titlecase(wl) else it.toString()
                 }
-                else -> w
+                // A swipe carries no case at all -- the letter keys are the
+                // same keys whatever the shift state was -- so with neither
+                // caps lock nor shift held this is the only thing that knows
+                // the word has a capital.
+                else -> personalCase(w)
             }
         }
         val best = words.first()
@@ -1905,7 +1910,13 @@ class RimBoardService : InputMethodService(),
                 // take it.
                 personalized = !isIncognito()
             )?.let {
-                finalWord = it
+                // Cased last, so it cannot change *whether* a correction
+                // fires -- only what the correction looks like. A repair that
+                // was going to happen is the one place a capital can be added
+                // without the keyboard rewriting a word it was going to leave
+                // alone, which is why this sits inside the `let` rather than
+                // on `finalWord` below.
+                finalWord = personalCase(it)
                 Stats.autocorrect(this)
             }
             }
@@ -1927,6 +1938,21 @@ class RimBoardService : InputMethodService(),
         val learnedIt = canLearn && finalWord == typed && wordish && typed.length >= 2
         if (learnedIt) {
             userData.learnWord(typed.lowercase(loc))
+            // The same commit, asked a second question: not *which* word, but
+            // how the user spells it. Only here, and only for a word committed
+            // exactly as typed -- the chip, the swipe and the correction paths
+            // all put a word in the field whose capitals this rule supplied,
+            // and counting those would be the store reading its own output
+            // back as evidence. See [PersonalCase].
+            if (Prefs.rememberCase(this) &&
+                PersonalCase.counts(
+                    typed,
+                    sentenceInitial = atSentenceStart,
+                    capsLock = keyboardView?.shiftState == KeyboardView.ShiftState.CAPSLOCK
+                )
+            ) {
+                userData.noteCase(typed, loc)
+            }
         }
         val fw = finalWord.lowercase(loc)
         // The word before this one gets its second and last look, and it has to
@@ -2041,6 +2067,24 @@ class RimBoardService : InputMethodService(),
      * rewritten unless the field still reads, character for character, as the
      * two words this function is about.
      */
+    /**
+     * [word] in the capitals this user writes it with.
+     *
+     * The keyboard's half of [com.rimboard.keyboard.model.PersonalCase]: the
+     * engine holds the store and this holds the two conditions under which it
+     * may be read. Incognito is the same line every other read of the learned
+     * data is held to -- history is exactly what an incognito field is for not
+     * using -- and the preference is the user saying they would rather the
+     * keyboard did not do this at all.
+     *
+     * Called at the four places the keyboard puts a word into a field it did
+     * not take verbatim from the user: the strip, the next-word chips, a
+     * swipe, and the two corrections. Never on the word being typed.
+     */
+    private fun personalCase(word: String): String =
+        if (isIncognito() || !Prefs.rememberCase(this)) word
+        else engine.personalCase(word)
+
     private fun maybePostCorrect(
         ic: InputConnection,
         follower: String,
@@ -2070,7 +2114,7 @@ class RimBoardService : InputMethodService(),
             prevWord = p.ctx1,
             touch = p.touch,
             personalized = !isIncognito()
-        ) ?: return null
+        )?.let { personalCase(it) } ?: return null
         val tail = " " + follower + followerSeparator
         val expect = p.typed + tail
         if (ic.getTextBeforeCursor(expect.length, 0)?.toString() != expect) return null
@@ -2414,7 +2458,13 @@ class RimBoardService : InputMethodService(),
                 val loc = effLocale()
                 preds = preds.map { p ->
                     WordCase.forShift(
-                        p,
+                        // Before the shift state and not after: this supplies
+                        // the capital a learned n-gram cannot carry, and
+                        // `forShift` is then free to raise it further or
+                        // shout it. A chip is the one suggestion offered with
+                        // no typed letters to take a case from, which is what
+                        // made it the worst of the four gaps.
+                        personalCase(p),
                         capsLock = sh == KeyboardView.ShiftState.CAPSLOCK,
                         shifted = sh == KeyboardView.ShiftState.AUTO ||
                             sh == KeyboardView.ShiftState.MANUAL,
@@ -2497,6 +2547,16 @@ class RimBoardService : InputMethodService(),
             engine.emojiFor(composing.toString().lowercase(effLocale()), effLang())
                 ?.takeIf { !userData.isBlocked(it) }
         else null
+        // Every chip but the one that is already in the field. The verbatim
+        // word is on the strip so it can be kept, and echoing it back in
+        // different capitals would be the keyboard arguing with the screen.
+        // Matched by value rather than by index because `arrangeUnknownWord`
+        // is allowed to move it, and a one-to-one map leaves `shownHi`
+        // pointing where it was. The quoted form of it, where the word is one
+        // the engine does not recognise, needs no rule of its own: the quotes
+        // are part of the string, so nothing looks it up.
+        val verbatim = composing.toString()
+        shownWords = shownWords.map { if (it == verbatim) it else personalCase(it) }
         s.showSuggestions(shownWords, shownHi, emojiSug)
     }
 

@@ -64,6 +64,12 @@
             android:summary="@string/pref_learn_summary"
             android:defaultValue="true" />
 
+    <SwitchPreferenceCompat
+            android:key="remember_case"
+            android:title="@string/pref_remembercase_title"
+            android:summary="@string/pref_remembercase_summary"
+            android:defaultValue="true" />
+
     <Preference
             android:key="personal_dict"
             android:icon="@drawable/ic_pref_book"

@@ -70,6 +70,8 @@
     <string name="cat_privacy">Конфиденциальность</string>
     <string name="pref_learn_title">Запоминать новые слова</string>
     <string name="pref_learn_summary">Запоминать введённые слова (хранятся только на этом устройстве)</string>
+    <string name="pref_remembercase_title">Запоминать заглавные буквы</string>
+    <string name="pref_remembercase_summary">Предлагать имена и слова с теми заглавными буквами, которыми вы их пишете</string>
     <string name="pref_clipboard_title">Подсказка из буфера обмена</string>
     <string name="pref_clipboard_summary">Показывать кнопку «Вставить» в пустом поле в течение минуты после копирования</string>
     <string name="pref_incognito_title">Всегда инкогнито</string>
@@ -307,7 +309,7 @@
     <string name="pref_contact_names_title">Имена из контактов</string>
     <string name="pref_contact_names_summary">Не подчёркивать имена тех, кому вы пишете. При включении запрашивает разрешение; имена читаются только в память и никуда не отправляются.</string>
     <string name="pref_system_dict_title">Слова из личного словаря</string>
-    <string name="pref_system_dict_summary">Также принимать слова из Настроек → Личный словарь, общие с другими приложениями. Только чтение, ничего не добавляется. При включении запрашивает разрешение.</string>
+    <string name="pref_system_dict_summary">Принимать и предлагать слова из Настроек → Личный словарь, общие с другими приложениями. Только чтение, ничего не добавляется. При включении запрашивает разрешение.</string>
 
     <string name="pref_dicts_title">Расширенные словари</string>
     <string name="pref_dicts_summary">Добавить более полный список слов для языка</string>

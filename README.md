@@ -127,6 +127,16 @@ The latest release is **2.9.1**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
 - GBoard-like key layout, sizes and spacing; adjustable key height; optional
   number row (digit hints on the top row when it's off)
 - Auto-capitalization (sentence-aware), double-tap Shift for caps lock
+- **Remembers your capitals.** Every bundled word list is entirely lower case
+  — 0 of English's 298,946 entries carries one — so a name the keyboard had
+  learned came back off the strip without its capital, and a next-word chip,
+  offered before a single letter is typed, could never have one at all. It now
+  watches how you write a word mid-sentence, by majority vote, and offers it
+  that way on the strip, on the next-word chips, on a swipe and in a
+  correction. It only ever *adds* a capital, never removes one; sentence
+  openers and anything typed with caps lock on are ignored, because those say
+  something about the position or the tone rather than about the word.
+  Settings → Corrections.
 - Autocorrect (edit distance ≤ 2 against a frequency dictionary) with a
   one-tap "↩ original" revert chip that also teaches the keyboard your word
 - **Post-correction** — a typo the space bar was not confident enough to fix
@@ -202,7 +212,11 @@ The latest release is **2.9.1**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
   Languages — Personal dictionary is shared by every app and is where a user
   writes a word down by hand to say "this is a word". Reading it means a word
   you added there, or taught another keyboard, or brought from an old phone,
-  stops being underlined here. Read only: `WRITE_USER_DICTIONARY` is
+  stops being underlined here **and is offered on the strip**, with the
+  capitals you gave it — the same thing RimBoard's own personal-dictionary
+  screen has always done, which is the point: they are the same act. What is
+  kept is those words, in memory, never written to disk, dropped when the
+  setting goes off or memory runs short. Read only: `WRITE_USER_DICTIONARY` is
   deliberately not requested, so this never adds to your list.
 
   Worth knowing that this one is unusual. The permission is **not in the public
@@ -589,9 +603,13 @@ away. Two things address that, and the first one costs nothing:
   the rule above cannot see. This is **off**, and turning it on is what
   triggers Android's permission prompt. Refuse the prompt and the switch goes
   back off rather than sitting on claiming to work.
-- **Settings — Advanced — Words from the personal dictionary** accepts the
-  words in Android's own shared list, the one at Settings — Languages —
-  Personal dictionary. Also **off**, read only, and never added to.
+- **Settings — Advanced — Words from the personal dictionary** accepts *and
+  suggests* the words in Android's own shared list, the one at Settings —
+  Languages — Personal dictionary, spelled the way you wrote them there. Also
+  **off**, read only, and never added to. Contacts are deliberately still only
+  accepted and never suggested: a contact's display name is inferred rather
+  than declared — "Ahmet Yılmaz (work)" contributes "work" — so it does not
+  belong at the same rank as a word somebody typed out on purpose.
 
 What the second one holds is a set of lowercase name parts, in memory, never
 written to disk and dropped the moment the setting is turned off or the system

@@ -70,6 +70,8 @@
     <string name="cat_privacy">Privacy</string>
     <string name="pref_learn_title">Impara parole nuove</string>
     <string name="pref_learn_summary">Ricorda le parole che scrivi (salvate solo su questo dispositivo)</string>
+    <string name="pref_remembercase_title">Ricorda le maiuscole</string>
+    <string name="pref_remembercase_summary">Proporre nomi e parole con le maiuscole con cui li scrivi tu</string>
     <string name="pref_clipboard_title">Suggerimento appunti</string>
     <string name="pref_clipboard_summary">Mostra un chip Incolla in un campo vuoto per un minuto dopo la copia</string>
     <string name="pref_incognito_title">Sempre in incognito</string>
@@ -305,7 +307,7 @@
     <string name="pref_contact_names_title">Nomi dai contatti</string>
     <string name="pref_contact_names_summary">Non sottolineare più le persone a cui scrivi. Chiede il permesso quando lo attivi; i nomi restano in memoria e non vengono inviati da nessuna parte.</string>
     <string name="pref_system_dict_title">Parole dal dizionario personale</string>
-    <string name="pref_system_dict_summary">Accetta anche le parole salvate in Impostazioni → Dizionario personale, condivise con le altre app. Solo lettura, non viene mai aggiunto nulla. Chiede il permesso quando lo attivi.</string>
+    <string name="pref_system_dict_summary">Accetta e propone le parole salvate in Impostazioni → Dizionario personale, condivise con le altre app. Solo lettura, non viene mai aggiunto nulla. Chiede il permesso quando lo attivi.</string>
 
     <string name="pref_dicts_title">Dizionari estesi</string>
     <string name="pref_dicts_summary">Aggiungi l’elenco di parole più ampio di una lingua</string>

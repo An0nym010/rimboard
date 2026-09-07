@@ -27,7 +27,7 @@ import java.util.concurrent.Executors
 object UserDictionaryStore {
 
     @Volatile
-    private var words: Set<String> = emptySet()
+    private var entries: Map<String, String> = emptyMap()
 
     @Volatile
     private var loaded = false
@@ -37,7 +37,17 @@ object UserDictionaryStore {
     }
 
     /** What has been read, or empty. Never blocks and never reads. */
-    fun words(): Set<String> = words
+    fun words(): Set<String> = entries.keys
+
+    /**
+     * The same entries with the spelling each was written with.
+     *
+     * The shield only ever needed the folded keys; offering one of these on
+     * the strip needs the capitals back, because a personal-dictionary entry
+     * is a declaration of a spelling and not merely of a word. See
+     * [PersonalWords.index].
+     */
+    fun index(): Map<String, String> = entries
 
     /**
      * One gate, not two, and the reason is worth writing down.
@@ -70,42 +80,42 @@ object UserDictionaryStore {
         loaded = true
         val app = context.applicationContext
         io.execute {
-            words = try {
+            entries = try {
                 read(app)
             } catch (e: SecurityException) {
                 // The expected refusal, and not an error: this build does not
                 // let us read it. Logged at info because it says something
                 // true about the device rather than something wrong with us.
                 android.util.Log.i("RimBoard", "user dictionary not readable here")
-                emptySet()
+                emptyMap()
             } catch (e: Exception) {
                 // Some builds restrict the provider, some OEMs replace it, and
                 // none of that is worth a crash in a keyboard.
                 android.util.Log.w("RimBoard", "user dictionary unreadable", e)
-                emptySet()
+                emptyMap()
             }
         }
     }
 
-    private fun read(context: Context): Set<String> {
+    private fun read(context: Context): Map<String, String> {
         val projection = arrayOf(UserDictionary.Words.WORD)
         context.contentResolver.query(
             UserDictionary.Words.CONTENT_URI, projection, null, null, null
         )?.use { c ->
             val col = c.getColumnIndex(UserDictionary.Words.WORD)
-            if (col < 0) return emptySet()
+            if (col < 0) return emptyMap()
             val raw = ArrayList<String>(c.count.coerceAtMost(PersonalWords.MAX_NAMES))
             while (c.moveToNext()) {
                 c.getString(col)?.let { raw.add(it) }
             }
-            return PersonalWords.of(raw.asSequence(), dropEntriesWithDigits = false)
+            return PersonalWords.index(raw.asSequence(), dropEntriesWithDigits = false)
         }
-        return emptySet()
+        return emptyMap()
     }
 
     /** Drop what was read, so the next [warm] reads again. */
     fun forget() {
-        words = emptySet()
+        entries = emptyMap()
         loaded = false
     }
 }

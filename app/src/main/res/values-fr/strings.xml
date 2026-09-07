@@ -70,6 +70,8 @@
     <string name="cat_privacy">Confidentialité</string>
     <string name="pref_learn_title">Apprendre de nouveaux mots</string>
     <string name="pref_learn_summary">Mémoriser les mots saisis (stockés uniquement sur cet appareil)</string>
+    <string name="pref_remembercase_title">Mémoriser les majuscules</string>
+    <string name="pref_remembercase_summary">Proposer les noms et les mots avec les majuscules que vous employez</string>
     <string name="pref_clipboard_title">Suggestion du presse-papiers</string>
     <string name="pref_clipboard_summary">Proposer une puce Coller dans un champ vide, pendant une minute après la copie</string>
     <string name="pref_incognito_title">Toujours incognito</string>
@@ -305,7 +307,7 @@
     <string name="pref_contact_names_title">Noms des contacts</string>
     <string name="pref_contact_names_summary">Ne plus souligner les personnes à qui tu écris. Demande l\'autorisation à l\'activation ; les noms restent en mémoire et ne sont envoyés nulle part.</string>
     <string name="pref_system_dict_title">Mots du dictionnaire personnel</string>
-    <string name="pref_system_dict_summary">Accepter aussi les mots enregistrés dans Paramètres → Dictionnaire personnel, partagés avec tes autres applis. En lecture seule, jamais complété. Demande l\'autorisation à l\'activation.</string>
+    <string name="pref_system_dict_summary">Accepter et proposer les mots enregistrés dans Paramètres → Dictionnaire personnel, partagés avec tes autres applis. En lecture seule, jamais complété. Demande l\'autorisation à l\'activation.</string>
 
     <string name="pref_dicts_title">Dictionnaires étendus</string>
     <string name="pref_dicts_summary">Ajouter la liste de mots plus complète d’une langue</string>

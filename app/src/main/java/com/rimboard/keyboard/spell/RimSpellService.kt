@@ -64,8 +64,8 @@ class RimSpellService : SpellCheckerService() {
             // calls `forget()` on both, and a copy held here would have
             // outlived it.
             it.contactNames = com.rimboard.keyboard.engine.ContactStore::names
-            it.userDictionaryWords =
-                com.rimboard.keyboard.engine.UserDictionaryStore::words
+            it.userDictionary =
+                com.rimboard.keyboard.engine.UserDictionaryStore::index
         }
     }
 

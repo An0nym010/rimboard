@@ -69,8 +69,30 @@ object PersonalWords {
         entries: Sequence<String>,
         limit: Int = MAX_NAMES,
         dropEntriesWithDigits: Boolean = true
-    ): Set<String> {
-        val out = LinkedHashSet<String>()
+    ): Set<String> = index(entries, limit, dropEntriesWithDigits).keys
+
+    /**
+     * The same parts, each mapped to the spelling it was written with.
+     *
+     * [of] is this with the spellings thrown away, and for a long time that
+     * was all anybody needed: the only caller was `acceptedWord`, which asks
+     * whether a word is real and does not care how it is capitalised. Offering
+     * one is a different act. A word somebody typed into Android's personal
+     * dictionary is a declaration of a spelling -- capitals included, which is
+     * the whole reason "Kubernetes" is in there and not "kubernetes" -- so a
+     * keyboard that puts it on the strip in lower case has taken the
+     * declaration and dropped the half of it that was hardest to type.
+     *
+     * First spelling wins where two entries fold together, which is arbitrary
+     * and is the only sensible answer: nothing here can tell which of "Ada"
+     * and "ada" the writer meant, and both were declared.
+     */
+    fun index(
+        entries: Sequence<String>,
+        limit: Int = MAX_NAMES,
+        dropEntriesWithDigits: Boolean = true
+    ): Map<String, String> {
+        val out = LinkedHashMap<String, String>()
         for (raw in entries) {
             if (out.size >= limit) break
             if (dropEntriesWithDigits && raw.any { it.isDigit() }) continue
@@ -86,7 +108,10 @@ object PersonalWords {
                 var e = end
                 while (s < e && !raw[s].isLetter()) s++
                 while (e > s && !raw[e - 1].isLetter()) e--
-                if (e - s >= MIN_LENGTH) out.add(raw.substring(s, e).lowercase(Locale.ROOT))
+                if (e - s >= MIN_LENGTH) {
+                    val part = raw.substring(s, e)
+                    out.putIfAbsent(part.lowercase(Locale.ROOT), part)
+                }
                 i = end
             }
         }
@@ -96,4 +121,69 @@ object PersonalWords {
     /** Whether [word] is one of [words], folded the same way they were. */
     fun contains(words: Set<String>, word: String): Boolean =
         words.isNotEmpty() && word.lowercase(Locale.ROOT) in words
+
+    /**
+     * The folded keys of [index] that continue [typed], shortest first.
+     *
+     * Shortest first because a declaration is not ranked by anything else --
+     * there are no counts here and never will be, since nobody types into
+     * Android's settings often enough to have a frequency -- and the shortest
+     * continuation is the one nearest to being finished. Alphabetical after
+     * that, so the strip does not reorder itself between two words of the same
+     * length for reasons a hash map decided.
+     *
+     * Keys rather than spellings, because the caller merges these with the
+     * dictionary's own candidates under a folded key and puts the spelling
+     * back at the end. [Locale.ROOT] on both sides for the reason [contains]
+     * gives: the two have to agree with each other, and the price is that a
+     * Turkish dotted capital in a declared word is reachable by typing the
+     * capital and not by typing the dotless letter.
+     */
+    fun startingWith(index: Map<String, String>, typed: String, limit: Int): List<String> {
+        if (index.isEmpty() || typed.isEmpty()) return emptyList()
+        val prefix = typed.lowercase(Locale.ROOT)
+        var hits: ArrayList<String>? = null
+        for (k in index.keys) {
+            if (k.length > prefix.length && k.startsWith(prefix)) {
+                (hits ?: ArrayList<String>(4).also { hits = it }).add(k)
+            }
+        }
+        val found = hits ?: return emptyList()
+        found.sortWith(compareBy({ it.length }, { it }))
+        return if (found.size > limit) found.subList(0, limit).toList() else found
+    }
+
+    /**
+     * The folded keys of [index] within [maxDist] edits of [typed], nearest
+     * first.
+     *
+     * [distance] is supplied rather than imported: the measure that matters is
+     * the keyboard-geometry-aware one in `Dictionary`, and this object is a
+     * pure rule that a spell checker and a settings screen both reach without
+     * an engine. The length gate in front of it is the same one every other
+     * walk in this project puts there, and for the same reason -- the distance
+     * is the expensive part and a length difference settles most candidates
+     * without computing one.
+     */
+    fun within(
+        index: Map<String, String>,
+        typed: String,
+        maxDist: Int,
+        distance: (String, String) -> Int
+    ): List<String> {
+        if (index.isEmpty() || typed.isEmpty()) return emptyList()
+        val lower = typed.lowercase(Locale.ROOT)
+        var hits: ArrayList<Pair<String, Int>>? = null
+        for (k in index.keys) {
+            if (k == lower) continue
+            if (kotlin.math.abs(k.length - lower.length) > maxDist) continue
+            val d = distance(lower, k)
+            if (d in 1..maxDist) {
+                (hits ?: ArrayList<Pair<String, Int>>(4).also { hits = it }).add(k to d)
+            }
+        }
+        val found = hits ?: return emptyList()
+        found.sortWith(compareBy({ it.second }, { it.first }))
+        return found.map { it.first }
+    }
 }

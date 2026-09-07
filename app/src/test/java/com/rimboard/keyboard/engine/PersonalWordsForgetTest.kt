@@ -106,13 +106,17 @@ class PersonalWordsForgetTest {
     @Test
     fun `the system personal dictionary is re-read the same way`() {
         val e = engine()
-        var held: Set<String> = emptySet()
-        e.userDictionaryWords = { held }
+        // A map now, keyed by the folded word and holding the spelling it was
+        // declared with -- the shield reads the keys, and the strip, which
+        // offers these words since they stopped being shields only, reads the
+        // spelling.
+        var held: Map<String, String> = emptyMap()
+        e.userDictionary = { held }
 
         assertFalse(e.acceptedWord("anthropic", "en", en))
-        held = setOf("anthropic")
+        held = mapOf("anthropic" to "Anthropic")
         assertTrue(e.acceptedWord("anthropic", "en", en))
-        held = emptySet()
+        held = emptyMap()
         assertFalse(
             "UserDictionaryStore.forget() left the engine still accepting",
             e.acceptedWord("anthropic", "en", en)
@@ -125,16 +129,16 @@ class PersonalWordsForgetTest {
         // being emptied must not empty the other.
         val e = engine()
         var contacts: Set<String> = setOf("yilmaz")
-        var words: Set<String> = setOf("anthropic")
+        var words: Map<String, String> = mapOf("anthropic" to "anthropic")
         e.contactNames = { contacts }
-        e.userDictionaryWords = { words }
+        e.userDictionary = { words }
         contacts = emptySet()
         assertFalse(e.acceptedWord("yilmaz", "en", en))
         assertTrue(
             "emptying the address book took the personal dictionary with it",
             e.acceptedWord("anthropic", "en", en)
         )
-        words = emptySet()
+        words = emptyMap()
         contacts = setOf("yilmaz")
         assertTrue(e.acceptedWord("yilmaz", "en", en))
         assertFalse(e.acceptedWord("anthropic", "en", en))
@@ -160,7 +164,7 @@ class PersonalWordsForgetTest {
         for ((name, src) in services()) {
             for ((prop, store, getter) in listOf(
                 Triple("contactNames", "ContactStore", "names"),
-                Triple("userDictionaryWords", "UserDictionaryStore", "words")
+                Triple("userDictionary", "UserDictionaryStore", "index")
             )) {
                 assertTrue(
                     "$name no longer wires $prop to $store, so the words the " +
