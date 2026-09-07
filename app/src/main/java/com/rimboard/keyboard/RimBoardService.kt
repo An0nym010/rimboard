@@ -868,7 +868,16 @@ class RimBoardService : InputMethodService(),
             File(UserData.dataDir(this), "bg_image.jpg").exists()
         val photoTheme =
             if (hasBgImage) Themes.overPhoto(t, Prefs.bgLuma(this), bgDimAlpha) else null
+        // Read once and handed to all three of the things that have to agree
+        // about it: the backdrop that draws the sky, the keyboard that must not
+        // paint over it, and the strip that must not either. See [Backdrop] --
+        // they disagreed, and the setting drew nothing anyone could see.
+        val liveMode = Prefs.liveBackground(this)
+        val liveBg = com.rimboard.keyboard.model.Backdrop.liveVisible(hasBgImage, liveMode)
+        val clearSurfaces =
+            com.rimboard.keyboard.model.Backdrop.surfacesTransparent(hasBgImage, liveMode)
         keyboardView?.let { kv ->
+            kv.backdropDrawn = clearSurfaces
             kv.theme = photoTheme ?: t
             kv.previewEnabled = com.rimboard.keyboard.model.KeyPreview.mayShow(
                 enabled = Prefs.popupPreview(this),
@@ -935,7 +944,12 @@ class RimBoardService : InputMethodService(),
             kv.showDigitHints = !Prefs.numberRow(this)
             kv.incognito = isIncognito()
         }
-        strip?.applyTheme(photoTheme?.copy(background = 0x00000000) ?: t)
+        // Transparent over anything the backdrop is drawing, which until now
+        // meant a photo only -- so the strip painted a solid band over the top
+        // of the sky even once the keyboard below it stopped doing the same.
+        strip?.applyTheme(
+            if (clearSurfaces) (photoTheme ?: t).copy(background = 0x00000000) else t
+        )
         // Panels sit on the same backdrop, so with a photo set they take a
         // translucent surface and the picture carries on behind them instead
         // of stopping dead the moment one opens. Everything else in the theme
@@ -952,7 +966,7 @@ class RimBoardService : InputMethodService(),
         rootView?.setBackgroundColor(t.background)
         rootView?.dimAlpha = bgDimAlpha
         rootView?.starColor = t.keyText
-        rootView?.liveMode = Prefs.liveBackground(this)
+        rootView?.liveMode = liveMode
         window?.window?.let { w ->
             w.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
             w.navigationBarColor = t.background

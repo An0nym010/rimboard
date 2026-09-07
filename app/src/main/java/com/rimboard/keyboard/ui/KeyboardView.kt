@@ -284,6 +284,30 @@ class KeyboardView(context: Context) : View(context) {
      * because this was a File.exists() on every frame — a syscall per frame
      * for the whole length of any animation.
      */
+    /**
+     * Whether `PhotoBackdrop` is drawing something behind this view -- a photo,
+     * or a live background -- so an opaque fill here would blot it out.
+     *
+     * Supplied by the service rather than worked out here, and that is the
+     * point. This is one rule with three consumers (the backdrop that draws,
+     * this view, and the suggestion strip), it was written out separately in
+     * each, and the live half was missing from two of them -- so "Night sky"
+     * and "Particles" drew a sky that was painted over before anyone saw it.
+     * [com.rimboard.keyboard.model.Backdrop] owns the rule now and the service
+     * hands down the answer.
+     *
+     * The cost of skipping the fill is the faint gradient
+     * [updateBackgroundPaint] adds when key borders are on, which the
+     * backdrop's flat colour does not reproduce. A photo has always cost that;
+     * a live background now costs it too.
+     */
+    var backdropDrawn = false
+        set(value) {
+            if (field == value) return
+            field = value
+            invalidate()
+        }
+
     private fun backgroundImagePresent(): Boolean {
         if (bgProbeVersion != BgImageState.version) {
             bgProbeVersion = BgImageState.version
@@ -542,10 +566,14 @@ class KeyboardView(context: Context) : View(context) {
     override fun onDraw(canvas: Canvas) {
         val t = theme ?: return
         val lay = layout ?: return
-        // With a photo set, PhotoBackdrop paints it behind this view and the
-        // strip together; an opaque fill here would blot it back out.
+        // Whether this view may paint its own background is not the same
+        // question as whether a *photo* is set, and conflating them is what
+        // made the live backgrounds invisible. [backdropDrawn] answers the
+        // first; [photo] below still answers the second, because the key
+        // styling really does depend on a picture being there and not on the
+        // sky, which leaves the theme alone.
         val photo = backgroundImagePresent()
-        if (!photo) {
+        if (!backdropDrawn) {
             updateBackgroundPaint(t)
             canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bgPaint)
         }
