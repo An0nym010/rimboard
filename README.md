@@ -148,6 +148,18 @@ The latest release is **2.9.1**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
   would have refused — all the following word changes is *which* of the
   candidates gets picked — and the same "↩ original" chip undoes it.
   Settings → Corrections.
+- **Missing commas, in the languages that have rules about them.** In Czech,
+  German, Hungarian, Polish, Russian, Slovak and Ukrainian a short list of
+  words is preceded by a comma almost every time — cs `že` 99%, de `dass` 98%,
+  ru `чтобы` 95% — and typing one of them puts the comma in. Counted from the
+  corpus rather than guessed at, and gated on the number that matters: a
+  language ships a list only if a model built from nine tenths of its corpus
+  gets **95% of that language's commas right on the tenth it has never seen**.
+  Seven of the twenty-two clear it — Italian reaches 97.4% and still doesn't
+  ship, because it would fire once in 547 sentences; English has four such
+  words and Turkish none at all. **733 bytes for all seven.** One silent change
+  per commit, so it stands down whenever autocorrect or post-correction already
+  acted, and the same "↩" chip undoes it. Settings → Corrections.
 - Suggestion strip: up to five chips — what you typed, the best match and the
   alternatives — with the word that will be auto-committed shown in
   bold/accent; a narrow row drops chips from the right rather than squeezing

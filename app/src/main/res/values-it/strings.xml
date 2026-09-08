@@ -59,6 +59,8 @@
 
     <string name="pref_smartdash_title">Trattino intelligente</string>
     <string name="pref_smartdash_summary">Trasforma due trattini in una lineetta — così</string>
+    <string name="pref_commas_title">Virgole mancanti</string>
+    <string name="pref_commas_summary">Mette una virgola prima delle parole che ne vogliono quasi sempre una. Solo ceco, tedesco, ungherese, polacco, russo, slovacco e ucraino; le altre lingue non hanno parole simili.</string>
     <string name="pref_predictions_title">Predizione della parola successiva</string>
     <string name="pref_predictions_summary">Suggerisci la parola successiva in base alla tua cronologia</string>
     <string name="pref_expandsuggest_title">Altri suggerimenti con uno scorrimento</string>

@@ -59,6 +59,8 @@
 
     <string name="pref_smartdash_title">Intelligenter Gedankenstrich</string>
     <string name="pref_smartdash_summary">Macht aus zwei Bindestrichen einen Gedankenstrich — so</string>
+    <string name="pref_commas_title">Fehlende Kommas</string>
+    <string name="pref_commas_summary">Setzt ein Komma vor Wörter, die fast immer eines haben. Nur Tschechisch, Deutsch, Ungarisch, Polnisch, Russisch, Slowakisch und Ukrainisch; die übrigen Sprachen haben keine solchen Wörter.</string>
     <string name="pref_predictions_title">Nächstes-Wort-Vorhersage</string>
     <string name="pref_predictions_summary">Nächstes Wort anhand deines eigenen Schreibverlaufs vorschlagen</string>
     <string name="pref_expandsuggest_title">Mehr Vorschläge per Wisch</string>

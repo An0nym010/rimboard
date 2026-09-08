@@ -35,6 +35,12 @@
             android:defaultValue="true" />
 
     <SwitchPreferenceCompat
+            android:key="comma_hints"
+            android:title="@string/pref_commas_title"
+            android:summary="@string/pref_commas_summary"
+            android:defaultValue="true" />
+
+    <SwitchPreferenceCompat
             android:key="smart_dash"
             android:title="@string/pref_smartdash_title"
             android:summary="@string/pref_smartdash_summary"

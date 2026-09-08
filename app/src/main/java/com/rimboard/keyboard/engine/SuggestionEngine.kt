@@ -3088,6 +3088,61 @@ class SuggestionEngine private constructor(
     private val prefixSets = java.util.concurrent.ConcurrentHashMap<String, List<String>>()
     private val prefixLock = Any()
 
+    private val commaWords =
+        java.util.concurrent.ConcurrentHashMap<String, Map<String, Int>>()
+    private val commaLock = Any()
+
+    /**
+     * How often a comma precedes each word, per thousand, for the languages
+     * that have an answer worth acting on.
+     *
+     * Counted by `tools/build_commas.py` and shipped as
+     * assets/commas/<lang>.txt. **Seven languages of twenty-two**, and the
+     * fifteen without one are a refusal rather than a gap -- a language ships
+     * a list only if a model built from nine tenths of its corpus gets 95% of
+     * its commas right on the tenth it never saw, *and* fires often enough to
+     * be worth having. English has four candidate words and would fire once in
+     * 2,749 sentences; Turkish has none at all. See
+     * [com.rimboard.keyboard.model.CommaRule].
+     *
+     * Empty for every other language, and an empty map is not a special case
+     * anywhere: it simply never matches.
+     */
+    private fun commaSharesFor(lang: String): Map<String, Int> = synchronized(commaLock) {
+        commaWords.getOrPut(lang) {
+            try {
+                val stream = assets.open("commas/$lang.txt") ?: return@getOrPut emptyMap()
+                val out = HashMap<String, Int>()
+                stream.bufferedReader().useLines { lines ->
+                    for (line in lines) {
+                        val tab = line.indexOf('\t')
+                        if (tab <= 0) continue
+                        val share = line.substring(tab + 1).trim().toIntOrNull() ?: continue
+                        out[line.substring(0, tab)] = share
+                    }
+                }
+                out
+            } catch (e: Exception) {
+                // The ordinary case for fifteen of the twenty-two languages.
+                emptyMap()
+            }
+        }
+    }
+
+    /**
+     * How often a comma precedes [word] in [lang], per thousand, or null.
+     *
+     * Null for every word in a language with no list, and for almost every
+     * word in the seven that have one -- the lists are ten to eighteen words
+     * long. Folded with [locale] on the way in, because the lists are written
+     * lower case and the word arrives as it was typed.
+     */
+    fun commaShare(word: String, lang: String, locale: Locale): Int? {
+        val shares = commaSharesFor(lang)
+        if (shares.isEmpty()) return null
+        return shares[word.lowercase(locale)]
+    }
+
     /**
      * Endings [lang] builds words with, counted from its own dictionary by
      * `tools/derive_suffixes.py` and shipped as assets/suffixes/<lang>.txt.

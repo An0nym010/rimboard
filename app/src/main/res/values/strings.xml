@@ -81,6 +81,8 @@
 
     <string name="pref_smartdash_title">Smart dash</string>
     <string name="pref_smartdash_summary">Turn two hyphens into an em dash — like this</string>
+    <string name="pref_commas_title">Missing commas</string>
+    <string name="pref_commas_summary">Put a comma before the words that nearly always take one. Czech, German, Hungarian, Polish, Russian, Slovak and Ukrainian only; the other languages have no such words.</string>
     <string name="pref_predictions_title">Next-word prediction</string>
     <string name="pref_predictions_summary">Suggest the next word from your own typing history</string>
     <string name="pref_expandsuggest_title">More suggestions on a swipe</string>

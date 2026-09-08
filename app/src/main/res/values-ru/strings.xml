@@ -59,6 +59,8 @@
 
     <string name="pref_smartdash_title">Умное тире</string>
     <string name="pref_smartdash_summary">Превращает два дефиса в тире — вот так</string>
+    <string name="pref_commas_title">Пропущенные запятые</string>
+    <string name="pref_commas_summary">Ставит запятую перед словами, которые почти всегда идут после неё. Только чешский, немецкий, венгерский, польский, русский, словацкий и украинский; в остальных языках таких слов нет.</string>
     <string name="pref_predictions_title">Предсказание следующего слова</string>
     <string name="pref_predictions_summary">Предлагать следующее слово на основе вашей истории ввода</string>
     <string name="pref_expandsuggest_title">Больше подсказок по свайпу</string>

@@ -59,6 +59,8 @@
 
     <string name="pref_smartdash_title">Travessão inteligente</string>
     <string name="pref_smartdash_summary">Transforma dois hifens num travessão — assim</string>
+    <string name="pref_commas_title">Vírgulas que faltam</string>
+    <string name="pref_commas_summary">Coloca uma vírgula antes das palavras que quase sempre levam uma. Apenas tcheco, alemão, húngaro, polonês, russo, eslovaco e ucraniano; os outros idiomas não têm palavras assim.</string>
     <string name="pref_predictions_title">Previsão da próxima palavra</string>
     <string name="pref_predictions_summary">Sugerir a próxima palavra com base no seu próprio histórico</string>
     <string name="pref_expandsuggest_title">Mais sugestões ao deslizar</string>

@@ -292,7 +292,18 @@ class RimBoardService : InputMethodService(),
          * (prev2, prev1, next) as it stands *after* the correction, so undoing
          * it is the same two calls in the other direction.
          */
-        val followerNgram: Triple<String, String, String>? = null
+        val followerNgram: Triple<String, String, String>? = null,
+        /**
+         * What the chip says, when that is not [original].
+         *
+         * Every revert but one is a word swapped for a word, and naming the
+         * word the user typed is the whole of what the chip has to say. The
+         * comma rule is the exception: the region it swaps has to include the
+         * space in front of the word, or the comma would sit outside it and
+         * survive the undo -- and a chip naming a leading space names a thing
+         * nobody typed.
+         */
+        val label: String? = null
     ) {
         /**
          * What must be sitting immediately before the cursor for this revert to
@@ -2023,6 +2034,11 @@ class RimBoardService : InputMethodService(),
         // Armed after the n-gram, so it can carry what was filed and where. A
         // post-correction takes the chip over: the change the user can see is
         // the one behind them, not this word.
+        // Asked only where nothing else has already changed this commit; see
+        // [maybeComma]. `ctxBefore.second` rather than `prevWordForBigram`,
+        // which has since moved onto this word.
+        val commaed = post == null && finalWord == typed &&
+            maybeComma(ic, finalWord, separator, ctxBefore.second)
         revert = when {
             post != null -> Revert(
                 original = post.original,
@@ -2033,6 +2049,16 @@ class RimBoardService : InputMethodService(),
                 followerNgram = recordedAs?.let { Triple(it.first, it.second, fw) }
             )
             finalWord != typed -> Revert(typed, finalWord, separator, ngramContext = recordedAs)
+            // The swapped region reaches back over the space, or the comma
+            // sits outside it and survives the undo. `learnable` is false
+            // because nothing here is a statement about a spelling.
+            commaed -> Revert(
+                original = " " + finalWord,
+                committed = ", " + finalWord,
+                separator = separator,
+                learnable = false,
+                label = finalWord
+            )
             else -> null
         }
         // Armed only for a word this keyboard left exactly as typed and
@@ -2120,6 +2146,52 @@ class RimBoardService : InputMethodService(),
     private fun personalCase(word: String): String =
         if (isIncognito() || !Prefs.rememberCase(this)) word
         else engine.personalCase(word)
+
+    /**
+     * Puts a comma in front of the word just committed, where one belongs.
+     *
+     * RimBoard's answer to the punctuation half of Yandex's Neurocorrector,
+     * and it needs no parse: in the languages whose comma placement is
+     * rule-shaped, a short list of words is preceded by a comma nearly every
+     * time -- cs `że` 99%, de `dass` 98%, ru `чтобы` 95%. Counted from the
+     * corpus by `tools/build_commas.py`; the rule and its refusals are
+     * [com.rimboard.keyboard.model.CommaRule].
+     *
+     * **Only when nothing else changed on this commit.** Post-correction's own
+     * doc gives the reason and it applies unchanged: one silent change per
+     * commit, because two would leave the revert chip able to undo only one of
+     * them, and a chip that undoes half of what just happened is worse than no
+     * chip.
+     *
+     * The text check is the same one [maybePostCorrect] makes and does most of
+     * the work: unless the field reads exactly `" " + word + separator`, this
+     * refuses. That is what stops a comma landing after a full stop, after one
+     * that is already there, across a newline, or anywhere the cursor has
+     * moved since.
+     */
+    private fun maybeComma(
+        ic: InputConnection,
+        word: String,
+        separator: String,
+        previousWord: String
+    ): Boolean {
+        if (!Prefs.commaHints(this)) return false
+        if (isPassword || isEmailOrUri || fieldNoSuggestions) return false
+        val share = engine.commaShare(word, effLang(), effLocale())
+        if (!com.rimboard.keyboard.model.CommaRule.applies(
+                word, share, atSentenceStart, previousWord
+            )
+        ) {
+            return false
+        }
+        val expect = " " + word + separator
+        if (ic.getTextBeforeCursor(expect.length, 0)?.toString() != expect) return false
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(expect.length, 0)
+        ic.commitText(", " + word + separator, 1)
+        ic.endBatchEdit()
+        return true
+    }
 
     private fun maybePostCorrect(
         ic: InputConnection,
@@ -2432,7 +2504,7 @@ class RimBoardService : InputMethodService(),
         if (composing.isEmpty()) {
             val rv = revert
             if (rv != null) {
-                s.showSuggestions(listOf("\u21A9 " + rv.original), -1)
+                s.showSuggestions(listOf("\u21A9 " + (rv.label ?: rv.original)), -1)
                 return
             }
             if (glideWords.isNotEmpty()) {

@@ -17,6 +17,7 @@ object Prefs {
     const val KEY_AUTOCORRECT_CAUTIOUS = "autocorrect_cautious"
     const val KEY_POST_CORRECT = "post_correct"
     const val KEY_SMART_DASH = "smart_dash"
+    const val KEY_COMMA_HINTS = "comma_hints"
     const val KEY_CONTEXT_SPELL = "context_spell"
     const val KEY_INLINE_AUTOFILL = "inline_autofill"
     const val KEY_SUGGESTIONS = "suggestions"
@@ -202,6 +203,25 @@ object Prefs {
      * those apart from the field alone -- `--` is how flags are written.
      */
     fun smartDash(c: Context) = get(c).boolOr(KEY_SMART_DASH, false)
+
+    /**
+     * Whether a comma is inserted before the words that nearly always take one.
+     *
+     * On, and only seven of the twenty-two languages have a list at all --
+     * Czech, German, Hungarian, Polish, Russian, Slovak and Ukrainian, the ones
+     * whose comma placement is rule-shaped enough to count. In the other
+     * fifteen this switch governs nothing, which is part of why it is on: a
+     * setting that is inert for most people and right 95% of the time for the
+     * rest is not one to hide.
+     *
+     * Held to the same 95%-on-held-out-text bar in every language that ships,
+     * and it is the third switch over an edit this keyboard makes to text
+     * already typed, alongside autocorrect and post-correction. Like those it
+     * arms the revert chip; like those, somebody who wants their punctuation to
+     * be entirely their own should be able to say so.
+     * See [com.rimboard.keyboard.model.CommaRule].
+     */
+    fun commaHints(c: Context) = get(c).boolOr(KEY_COMMA_HINTS, true)
 
     /**
      * Whether the strip offers what a password manager wants to fill.

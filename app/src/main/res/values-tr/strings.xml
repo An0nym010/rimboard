@@ -63,6 +63,8 @@
 
     <string name="pref_smartdash_title">Akıllı tire</string>
     <string name="pref_smartdash_summary">İki kısa çizgiyi uzun çizgiye çevirir — böyle</string>
+    <string name="pref_commas_title">Eksik virgüller</string>
+    <string name="pref_commas_summary">Neredeyse her zaman virgülle gelen kelimelerin önüne virgül koyar. Yalnızca Çekçe, Almanca, Macarca, Lehçe, Rusça, Slovakça ve Ukraynaca; diğer dillerde böyle kelimeler yok.</string>
     <string name="pref_predictions_title">Sonraki kelime tahmini</string>
     <string name="pref_predictions_summary">Kendi yazma geçmişinden sonraki kelimeyi öner</string>
     <string name="pref_expandsuggest_title">Kaydırınca daha çok öneri</string>
