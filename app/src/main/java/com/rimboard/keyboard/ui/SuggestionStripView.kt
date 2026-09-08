@@ -109,6 +109,46 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         /** Padding either side, and the hairline between two chips. */
         const val ROW_PAD = 8
         const val DIVIDER_W = 1
+
+        /**
+         * How small a chip's text may shrink before it gives up and ellipsises.
+         *
+         * A suggestion nobody can read is not a suggestion. Five chips share
+         * about 347dp of a 393dp phone once the chevron and the dividers are
+         * taken out, and [com.rimboard.keyboard.model.StripLayout.weights]
+         * only helps when the words differ in length -- when they are all
+         * long, which is exactly when this matters, every chip gets the same
+         * 69dp. At 15sp that fits eight or nine characters, so a German
+         * compound arrives as `unte...tung` and an English one as
+         * `autho...tion`, and the reader is left guessing between four
+         * candidates that all begin the same way.
+         *
+         * Middle truncation is not the fault and must not be "fixed" to END:
+         * the chips on a completion row share the prefix the user has just
+         * typed, so cutting the tail makes all five identical. The tail is the
+         * only part that distinguishes them. What is wrong is the size.
+         *
+         * **12sp, and the number is the accessibility floor rather than a
+         * fitting one.** The first version of this went to 10sp because that
+         * is what makes "unterhaltung" fit, and that is the wrong trade: a
+         * keyboard answering "the word did not fit" by shrinking it has helped
+         * the people who needed no help and hurt the ones who did. Below about
+         * 12sp a suggestion stops being readable for anybody whose eyes are
+         * not perfect.
+         *
+         * So the shrinking is small and deliberate, and when it runs out the
+         * strip drops a chip instead -- see
+         * [com.rimboard.keyboard.model.StripLayout.chipsThatRead]. Four
+         * ellipsised candidates that all begin alike are worth less than two
+         * anybody can read.
+         *
+         * Both sizes are in SP, so the system font-size setting scales them,
+         * and both are multiplied by [labelScale] as well: somebody who has
+         * enlarged the key labels has said "make the text bigger", and until
+         * now the strip was the one row that did not listen.
+         */
+        const val MIN_CHIP_SP = 12f
+        const val CHIP_SP = 15f
     }
 
 
@@ -220,8 +260,13 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             val idx = i
             val tv = TextView(context).apply {
                 gravity = Gravity.CENTER
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, CHIP_SP)
                 maxLines = 1
+                // Shrink before truncating. See [MIN_CHIP_SP]: the ellipsis is
+                // a last resort and was reached far too early.
+                setAutoSizeTextTypeUniformWithConfiguration(
+                    MIN_CHIP_SP.toInt(), CHIP_SP.toInt(), 1, TypedValue.COMPLEX_UNIT_SP
+                )
                 ellipsize = TextUtils.TruncateAt.MIDDLE
                 setOnClickListener {
                     val word = text?.toString() ?: return@setOnClickListener
@@ -270,6 +315,55 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     }
 
     private var drawerOpen = false
+
+    /**
+     * The user's key-label scale, applied to the suggestion text too.
+     *
+     * `label_scale_pct` has existed for a long time and moved the key labels
+     * and nothing else, so the row most likely to hold an unfamiliar word was
+     * the one row that ignored a request to make the text bigger.
+     */
+    var labelScale: Float = 1f
+        set(value) {
+            if (field == value) return
+            field = value
+            applyChipSizes()
+            requestLayout()
+        }
+
+    private val measurePaint = android.text.TextPaint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+
+    private fun scaledSp(sp: Float): Int =
+        (sp * labelScale).toInt().coerceAtLeast(1)
+
+    private fun applyChipSizes() {
+        val min = scaledSp(MIN_CHIP_SP)
+        val max = scaledSp(CHIP_SP).coerceAtLeast(min + 1)
+        for (tv in slots) {
+            tv.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE)
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, max.toFloat())
+            tv.setAutoSizeTextTypeUniformWithConfiguration(
+                min, max, 1, TypedValue.COMPLEX_UNIT_SP
+            )
+        }
+    }
+
+    /**
+     * How wide [word] has to be to be read, in dp.
+     *
+     * Measured rather than counted, because this decides whether a chip is
+     * dropped and "iii" against "mmm" is a factor of three. [StripLayout] does
+     * the counting version for the width shares, where it runs per keystroke
+     * per chip and the difference does not matter.
+     */
+    private fun needDp(word: String): Int {
+        if (word.isEmpty()) return 0
+        val dm = resources.displayMetrics
+        measurePaint.typeface = slots.firstOrNull()?.typeface
+        measurePaint.textSize = MIN_CHIP_SP * labelScale * dm.scaledDensity
+        val px = measurePaint.measureText(word) + dp(10)
+        return (px / dm.density).toInt() + 1
+    }
 
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
     private var downX = 0f
@@ -429,7 +523,15 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         val fits = com.rimboard.keyboard.model.StripLayout.chipsThatFit(
             freeDp, slots.size, keepAtLeast = highlightIndex + 1
         )
-        val shown = List(slots.size) { if (it < fits) words.getOrNull(it) ?: "" else "" }
+        // And then again, for legibility rather than for the touch target.
+        // Five chips can all be comfortably tappable and still be four
+        // ellipsised words that begin alike; see [MIN_CHIP_SP].
+        val candidates = List(fits) { words.getOrNull(it) ?: "" }
+        val readable = com.rimboard.keyboard.model.StripLayout.chipsThatRead(
+            freeDp, candidates, candidates.map { needDp(it) },
+            fits, keepAtLeast = highlightIndex + 1
+        )
+        val shown = List(slots.size) { if (it < readable) words.getOrNull(it) ?: "" else "" }
         val weights = com.rimboard.keyboard.model.StripLayout.weights(shown)
         val floorPx = dp(
             com.rimboard.keyboard.model.StripLayout.chipFloorDp(freeDp, fits)

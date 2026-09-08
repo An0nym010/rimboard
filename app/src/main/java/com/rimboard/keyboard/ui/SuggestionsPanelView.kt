@@ -174,6 +174,11 @@ class SuggestionsPanelView(context: Context) : ScrollView(context) {
         gravity = Gravity.CENTER
         setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
         maxLines = 1
+        // The same rule as the strip, and needed here too: a four-column grid
+        // on a 393dp phone gives a chip about 90dp, and "congratulations"
+        // arrived as `cong...ions`. A panel opened on purpose to read more
+        // words is the last place a word should be unreadable.
+        setAutoSizeTextTypeUniformWithConfiguration(12, 15, 1, TypedValue.COMPLEX_UNIT_SP)
         // MIDDLE, like the strip: the ends of a long word are what tell you
         // which word it is.
         ellipsize = TextUtils.TruncateAt.MIDDLE

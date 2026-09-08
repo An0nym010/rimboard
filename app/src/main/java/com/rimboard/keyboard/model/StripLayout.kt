@@ -155,6 +155,77 @@ object StripLayout {
     }
 
     /**
+     * The largest number of chips, up to [want], in which every word can be
+     * *read* -- not merely shown.
+     *
+     * [chipsThatFit] answers a different question and both are asked. That one
+     * protects the touch target: a chip narrower than [MIN_CHIP_DP] is not a
+     * button. This protects the reader, and it exists because the two are not
+     * the same thing at all. Five chips of 69dp on a 393dp phone are all
+     * comfortably tappable and still show `unte...tung`, `unte...sam`,
+     * `unter...lten` -- four candidates that begin alike, ellipsised in the
+     * middle, and indistinguishable.
+     *
+     * **Fewer chips, not smaller text.** A chip may shrink its label a little,
+     * but only a little: past about 12sp it stops being readable for anybody
+     * whose eyes are not perfect, and a keyboard that answers "the word did not
+     * fit" by making it smaller has helped the people who needed no help and
+     * hurt the ones who did. So this drops the chips that cannot be read and
+     * gives their width to the ones that can. An ellipsised suggestion nobody
+     * can identify was never worth a slot.
+     *
+     * [needDp] is what each word needs at that floor size, measured by the
+     * caller -- a `Paint` knows what a font does and this cannot. The shares
+     * are computed exactly as the view lays them out: [MIN_CHIP_DP] each, with
+     * the surplus divided by [weights] of the same words. Deriving a second
+     * weight from the measurement instead would predict a layout that never
+     * happens, which is a subtler way of being wrong than not checking at
+     * all.
+     *
+     * [keepAtLeast] outranks all of it, for the reason [chipsThatFit] gives:
+     * what the space bar is about to commit has to be on the strip, legible or
+     * not.
+     */
+    fun chipsThatRead(
+        freeDp: Int,
+        words: List<String>,
+        needDp: List<Int>,
+        want: Int = SLOTS,
+        keepAtLeast: Int = 1
+    ): Int {
+        if (want <= 0) return 0
+        if (freeDp <= 0) return want
+        val floor = keepAtLeast.coerceIn(1, want)
+        var n = minOf(want, minOf(words.size, needDp.size))
+        while (n > floor) {
+            if (allRead(freeDp, words, needDp, n)) return n
+            n--
+        }
+        return floor
+    }
+
+    /** Whether the first [n] words each get the width they need. */
+    private fun allRead(
+        freeDp: Int,
+        words: List<String>,
+        needDp: List<Int>,
+        n: Int
+    ): Boolean {
+        val w = weights(words.take(n))
+        val total = w.sum()
+        if (total <= 0f) return true
+        val base = chipFloorDp(freeDp, n)
+        val surplus = freeDp - n * base
+        if (surplus < 0) return false
+        for (i in 0 until n) {
+            if (words[i].isEmpty()) continue
+            val share = base + surplus * (w[i] / total)
+            if (share + 0.5f < needDp[i]) return false
+        }
+        return true
+    }
+
+    /**
      * The smallest share of the strip a chip may take, as a word length.
      *
      * Chips used to divide the width equally, so "Bananenkuchen" was

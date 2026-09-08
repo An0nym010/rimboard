@@ -178,4 +178,56 @@ class StripLayoutTest {
         assertEquals(5, StripLayout.chipsThatFit(0, 5))
         assertEquals(5, StripLayout.chipsThatFit(-20, 5))
     }
+
+    // ---- legibility, which is a different question from the touch target ----
+
+    /** What a word needs, at the six-dp-a-character the doc uses. */
+    private fun needs(vararg words: String) = words.map { it.length * 6 + 10 }
+
+    @Test
+    fun `five short words all fit and all stay`() {
+        val words = listOf("the", "that", "this", "there", "then")
+        assertEquals(
+            5,
+            StripLayout.chipsThatRead(347, words, needs(*words.toTypedArray()), 5)
+        )
+    }
+
+    @Test
+    fun `five long words do not, and the strip shows fewer rather than smaller`() {
+        // The case this exists for, measured off a real phone: typing
+        // "unterhalt" on a 393dp screen offered `unt...alt`, `unter...lten`,
+        // `unte...tung`, `unte...sam` and `unterhalte` -- four candidates that
+        // begin alike, cut in the middle, and impossible to tell apart.
+        //
+        // Shrinking the text is the wrong answer to that. Below about 12sp a
+        // suggestion stops being readable for anybody whose eyes are not
+        // perfect, so the row that cannot show five readable words shows four.
+        val words = listOf(
+            "unterhalt", "unterhalten", "unterhaltung", "unterhaltsam", "unterhalte"
+        )
+        val got = StripLayout.chipsThatRead(347, words, needs(*words.toTypedArray()), 5)
+        assertTrue("a row of long words still claims all five chips: $got", got < 5)
+        assertTrue("it gave up too much: $got", got >= 3)
+    }
+
+    @Test
+    fun `the bold chip outranks legibility, because it is a promise`() {
+        // What the space bar is about to commit has to be on the strip. That
+        // outranks the touch target already -- see chipsThatFit -- and it
+        // outranks this for the same reason.
+        val words = List(5) { "unterhaltungsmaschinerie" }
+        assertEquals(
+            4,
+            StripLayout.chipsThatRead(347, words, needs(*words.toTypedArray()), 5, keepAtLeast = 4)
+        )
+    }
+
+    @Test
+    fun `no width yet keeps every chip, as the touch-target rule does`() {
+        // Before the first layout there is nothing to divide, and the strip is
+        // redrawn on the next keystroke.
+        val words = listOf("a", "b")
+        assertEquals(5, StripLayout.chipsThatRead(0, words, needs(*words.toTypedArray()), 5))
+    }
 }

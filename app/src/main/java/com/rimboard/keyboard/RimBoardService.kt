@@ -350,6 +350,31 @@ class RimBoardService : InputMethodService(),
 
     override fun onCreate() {
         super.onCreate()
+        // "Per session" has to mean something, and until this line it meant
+        // "for ever".
+        //
+        // `incognito_session` is the toolbar's dark-glasses toggle, and it is
+        // an ordinary boolean in SharedPreferences that exactly one place ever
+        // wrote and nothing ever cleared. So one tap stopped the keyboard
+        // learning permanently -- across the field, the app, process death and
+        // a reboot -- while its own summary said "toggle per-session" and the
+        // only sign was a small mark on the suggestion strip. Found on a real
+        // phone that had been in incognito for an unknown length of time, with
+        // its owner asking why the strip felt empty.
+        //
+        // The session is the life of this service, which is the only boundary
+        // the keyboard both controls and shows. Two weaker candidates were
+        // considered: clearing it when the keyboard is hidden ends incognito
+        // every time somebody glances at another app, which is the dangerous
+        // direction -- it would end quietly and the next private thing typed
+        // would be learned; and leaving it persistent and rewording the
+        // setting keeps a switch whose off state nobody can find.
+        //
+        // Ending early is safe here for one reason worth stating: while
+        // incognito is on the strip *always* carries the mark, so a session
+        // that ends is a change the user can see. That is what makes this the
+        // right side to err on.
+        Prefs.setIncognitoSession(this, false)
         userData = UserData(this)
         userData.loadAsync()
         engine = SuggestionEngine(this, userData)
@@ -957,6 +982,8 @@ class RimBoardService : InputMethodService(),
             kv.sidePadPct = Prefs.sidePadPct(this)
             kv.bottomPadPct = Prefs.bottomPadPct(this)
             kv.labelScale = Prefs.labelScalePct(this) / 100f
+            // The same request, applied to the one row that used to ignore it.
+            strip?.labelScale = Prefs.labelScalePct(this) / 100f
             kv.longPressTimeoutMs = Prefs.longPressMs(this).toLong()
             kv.spaceSwipeH = when (Prefs.spaceSwipeH(this)) {
                 "language" -> 2
