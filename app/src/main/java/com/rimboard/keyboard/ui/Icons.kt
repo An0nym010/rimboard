@@ -47,6 +47,7 @@ object Icons {
     const val CHEVRON_L = 25    // collapse "<"
     const val GRID = 26         // all tools
     const val SPELLCHECK = 27   // proofread: a tick over a text baseline
+    const val GIF = 28          // the GIF search, a magnifier holding a "G"
 
     private val p = Paint(Paint.ANTI_ALIAS_FLAG)
     private val path = Path()
@@ -101,18 +102,26 @@ object Icons {
         c.restoreToCount(save)
     }
 
-    // ---- Lucide vector set ----------------------------------------------
+    // ---- vector set ------------------------------------------------------
 
     /**
-     * Whether to draw the Lucide VectorDrawables instead of the hand-drawn
-     * glyphs below.
+     * Whether to draw the VectorDrawables instead of the hand-drawn glyphs
+     * below.
      *
-     * On. The committed path data for all 26 icons was rendered as SVG and
-     * inspected: every conversion I was unsure of — circle-to-arc, rect-to-path,
-     * fill dots — draws correctly. The one renderer-dependent element, Lucide's
-     * zero-length "dot" strokes on the emoji and keyboard glyphs, was replaced
-     * with real filled circles, so nothing here relies on how a given renderer
-     * treats a degenerate segment.
+     * On. **Twenty-three of these are RimBoard's own** — the redesigned set
+     * from the light-theme design canvas, converted from its SVG symbols. Five
+     * remain Lucide: the two chevrons, the pin, the trash and the search
+     * magnifier, which the redesign does not cover. They are restroked to
+     * match, since a row mixing 2.0 and 1.8 weights is the inconsistency the
+     * redesign existed to remove.
+     *
+     * VectorDrawable takes path data only, so the conversion had to turn every
+     * `<rect>` and `<circle>` into arcs and expand `stroke-dasharray` — which
+     * it does not support at all — into separate dashes. All 23 were rendered
+     * back from the committed `pathData` and compared against the design
+     * symbol before landing; the ones worth doubting were the dashed
+     * select-all, the half-filled theme disc and the filled dots on emoji,
+     * keyboard and settings.
      *
      * The fallback below still stands: if a drawable ever fails to load, [draw]
      * uses the hand-drawn glyph rather than showing nothing.
@@ -156,6 +165,10 @@ object Icons {
         vectorRes[ONE_HANDED] = R.drawable.ic_tool_onehanded
         vectorRes[EMOJI] = R.drawable.ic_tool_emoji
         vectorRes[KEYBOARD] = R.drawable.ic_tool_keyboard
+        // Both new with the redesign: proofread had only the hand-drawn
+        // glyph, and the GIF tool used to borrow SEARCH.
+        vectorRes[SPELLCHECK] = R.drawable.ic_tool_spellcheck
+        vectorRes[GIF] = R.drawable.ic_tool_gif
     }
 
     private fun vector(icon: Int): android.graphics.drawable.Drawable? {
@@ -410,7 +423,9 @@ object Icons {
                 c.drawLine(cx - r * 0.16f, cy - r * 0.24f, cx - r * 0.13f, cy + r * 0.52f, p)
                 c.drawLine(cx + r * 0.16f, cy - r * 0.24f, cx + r * 0.13f, cy + r * 0.52f, p)
             }
-            SEARCH -> {
+            // GIF falls back to the plain magnifier: the "G" inside it is
+            // a detail of the drawable, and losing it beats drawing nothing.
+            SEARCH, GIF -> {
                 c.drawCircle(cx - r * 0.18f, cy - r * 0.18f, r * 0.5f, p)
                 p.strokeWidth = s * 0.14f
                 c.drawLine(cx + r * 0.2f, cy + r * 0.2f, cx + r * 0.72f, cy + r * 0.72f, p)

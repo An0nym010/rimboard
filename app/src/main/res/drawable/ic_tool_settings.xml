@@ -1,19 +1,25 @@
-<!-- Lucide "settings" — ISC, (c) 2026 Lucide Icons and Contributors. See NOTICE. -->
+<!-- RimBoard tool icon, drawn for the light-theme design canvas. Original work, not Lucide; see NOTICE. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
-        android:pathData="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"
+        android:pathData="M7.5 4v16"
         android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2"
+        android:strokeWidth="1.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
     <path
-        android:pathData="M9,12 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0"
+        android:pathData="M16.5 4v16"
         android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2"
+        android:strokeWidth="1.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
+    <path
+        android:pathData="M5.2,9 a2.3,2.3 0 1 0 4.6,0 a2.3,2.3 0 1 0 -4.6,0 z"
+        android:fillColor="#FFFFFFFF" />
+    <path
+        android:pathData="M14.2,15 a2.3,2.3 0 1 0 4.6,0 a2.3,2.3 0 1 0 -4.6,0 z"
+        android:fillColor="#FFFFFFFF" />
 </vector>

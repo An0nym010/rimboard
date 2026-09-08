@@ -38,7 +38,7 @@ object ToolCatalog {
         Tool("clipboard", Icons.CLIPBOARD, Codes.CLIPBOARD, R.string.tb_clipboard),
         Tool("language", Icons.GLOBE, Codes.LANG, R.string.tb_language),
         Tool("translate", Icons.TRANSLATE, Codes.TRANSLATE, R.string.tb_translate),
-        Tool("gif", Icons.SEARCH, Codes.GIF, R.string.tb_gif),
+        Tool("gif", Icons.GIF, Codes.GIF, R.string.tb_gif),
         Tool("proofread", Icons.SPELLCHECK, Codes.PROOFREAD, R.string.tb_proofread),
         Tool("share", Icons.SHARE, Codes.SHARE, R.string.tb_share),
         Tool("theme", Icons.THEME, Codes.THEME, R.string.tb_theme),

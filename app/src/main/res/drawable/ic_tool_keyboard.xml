@@ -1,29 +1,37 @@
-<!-- Lucide "keyboard" — ISC, (c) 2026 Lucide Icons and Contributors. See NOTICE.
-     Keys drawn as filled circles rather than Lucide's zero-length strokes:
-     Android's VectorDrawable does not reliably render a degenerate segment,
-     so each dot is a real 2-unit circle. -->
+<!-- RimBoard tool icon, drawn for the light-theme design canvas. Original work, not Lucide; see NOTICE. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
-        android:pathData="M4,4 h16 a2,2 0 0,1 2,2 v12 a2,2 0 0,1 -2,2 h-16 a2,2 0 0,1 -2,-2 v-12 a2,2 0 0,1 2,-2 z"
+        android:pathData="M8.5,2.5 h7 a4.5,4.5 0 0 1 4.5,4.5 v10 a4.5,4.5 0 0 1 -4.5,4.5 h-7 a4.5,4.5 0 0 1 -4.5,-4.5 v-10 a4.5,4.5 0 0 1 4.5,-4.5 z"
         android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2"
+        android:strokeWidth="1.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
-    <path android:pathData="M5,8 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0" android:fillColor="#FFFFFFFF" />
-    <path android:pathData="M9,8 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0" android:fillColor="#FFFFFFFF" />
-    <path android:pathData="M13,8 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0" android:fillColor="#FFFFFFFF" />
-    <path android:pathData="M17,8 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0" android:fillColor="#FFFFFFFF" />
-    <path android:pathData="M7,12 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0" android:fillColor="#FFFFFFFF" />
-    <path android:pathData="M11,12 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0" android:fillColor="#FFFFFFFF" />
-    <path android:pathData="M15,12 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0" android:fillColor="#FFFFFFFF" />
     <path
-        android:pathData="M7 16h10"
+        android:pathData="M7.55,8 a1.05,1.05 0 1 0 2.1,0 a1.05,1.05 0 1 0 -2.1,0 z"
+        android:fillColor="#FFFFFFFF" />
+    <path
+        android:pathData="M10.95,8 a1.05,1.05 0 1 0 2.1,0 a1.05,1.05 0 1 0 -2.1,0 z"
+        android:fillColor="#FFFFFFFF" />
+    <path
+        android:pathData="M14.35,8 a1.05,1.05 0 1 0 2.1,0 a1.05,1.05 0 1 0 -2.1,0 z"
+        android:fillColor="#FFFFFFFF" />
+    <path
+        android:pathData="M7.55,12 a1.05,1.05 0 1 0 2.1,0 a1.05,1.05 0 1 0 -2.1,0 z"
+        android:fillColor="#FFFFFFFF" />
+    <path
+        android:pathData="M10.95,12 a1.05,1.05 0 1 0 2.1,0 a1.05,1.05 0 1 0 -2.1,0 z"
+        android:fillColor="#FFFFFFFF" />
+    <path
+        android:pathData="M14.35,12 a1.05,1.05 0 1 0 2.1,0 a1.05,1.05 0 1 0 -2.1,0 z"
+        android:fillColor="#FFFFFFFF" />
+    <path
+        android:pathData="M9 16.5h6"
         android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2"
+        android:strokeWidth="1.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
 </vector>

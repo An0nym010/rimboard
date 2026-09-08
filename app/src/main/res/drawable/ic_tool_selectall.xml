@@ -1,37 +1,19 @@
-<!-- Lucide "text-cursor-input" — ISC, (c) 2026 Lucide Icons and Contributors. See NOTICE. -->
+<!-- RimBoard tool icon, drawn for the light-theme design canvas. Original work, not Lucide; see NOTICE. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
-        android:pathData="M12 20h-1a2 2 0 0 1-2-2 2 2 0 0 1-2 2H6"
+        android:pathData="M8,3 L13,3 M17.189,3.143 L17.764,3.322 L18.348,3.586 L18.861,3.899 L19.362,4.299 L19.781,4.728 L20.168,5.239 L20.487,5.795 L20.729,6.376 M21,10.546 L21,15.546 M19.661,19.405 L19.211,19.833 L18.728,20.19 L18.205,20.487 L17.651,20.719 L17.113,20.875 L16.56,20.969 L16.12,20.999 L15.108,21 M10.908,21 L7.56,20.981 L6.732,20.836 L5.968,20.569 M3.242,17.537 L3.078,16.877 L3.006,16.24 L3,12.562 M3,8.362 L3.01,7.68 L3.085,7.084 L3.23,6.501 L3.461,5.903 L3.745,5.374 L4.116,4.851 L4.522,4.408 L5.001,3.999"
         android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2"
+        android:strokeWidth="1.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
     <path
-        android:pathData="M13 8h7a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-7"
+        android:pathData="M10.9,8.5 h2.2 a2.4,2.4 0 0 1 2.4,2.4 v2.2 a2.4,2.4 0 0 1 -2.4,2.4 h-2.2 a2.4,2.4 0 0 1 -2.4,-2.4 v-2.2 a2.4,2.4 0 0 1 2.4,-2.4 z"
         android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
-    <path
-        android:pathData="M5 16H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h1"
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
-    <path
-        android:pathData="M6 4h1a2 2 0 0 1 2 2 2 2 0 0 1 2-2h1"
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
-    <path
-        android:pathData="M9 6v12"
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2"
+        android:strokeWidth="1.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
 </vector>

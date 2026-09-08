@@ -133,8 +133,17 @@ dictionary files) remain licensed under CC BY-SA 4.0.
 Interface icons
 ---------------
 
-Icons under app/src/main/res/drawable/ic_tool_*.xml are derived from the
-Lucide icon set:
+Most icons under app/src/main/res/drawable/ic_tool_*.xml are original work
+for RimBoard, drawn for its light-theme design canvas and converted from that
+canvas's SVG symbols. They are covered by this project's own licence and
+carry no third-party attribution.
+
+Five remain derived from the Lucide icon set:
+
+  ic_tool_search.xml         ic_tool_pin.xml
+  ic_tool_chevron_left.xml   ic_tool_trash.xml
+  ic_tool_chevron_right.xml
+
 
   Lucide — https://lucide.dev
   Copyright (c) 2026 Lucide Icons and Contributors
@@ -150,10 +159,11 @@ carry:
 Both licences permit use and redistribution provided the copyright notice
 and permission notice are preserved, which is the purpose of this section.
 
-Modifications made for RimBoard: the source SVGs were converted to Android
-VectorDrawable resources. Geometry is unchanged; <rect>, <circle> and
-<line> elements were rewritten as equivalent path data because
-VectorDrawable accepts only <path>.
+Modifications made for RimBoard to those five: the source SVGs were converted
+to Android VectorDrawable resources. Geometry is unchanged; <rect>, <circle>
+and <line> elements were rewritten as equivalent path data because
+VectorDrawable accepts only <path>. Their stroke width was changed from 2.0 to
+1.8 so they sit beside the original set without a visible change of weight.
 
 ISC License
 

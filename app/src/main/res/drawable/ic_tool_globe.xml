@@ -1,25 +1,37 @@
-<!-- Lucide "globe" — ISC, (c) 2026 Lucide Icons and Contributors. See NOTICE. -->
+<!-- RimBoard tool icon, drawn for the light-theme design canvas. Original work, not Lucide; see NOTICE. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
-        android:pathData="M2,12 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0"
+        android:pathData="M3,12 a9,9 0 1 0 18,0 a9,9 0 1 0 -18,0 z"
         android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2"
+        android:strokeWidth="1.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
     <path
-        android:pathData="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"
+        android:pathData="M3.4 9.5h17.2"
         android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2"
+        android:strokeWidth="1.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
     <path
-        android:pathData="M2 12h20"
+        android:pathData="M3.4 14.5h17.2"
         android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M12 3c2.6 2.6 2.6 15.4 0 18"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M12 3c-2.6 2.6-2.6 15.4 0 18"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
 </vector>
