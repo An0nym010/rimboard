@@ -61,6 +61,8 @@
     <string name="pref_smartdash_summary">Convierte dos guiones en una raya — así</string>
     <string name="pref_predictions_title">Predicción de la siguiente palabra</string>
     <string name="pref_predictions_summary">Sugerir la siguiente palabra según tu propio historial</string>
+    <string name="pref_expandsuggest_title">Más sugerencias al deslizar</string>
+    <string name="pref_expandsuggest_summary">Desliza hacia arriba en la barra de sugerencias para ver el resto de la lista</string>
     <string name="pref_double_space_title">Punto con doble espacio</string>
     <string name="pref_double_space_summary">Toca espacio dos veces para insertar un punto</string>
     <string name="pref_haptic_title">Vibración al pulsar</string>

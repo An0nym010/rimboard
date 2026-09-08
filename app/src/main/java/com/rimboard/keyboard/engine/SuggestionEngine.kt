@@ -2236,7 +2236,25 @@ class SuggestionEngine private constructor(
         prevWord2: String = "",
         prevWord: String = "",
         /** Where each letter was tapped; see [com.rimboard.keyboard.model.TouchTrail]. */
-        touch: FloatArray? = null
+        touch: FloatArray? = null,
+        /**
+         * How many words to build, which is the strip's width and normally the
+         * only answer anybody wants.
+         *
+         * A parameter because the expanded panel asks the same question of a
+         * surface that is not one row wide. Everything the strip does with its
+         * five chips still applies at twenty -- the verbatim first, the
+         * corrections promoted, a slot kept for finishing the word -- and
+         * making the panel a second ranking would mean the strip and the panel
+         * could disagree about which word is best, which is the one thing a
+         * "show me more" gesture must never do.
+         *
+         * It is also the knob the measurement was taken with. The table in
+         * `open-items` -- three chips 41.8%, six chips 53.4% for English --
+         * came from lifting exactly this cap, so a panel built on it is
+         * measurable against the same numbers rather than against new ones.
+         */
+        slots: Int = com.rimboard.keyboard.model.StripLayout.SLOTS
     ): SuggestionsResult {
         if (composing.isEmpty()) return SuggestionsResult(emptyList(), -1)
         val dict = dictionary(lang, locale)
@@ -2681,11 +2699,11 @@ class SuggestionEngine private constructor(
             val caseLocale = if (w in altWords && altLocale != null) altLocale else locale
             val cased = matchCase(composing, w, caseLocale)
             if (cased != composing && !display.contains(cased)) display.add(cased)
-            if (display.size >= com.rimboard.keyboard.model.StripLayout.SLOTS) break
+            if (display.size >= slots) break
         }
 
         if (split != null && !display.contains(split)) {
-            if (display.size < com.rimboard.keyboard.model.StripLayout.SLOTS) {
+            if (display.size < slots) {
                 display.add(split)
             } else if (dict.frequency(lower) > 0) {
                 // The last chip that is not what the space bar will commit:
@@ -2721,7 +2739,7 @@ class SuggestionEngine private constructor(
         // when a continuation exists at all, so a finished word that is simply
         // wrong ("helko", "alot") is unaffected: nothing in the dictionary
         // continues those, and the slots stay with the repairs.
-        if (display.size >= com.rimboard.keyboard.model.StripLayout.SLOTS) {
+        if (display.size >= slots) {
             val continues = { w: String ->
                 val l = w.lowercase(locale)
                 l.length > lower.length && l.startsWith(lower)

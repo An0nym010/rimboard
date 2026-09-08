@@ -65,6 +65,8 @@
     <string name="pref_smartdash_summary">İki kısa çizgiyi uzun çizgiye çevirir — böyle</string>
     <string name="pref_predictions_title">Sonraki kelime tahmini</string>
     <string name="pref_predictions_summary">Kendi yazma geçmişinden sonraki kelimeyi öner</string>
+    <string name="pref_expandsuggest_title">Kaydırınca daha çok öneri</string>
+    <string name="pref_expandsuggest_summary">Listenin devamını görmek için öneri şeridinde yukarı kaydır</string>
     <string name="pref_double_space_title">Çift boşlukla nokta</string>
     <string name="pref_double_space_summary">Boşluğa iki kez basınca “. ” ekle</string>
     <string name="pref_haptic_title">Basınca titret</string>

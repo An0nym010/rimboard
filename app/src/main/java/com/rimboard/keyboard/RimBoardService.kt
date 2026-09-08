@@ -75,6 +75,7 @@ class RimBoardService : InputMethodService(),
     ClipboardView.Listener, EditPanelView.Listener,
     com.rimboard.keyboard.ui.ToolbarPanelView.Listener,
     com.rimboard.keyboard.ui.GifView.Listener,
+    com.rimboard.keyboard.ui.SuggestionsPanelView.Listener,
     com.rimboard.keyboard.ui.TranslateView.Listener {
 
     private lateinit var userData: UserData
@@ -161,6 +162,9 @@ class RimBoardService : InputMethodService(),
     /** The panel plus its close bar. Shown and hidden as one; see onCreateInputView. */
     private var toolbarPanelHost: LinearLayout? = null
     private var toolbarCloseBtn: TextView? = null
+    private var suggestPanel: com.rimboard.keyboard.ui.SuggestionsPanelView? = null
+    private var suggestPanelHost: LinearLayout? = null
+    private var suggestCloseBtn: TextView? = null
     private var floatingBlock: View? = null
     private var editSelectMode = false
 
@@ -485,6 +489,32 @@ class RimBoardService : InputMethodService(),
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         frame.addView(tpWrap, FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
+        // The strip opened out. Same wrapper shape as the tools panel above,
+        // and for one of the same reasons: every panel that covers the
+        // keyboard has to carry its own way back, or the only route out is to
+        // do something. The tools panel shipped without one once.
+        val sp = com.rimboard.keyboard.ui.SuggestionsPanelView(ctx).apply {
+            listener = this@RimBoardService
+        }
+        val spClose = TextView(ctx).apply {
+            text = getString(R.string.panel_close)
+            gravity = android.view.Gravity.CENTER
+            setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f)
+            setPadding(0, dp(10), 0, dp(10))
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { hideSuggestionsPanel() }
+        }
+        val spWrap = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            visibility = View.GONE
+        }
+        spWrap.addView(sp, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+        spWrap.addView(spClose, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+        frame.addView(spWrap, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
         val gv = com.rimboard.keyboard.ui.GifView(ctx).apply {
             listener = this@RimBoardService
             visibility = View.GONE
@@ -534,6 +564,9 @@ class RimBoardService : InputMethodService(),
         toolbarPanel = tp
         toolbarPanelHost = tpWrap
         toolbarCloseBtn = tpClose
+        suggestPanel = sp
+        suggestPanelHost = spWrap
+        suggestCloseBtn = spClose
         gifView = gv
         translateView = tv
         floatingBlock = null
@@ -962,6 +995,9 @@ class RimBoardService : InputMethodService(),
         toolbarPanel?.applyTheme(panelTheme)
         toolbarPanelHost?.setBackgroundColor(panelTheme.background)
         toolbarCloseBtn?.setTextColor(panelTheme.accent)
+        suggestPanel?.applyTheme(panelTheme)
+        suggestPanelHost?.setBackgroundColor(panelTheme.background)
+        suggestCloseBtn?.setTextColor(panelTheme.accent)
         gifView?.applyTheme(panelTheme)
         translateView?.applyTheme(panelTheme)
         rootView?.setBackgroundColor(t.background)
@@ -3199,9 +3235,11 @@ class RimBoardService : InputMethodService(),
         // the keyboard rather than over it and so are not hidden by clearing
         // the panels in `frame`.
         closeSearchHost()
-        clipboardView?.visibility = View.GONE
-        editPanelView?.visibility = View.GONE
-        toolbarPanelHost?.visibility = View.GONE
+        // Through the one list rather than by name. Both of these used to
+        // enumerate the panels, which is the arrangement `panels()` says in
+        // its own comment exists to avoid -- and adding a fourth panel is
+        // exactly the moment an enumeration goes stale.
+        panels().forEach { it?.visibility = View.GONE }
         showKeyboardBack()
     }
 
@@ -3304,7 +3342,7 @@ class RimBoardService : InputMethodService(),
     /** Brings the keyboard back from a panel, animating only if it was hidden. */
     /** Every panel that can cover the keyboard. One list, so none gets missed. */
     private fun panels() =
-        arrayOf(clipboardView, editPanelView, toolbarPanelHost)
+        arrayOf(clipboardView, editPanelView, toolbarPanelHost, suggestPanelHost)
 
     /** The pickers are not in [panels]: they sit above the keyboard, not over it. */
     private fun anyPanelOpen() =
@@ -3427,9 +3465,7 @@ class RimBoardService : InputMethodService(),
     private fun hideEmoji() {
         showKeyboardBack()
         closeSearchHost()
-        clipboardView?.visibility = View.GONE
-        editPanelView?.visibility = View.GONE
-        toolbarPanelHost?.visibility = View.GONE
+        panels().forEach { it?.visibility = View.GONE }
     }
 
     // ------------------------------------------------------------ clipboard
@@ -3776,6 +3812,76 @@ class RimBoardService : InputMethodService(),
     private fun hideToolbarPanel() {
         showKeyboardBack()
         toolbarPanelHost?.visibility = View.GONE
+        updateStrip()
+    }
+
+    // ------------------------------------------------- the strip, opened out
+
+    /**
+     * Swipe up on the strip: show the rest of the ranked list.
+     *
+     * The strip is five chips wide and drops the rest from the right, and the
+     * measurement in `open-items` says that is the tightest constraint in the
+     * keyboard -- taking the target from the top N of the engine's own list is
+     * worth 41.8% of English keystrokes at three chips and 53.4% at six. This
+     * is the same list with more of it visible: `suggestionsFor` with a bigger
+     * `slots`, not a second ranking, because a "show me more" gesture that
+     * reorders what it was already showing is worse than no gesture.
+     *
+     * Refused rather than shown empty when there is nothing to add. A panel
+     * that covers the keyboard to display four words the strip was already
+     * displaying is a worse outcome than the gesture doing nothing.
+     */
+    override fun onSuggestionsExpandRequested() {
+        if (!Prefs.expandSuggestions(this)) return
+        if (!Prefs.suggestions(this) || fieldNoSuggestions) return
+        val sp = suggestPanel ?: return
+        val host = suggestPanelHost ?: return
+        val verbatim = composing.toString()
+        if (verbatim.isEmpty()) return
+        val res = engine.suggestionsFor(
+            verbatim, effLang(), effLocale(),
+            // The same question the strip asked a moment ago, with every
+            // argument it passed. Anything different here would mean the panel
+            // and the row above it disagreed about the same word.
+            allowAutocorrect = autocorrectMayCorrect(),
+            personalized = !isIncognito(),
+            altLang = effAlt(),
+            altLocale = effAltLocale(),
+            prevWord2 = prevWord2,
+            prevWord = prevWordForBigram,
+            touch = touchTrail.offsetsFor(composing.length),
+            slots = com.rimboard.keyboard.model.ChipRows.CAPACITY
+        )
+        // Slot 0 is what is already in the field. On the strip it is there so
+        // it can be kept; in a panel of twenty it is a word taking a chip to
+        // say nothing.
+        val words = res.items.drop(1).map { personalCase(it) }
+        if (words.size <= com.rimboard.keyboard.model.StripLayout.SLOTS - 1) return
+        // **Not** `finishComposingSilently()`, which is what every other panel
+        // does before it opens. Those panels can do anything next; this one
+        // ends in a word replacing the one being typed, and `commitText`
+        // replaces the composing region only while there still is one.
+        // Finishing first would append instead: tapping "hello" after typing
+        // "hell" would write "hellhello".
+        sp.setWords(words)
+        revealPanel(host)
+    }
+
+    /**
+     * A word tapped in the panel, committed exactly as a chip is.
+     *
+     * Index 1 rather than 0: on the strip index 0 means the revert chip, and
+     * there is no revert chip here. Nothing below that branch reads the index.
+     */
+    override fun onExpandedWordPicked(word: String) {
+        hideSuggestionsPanel()
+        onSuggestionPicked(1, word)
+    }
+
+    private fun hideSuggestionsPanel() {
+        showKeyboardBack()
+        suggestPanelHost?.visibility = View.GONE
         updateStrip()
     }
 

@@ -83,6 +83,8 @@
     <string name="pref_smartdash_summary">Turn two hyphens into an em dash — like this</string>
     <string name="pref_predictions_title">Next-word prediction</string>
     <string name="pref_predictions_summary">Suggest the next word from your own typing history</string>
+    <string name="pref_expandsuggest_title">More suggestions on a swipe</string>
+    <string name="pref_expandsuggest_summary">Swipe up on the suggestion strip to see the rest of the list</string>
     <string name="pref_double_space_title">Double-space period</string>
     <string name="pref_double_space_summary">Tap space twice to insert “. ”</string>
     <string name="pref_haptic_title">Vibrate on keypress</string>

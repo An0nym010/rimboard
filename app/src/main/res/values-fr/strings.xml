@@ -61,6 +61,8 @@
     <string name="pref_smartdash_summary">Remplace deux tirets courts par un tiret cadratin — comme ceci</string>
     <string name="pref_predictions_title">Prédiction du mot suivant</string>
     <string name="pref_predictions_summary">Suggérer le mot suivant selon votre propre historique</string>
+    <string name="pref_expandsuggest_title">Plus de suggestions au balayage</string>
+    <string name="pref_expandsuggest_summary">Balaye vers le haut sur la barre de suggestions pour voir le reste de la liste</string>
     <string name="pref_double_space_title">Point par double espace</string>
     <string name="pref_double_space_summary">Touchez deux fois espace pour insérer un point</string>
     <string name="pref_haptic_title">Vibration à l\'appui</string>

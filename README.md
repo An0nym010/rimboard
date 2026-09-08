@@ -152,6 +152,17 @@ The latest release is **2.9.1**. See **[CHANGELOG.md](CHANGELOG.md)** for the re
   alternatives — with the word that will be auto-committed shown in
   bold/accent; a narrow row drops chips from the right rather than squeezing
   them
+- **Swipe up on the strip for the rest of the list.** Five chips is the
+  tightest constraint in the keyboard — taking the target from the top N of the
+  engine's own ranking is worth 41.8% of English keystrokes at three chips,
+  53.4% at six and 60.0% at twelve — and the strip has room for five. The
+  gesture opens the same ranking with more of it showing: **twelve or thirteen
+  words against five**, measured, and the same in English, German and Turkish,
+  because the ceiling is how deep the dictionary is asked rather than the
+  language. Not a second ranking and not a deeper search, so the first word in
+  the panel is always the first word the strip was already showing. Tapping a
+  chip still commits it and holding one still blocks it; only a vertical drag
+  past the touch slop is claimed. Settings → Corrections.
 - 200,000 words per language built in, 298,946 for English, and a deeper list
   per language you can add later — downloaded on the `online` build, imported
   from a file you fetched yourself on the `offline` one, checksum-checked

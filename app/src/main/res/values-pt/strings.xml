@@ -61,6 +61,8 @@
     <string name="pref_smartdash_summary">Transforma dois hifens num travessão — assim</string>
     <string name="pref_predictions_title">Previsão da próxima palavra</string>
     <string name="pref_predictions_summary">Sugerir a próxima palavra com base no seu próprio histórico</string>
+    <string name="pref_expandsuggest_title">Mais sugestões ao deslizar</string>
+    <string name="pref_expandsuggest_summary">Deslize para cima na barra de sugestões para ver o resto da lista</string>
     <string name="pref_double_space_title">Ponto com espaço duplo</string>
     <string name="pref_double_space_summary">Toque espaço duas vezes para inserir um ponto</string>
     <string name="pref_haptic_title">Vibração ao tocar</string>

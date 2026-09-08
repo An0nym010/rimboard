@@ -61,6 +61,8 @@
     <string name="pref_smartdash_summary">Trasforma due trattini in una lineetta — così</string>
     <string name="pref_predictions_title">Predizione della parola successiva</string>
     <string name="pref_predictions_summary">Suggerisci la parola successiva in base alla tua cronologia</string>
+    <string name="pref_expandsuggest_title">Altri suggerimenti con uno scorrimento</string>
+    <string name="pref_expandsuggest_summary">Scorri verso l’alto sulla barra dei suggerimenti per vedere il resto dell’elenco</string>
     <string name="pref_double_space_title">Punto con doppio spazio</string>
     <string name="pref_double_space_summary">Tocca due volte spazio per inserire un punto</string>
     <string name="pref_haptic_title">Vibrazione alla pressione</string>

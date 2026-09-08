@@ -25,6 +25,7 @@ object Prefs {
     const val KEY_GLIDE = "glide_typing"
     const val KEY_LEARN = "learn_words"
     const val KEY_REMEMBER_CASE = "remember_case"
+    const val KEY_EXPAND_SUGGESTIONS = "expand_suggestions"
     const val KEY_CLIPBOARD = "clipboard_suggest"
     const val KEY_LANGUAGES = "languages"
     const val KEY_INCOGNITO_ALWAYS = "incognito_always"
@@ -213,6 +214,21 @@ object Prefs {
      */
     fun inlineAutofill(c: Context) = get(c).boolOr(KEY_INLINE_AUTOFILL, true)
     fun suggestions(c: Context) = get(c).boolOr(KEY_SUGGESTIONS, true)
+
+    /**
+     * Whether swiping up on the suggestion strip opens the rest of the list.
+     *
+     * On. It costs nothing when it is not used -- the gesture is claimed only
+     * once a drag has passed the touch slop and is more vertical than
+     * horizontal, so a tap on a chip is untouched -- and a feature nobody can
+     * discover is not improved by also being off.
+     *
+     * A switch of its own because a keyboard that occasionally disappears
+     * under a grid of words when you meant to reach for the key above is a
+     * specific thing to dislike, and somebody who types near the top of the
+     * strip should be able to say so without giving up suggestions.
+     */
+    fun expandSuggestions(c: Context) = get(c).boolOr(KEY_EXPAND_SUGGESTIONS, true)
     fun predictions(c: Context) = get(c).boolOr(KEY_PREDICTIONS, true)
     fun doubleSpace(c: Context) = get(c).boolOr(KEY_DOUBLE_SPACE, true)
     fun glide(c: Context) = get(c).boolOr(KEY_GLIDE, true)

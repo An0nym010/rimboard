@@ -41,6 +41,12 @@
             android:defaultValue="false" />
 
     <SwitchPreferenceCompat
+            android:key="expand_suggestions"
+            android:title="@string/pref_expandsuggest_title"
+            android:summary="@string/pref_expandsuggest_summary"
+            android:defaultValue="true" />
+
+    <SwitchPreferenceCompat
             android:key="predictions"
             android:title="@string/pref_predictions_title"
             android:summary="@string/pref_predictions_summary"

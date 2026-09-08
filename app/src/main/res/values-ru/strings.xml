@@ -61,6 +61,8 @@
     <string name="pref_smartdash_summary">Превращает два дефиса в тире — вот так</string>
     <string name="pref_predictions_title">Предсказание следующего слова</string>
     <string name="pref_predictions_summary">Предлагать следующее слово на основе вашей истории ввода</string>
+    <string name="pref_expandsuggest_title">Больше подсказок по свайпу</string>
+    <string name="pref_expandsuggest_summary">Проведите вверх по строке подсказок, чтобы увидеть остальные</string>
     <string name="pref_double_space_title">Точка двойным пробелом</string>
     <string name="pref_double_space_summary">Дважды нажмите пробел, чтобы вставить точку</string>
     <string name="pref_haptic_title">Вибрация при нажатии</string>

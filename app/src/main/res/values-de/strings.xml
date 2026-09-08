@@ -61,6 +61,8 @@
     <string name="pref_smartdash_summary">Macht aus zwei Bindestrichen einen Gedankenstrich — so</string>
     <string name="pref_predictions_title">Nächstes-Wort-Vorhersage</string>
     <string name="pref_predictions_summary">Nächstes Wort anhand deines eigenen Schreibverlaufs vorschlagen</string>
+    <string name="pref_expandsuggest_title">Mehr Vorschläge per Wisch</string>
+    <string name="pref_expandsuggest_summary">Auf der Vorschlagsleiste nach oben wischen, um den Rest der Liste zu sehen</string>
     <string name="pref_double_space_title">Punkt bei Doppel-Leertaste</string>
     <string name="pref_double_space_summary">Zweimal Leertaste tippen, um einen Punkt einzufügen</string>
     <string name="pref_haptic_title">Vibration beim Tippen</string>

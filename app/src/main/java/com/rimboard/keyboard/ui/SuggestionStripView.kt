@@ -8,7 +8,9 @@ import android.graphics.drawable.InsetDrawable
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
@@ -41,6 +43,22 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         fun onEmojiSuggestionPicked(emoji: String)
         /** Chevron tapped: open the pinned-tool drawer, or close it. */
         fun onToolbarToggle(expand: Boolean)
+
+        /**
+         * The strip was swiped upwards while it was showing words.
+         *
+         * The one gesture on this row that was still free. The chevron is the
+         * tool drawer, a tap on a chip commits it and a long press blocks it,
+         * so the note that stood in `competitor-gaps` for a week said both
+         * obvious gestures were taken and an expandable strip needed a design
+         * decision first. It did not: this view had no touch handling at all,
+         * and a vertical drag on it collided with nothing.
+         *
+         * The strip does not decide what happens -- whether the setting is on,
+         * whether there is anything to expand, what the panel shows -- because
+         * it does not know any of that. It reports the gesture.
+         */
+        fun onSuggestionsExpandRequested()
         /** Drawer closed: the strip needs its ordinary contents back. */
         fun onDrawerClosed()
     }
@@ -252,6 +270,63 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     }
 
     private var drawerOpen = false
+
+    private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
+    private var downX = 0f
+    private var downY = 0f
+    private var swipeArmed = false
+    private var consumingSwipe = false
+
+    /** Whether there is anything on this row an expanded view could show more of. */
+    private fun wordsShowing(): Boolean =
+        !drawerOpen && slots.any { it.visibility == VISIBLE && it.text.isNotEmpty() }
+
+    /**
+     * Claims an upward drag, and only an upward drag.
+     *
+     * Intercepting rather than handling: the chips are real clickable views
+     * and must stay that way, so the gesture is taken out from under them only
+     * once it has passed the touch slop and is more vertical than horizontal.
+     * A tap never gets that far, and the child receives ACTION_CANCEL when
+     * this fires, so a swipe that begins on a chip does not also commit it.
+     */
+    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
+        when (ev.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                downX = ev.x
+                downY = ev.y
+                swipeArmed = wordsShowing()
+                consumingSwipe = false
+            }
+            MotionEvent.ACTION_MOVE -> if (swipeArmed) {
+                val dy = ev.y - downY
+                val dx = ev.x - downX
+                if (dy < -touchSlop && kotlin.math.abs(dy) > kotlin.math.abs(dx)) {
+                    swipeArmed = false
+                    consumingSwipe = true
+                    listener?.onSuggestionsExpandRequested()
+                    return true
+                }
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                swipeArmed = false
+                consumingSwipe = false
+            }
+        }
+        return false
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(ev: MotionEvent): Boolean {
+        if (ev.actionMasked == MotionEvent.ACTION_UP ||
+            ev.actionMasked == MotionEvent.ACTION_CANCEL
+        ) {
+            val was = consumingSwipe
+            consumingSwipe = false
+            if (was) return true
+        }
+        return consumingSwipe || super.onTouchEvent(ev)
+    }
 
     /**
      * Opens or closes the drawer of pinned tools. Open, the tools take the
