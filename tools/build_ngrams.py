@@ -47,6 +47,7 @@ noise, whatever it happens to be called.
 import bz2
 import collections
 import os
+import re
 import sys
 import time
 import urllib.request
@@ -306,6 +307,34 @@ def min_pair(lang):
 STRIP = ".,!?;:\"'()[]{}\u00ab\u00bb\u2018\u2019\u201c\u201d\u2026-\u2014"
 
 
+# Where one sentence ends and the next begins, inside a single corpus row.
+#
+# **This was missing, and it was wrong in two directions at once.** The full
+# stop is stripped by STRIP and the row was then counted as one flat run of
+# words, so a Tatoeba entry holding two sentences -- "Das ist gut. Ist es
+# teuer?" -- produced the bigram `gut -> ist` and the trigram
+# `(gut, ist) -> es` straight across the boundary. Nothing follows a full stop
+# in the same clause, so every one of those is a continuation that cannot
+# happen. It is in the shipped German model to this day:
+# `gut ist -> ist oder der sie dann`, which is what a phone offers after
+# "...dass es gut ist".
+#
+# The second direction is quieter and costs more. `opener` counted words[0] --
+# the first word of the *row*, not of each sentence -- so every sentence after
+# the first in a multi-sentence row had its opener silently reclassified as a
+# continuation of the previous sentence's last word. The keyboard has a real
+# use for openers: UserData.START is what the strip is drawn from before a
+# single letter has been typed.
+#
+# 3-5% of rows hold more than one sentence (en 2.7%, ru 3.1%, de 5.1%).
+#
+# Splitting slightly too eagerly is the safe direction: an abbreviation like
+# "Dr. Smith" costs one pair that did exist, where not splitting invents pairs
+# that never did. Greek is the known gap -- it ends questions with a semicolon,
+# which is a mid-sentence mark everywhere else, so it is deliberately absent.
+SENTENCE_END = re.compile(r"(?<=[.!?\u2026])[\s\u00a0]+")
+
+
 def fetch(code3):
     os.makedirs(CACHE, exist_ok=True)
     path = os.path.join(CACHE, code3 + "_sentences.tsv.bz2")
@@ -375,20 +404,23 @@ def build(lang):
     tri_seen = collections.Counter()
     opener = collections.Counter()
     total_tokens = 0
-    for s in sentences(path):
-        words = [w.strip(STRIP).lower() for w in s.split()]
-        words = [w for w in words if w and w.isalpha()]
-        if not words:
-            continue
-        opener[words[0]] += 1
-        for w in words:
-            unigram[w] += 1
-            total_tokens += 1
-        for a, b in zip(words, words[1:]):
-            bigram[a][b] += 1
-        for a, b, c in zip(words, words[1:], words[2:]):
-            trigram[(a, b)][c] += 1
-            tri_seen[(a, b)] += 1
+    for row in sentences(path):
+        # One sentence at a time; see SENTENCE_END. Counting the row whole
+        # joined the last word of one sentence to the first word of the next.
+        for s in SENTENCE_END.split(row):
+            words = [w.strip(STRIP).lower() for w in s.split()]
+            words = [w for w in words if w and w.isalpha()]
+            if not words:
+                continue
+            opener[words[0]] += 1
+            for w in words:
+                unigram[w] += 1
+                total_tokens += 1
+            for a, b in zip(words, words[1:]):
+                bigram[a][b] += 1
+            for a, b, c in zip(words, words[1:], words[2:]):
+                trigram[(a, b)][c] += 1
+                tri_seen[(a, b)] += 1
 
     floor = min_pair(lang)
 
