@@ -149,6 +149,9 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
          */
         const val MIN_CHIP_SP = 12f
         const val CHIP_SP = 15f
+
+        /** Breathing room inside a chip, either side of the word. */
+        const val CHIP_PAD = 5
     }
 
 
@@ -262,11 +265,14 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
                 gravity = Gravity.CENTER
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, CHIP_SP)
                 maxLines = 1
-                // Shrink before truncating. See [MIN_CHIP_SP]: the ellipsis is
-                // a last resort and was reached far too early.
-                setAutoSizeTextTypeUniformWithConfiguration(
-                    MIN_CHIP_SP.toInt(), CHIP_SP.toInt(), 1, TypedValue.COMPLEX_UNIT_SP
-                )
+                // So a word does not touch the hairline beside it.
+                // `authorities|authorized` read as one string without this.
+                setPadding(dp(CHIP_PAD), 0, dp(CHIP_PAD), 0)
+                // The last resort, and it should now be unreachable: the row
+                // picks a size every word fits at, and drops the chips it
+                // cannot. Left in place because a measurement and a layout can
+                // still disagree by a pixel, and one ellipsised word is a
+                // better failure than a clipped one.
                 ellipsize = TextUtils.TruncateAt.MIDDLE
                 setOnClickListener {
                     val word = text?.toString() ?: return@setOnClickListener
@@ -336,17 +342,48 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     private fun scaledSp(sp: Float): Int =
         (sp * labelScale).toInt().coerceAtLeast(1)
 
-    private fun applyChipSizes() {
-        val min = scaledSp(MIN_CHIP_SP)
-        val max = scaledSp(CHIP_SP).coerceAtLeast(min + 1)
-        for (tv in slots) {
-            tv.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE)
-            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, max.toFloat())
-            tv.setAutoSizeTextTypeUniformWithConfiguration(
-                min, max, 1, TypedValue.COMPLEX_UNIT_SP
-            )
+    /**
+     * One text size for the whole row, and the largest every word fits at.
+     *
+     * Sizing each chip on its own is what Android's auto-size does, and it
+     * left the row ragged -- "unterhaltsam" visibly smaller than "unterhalte"
+     * beside it, because they had the same width and different lengths. A row
+     * of mixed sizes reads as a list of things of different importance, which
+     * is not what a suggestion strip is saying, and the eye stops at every
+     * step. It also picks the *smallest* size independently per chip, so one
+     * long word no longer drags its neighbours down with it -- but nothing was
+     * gained by that, since the neighbours had room to spare.
+     *
+     * So the row is measured once: for each chip, how much bigger than
+     * [MIN_CHIP_SP] its own share would allow, and the smallest of those wins.
+     * [com.rimboard.keyboard.model.StripLayout.chipsThatRead] has already
+     * guaranteed every chip clears the floor, so this can only ever size *up*.
+     */
+    private fun rowTextSize(shown: List<String>, weights: List<Float>, freeDp: Int): Float {
+        val minSp = MIN_CHIP_SP * labelScale
+        val maxSp = CHIP_SP * labelScale
+        val total = weights.sum()
+        val n = shown.count { it.isNotEmpty() }
+        if (n == 0 || total <= 0f) return maxSp
+        val base = com.rimboard.keyboard.model.StripLayout.chipFloorDp(freeDp, n)
+        val surplus = (freeDp - n * base).coerceAtLeast(0)
+        var size = maxSp
+        for (i in shown.indices) {
+            val word = shown[i]
+            if (word.isEmpty()) continue
+            val need = needDp(word)
+            if (need <= 0) continue
+            val share = base + surplus * (weights[i] / total)
+            size = minOf(size, minSp * (share / need))
         }
+        return size.coerceIn(minSp, maxSp)
     }
+
+    private fun applyChipSize(sp: Float) {
+        for (tv in slots) tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp)
+    }
+
+    private fun applyChipSizes() = applyChipSize(CHIP_SP * labelScale)
 
     /**
      * How wide [word] has to be to be read, in dp.
@@ -533,6 +570,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         )
         val shown = List(slots.size) { if (it < readable) words.getOrNull(it) ?: "" else "" }
         val weights = com.rimboard.keyboard.model.StripLayout.weights(shown)
+        applyChipSize(rowTextSize(shown, weights, freeDp))
         val floorPx = dp(
             com.rimboard.keyboard.model.StripLayout.chipFloorDp(freeDp, fits)
         )
