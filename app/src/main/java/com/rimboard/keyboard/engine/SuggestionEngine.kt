@@ -729,6 +729,18 @@ class SuggestionEngine private constructor(
          * `anthropic` offered `anthem`.
          */
         private const val DECLARED_USES = 3
+
+        /**
+         * How many names from the address book a prefix may offer.
+         *
+         * Small, and not a cost control -- the walk behind it runs over the
+         * whole set whatever this says. What it bounds is how much of the
+         * strip an address book can take when it is the only thing that fits.
+         * A prefix matching four contacts is a prefix matching a common
+         * syllable, and filling the row with people is worse than filling it
+         * with nothing.
+         */
+        private const val CONTACT_OFFERED = 2
     }
 
     /** Multiplier applied to a completion's frequency for its context rank. */
@@ -1511,7 +1523,7 @@ class SuggestionEngine private constructor(
         // toward at [DECLARED_USES]; one added through Android's was not, and
         // the two screens are the same act.
         val declared = com.rimboard.keyboard.model.PersonalWords.within(
-            userDictionary(), lower, Dictionary.maxEditDistance(lower.length)
+            userDictionary().keys, lower, Dictionary.maxEditDistance(lower.length)
         ) { a, b -> Dictionary.editDistance(a, b, Dictionary.maxEditDistance(a.length)) }
         return (listOfNotNull(elongated, accented) + fromDict + personal + declared)
             .distinct()
@@ -2293,7 +2305,7 @@ class SuggestionEngine private constructor(
         // and an offer answering different questions about the same list is
         // the shape of fault this project has found repeatedly.
         for (w in com.rimboard.keyboard.model.PersonalWords.startingWith(
-            userDictionary(), composing, 8
+            userDictionary().keys, composing, 8
         )) {
             if (userData.isBlocked(w)) continue
             val score = 1_000_000_000L + DECLARED_USES * 1000L
@@ -2516,6 +2528,57 @@ class SuggestionEngine private constructor(
                     val score = (anchor * MORPH_PENALTY / (i + 1)).toLong()
                     if (merged[form] == null) merged[form] = maxOf(1L, score)
                 }
+        }
+
+        // The people you write to, completed rather than only accepted.
+        //
+        // The other half of the same gap as the personal dictionary above, and
+        // deliberately not the same rule, because the two are not the same kind
+        // of evidence. A personal-dictionary entry is a **declaration** -- one
+        // word, typed out on purpose -- so it is offered at [DECLARED_USES],
+        // corrected toward, and shown with the spelling it was declared with.
+        // A contact's display name is **inferred**: `PersonalWords` splits it
+        // on anything that is not a letter and is explicit that
+        // "Ahmet Yilmaz (work)" contributes "work". Three consequences:
+        //
+        //  - **Anchored below the weakest attested completion**, exactly as the
+        //    generated inflections and the German compounds are, and for the
+        //    reason measured there: scored on anything of their own they would
+        //    displace words the corpus knows. A name takes a slot nothing else
+        //    wanted, which is the whole of what "spare slot" means here.
+        //  - **Completion only, never a correction.** `correctionFor` is what
+        //    the space bar asks, and a bracketed note becoming a target for it
+        //    would rewrite an ordinary word into somebody's filing habit. The
+        //    declared words above *are* correction candidates; this is the one
+        //    place the two sources are held to different bars, and the display
+        //    name is why.
+        //  - **No spelling is put back.** A declared "Kubernetes" reaches
+        //    `personalCase`; a contact does not, and must not -- somebody with
+        //    a Rose, a Mark or a Bell in their address book would otherwise
+        //    have three ordinary words capitalised on the strip for ever.
+        //    `matchCase` still titlecases it from the shift key, which is what
+        //    anybody typing a name presses anyway.
+        //
+        // **Gated on [personalized], unlike the personal dictionary**, and the
+        // difference is worth stating because they sit ten lines apart. That
+        // list is held by the system and shared with every app; an address book
+        // is this person's own. Both are shields in an incognito field, because
+        // declining to underline a name reveals nothing; only one of them puts
+        // a name on the screen.
+        if (personalized) {
+            val names = contactNames()
+            if (names.isNotEmpty()) {
+                val anchor = merged.values.minOrNull() ?: MORPH_BASE_SCORE
+                com.rimboard.keyboard.model.PersonalWords
+                    .startingWith(names, composing, CONTACT_OFFERED)
+                    .forEachIndexed { i, name ->
+                        if (userData.isBlocked(name) || isOffensive(name, lang, locale)) {
+                            return@forEachIndexed
+                        }
+                        val score = (anchor * MORPH_PENALTY / (i + 1)).toLong()
+                        if (merged[name] == null) merged[name] = maxOf(1L, score)
+                    }
+            }
         }
 
         val altWords = HashSet<String>()
@@ -2896,6 +2959,30 @@ class SuggestionEngine private constructor(
                     Dictionary.GLIDE_SHAPE_WEIGHT * fit
                 merged[w] = maxOf(merged[w] ?: Double.NEGATIVE_INFINITY, score)
             }
+        }
+        // A word declared in Android's personal dictionary is swipeable too.
+        //
+        // It reaches the strip on a tap at [DECLARED_USES] and, until this,
+        // could not be swiped at all -- which is the wrong half to have,
+        // because a swipe is where a long word pays and a long word is the
+        // shape of thing anybody puts in that list. Scored at the same three
+        // uses, so a declaration competes on the shape of the swipe exactly as
+        // a word typed three times would.
+        //
+        // Ungated like the completion path, and for the reason set out there:
+        // a list held by the system and shared with every app is not this
+        // person's typing history.
+        //
+        // **Contacts are deliberately absent**, though they are on the strip.
+        // A swipe's first candidate is committed on the lift with no keystroke
+        // in between, so it is the last place a display name split on
+        // punctuation -- "work", "home" -- may be allowed to land.
+        for ((w, fit) in com.rimboard.keyboard.model.PersonalWords.fitting(
+            userDictionary().keys, path, GLIDE_PERSONAL_DEPTH
+        )) {
+            val score = PERSONAL_GLIDE_LN_FREQ + ln(DECLARED_USES + 1.0) -
+                Dictionary.GLIDE_SHAPE_WEIGHT * fit
+            merged[w] = maxOf(merged[w] ?: Double.NEGATIVE_INFINITY, score)
         }
         if (merged.isEmpty()) return emptyList()
         val contextRank =

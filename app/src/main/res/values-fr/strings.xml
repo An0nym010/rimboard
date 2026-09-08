@@ -307,9 +307,9 @@
     <string name="pref_match_app_mode_title">Suivre le mode clair ou sombre de l&#8217;appli</string>
     <string name="pref_match_app_mode_summary">Une appli sombre obtient un clavier sombre, quelle que soit l&#8217;heure. S&#8217;applique aux thèmes Système et Material You ; un thème choisi explicitement reste inchangé.</string>
     <string name="pref_contact_names_title">Noms des contacts</string>
-    <string name="pref_contact_names_summary">Ne plus souligner les personnes à qui tu écris. Demande l\'autorisation à l\'activation ; les noms restent en mémoire et ne sont envoyés nulle part.</string>
+    <string name="pref_contact_names_summary">Ne plus souligner les personnes à qui tu écris, et proposer leurs noms pendant la saisie. Demande l\'autorisation à l\'activation ; les noms restent en mémoire et ne sont envoyés nulle part.</string>
     <string name="pref_system_dict_title">Mots du dictionnaire personnel</string>
-    <string name="pref_system_dict_summary">Accepter et proposer les mots enregistrés dans Paramètres → Dictionnaire personnel, partagés avec tes autres applis. En lecture seule, jamais complété. Demande l\'autorisation à l\'activation.</string>
+    <string name="pref_system_dict_summary">Accepter et proposer les mots enregistrés dans Paramètres → Dictionnaire personnel, partagés avec tes autres applis. En lecture seule, jamais complété.</string>
 
     <string name="pref_dicts_title">Dictionnaires étendus</string>
     <string name="pref_dicts_summary">Ajouter la liste de mots plus complète d’une langue</string>

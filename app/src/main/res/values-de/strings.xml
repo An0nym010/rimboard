@@ -307,9 +307,9 @@
     <string name="pref_match_app_mode_title">Hell/Dunkel der App übernehmen</string>
     <string name="pref_match_app_mode_summary">Eine dunkle App bekommt eine dunkle Tastatur, unabhängig von der Uhrzeit. Gilt für System und Material You; ein selbst gewähltes Design bleibt unverändert.</string>
     <string name="pref_contact_names_title">Namen aus Kontakten</string>
-    <string name="pref_contact_names_summary">Namen von Personen, denen du schreibst, nicht mehr unterstreichen. Fragt beim Einschalten nach der Berechtigung; Namen bleiben im Speicher und werden nirgendwohin gesendet.</string>
+    <string name="pref_contact_names_summary">Namen von Personen, denen du schreibst, nicht mehr unterstreichen und beim Tippen vorschlagen. Fragt beim Einschalten nach der Berechtigung; Namen bleiben im Speicher und werden nirgendwohin gesendet.</string>
     <string name="pref_system_dict_title">Wörter aus dem persönlichen Wörterbuch</string>
-    <string name="pref_system_dict_summary">Wörter aus Einstellungen → Persönliches Wörterbuch akzeptieren und vorschlagen, die deine anderen Apps teilen. Nur gelesen, nie ergänzt. Fragt beim Einschalten nach der Berechtigung.</string>
+    <string name="pref_system_dict_summary">Wörter aus Einstellungen → Persönliches Wörterbuch akzeptieren und vorschlagen, die deine anderen Apps teilen. Nur gelesen, nie ergänzt.</string>
 
     <string name="pref_dicts_title">Erweiterte Wörterbücher</string>
     <string name="pref_dicts_summary">Die größere Wortliste einer Sprache hinzufügen</string>

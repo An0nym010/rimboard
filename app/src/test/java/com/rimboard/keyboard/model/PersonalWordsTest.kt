@@ -127,36 +127,36 @@ class PersonalWordsTest {
         // already in the field is the strip arguing with the screen.
         assertEquals(
             listOf("anthropic", "anthropoid"),
-            PersonalWords.startingWith(ix, "ant", 8)
+            PersonalWords.startingWith(ix.keys, "ant", 8)
         )
-        assertEquals(listOf("anthropic"), PersonalWords.startingWith(ix, "ant", 1))
+        assertEquals(listOf("anthropic"), PersonalWords.startingWith(ix.keys, "ant", 1))
     }
 
     @Test
     fun `the prefix search folds both sides the way the shield does`() {
         val ix = PersonalWords.index(sequenceOf("Kubernetes"))
-        assertEquals(listOf("kubernetes"), PersonalWords.startingWith(ix, "KUBE", 8))
-        assertEquals(listOf("kubernetes"), PersonalWords.startingWith(ix, "Kube", 8))
-        assertEquals(emptyList<String>(), PersonalWords.startingWith(ix, "kube", 0))
+        assertEquals(listOf("kubernetes"), PersonalWords.startingWith(ix.keys, "KUBE", 8))
+        assertEquals(listOf("kubernetes"), PersonalWords.startingWith(ix.keys, "Kube", 8))
+        assertEquals(emptyList<String>(), PersonalWords.startingWith(ix.keys, "kube", 0))
     }
 
     @Test
     fun `nothing is offered from an empty index or an empty prefix`() {
         val ix = PersonalWords.index(sequenceOf("Kubernetes"))
-        assertEquals(emptyList<String>(), PersonalWords.startingWith(emptyMap(), "kube", 8))
-        assertEquals(emptyList<String>(), PersonalWords.startingWith(ix, "", 8))
-        assertEquals(emptyList<String>(), PersonalWords.within(emptyMap(), "kube", 2, ::naive))
-        assertEquals(emptyList<String>(), PersonalWords.within(ix, "", 2, ::naive))
+        assertEquals(emptyList<String>(), PersonalWords.startingWith(emptySet(), "kube", 8))
+        assertEquals(emptyList<String>(), PersonalWords.startingWith(ix.keys, "", 8))
+        assertEquals(emptyList<String>(), PersonalWords.within(emptySet(), "kube", 2, ::naive))
+        assertEquals(emptyList<String>(), PersonalWords.within(ix.keys, "", 2, ::naive))
     }
 
     @Test
     fun `a typo of a declared word is found and an unrelated one is not`() {
         val ix = PersonalWords.index(sequenceOf("Kubernetes", "Anthropic"))
-        assertEquals(listOf("kubernetes"), PersonalWords.within(ix, "kubernets", 2, ::naive))
-        assertEquals(emptyList<String>(), PersonalWords.within(ix, "elephant", 2, ::naive))
+        assertEquals(listOf("kubernetes"), PersonalWords.within(ix.keys, "kubernets", 2, ::naive))
+        assertEquals(emptyList<String>(), PersonalWords.within(ix.keys, "elephant", 2, ::naive))
         assertEquals(
             "a word is not a correction of itself",
-            emptyList<String>(), PersonalWords.within(ix, "Kubernetes", 2, ::naive)
+            emptyList<String>(), PersonalWords.within(ix.keys, "Kubernetes", 2, ::naive)
         )
     }
 
@@ -166,7 +166,67 @@ class PersonalWordsTest {
         // One edit from "kuberneres", two from "kubernetes".
         assertEquals(
             listOf("kuberneres", "kubernetes"),
-            PersonalWords.within(ix, "kubernerez", 2, ::naive)
+            PersonalWords.within(ix.keys, "kubernerez", 2, ::naive)
+        )
+    }
+
+    // ---- and swiping one ----
+
+    /** A straight-line swipe through each of [stops], as `GlidePathTest` builds one. */
+    private fun swipe(stops: String, samples: Int = 16): GlidePath {
+        val prox = KeyProximity.forLang("en")
+        val pts = ArrayList<Float>()
+        for (i in 0 until stops.length - 1) {
+            val ax = prox.gridX(stops[i])!!
+            val ay = prox.gridY(stops[i])!!
+            val bx = prox.gridX(stops[i + 1])!!
+            val by = prox.gridY(stops[i + 1])!!
+            for (s in 0..samples) {
+                val t = s.toFloat() / samples
+                pts.add(ax + (bx - ax) * t)
+                pts.add(ay + (by - ay) * t)
+            }
+        }
+        return GlidePath.of(pts.toFloatArray(), prox)!!
+    }
+
+    @Test
+    fun `a swiped word is found and an unrelated one is not`() {
+        val path = swipe("hello")
+        val fits = PersonalWords.fitting(setOf("hello", "wolfram"), path, 8).map { it.first }
+        assertEquals(listOf("hello"), fits)
+    }
+
+    @Test
+    fun `the two key tests are what exclude anything at all`() {
+        // Not an optimisation. Every word made of letters the layout draws has
+        // *some* finite distance from *some* path, so without the first and
+        // last letter having to lie under the ends of the stroke, a personal
+        // word could be offered for a swipe it has nothing to do with -- which
+        // is what teaching the keyboard "wolfram" and swiping "helo" did.
+        val path = swipe("helo")
+        assertTrue(
+            "a word whose ends are nowhere near the stroke was offered anyway",
+            PersonalWords.fitting(setOf("wolfram"), path, 8).isEmpty()
+        )
+    }
+
+    @Test
+    fun `the closest fit comes first`() {
+        val path = swipe("hello")
+        val fits = PersonalWords.fitting(setOf("hello", "hillo"), path, 8)
+        assertEquals("hello", fits.first().first)
+        assertTrue("costs are not ordered", fits[0].second <= fits[1].second)
+    }
+
+    @Test
+    fun `an empty list and a short word are refused`() {
+        val path = swipe("hello")
+        assertEquals(emptyList<Pair<String, Double>>(), PersonalWords.fitting(emptySet(), path, 8))
+        assertEquals(
+            "a single letter is not a swipe",
+            emptyList<Pair<String, Double>>(),
+            PersonalWords.fitting(setOf("h"), path, 8)
         )
     }
 

@@ -187,22 +187,138 @@ class DeclaredWordsTest {
     }
 
     @Test
-    fun `the address book is deliberately not offered`() {
-        // Left as a shield, and not because it was forgotten. A contact's
-        // display name is inferred rather than declared -- `PersonalWords` is
-        // explicit that "Ahmet Yilmaz (work)" contributes "work" -- so these
-        // belong at the spare-slot anchor the compound and morphology
-        // completions use, not at parity with a word somebody typed out. That
-        // is a ranking question of its own and is not answered here.
+    fun `the address book is offered too, but only into a spare slot`() {
+        // The other half of the same gap, and deliberately not the same rule.
+        // A personal-dictionary entry is a declaration -- one word typed out
+        // on purpose. A contact's display name is inferred: `PersonalWords`
+        // splits it on anything that is not a letter and is explicit that
+        // "Ahmet Yilmaz (work)" contributes "work". So a name is anchored
+        // below the weakest attested completion, exactly as the generated
+        // inflections and the German compounds are, and takes a slot nothing
+        // else wanted.
         val e = engine()
         // Absent from the English list -- "yilmaz" is in it, at 157, so it
         // would have been offered whatever this rule did.
+        assertFalse(
+            "the control has stopped being a control",
+            strip(e, "vrbac").any { it.equals("vrbaczek", ignoreCase = true) }
+        )
         e.contactNames = { setOf("vrbaczek") }
         assertTrue("a contact name is still accepted", e.acceptedWord("vrbaczek", "en", en))
-        assertFalse(
-            "contacts have started being offered without the ranking question " +
-                "being settled",
+        assertTrue(
+            "a name the dictionary has nothing to say about is still not " +
+                "offered, so the address book remains a shield only",
             strip(e, "vrbac").any { it.equals("vrbaczek", ignoreCase = true) }
+        )
+    }
+
+    @Test
+    fun `a name never displaces a word the corpus knows`() {
+        // The whole point of the anchor. "con" has strong attested
+        // completions; a contact sharing the prefix must not push any of them
+        // off the strip.
+        val e = engine()
+        val without = strip(e, "con")
+        e.contactNames = { setOf("conqwyx") }
+        val with = strip(e, "con")
+        assertEquals(
+            "adding a contact reordered or displaced the attested completions, " +
+                "so it is not anchored: $without -> $with",
+            without, with.filter { it != "conqwyx" }
+        )
+    }
+
+    @Test
+    fun `a typo of a name is not corrected toward it`() {
+        // The one place the two sources are held to different bars.
+        // `correctionFor` is what the space bar asks, and a bracketed note in
+        // somebody's address book becoming a target for it would rewrite an
+        // ordinary word into their filing habit.
+        val e = engine()
+        e.contactNames = { setOf("vrbaczek") }
+        assertTrue(
+            "a contact name has become an autocorrect target",
+            e.correctionCandidates("vrbaczex", "en", en)
+                .none { it.equals("vrbaczek", ignoreCase = true) }
+        )
+    }
+
+    /** A straight-line swipe through each letter, as `GlidePathTest` builds one. */
+    private fun swipe(stops: String): com.rimboard.keyboard.model.GlidePath {
+        val prox = com.rimboard.keyboard.model.KeyProximity.forLang("en")
+        val pts = ArrayList<Float>()
+        for (i in 0 until stops.length - 1) {
+            val ax = prox.gridX(stops[i])!!
+            val ay = prox.gridY(stops[i])!!
+            val bx = prox.gridX(stops[i + 1])!!
+            val by = prox.gridY(stops[i + 1])!!
+            for (sm in 0..16) {
+                val t = sm.toFloat() / 16
+                pts.add(ax + (bx - ax) * t)
+                pts.add(ay + (by - ay) * t)
+            }
+        }
+        return com.rimboard.keyboard.model.GlidePath.of(pts.toFloatArray(), prox)!!
+    }
+
+    @Test
+    fun `a declared word can be swiped`() {
+        // It reached the strip on a tap and could not be swiped at all, which
+        // is the wrong half to have: a swipe is where a long word pays, and a
+        // long word is the shape of thing anybody puts in that list.
+        val e = engine()
+        val path = swipe("kubernetes")
+        assertTrue(
+            "the control has stopped being a control",
+            e.glideFor(path, "en", en, personalized = true)
+                .none { it.equals("kubernetes", ignoreCase = true) }
+        )
+        e.userDictionary = { declared }
+        assertTrue(
+            "a declared word is still not swipeable",
+            e.glideFor(path, "en", en, personalized = true)
+                .any { it.equals("kubernetes", ignoreCase = true) }
+        )
+    }
+
+    @Test
+    fun `a contact name deliberately cannot be swiped`() {
+        // On the strip a name waits to be chosen. A swipe's first candidate is
+        // committed on the lift with no keystroke in between, so it is the last
+        // place a display name split on punctuation -- "work", "home" -- may
+        // land. This is the one asymmetry between the two personal lists on
+        // this path, and it is the same reasoning as the autocorrect one.
+        val e = engine()
+        e.contactNames = { setOf("vrbaczek") }
+        assertTrue(
+            "a contact name reached the swipe decoder",
+            e.glideFor(swipe("vrbaczek"), "en", en, personalized = true)
+                .none { it.equals("vrbaczek", ignoreCase = true) }
+        )
+        assertTrue(
+            "and it is still offered on the strip, which is the point",
+            strip(e, "vrbac").any { it.equals("vrbaczek", ignoreCase = true) }
+        )
+    }
+
+    @Test
+    fun `an incognito field has the declaration but not the address book`() {
+        // Ten lines apart in the engine and deliberately different. Android's
+        // personal dictionary is held by the system and shared with every app;
+        // an address book is this person's own. Both stay shields in an
+        // incognito field, because declining to underline a name reveals
+        // nothing -- only one of them puts a name on the screen.
+        val e = engine()
+        e.userDictionary = { declared }
+        e.contactNames = { setOf("vrbaczek") }
+        val items = strip(e, "vrbac", personalized = false)
+        assertTrue(
+            "a contact name reached the strip in an incognito field",
+            items.none { it.equals("vrbaczek", ignoreCase = true) }
+        )
+        assertTrue(
+            "the address book is still a shield in an incognito field",
+            e.acceptedWord("vrbaczek", "en", en)
         )
     }
 }

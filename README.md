@@ -611,16 +611,29 @@ away. Two things address that, and the first one costs nothing:
   This is on always.
 - **Settings — Advanced — Names from contacts** reads your address book so the
   names in it count as spelled correctly, including lowercase ones and ones
-  the rule above cannot see. This is **off**, and turning it on is what
-  triggers Android's permission prompt. Refuse the prompt and the switch goes
-  back off rather than sitting on claiming to work.
+  the rule above cannot see, **and offers them as you type**. This is **off**,
+  and turning it on is what triggers Android's permission prompt. Refuse the
+  prompt and the switch goes back off rather than sitting on claiming to work.
 - **Settings — Advanced — Words from the personal dictionary** accepts *and
   suggests* the words in Android's own shared list, the one at Settings —
   Languages — Personal dictionary, spelled the way you wrote them there. Also
-  **off**, read only, and never added to. Contacts are deliberately still only
-  accepted and never suggested: a contact's display name is inferred rather
-  than declared — "Ahmet Yılmaz (work)" contributes "work" — so it does not
-  belong at the same rank as a word somebody typed out on purpose.
+  **off**, read only, and never added to.
+
+The two are offered on different terms, because they are different kinds of
+evidence. A personal-dictionary entry is a **declaration** — one word, typed
+out on purpose — so it is suggested at the same rank as a word added through
+RimBoard's own list, corrected toward, and shown with the capitals you gave
+it, and it can be **swiped** — which is where a long word pays, and long words
+are what people put in that list. A contact's display name is **inferred**: it
+is split on anything that is not a letter, so "Ahmet Yılmaz (work)"
+contributes "work". So a name is anchored below the weakest word the
+dictionary already had for that prefix — it takes a slot nothing else wanted,
+never becomes an autocorrect target, cannot be swiped (a swipe commits on the
+lift, with no keystroke in between), and is not capitalised for you, since
+somebody with a Rose or a Mark in their contacts should not have those words
+capitalised for ever. Names are also the one of the two withheld in an
+incognito field: declining to underline a name reveals nothing, but putting
+one on the screen does.
 
 What the second one holds is a set of lowercase name parts, in memory, never
 written to disk and dropped the moment the setting is turned off or the system
