@@ -52,6 +52,19 @@ class ToolbarPanelView(context: Context) : View(context) {
     private val headerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val rectF = RectF()
 
+    init {
+        // This panel draws icons straight onto its own canvas rather than
+        // through IconView, so nothing in it would ever attach the drawables.
+        // It worked anyway, by luck: RimBoardService builds ClipboardView a
+        // dozen lines earlier in the same method, and that constructs an
+        // IconView, which attaches. Reorder those two and every icon in the
+        // panel silently falls back to the hand-drawn set -- which since the
+        // redesign is *different artwork*, not the same picture by another
+        // route. attach() returns early once it has a context, so saying it
+        // here costs nothing and removes the cross-file ordering dependency.
+        Icons.attach(context)
+    }
+
     private fun dp(v: Float) = v * resources.displayMetrics.density
 
     private companion object {

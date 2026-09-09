@@ -117,6 +117,29 @@ class IconSetTest {
     }
 
     @Test
+    fun `every view that draws an icon has attached them`() {
+        // Icons.vector() answers null until attach() has supplied a Context,
+        // and draw() then falls back to the hand-drawn glyph. Before the
+        // redesign that was invisible -- the two paths drew one picture. Now
+        // it is the whole old icon set, on whichever surface got there first.
+        // The failure needs no exception and logs nothing, so the guard has to
+        // be structural.
+        val dir = at("src/main/java/com/rimboard/keyboard/ui",
+                     "app/src/main/java/com/rimboard/keyboard/ui")
+        val offenders = dir.listFiles()!!
+            .filter { it.name.endsWith(".kt") && it.name != "Icons.kt" }
+            .filter { it.readText().contains("Icons.draw(") }
+            .filter { !it.readText().contains("Icons.attach(") }
+            .map { it.name }
+        assertTrue(
+            "these draw icons but never attach them, so they render the " +
+                "hand-drawn set unless some other view happened to attach " +
+                "first: $offenders",
+            offenders.isEmpty()
+        )
+    }
+
+    @Test
     fun `NOTICE names exactly the icons that are still Lucide`() {
         // Attribution drifts silently and in the direction that matters: the
         // 23 replaced here stopped being Lucide the moment their path data

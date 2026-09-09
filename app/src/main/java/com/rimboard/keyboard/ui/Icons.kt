@@ -155,7 +155,7 @@ object Icons {
         vectorRes[THEME] = R.drawable.ic_tool_theme
         vectorRes[SHARE] = R.drawable.ic_tool_share
         vectorRes[INCOGNITO] = R.drawable.ic_tool_incognito
-        vectorRes[HIDE] = R.drawable.ic_tool_chevron_down
+        vectorRes[HIDE] = R.drawable.ic_tool_hide
         vectorRes[PIN] = R.drawable.ic_tool_pin
         vectorRes[SEARCH] = R.drawable.ic_tool_search
         vectorRes[PASTE] = R.drawable.ic_tool_paste
