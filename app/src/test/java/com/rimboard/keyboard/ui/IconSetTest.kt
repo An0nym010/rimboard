@@ -13,7 +13,7 @@ import java.io.File
  * to. Until the redesign landed those were two renderings of one design, so a
  * missing `vectorRes` entry cost nothing and showed nothing. They are two
  * different designs now, and a tool that never reaches its drawable is drawn
- * in the old language beside twenty-two that are not — wrong on screen, with
+ * in the old language beside twenty-seven that are not — wrong on screen, with
  * nothing failing and nothing logged.
  *
  * That is the fault shape this file exists for, and it is the same one the
@@ -140,13 +140,14 @@ class IconSetTest {
     }
 
     @Test
-    fun `NOTICE names exactly the icons that are still Lucide`() {
-        // Attribution drifts silently and in the direction that matters: the
-        // 23 replaced here stopped being Lucide the moment their path data
-        // was, and a NOTICE still claiming the whole directory would be
-        // crediting a project for work it did not do -- while a *new* Lucide
-        // icon added without a line here would be the licence breach in the
-        // other direction.
+    fun `NOTICE names exactly the icons that are still third-party`() {
+        // The answer is now none of them: all 28 are RimBoard's own and
+        // NOTICE's Lucide section has gone with the last five. An empty list
+        // is the easiest kind to leave stale, which is when a check like this
+        // earns its keep -- drop a borrowed icon into the directory without
+        // the header and this fails until either the file says so or NOTICE
+        // does. It also fails the other way, holding NOTICE to the artwork
+        // rather than letting it credit a project for work it did not do.
         val dir = drawableDir()
         val stillLucide = toolDrawables()
             .filter { !File(dir, "$it.xml").readText().contains("Original work, not Lucide") }
@@ -157,8 +158,7 @@ class IconSetTest {
             .map { it.value }
             .toSortedSet()
         assertEquals(
-            "NOTICE's Lucide list and the files whose header still says Lucide " +
-                "have diverged",
+            "NOTICE and the icon headers disagree about what is third-party",
             stillLucide, named
         )
     }

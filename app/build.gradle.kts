@@ -173,16 +173,20 @@ tasks.withType<Test>().configureEach {
     // above the module, hence the `..`.
     inputs.file("../README.md").withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.file("../CHANGELOG.md").withPathSensitivity(PathSensitivity.RELATIVE)
-    // NOTICE, because IconSetTest holds its Lucide list to the icons that are
-    // actually still Lucide. Twenty-three of the tool icons became RimBoard's
-    // own artwork in one commit, and attribution is exactly the kind of claim
-    // that goes stale without anything failing -- in one direction crediting
-    // Lucide for work it did not do, in the other shipping a Lucide icon with
-    // no notice at all. Seventh time, and demonstrated rather than reasoned:
-    // a filename was deleted from NOTICE's list by hand and the suite run
-    // *without* --rerun-tasks. A markdown edit changes no Kotlin, so with this
-    // line absent the task stayed up to date and the test went on passing
-    // across precisely the drift it exists to catch.
+    // NOTICE, because IconSetTest holds what it says about the icons to what
+    // the icons actually are. Both are now empty -- every tool icon is
+    // RimBoard's own and NOTICE names no third party -- and the assertion is
+    // worth more in that state than it was before it: it is what makes
+    // dropping a borrowed icon back into res/drawable, with no notice for it,
+    // fail. Attribution is exactly the kind of claim that goes stale without
+    // anything failing, in one direction crediting a project for work it did
+    // not do and in the other shipping its work uncredited.
+    //
+    // Seventh time, and demonstrated rather than reasoned: back when NOTICE
+    // still carried a list, a filename was deleted from it by hand and the
+    // suite run *without* --rerun-tasks. A markdown edit changes no Kotlin, so
+    // with this line absent the task stayed up to date and the test went on
+    // passing across precisely the drift it exists to catch.
     inputs.file("../NOTICE").withPathSensitivity(PathSensitivity.RELATIVE)
     // SuffixInventoryTest reads tools/derive_suffixes.py: it holds the shipped
     // inventories to the per-language floor the tool declares, and a floor

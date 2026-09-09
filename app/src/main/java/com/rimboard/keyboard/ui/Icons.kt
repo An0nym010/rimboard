@@ -108,18 +108,24 @@ object Icons {
      * Whether to draw the VectorDrawables instead of the hand-drawn glyphs
      * below.
      *
-     * On. **Twenty-three of these are RimBoard's own** — the redesigned set
-     * from the light-theme design canvas, converted from its SVG symbols. Five
-     * remain Lucide: the two chevrons, the pin, the trash and the search
-     * magnifier, which the redesign does not cover. They are restroked to
-     * match, since a row mixing 2.0 and 1.8 weights is the inconsistency the
-     * redesign existed to remove.
+     * On, and **all twenty-eight are now RimBoard's own**. Twenty-three came
+     * from the light-theme design canvas when the redesign was ported; the
+     * last five — the two chevrons, the pin, the trash and the search
+     * magnifier — were drawn afterwards, because the canvas did not cover
+     * them and a row mixing two stroke weights is the inconsistency the
+     * redesign existed to remove. Nothing here is Lucide any more, and
+     * `NOTICE` no longer carries their attribution.
+     *
+     * The search magnifier is deliberately [GIF] with its "G" taken out, so
+     * the two match by construction rather than by eye — they are one icon
+     * and a variant of it, and drawing them separately would have let them
+     * drift.
      *
      * VectorDrawable takes path data only, so the conversion had to turn every
      * `<rect>` and `<circle>` into arcs and expand `stroke-dasharray` — which
-     * it does not support at all — into separate dashes. All 23 were rendered
-     * back from the committed `pathData` and compared against the design
-     * symbol before landing; the ones worth doubting were the dashed
+     * it does not support at all — into separate dashes. Every one was
+     * rendered back from its committed `pathData` and compared against the
+     * source symbol before landing; the ones worth doubting were the dashed
      * select-all, the half-filled theme disc and the filled dots on emoji,
      * keyboard and settings.
      *

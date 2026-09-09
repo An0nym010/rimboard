@@ -1,11 +1,11 @@
-<!-- Lucide "chevron-right" — ISC, (c) 2026 Lucide Icons and Contributors. See NOTICE. -->
+<!-- RimBoard tool icon, drawn in the redesign's language to complete the set. Original work, not Lucide; see NOTICE. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
-        android:pathData="M9,18 L15,12 L9,6"
+        android:pathData="m9.5 5 7 7-7 7"
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.8"
         android:strokeLineCap="round"

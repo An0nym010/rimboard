@@ -133,48 +133,14 @@ dictionary files) remain licensed under CC BY-SA 4.0.
 Interface icons
 ---------------
 
-Most icons under app/src/main/res/drawable/ic_tool_*.xml are original work
-for RimBoard, drawn for its light-theme design canvas and converted from that
-canvas's SVG symbols. They are covered by this project's own licence and
-carry no third-party attribution.
+Every icon under app/src/main/res/drawable/ic_tool_*.xml is original work for
+RimBoard. Twenty-three were drawn for its light-theme design canvas and
+converted from that canvas's SVG symbols; the other five -- the two chevrons,
+the pin, the trash and the search magnifier -- were drawn in the same language
+to complete the set. All are covered by this project's own licence and carry no
+third-party attribution.
 
-Five remain derived from the Lucide icon set:
-
-  ic_tool_search.xml         ic_tool_pin.xml
-  ic_tool_chevron_left.xml   ic_tool_trash.xml
-  ic_tool_chevron_right.xml
-
-
-  Lucide — https://lucide.dev
-  Copyright (c) 2026 Lucide Icons and Contributors
-  Licensed under the ISC License.
-
-Lucide is itself a fork of Feather, and icons inherited from that project
-carry:
-
-  Feather — https://feathericons.com
-  Copyright (c) 2013-present Cole Bemis
-  Licensed under the MIT License.
-
-Both licences permit use and redistribution provided the copyright notice
-and permission notice are preserved, which is the purpose of this section.
-
-Modifications made for RimBoard to those five: the source SVGs were converted
-to Android VectorDrawable resources. Geometry is unchanged; <rect>, <circle>
-and <line> elements were rewritten as equivalent path data because
-VectorDrawable accepts only <path>. Their stroke width was changed from 2.0 to
-1.8 so they sit beside the original set without a visible change of weight.
-
-ISC License
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+This set was derived from Lucide until September 2026: the twenty-three were
+replaced when the redesign was ported, the five when it was completed. No
+Lucide or Feather artwork remains, so their notices and the ISC licence text
+have been removed rather than left standing over work they no longer cover.
