@@ -173,6 +173,17 @@ tasks.withType<Test>().configureEach {
     // above the module, hence the `..`.
     inputs.file("../README.md").withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.file("../CHANGELOG.md").withPathSensitivity(PathSensitivity.RELATIVE)
+    // NOTICE, because IconSetTest holds its Lucide list to the icons that are
+    // actually still Lucide. Twenty-three of the tool icons became RimBoard's
+    // own artwork in one commit, and attribution is exactly the kind of claim
+    // that goes stale without anything failing -- in one direction crediting
+    // Lucide for work it did not do, in the other shipping a Lucide icon with
+    // no notice at all. Seventh time, and demonstrated rather than reasoned:
+    // a filename was deleted from NOTICE's list by hand and the suite run
+    // *without* --rerun-tasks. A markdown edit changes no Kotlin, so with this
+    // line absent the task stayed up to date and the test went on passing
+    // across precisely the drift it exists to catch.
+    inputs.file("../NOTICE").withPathSensitivity(PathSensitivity.RELATIVE)
     // SuffixInventoryTest reads tools/derive_suffixes.py: it holds the shipped
     // inventories to the per-language floor the tool declares, and a floor
     // changed there without the assets being rebuilt is exactly the drift it
