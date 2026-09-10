@@ -76,6 +76,13 @@ class SuggestionsPanelView(context: Context) : ScrollView(context) {
         /** Chip height, matching the strip's own row. */
         const val CHIP_H_DP = 44
         const val CHIP_GAP_DP = 4
+
+        /** Horizontal padding inside a chip, each side. */
+        const val CHIP_PAD_DP = 8
+
+        /** The same floor and ceiling the strip uses. */
+        const val MIN_CHIP_SP = 12f
+        const val CHIP_SP = 15f
     }
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
@@ -132,6 +139,21 @@ class SuggestionsPanelView(context: Context) : ScrollView(context) {
         val density = resources.displayMetrics.density
         val availableDp = ((width - paddingLeft - paddingRight) / density).toInt()
         val columns = ChipRows.columnsFor(availableDp)
+        // One size for the whole grid, by the same rule the strip uses. Every
+        // cell here is the same width, so a chip drawn smaller than the one
+        // beside it is saying something about the word rather than the space,
+        // which is not true. See StripLayout.uniformTextSp.
+        val shareDp = (availableDp.toFloat() / columns - 2 * CHIP_GAP_DP)
+        val chipSp = com.rimboard.keyboard.model.StripLayout.uniformTextSp(
+            needDp = words.map {
+                ChipText.needDp(
+                    it, null, MIN_CHIP_SP, CHIP_PAD_DP * 2, resources.displayMetrics
+                )
+            },
+            shareDp = words.map { shareDp },
+            minSp = MIN_CHIP_SP,
+            maxSp = CHIP_SP
+        )
         for (row in ChipRows.rows(words, columns)) {
             val rowView = LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -145,7 +167,7 @@ class SuggestionsPanelView(context: Context) : ScrollView(context) {
                     // suggestion rather than as the end of the list.
                     View(context)
                 } else {
-                    chipFor(word, t)
+                    chipFor(word, t, chipSp)
                 }
                 val lp = LinearLayout.LayoutParams(0, dp(CHIP_H_DP), 1f)
                 lp.setMargins(dp(CHIP_GAP_DP), dp(CHIP_GAP_DP), dp(CHIP_GAP_DP), 0)
@@ -169,16 +191,18 @@ class SuggestionsPanelView(context: Context) : ScrollView(context) {
         )
     }
 
-    private fun chipFor(word: String, t: KeyboardTheme): TextView = TextView(context).apply {
+    private fun chipFor(word: String, t: KeyboardTheme, sp: Float) = TextView(context).apply {
         text = word
         gravity = Gravity.CENTER
-        setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
+        // [sp] is measured for the whole grid at once. This used to call
+        // `setAutoSizeTextTypeUniformWithConfiguration(12, 15, ...)`, which
+        // sizes each chip on its own: `control` and `conversation` came out at
+        // different sizes in columns of identical width. The strip stopped
+        // doing that in 6ba580a and the panel never heard about it, because
+        // the rule was written into the strip rather than into one place both
+        // could reach.
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, sp)
         maxLines = 1
-        // The same rule as the strip, and needed here too: a four-column grid
-        // on a 393dp phone gives a chip about 90dp, and "congratulations"
-        // arrived as `cong...ions`. A panel opened on purpose to read more
-        // words is the last place a word should be unreadable.
-        setAutoSizeTextTypeUniformWithConfiguration(12, 15, 1, TypedValue.COMPLEX_UNIT_SP)
         // MIDDLE, like the strip: the ends of a long word are what tell you
         // which word it is.
         ellipsize = TextUtils.TruncateAt.MIDDLE

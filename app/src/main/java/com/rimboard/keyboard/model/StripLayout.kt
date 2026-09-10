@@ -145,6 +145,46 @@ object StripLayout {
     fun chipFloorDp(freeDp: Int, chips: Int): Int =
         if (chips > 0 && freeDp >= chips * MIN_CHIP_DP) MIN_CHIP_DP else 0
 
+    /**
+     * One text size for a whole row of chips: the largest at which every chip
+     * still fits its own share.
+     *
+     * [needDp] is how wide each word has to be drawn at [minSp] to be read,
+     * measured rather than counted; [shareDp] is how wide its chip actually
+     * is. A chip whose share is `k` times its need can be drawn `k` times
+     * larger, and the row takes the smallest of those so that every chip is
+     * one size. Entries with a need of zero are blanks and are skipped.
+     *
+     * **Why one size.** Sizing each chip independently -- which is what
+     * Android's own `setAutoSizeTextTypeUniformWithConfiguration` does -- gives
+     * a ragged row: two words in columns of identical width come out at
+     * different sizes purely because one is longer. Nothing is communicated by
+     * that difference, and a row of suggestions is a list of things of equal
+     * standing.
+     *
+     * **Why it lives here.** The strip and the expanded panel are two views
+     * with two layouts, and this rule was written into only one of them. The
+     * panel kept per-chip auto-sizing for two months after the strip stopped,
+     * which is exactly the drift a shared rule prevents. The strip passes
+     * weighted shares, the panel passes equal ones; the arithmetic is the same
+     * and is no longer written twice.
+     */
+    fun uniformTextSp(
+        needDp: List<Int>,
+        shareDp: List<Float>,
+        minSp: Float,
+        maxSp: Float
+    ): Float {
+        var size = maxSp
+        for (i in needDp.indices) {
+            val need = needDp[i]
+            if (need <= 0) continue
+            val share = shareDp.getOrElse(i) { 0f }
+            size = minOf(size, minSp * (share / need))
+        }
+        return size.coerceIn(minSp, maxSp)
+    }
+
     fun chipsThatFit(freeDp: Int, want: Int = SLOTS, keepAtLeast: Int = 1): Int {
         if (want <= 0) return 0
         // Before the first layout there is no width to divide. The strip is

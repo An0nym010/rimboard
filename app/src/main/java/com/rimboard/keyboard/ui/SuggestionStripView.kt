@@ -337,8 +337,6 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
             requestLayout()
         }
 
-    private val measurePaint = android.text.TextPaint(android.graphics.Paint.ANTI_ALIAS_FLAG)
-
     private fun scaledSp(sp: Float): Int =
         (sp * labelScale).toInt().coerceAtLeast(1)
 
@@ -367,16 +365,14 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         if (n == 0 || total <= 0f) return maxSp
         val base = com.rimboard.keyboard.model.StripLayout.chipFloorDp(freeDp, n)
         val surplus = (freeDp - n * base).coerceAtLeast(0)
-        var size = maxSp
-        for (i in shown.indices) {
-            val word = shown[i]
-            if (word.isEmpty()) continue
-            val need = needDp(word)
-            if (need <= 0) continue
-            val share = base + surplus * (weights[i] / total)
-            size = minOf(size, minSp * (share / need))
-        }
-        return size.coerceIn(minSp, maxSp)
+        // Weighted shares are the strip's own business; the rule that turns
+        // them into one size is shared with the expanded panel.
+        return com.rimboard.keyboard.model.StripLayout.uniformTextSp(
+            needDp = shown.map { needDp(it) },
+            shareDp = shown.indices.map { base + surplus * (weights[it] / total) },
+            minSp = minSp,
+            maxSp = maxSp
+        )
     }
 
     private fun applyChipSize(sp: Float) {
@@ -385,22 +381,14 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
 
     private fun applyChipSizes() = applyChipSize(CHIP_SP * labelScale)
 
-    /**
-     * How wide [word] has to be to be read, in dp.
-     *
-     * Measured rather than counted, because this decides whether a chip is
-     * dropped and "iii" against "mmm" is a factor of three. [StripLayout] does
-     * the counting version for the width shares, where it runs per keystroke
-     * per chip and the difference does not matter.
-     */
-    private fun needDp(word: String): Int {
-        if (word.isEmpty()) return 0
-        val dm = resources.displayMetrics
-        measurePaint.typeface = slots.firstOrNull()?.typeface
-        measurePaint.textSize = MIN_CHIP_SP * labelScale * dm.scaledDensity
-        val px = measurePaint.measureText(word) + dp(10)
-        return (px / dm.density).toInt() + 1
-    }
+    /** How wide [word] has to be to be read, in dp. See [ChipText]. */
+    private fun needDp(word: String): Int = ChipText.needDp(
+        word,
+        slots.firstOrNull()?.typeface,
+        MIN_CHIP_SP * labelScale,
+        CHIP_PAD * 2,
+        resources.displayMetrics
+    )
 
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
     private var downX = 0f
@@ -648,11 +636,21 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         removeCallbacks(clipExpiry)
     }
 
-    private var pinnedItems: List<Pair<Int, Int>> = emptyList()
+    private var pinnedItems: List<ToolCatalog.Tool> = emptyList()
 
-    /** Rebuilds the pinned tool row shown in the drawer. */
-    fun setPinnedTools(items: List<Pair<Int, Int>>) {
-        pinnedItems = items
+    /**
+     * Rebuilds the pinned tool row shown in the drawer.
+     *
+     * **Takes tool ids, and resolves them here.** This used to take the icon
+     * and code already looked up, which made [RimBoardService] a second place
+     * that decided what a tool id means -- and `ToolbarPanelView`, filling the
+     * very panel that arranges this row, resolved them a third way through
+     * [ToolCatalog]. Twice this month the bar and the panel disagreed about
+     * which icon a tool draws, because a change to the catalog reached one
+     * caller and not the other. One argument type, one lookup, one answer.
+     */
+    fun setPinnedTools(ids: List<String>) {
+        pinnedItems = ids.mapNotNull { ToolCatalog.byId(it) }
         rebuildToolRow()
     }
 
@@ -674,11 +672,11 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         toolRow.removeAllViews()
         val t = theme
         val w = slotWidth(pinnedItems.size)
-        for ((icon, code) in pinnedItems) {
-            toolRow.addView(IconView(context, icon).apply {
+        for (tool in pinnedItems) {
+            toolRow.addView(IconView(context, tool.icon).apply {
                 color = t?.stripText ?: 0xFF888888.toInt()
-                contentDescription = descFor(code)
-                setOnClickListener { listener?.onQuickAction(code) }
+                contentDescription = descFor(tool.code)
+                setOnClickListener { listener?.onQuickAction(tool.code) }
             }, LayoutParams(w, LayoutParams.MATCH_PARENT))
         }
     }

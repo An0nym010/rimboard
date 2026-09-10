@@ -52,18 +52,11 @@ class ToolbarPanelView(context: Context) : View(context) {
     private val headerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val rectF = RectF()
 
-    init {
-        // This panel draws icons straight onto its own canvas rather than
-        // through IconView, so nothing in it would ever attach the drawables.
-        // It worked anyway, by luck: RimBoardService builds ClipboardView a
-        // dozen lines earlier in the same method, and that constructs an
-        // IconView, which attaches. Reorder those two and every icon in the
-        // panel silently falls back to the hand-drawn set -- which since the
-        // redesign is *different artwork*, not the same picture by another
-        // route. attach() returns early once it has a context, so saying it
-        // here costs nothing and removes the cross-file ordering dependency.
-        Icons.attach(context)
-    }
+    // This panel draws icons straight onto its own canvas rather than through
+    // IconView. That used to mean nothing here attached the drawables, and it
+    // worked only by luck -- RimBoardService happens to build a ClipboardView
+    // first, and that constructs an IconView, which attached them. Icons.draw
+    // takes the Context now, so the ordering cannot matter.
 
     private fun dp(v: Float) = v * resources.displayMetrics.density
 
@@ -259,7 +252,7 @@ class ToolbarPanelView(context: Context) : View(context) {
         bgPaint.color = withAlpha(if (isPinned) t.accent else t.keyBg, alpha)
         canvas.drawCircle(cx, cy, dp(ICON_R_DP), bgPaint)
         Icons.draw(
-            canvas, tool.icon, cx, cy, dp(ICON_R_DP) * 1.05f,
+            canvas, context, tool.icon, cx, cy, dp(ICON_R_DP) * 1.05f,
             withAlpha(if (isPinned) t.onAccent else t.keyText, alpha)
         )
         // Explicit pin toggle. Hold-and-drag alone is not discoverable, and it

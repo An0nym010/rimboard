@@ -1,22 +1,24 @@
 package com.rimboard.keyboard.ui
 
+import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Path
-import android.graphics.RectF
-import android.graphics.Typeface
 import com.rimboard.keyboard.R
 import com.rimboard.keyboard.model.Codes
-import kotlin.math.cos
-import kotlin.math.sin
 
 /**
- * Hand-drawn vector icons for the keyboard chrome. They replace emoji so the
- * interface looks identical on every device and tints with the theme.
+ * The tool icons for the keyboard chrome: one VectorDrawable per tool, tinted
+ * with the theme so the interface looks identical on every device.
  *
- * The toolbar set is drawn in a 24x24 design grid (see [grid24]) with a bold
- * 2.4-unit stroke, generous corner radii and solid filled accents, so the icons
- * read as confident shapes rather than thin hairline outlines.
+ * **There used to be two sets behind this object** — these drawables, and a
+ * hand-drawn `Canvas` fallback that [draw] used whenever it had never been
+ * handed a `Context`. While the two were renderings of one design that cost
+ * nothing. After the redesign they were two *different* designs, and a view
+ * that drew without attaching produced wrong artwork rather than none —
+ * silently, with nothing logged.
+ *
+ * [draw] now takes the `Context` it needs, so there is no path that reaches a
+ * fallback and no fallback to reach. The compiler enforces what `IconSetTest`
+ * used to scan the source for.
  */
 object Icons {
 
@@ -48,13 +50,6 @@ object Icons {
     const val GRID = 26         // all tools
     const val SPELLCHECK = 27   // proofread: a tick over a text baseline
     const val GIF = 28          // the GIF search, a magnifier holding a "G"
-
-    private val p = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val path = Path()
-    private val oval = RectF()
-
-    /** Bold stroke weight in 24-grid units. */
-    private const val SW = 2.4f
 
     fun forCode(code: Int): Int? = when (code) {
         Codes.LANG -> GLOBE
@@ -88,27 +83,12 @@ object Icons {
         else -> null
     }
 
-    /**
-     * Runs [body] with the canvas mapped so a 24x24 design grid fills the icon
-     * box. Lets the toolbar icons be written in whole design units, and makes a
-     * stroke width of [SW] scale automatically with the icon size.
-     */
-    private inline fun grid24(c: Canvas, cx: Float, cy: Float, s: Float, body: () -> Unit) {
-        val save = c.save()
-        c.translate(cx - s / 2f, cy - s / 2f)
-        c.scale(s / 24f, s / 24f)
-        p.strokeWidth = SW
-        body()
-        c.restoreToCount(save)
-    }
-
     // ---- vector set ------------------------------------------------------
 
     /**
-     * Whether to draw the VectorDrawables instead of the hand-drawn glyphs
-     * below.
+     * The twenty-eight drawables, and why they are one set.
      *
-     * On, and **all twenty-eight are now RimBoard's own**. Twenty-three came
+     * **All twenty-eight are RimBoard's own**. Twenty-three came
      * from the light-theme design canvas when the redesign was ported; the
      * last five — the two chevrons, the pin, the trash and the search
      * magnifier — were drawn afterwards, because the canvas did not cover
@@ -128,18 +108,16 @@ object Icons {
      * source symbol before landing; the ones worth doubting were the dashed
      * select-all, the half-filled theme disc and the filled dots on emoji,
      * keyboard and settings.
-     *
-     * The fallback below still stands: if a drawable ever fails to load, [draw]
-     * uses the hand-drawn glyph rather than showing nothing.
      */
-    private const val USE_VECTOR_ICONS = true
-
     private var appContext: android.content.Context? = null
     private val vectorRes = HashMap<Int, Int>()
     private val vectorCache = HashMap<Int, android.graphics.drawable.Drawable?>()
 
-    /** Called from the views that draw icons; the application context is kept. */
-    fun attach(context: android.content.Context) {
+    /**
+     * Keeps the application context and wires the table. Idempotent, and
+     * called by [draw] itself, so no caller has to remember it.
+     */
+    private fun attach(context: android.content.Context) {
         if (appContext != null) return
         appContext = context.applicationContext
         // Direct R references rather than getIdentifier: these are checked at
@@ -178,10 +156,9 @@ object Icons {
     }
 
     private fun vector(icon: Int): android.graphics.drawable.Drawable? {
-        if (!USE_VECTOR_ICONS) return null
-        // Never cache before attach(): a miss recorded then would be permanent,
-        // and this can be reached from a view that draws icons without ever
-        // constructing an IconView.
+        // Never cache before attach(): a miss recorded then would be permanent.
+        // [draw] attaches first, so this is null only if some future caller
+        // reaches the table another way.
         val ctx = appContext ?: return null
         if (!vectorCache.containsKey(icon)) {
             val id = vectorRes[icon] ?: 0
@@ -195,300 +172,19 @@ object Icons {
         return vectorCache[icon]
     }
 
-    fun draw(c: Canvas, icon: Int, cx: Float, cy: Float, s: Float, color: Int) {
-        vector(icon)?.let { d ->
-            val h = s / 2f
-            d.setBounds((cx - h).toInt(), (cy - h).toInt(), (cx + h).toInt(), (cy + h).toInt())
-            d.setTint(color)
-            d.draw(c)
-            return
-        }
-        val r = s / 2f
-        p.reset()
-        p.isAntiAlias = true
-        p.color = color
-        p.style = Paint.Style.STROKE
-        p.strokeWidth = s * 0.11f
-        p.strokeCap = Paint.Cap.ROUND
-        p.strokeJoin = Paint.Join.ROUND
-        p.textAlign = Paint.Align.CENTER
-        p.typeface = Typeface.DEFAULT
-
-        when (icon) {
-            // ---------- toolbar set: 24-grid, bold, rounded, filled accents ----------
-            GRID -> grid24(c, cx, cy, s) {
-                // Nine rounded cells: reads as "everything" at strip size, where
-                // a more literal toolbox shape would collapse into a blob.
-                p.style = Paint.Style.FILL
-                for (row in 0 until 3) for (col in 0 until 3) {
-                    val x = 4.2f + col * 6.0f
-                    val y = 4.2f + row * 6.0f
-                    oval.set(x, y, x + 4.0f, y + 4.0f)
-                    c.drawRoundRect(oval, 1.3f, 1.3f, p)
-                }
-            }
-            CHEVRON -> grid24(c, cx, cy, s) {
-                p.strokeWidth = 2.7f
-                path.reset()
-                path.moveTo(9.5f, 5.5f); path.lineTo(16f, 12f); path.lineTo(9.5f, 18.5f)
-                c.drawPath(path, p)
-            }
-            CHEVRON_L -> grid24(c, cx, cy, s) {
-                p.strokeWidth = 2.7f
-                path.reset()
-                path.moveTo(14.5f, 5.5f); path.lineTo(8f, 12f); path.lineTo(14.5f, 18.5f)
-                c.drawPath(path, p)
-            }
-            ONE_HANDED -> grid24(c, cx, cy, s) {
-                oval.set(2.8f, 6.6f, 15.2f, 17.8f)
-                c.drawRoundRect(oval, 3.4f, 3.4f, p)
-                p.style = Paint.Style.FILL
-                oval.set(17.6f, 8.4f, 20.8f, 16f)
-                c.drawRoundRect(oval, 1.6f, 1.6f, p)
-            }
-            RESIZE -> grid24(c, cx, cy, s) {
-                c.drawLine(12f, 8f, 12f, 16f, p)
-                p.style = Paint.Style.FILL
-                path.reset()
-                path.moveTo(12f, 3.2f); path.lineTo(15.8f, 8.4f); path.lineTo(8.2f, 8.4f)
-                path.close(); c.drawPath(path, p)
-                path.reset()
-                path.moveTo(12f, 20.8f); path.lineTo(15.8f, 15.6f); path.lineTo(8.2f, 15.6f)
-                path.close(); c.drawPath(path, p)
-            }
-            FLOATING -> grid24(c, cx, cy, s) {
-                oval.set(3.6f, 7.4f, 20.4f, 18.8f)
-                c.drawRoundRect(oval, 3.4f, 3.4f, p)
-                p.style = Paint.Style.FILL
-                oval.set(9.2f, 3.6f, 14.8f, 5.7f)
-                c.drawRoundRect(oval, 1.05f, 1.05f, p)
-            }
-            GLOBE -> grid24(c, cx, cy, s) {
-                c.drawCircle(12f, 12f, 8.6f, p)
-                oval.set(8.1f, 3.4f, 15.9f, 20.6f)
-                c.drawOval(oval, p)
-                c.drawLine(3.6f, 12f, 20.4f, 12f, p)
-            }
-            EDIT -> grid24(c, cx, cy, s) {
-                path.reset()
-                path.moveTo(5.2f, 18.8f)
-                path.lineTo(8.7f, 18.8f)
-                path.lineTo(18.5f, 9f)
-                path.lineTo(15f, 5.5f)
-                path.lineTo(5.2f, 15.3f)
-                path.close()
-                c.drawPath(path, p)
-                c.drawLine(13.1f, 7.4f, 16.6f, 10.9f, p)
-            }
-            CLIPBOARD -> grid24(c, cx, cy, s) {
-                oval.set(4.8f, 4.4f, 19.2f, 20.6f)
-                c.drawRoundRect(oval, 3.4f, 3.4f, p)
-                p.style = Paint.Style.FILL
-                oval.set(8.6f, 2.4f, 15.4f, 6.6f)
-                c.drawRoundRect(oval, 1.9f, 1.9f, p)
-                p.style = Paint.Style.STROKE
-                c.drawLine(8.6f, 11.8f, 15.4f, 11.8f, p)
-                c.drawLine(8.6f, 15.6f, 13.2f, 15.6f, p)
-            }
-            EMOJI -> grid24(c, cx, cy, s) {
-                c.drawCircle(12f, 12f, 8.6f, p)
-                p.style = Paint.Style.FILL
-                c.drawCircle(8.9f, 9.9f, 1.35f, p)
-                c.drawCircle(15.1f, 9.9f, 1.35f, p)
-                p.style = Paint.Style.STROKE
-                oval.set(7.4f, 9.2f, 16.6f, 15.8f)
-                c.drawArc(oval, 32f, 116f, false, p)
-            }
-            TRANSLATE -> grid24(c, cx, cy, s) {
-                oval.set(3.2f, 3.2f, 13.6f, 13.6f)
-                c.drawRoundRect(oval, 3.2f, 3.2f, p)
-                oval.set(10.4f, 10.4f, 20.8f, 20.8f)
-                c.drawRoundRect(oval, 3.2f, 3.2f, p)
-                p.style = Paint.Style.FILL
-                p.typeface = Typeface.DEFAULT_BOLD
-                p.textSize = 6.6f
-                c.drawText("A", 8.4f, 8.4f - (p.ascent() + p.descent()) / 2f, p)
-                p.textSize = 6.2f
-                c.drawText("文", 15.6f, 15.6f - (p.ascent() + p.descent()) / 2f, p)
-            }
-            SHARE -> grid24(c, cx, cy, s) {
-                c.drawLine(8.2f, 10.8f, 15.3f, 7.2f, p)
-                c.drawLine(8.2f, 13.2f, 15.3f, 16.8f, p)
-                p.style = Paint.Style.FILL
-                c.drawCircle(5.9f, 12f, 2.6f, p)
-                c.drawCircle(17.6f, 6f, 2.6f, p)
-                c.drawCircle(17.6f, 18f, 2.6f, p)
-            }
-            THEME -> grid24(c, cx, cy, s) {
-                c.drawCircle(12f, 12f, 8.6f, p)
-                p.style = Paint.Style.FILL
-                oval.set(3.4f, 3.4f, 20.6f, 20.6f)
-                c.drawArc(oval, -90f, 180f, true, p)
-            }
-            UNDO, REDO -> grid24(c, cx, cy, s) {
-                val rad = 7.2f
-                val start = -90f
-                val sweep = if (icon == UNDO) -258f else 258f
-                oval.set(12f - rad, 12f - rad, 12f + rad, 12f + rad)
-                c.drawArc(oval, start, sweep, false, p)
-                val end = Math.toRadians((start + sweep).toDouble())
-                val ex = 12f + (cos(end) * rad).toFloat()
-                val ey = 12f + (sin(end) * rad).toFloat()
-                val tan = end + if (sweep < 0) -Math.PI / 2 else Math.PI / 2
-                val hx = (cos(tan) * 4.4).toFloat()
-                val hy = (sin(tan) * 4.4).toFloat()
-                val nx = (cos(tan + Math.PI / 2) * 2.9).toFloat()
-                val ny = (sin(tan + Math.PI / 2) * 2.9).toFloat()
-                p.style = Paint.Style.FILL
-                path.reset()
-                path.moveTo(ex + hx, ey + hy)
-                path.lineTo(ex + nx, ey + ny)
-                path.lineTo(ex - nx, ey - ny)
-                path.close()
-                c.drawPath(path, p)
-            }
-            INCOGNITO -> grid24(c, cx, cy, s) {
-                p.style = Paint.Style.FILL
-                oval.set(5.6f, 9.4f, 18.4f, 16.4f)   // crown, sits on the brim
-                c.drawArc(oval, 180f, 180f, true, p)
-                oval.set(3.2f, 11.6f, 20.8f, 13.9f)  // brim
-                c.drawRoundRect(oval, 1.15f, 1.15f, p)
-                p.style = Paint.Style.STROKE
-                p.strokeWidth = 2.1f
-                c.drawCircle(8.6f, 17.3f, 2.5f, p)
-                c.drawCircle(15.4f, 17.3f, 2.5f, p)
-                c.drawLine(11.1f, 17.3f, 12.9f, 17.3f, p)
-            }
-            SETTINGS -> grid24(c, cx, cy, s) {
-                path.reset()
-                for (i in 0 until 8) {
-                    val a = i * Math.PI / 4.0
-                    val a1 = a - 0.23
-                    val a2 = a + 0.23
-                    val ax = 12f + (6.2 * cos(a1)).toFloat()
-                    val ay = 12f + (6.2 * sin(a1)).toFloat()
-                    val bx = 12f + (8.9 * cos(a1)).toFloat()
-                    val by = 12f + (8.9 * sin(a1)).toFloat()
-                    val ox = 12f + (8.9 * cos(a2)).toFloat()
-                    val oy = 12f + (8.9 * sin(a2)).toFloat()
-                    val dx = 12f + (6.2 * cos(a2)).toFloat()
-                    val dy = 12f + (6.2 * sin(a2)).toFloat()
-                    if (i == 0) path.moveTo(ax, ay) else path.lineTo(ax, ay)
-                    path.lineTo(bx, by)
-                    path.lineTo(ox, oy)
-                    path.lineTo(dx, dy)
-                }
-                path.close()
-                c.drawPath(path, p)
-                c.drawCircle(12f, 12f, 2.9f, p)
-            }
-            HIDE -> grid24(c, cx, cy, s) {
-                oval.set(3.4f, 5f, 20.6f, 15.4f)
-                c.drawRoundRect(oval, 3f, 3f, p)
-                p.style = Paint.Style.FILL
-                c.drawCircle(7.6f, 8.6f, 0.9f, p)
-                c.drawCircle(12f, 8.6f, 0.9f, p)
-                c.drawCircle(16.4f, 8.6f, 0.9f, p)
-                oval.set(8.8f, 11.2f, 15.2f, 12.9f)
-                c.drawRoundRect(oval, 0.85f, 0.85f, p)
-                p.style = Paint.Style.STROKE
-                path.reset()
-                path.moveTo(9f, 18.2f); path.lineTo(12f, 21f); path.lineTo(15f, 18.2f)
-                c.drawPath(path, p)
-            }
-
-            // ---------- panel-only icons (unchanged r-space drawings) ----------
-            KEYBOARD -> {
-                oval.set(cx - r * 0.9f, cy - r * 0.55f, cx + r * 0.9f, cy + r * 0.55f)
-                c.drawRoundRect(oval, r * 0.12f, r * 0.12f, p)
-                p.style = Paint.Style.FILL
-                for (dx in intArrayOf(-1, 0, 1)) {
-                    c.drawCircle(cx + dx * r * 0.42f, cy - r * 0.2f, s * 0.05f, p)
-                    c.drawCircle(cx + dx * r * 0.42f, cy + r * 0.05f, s * 0.05f, p)
-                }
-                p.style = Paint.Style.STROKE
-                c.drawLine(cx - r * 0.35f, cy + r * 0.32f, cx + r * 0.35f, cy + r * 0.32f, p)
-            }
-            PIN -> {
-                p.style = Paint.Style.FILL
-                c.drawCircle(cx, cy - r * 0.28f, r * 0.36f, p)
-                p.style = Paint.Style.STROKE
-                p.strokeWidth = s * 0.12f
-                c.drawLine(cx, cy + r * 0.08f, cx, cy + r * 0.85f, p)
-            }
-            TRASH -> {
-                c.drawLine(cx - r * 0.62f, cy - r * 0.52f, cx + r * 0.62f, cy - r * 0.52f, p)
-                oval.set(cx - r * 0.2f, cy - r * 0.78f, cx + r * 0.2f, cy - r * 0.52f)
-                c.drawRoundRect(oval, r * 0.08f, r * 0.08f, p)
-                path.reset()
-                path.moveTo(cx - r * 0.48f, cy - r * 0.52f)
-                path.lineTo(cx - r * 0.38f, cy + r * 0.8f)
-                path.lineTo(cx + r * 0.38f, cy + r * 0.8f)
-                path.lineTo(cx + r * 0.48f, cy - r * 0.52f)
-                c.drawPath(path, p)
-                c.drawLine(cx - r * 0.16f, cy - r * 0.24f, cx - r * 0.13f, cy + r * 0.52f, p)
-                c.drawLine(cx + r * 0.16f, cy - r * 0.24f, cx + r * 0.13f, cy + r * 0.52f, p)
-            }
-            // GIF falls back to the plain magnifier: the "G" inside it is
-            // a detail of the drawable, and losing it beats drawing nothing.
-            SEARCH, GIF -> {
-                c.drawCircle(cx - r * 0.18f, cy - r * 0.18f, r * 0.5f, p)
-                p.strokeWidth = s * 0.14f
-                c.drawLine(cx + r * 0.2f, cy + r * 0.2f, cx + r * 0.72f, cy + r * 0.72f, p)
-            }
-            SPELLCHECK -> {
-                // A tick sitting on a text baseline — "this text has been
-                // checked". Distinct at toolbar size from EDIT (a pencil) and
-                // TRANSLATE, which are the two it could otherwise be confused
-                // with in the same row.
-                path.reset()
-                path.moveTo(cx - r * 0.7f, cy - r * 0.05f)
-                path.lineTo(cx - r * 0.2f, cy + r * 0.35f)
-                path.lineTo(cx + r * 0.72f, cy - r * 0.62f)
-                c.drawPath(path, p)
-                c.drawLine(cx - r * 0.7f, cy + r * 0.7f, cx + r * 0.7f, cy + r * 0.7f, p)
-            }
-            COPY -> {
-                oval.set(cx - r * 0.75f, cy - r * 0.75f, cx + r * 0.25f, cy + r * 0.25f)
-                c.drawRoundRect(oval, r * 0.12f, r * 0.12f, p)
-                oval.set(cx - r * 0.25f, cy - r * 0.25f, cx + r * 0.75f, cy + r * 0.75f)
-                c.drawRoundRect(oval, r * 0.12f, r * 0.12f, p)
-            }
-            PASTE -> {
-                oval.set(cx - r * 0.6f, cy - r * 0.68f, cx + r * 0.6f, cy + r * 0.85f)
-                c.drawRoundRect(oval, r * 0.12f, r * 0.12f, p)
-                p.style = Paint.Style.FILL
-                oval.set(cx - r * 0.26f, cy - r * 0.88f, cx + r * 0.26f, cy - r * 0.55f)
-                c.drawRoundRect(oval, r * 0.08f, r * 0.08f, p)
-                p.style = Paint.Style.STROKE
-                c.drawLine(cx, cy - r * 0.2f, cx, cy + r * 0.42f, p)
-                path.reset()
-                path.moveTo(cx - r * 0.24f, cy + r * 0.2f)
-                path.lineTo(cx, cy + r * 0.46f)
-                path.lineTo(cx + r * 0.24f, cy + r * 0.2f)
-                c.drawPath(path, p)
-            }
-            CUT -> {
-                c.drawCircle(cx - r * 0.45f, cy + r * 0.45f, r * 0.24f, p)
-                c.drawCircle(cx + r * 0.45f, cy + r * 0.45f, r * 0.24f, p)
-                c.drawLine(cx - r * 0.28f, cy + r * 0.28f, cx + r * 0.55f, cy - r * 0.7f, p)
-                c.drawLine(cx + r * 0.28f, cy + r * 0.28f, cx - r * 0.55f, cy - r * 0.7f, p)
-            }
-            SELECT_ALL -> {
-                val e = r * 0.8f
-                val l = r * 0.36f
-                c.drawLine(cx - e, cy - e, cx - e + l, cy - e, p)
-                c.drawLine(cx - e, cy - e, cx - e, cy - e + l, p)
-                c.drawLine(cx + e, cy - e, cx + e - l, cy - e, p)
-                c.drawLine(cx + e, cy - e, cx + e, cy - e + l, p)
-                c.drawLine(cx - e, cy + e, cx - e + l, cy + e, p)
-                c.drawLine(cx - e, cy + e, cx - e, cy + e - l, p)
-                c.drawLine(cx + e, cy + e, cx + e - l, cy + e, p)
-                c.drawLine(cx + e, cy + e, cx + e, cy + e - l, p)
-                p.style = Paint.Style.FILL
-                oval.set(cx - r * 0.3f, cy - r * 0.3f, cx + r * 0.3f, cy + r * 0.3f)
-                c.drawRoundRect(oval, r * 0.08f, r * 0.08f, p)
-            }
-        }
+    /**
+     * Draws [icon] centred at [cx],[cy] at size [s], tinted [color].
+     *
+     * Takes the `Context` rather than relying on an earlier [attach] because
+     * that is the difference between a compile error and wrong artwork on
+     * screen: every caller is a `View` and already has one.
+     */
+    fun draw(c: Canvas, context: Context, icon: Int, cx: Float, cy: Float, s: Float, color: Int) {
+        attach(context)
+        val d = vector(icon) ?: return
+        val h = s / 2f
+        d.setBounds((cx - h).toInt(), (cy - h).toInt(), (cx + h).toInt(), (cy + h).toInt())
+        d.setTint(color)
+        d.draw(c)
     }
 }

@@ -9,10 +9,6 @@ import android.view.View
 @SuppressLint("ViewConstructor")
 class IconView(context: Context, icon: Int) : View(context) {
 
-    init {
-        Icons.attach(context)
-    }
-
     /** Mutable so a recycled row can be rebound to a different tool. */
     var icon: Int = icon
         set(value) {
@@ -44,7 +40,7 @@ class IconView(context: Context, icon: Int) : View(context) {
             canvas.drawCircle(width / 2f, height / 2f, s * 0.85f, p)
             p.color = prev
         }
-        Icons.draw(canvas, icon, width / 2f, height / 2f, s, color)
+        Icons.draw(canvas, context, icon, width / 2f, height / 2f, s, color)
     }
 
     private companion object {

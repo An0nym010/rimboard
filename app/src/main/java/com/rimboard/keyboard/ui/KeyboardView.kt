@@ -469,7 +469,6 @@ class KeyboardView(context: Context) : View(context) {
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        Icons.attach(context)
         // Re-read each time the keyboard is shown: the setting can change while
         // the process is alive, and a keyboard process is long-lived.
         Anim.durationScale = try {
@@ -705,8 +704,8 @@ class KeyboardView(context: Context) : View(context) {
                 val keyIcon = Icons.forCode(key.code) ?: Icons.forLabel(label)
                 if (keyIcon != null) {
                     val ic = (labelAlpha shl 24) or (textPaint.color and 0x00FFFFFF)
-                    Icons.draw(canvas, keyIcon, rectF.centerX(), rectF.centerY(),
-                        kb.h * 0.42f, ic)
+                    Icons.draw(canvas, context, keyIcon, rectF.centerX(),
+                        rectF.centerY(), kb.h * 0.42f, ic)
                 } else {
                 textPaint.alpha = labelAlpha
                 if (flashAlpha >= 0) {
@@ -869,7 +868,7 @@ class KeyboardView(context: Context) : View(context) {
             textPaint.color = if (i == selected) t.onAccent else t.keyText
             val pIcon = Icons.forCode(keys[i].code) ?: Icons.forLabel(keys[i].label)
             if (pIcon != null) {
-                Icons.draw(canvas, pIcon, left + cell / 2f, rect.centerY(),
+                Icons.draw(canvas, context, pIcon, left + cell / 2f, rect.centerY(),
                     rect.height() * 0.46f, textPaint.color)
             } else {
                 val cy = rect.centerY() - (textPaint.ascent() + textPaint.descent()) / 2f

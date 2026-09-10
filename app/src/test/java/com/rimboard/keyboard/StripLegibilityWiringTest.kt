@@ -42,6 +42,8 @@ class StripLegibilityWiringTest {
 
     private fun strip() = codeOnly(source("com/rimboard/keyboard/ui/SuggestionStripView.kt"))
     private fun service() = codeOnly(source("com/rimboard/keyboard/RimBoardService.kt"))
+    private fun panel() = codeOnly(source("com/rimboard/keyboard/ui/SuggestionsPanelView.kt"))
+    private fun chipText() = codeOnly(source("com/rimboard/keyboard/ui/ChipText.kt"))
 
     @Test
     fun `the strip drops a chip it cannot show legibly`() {
@@ -53,11 +55,16 @@ class StripLegibilityWiringTest {
             s.contains("chipsThatRead(")
         )
         assertTrue(
+            "the strip no longer reaches the shared measurement, so it is " +
+                "measuring some other way or not at all",
+            s.contains("ChipText.needDp(")
+        )
+        assertTrue(
             "the need is no longer measured. A character count decides the " +
                 "width shares, where it runs per keystroke and the difference " +
                 "does not matter; here it decides whether a chip is dropped, " +
                 "and 'iii' against 'mmm' is a factor of three.",
-            s.contains("measureText(")
+            chipText().contains("measureText(")
         )
     }
 
@@ -75,6 +82,41 @@ class StripLegibilityWiringTest {
                 "this replaced. If it comes back, the row picks its own sizes " +
                 "again and rowTextSize is decoration.",
             0, Regex("setAutoSizeTextTypeUniformWithConfiguration").findAll(s).count()
+        )
+    }
+
+    /**
+     * The rule is one rule, and both surfaces that draw chips reach it.
+     *
+     * The strip stopped auto-sizing chip by chip in `6ba580a`; the expanded
+     * panel kept doing it for two months, because the rule had been written
+     * into the strip rather than into something both could call. On a phone
+     * that is `control` drawn larger than `conversation` in grid columns of
+     * identical width. Nothing executes the missing call, so the guard is
+     * structural -- the same shape as the rest of this file.
+     */
+    @Test
+    fun `the expanded panel sizes its grid by the same rule`() {
+        val pnl = panel()
+        assertEquals(
+            "the panel is auto-sizing each chip again, which is what made " +
+                "one column of a fixed-width grid smaller than the next",
+            0, Regex("setAutoSizeTextTypeUniformWithConfiguration").findAll(pnl).count()
+        )
+        assertTrue(
+            "the panel no longer reaches StripLayout.uniformTextSp, so it has " +
+                "its own idea of chip size again",
+            pnl.contains("uniformTextSp(")
+        )
+        assertTrue(
+            "the strip no longer reaches StripLayout.uniformTextSp, so the " +
+                "two surfaces have drifted apart from the other side",
+            strip().contains("uniformTextSp(")
+        )
+        assertTrue(
+            "the panel measures its own text instead of using the shared " +
+                "measurement, which is how the two rules diverged before",
+            pnl.contains("ChipText.needDp(")
         )
     }
 

@@ -3319,10 +3319,7 @@ class RimBoardService : InputMethodService(),
         val tools = pinnedTools()
         if (tools == lastTools) return
         lastTools = tools
-        s.setPinnedTools(
-            tools.mapNotNull { com.rimboard.keyboard.ui.ToolCatalog.byId(it) }
-                .map { it.icon to it.code }
-        )
+        s.setPinnedTools(tools)
     }
 
     private fun feedIdle(s: com.rimboard.keyboard.ui.SuggestionStripView) {

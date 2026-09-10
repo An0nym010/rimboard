@@ -116,26 +116,34 @@ class IconSetTest {
         )
     }
 
+    /**
+     * That there is only one icon set left to draw.
+     *
+     * This used to scan every file in `ui/` for an `Icons.draw` without an
+     * `Icons.attach`, because `vector()` answered null until something had
+     * supplied a `Context` and `draw` then fell back to a hand-drawn glyph --
+     * which after the redesign was *different artwork*, on whichever surface
+     * got there first, with nothing thrown and nothing logged.
+     *
+     * `Icons.draw` takes the `Context` now, so the compiler asks the question
+     * this test used to. What is left to guard is that nobody puts the second
+     * set back: a `when (icon)` of drawing commands inside `Icons`, reachable
+     * when a drawable does not load, is the shape that made a missing table
+     * entry invisible.
+     */
     @Test
-    fun `every view that draws an icon has attached them`() {
-        // Icons.vector() answers null until attach() has supplied a Context,
-        // and draw() then falls back to the hand-drawn glyph. Before the
-        // redesign that was invisible -- the two paths drew one picture. Now
-        // it is the whole old icon set, on whichever surface got there first.
-        // The failure needs no exception and logs nothing, so the guard has to
-        // be structural.
-        val dir = at("src/main/java/com/rimboard/keyboard/ui",
-                     "app/src/main/java/com/rimboard/keyboard/ui")
-        val offenders = dir.listFiles()!!
-            .filter { it.name.endsWith(".kt") && it.name != "Icons.kt" }
-            .filter { it.readText().contains("Icons.draw(") }
-            .filter { !it.readText().contains("Icons.attach(") }
-            .map { it.name }
+    fun `there is no second icon set to fall back to`() {
         assertTrue(
-            "these draw icons but never attach them, so they render the " +
-                "hand-drawn set unless some other view happened to attach " +
-                "first: $offenders",
-            offenders.isEmpty()
+            "Icons.draw no longer takes a Context, so a caller can reach the " +
+                "table before anything has attached it -- which is what let " +
+                "the hand-drawn set onto the screen",
+            Regex("""fun draw\([^)]*context: Context""").containsMatchIn(icons)
+        )
+        assertTrue(
+            "Icons has a canvas-drawing fallback again. Two sets behind one " +
+                "table is how the bar and the panel drew different artwork " +
+                "for the same tool.",
+            !icons.contains("grid24") && !icons.contains("Paint.Style.STROKE")
         )
     }
 
