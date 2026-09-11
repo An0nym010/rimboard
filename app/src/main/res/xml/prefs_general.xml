@@ -1,78 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-
-    <SwitchPreferenceCompat
-            android:key="number_row"
-            android:title="@string/pref_number_row_title"
-            android:summary="@string/pref_number_row_summary"
-            android:defaultValue="false" />
-
-    <SwitchPreferenceCompat
-        android:key="number_row_passwords"
-        android:title="@string/pref_nr_pass_title"
-        android:summary="@string/pref_nr_pass_summary"
-        android:defaultValue="true" />
-
-    <ListPreference
-            android:key="height"
-            android:icon="@drawable/ic_pref_keyboard"
-            android:title="@string/pref_height_title"
-            android:entries="@array/height_entries"
-            android:entryValues="@array/height_values"
-            android:defaultValue="1.0"
-            app:useSimpleSummaryProvider="true" />
-
-    <ListPreference
-            android:key="key_repeat_speed"
-            android:title="@string/pref_repeat_title"
-            android:entries="@array/repeat_entries"
-            android:entryValues="@array/repeat_values"
-            android:defaultValue="normal"
-            app:useSimpleSummaryProvider="true" />
-
-    <SeekBarPreference
-        android:key="long_press_ms"
-        android:title="@string/pref_lpms_title"
-        app:min="150"
-        android:max="500"
-        android:defaultValue="300"
-        app:showSeekBarValue="true" />
-
-    <SeekBarPreference
-        android:key="label_scale_pct"
-        android:title="@string/pref_labelpct_title"
-        app:min="80"
-        android:max="130"
-        android:defaultValue="100"
-        app:showSeekBarValue="true" />
-
-
-
-    <SwitchPreferenceCompat
-            android:key="popup_preview"
-            android:title="@string/pref_popup_title"
-            android:summary="@string/pref_popup_summary"
-            android:defaultValue="true" />
-
-    <SwitchPreferenceCompat
-            android:key="double_space"
-            android:title="@string/pref_double_space_title"
-            android:summary="@string/pref_double_space_summary"
-            android:defaultValue="true" />
-
-    <SwitchPreferenceCompat
-        android:key="auto_space_punct"
-        android:title="@string/pref_autospace_title"
-        android:summary="@string/pref_autospace_summary"
-        android:defaultValue="false" />
-
-    <SwitchPreferenceCompat
-            android:key="autocaps"
-            android:title="@string/pref_autocaps_title"
-            android:summary="@string/pref_autocaps_summary"
-            android:defaultValue="true" />
-
     <!-- Launched from code rather than by a nested <intent>. That form needs
          targetPackage, which is the applicationId, and the two flavors no
          longer share one - so the hardcoded name resolved to nothing on the
@@ -82,31 +10,115 @@
         android:title="@string/pref_toolbar_title"
         android:summary="@string/pref_toolbar_summary" />
 
-    <SwitchPreferenceCompat
-            android:key="haptic"
-            android:title="@string/pref_haptic_title"
-            android:summary="@string/pref_haptic_summary"
+
+    <PreferenceCategory android:title="@string/cat_layout">
+        <SwitchPreferenceCompat
+                android:key="number_row"
+                android:title="@string/pref_number_row_title"
+                android:summary="@string/pref_number_row_summary"
+                android:defaultValue="false" />
+
+        <SwitchPreferenceCompat
+            android:key="number_row_passwords"
+            android:title="@string/pref_nr_pass_title"
+            android:summary="@string/pref_nr_pass_summary"
             android:defaultValue="true" />
 
-    <ListPreference
-        android:key="haptic_strength"
-        android:title="@string/pref_haptic_strength_title"
-        android:entries="@array/hs_entries"
-        android:entryValues="@array/hs_values"
-        android:defaultValue="medium"
-        app:useSimpleSummaryProvider="true" />
+        <ListPreference
+                android:key="height"
+                android:icon="@drawable/ic_pref_keyboard"
+                android:title="@string/pref_height_title"
+                android:entries="@array/height_entries"
+                android:entryValues="@array/height_values"
+                android:defaultValue="1.0"
+                app:useSimpleSummaryProvider="true" />
 
-    <SwitchPreferenceCompat
-            android:key="sound"
-            android:title="@string/pref_sound_title"
+        <SeekBarPreference
+            android:key="label_scale_pct"
+            android:title="@string/pref_labelpct_title"
+            app:min="80"
+            android:max="130"
+            android:defaultValue="100"
+            app:showSeekBarValue="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/cat_keypress">
+        <ListPreference
+                android:key="key_repeat_speed"
+                android:title="@string/pref_repeat_title"
+                android:entries="@array/repeat_entries"
+                android:entryValues="@array/repeat_values"
+                android:defaultValue="normal"
+                app:useSimpleSummaryProvider="true" />
+
+        <SeekBarPreference
+            android:key="long_press_ms"
+            android:title="@string/pref_lpms_title"
+            app:min="150"
+            android:max="500"
+            android:defaultValue="300"
+            app:showSeekBarValue="true" />
+
+        <SwitchPreferenceCompat
+                android:key="popup_preview"
+                android:title="@string/pref_popup_title"
+                android:summary="@string/pref_popup_summary"
+                android:defaultValue="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/cat_typing">
+        <SwitchPreferenceCompat
+                android:key="double_space"
+                android:title="@string/pref_double_space_title"
+                android:summary="@string/pref_double_space_summary"
+                android:defaultValue="true" />
+
+        <SwitchPreferenceCompat
+            android:key="auto_space_punct"
+            android:title="@string/pref_autospace_title"
+            android:summary="@string/pref_autospace_summary"
             android:defaultValue="false" />
 
-    <ListPreference
-        android:key="sound_volume"
-        android:title="@string/pref_sound_volume_title"
-        android:entries="@array/vol_entries"
-        android:entryValues="@array/vol_values"
-        android:defaultValue="normal"
-        app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+                android:key="autocaps"
+                android:title="@string/pref_autocaps_title"
+                android:summary="@string/pref_autocaps_summary"
+                android:defaultValue="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/cat_feedback">
+        <SwitchPreferenceCompat
+                android:key="haptic"
+                android:title="@string/pref_haptic_title"
+                android:summary="@string/pref_haptic_summary"
+                android:defaultValue="true" />
+
+        <ListPreference
+            android:key="haptic_strength"
+            android:title="@string/pref_haptic_strength_title"
+            android:entries="@array/hs_entries"
+            android:entryValues="@array/hs_values"
+            android:defaultValue="medium"
+            app:useSimpleSummaryProvider="true"
+            android:dependency="haptic" />
+
+        <SwitchPreferenceCompat
+                android:key="sound"
+                android:title="@string/pref_sound_title"
+                android:defaultValue="false" />
+
+        <ListPreference
+            android:key="sound_volume"
+            android:title="@string/pref_sound_volume_title"
+            android:entries="@array/vol_entries"
+            android:entryValues="@array/vol_values"
+            android:defaultValue="normal"
+            app:useSimpleSummaryProvider="true"
+            android:dependency="sound" />
+
+    </PreferenceCategory>
 
 </PreferenceScreen>

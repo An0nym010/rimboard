@@ -2,102 +2,120 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <SwitchPreferenceCompat
-            android:key="suggestions"
-            android:title="@string/pref_suggestions_title"
-            android:summary="@string/pref_suggestions_summary"
-            android:defaultValue="true" />
+    <PreferenceCategory android:title="@string/cat_strip">
+        <SwitchPreferenceCompat
+                android:key="suggestions"
+                android:title="@string/pref_suggestions_title"
+                android:summary="@string/pref_suggestions_summary"
+                android:defaultValue="true" />
 
-    <SwitchPreferenceCompat
-            android:key="autocorrect"
-            android:title="@string/pref_autocorrect_title"
-            android:summary="@string/pref_autocorrect_summary"
-            android:defaultValue="true" />
+        <SwitchPreferenceCompat
+                android:key="predictions"
+                android:title="@string/pref_predictions_title"
+                android:summary="@string/pref_predictions_summary"
+                android:defaultValue="true" />
 
-    <SwitchPreferenceCompat
-            android:key="autocorrect_cautious"
-            android:title="@string/pref_autocorrect_cautious_title"
-            android:summary="@string/pref_autocorrect_cautious_summary"
-            android:dependency="autocorrect"
-            android:defaultValue="false" />
+        <SwitchPreferenceCompat
+                android:key="smart_tap"
+                android:title="@string/pref_smarttap_title"
+                android:summary="@string/pref_smarttap_summary"
+                android:defaultValue="true" />
 
-    <SwitchPreferenceCompat
-            android:key="post_correct"
-            android:title="@string/pref_postcorrect_title"
-            android:summary="@string/pref_postcorrect_summary"
-            android:dependency="autocorrect"
-            android:defaultValue="true" />
+        <SwitchPreferenceCompat
+                android:key="expand_suggestions"
+                android:title="@string/pref_expandsuggest_title"
+                android:summary="@string/pref_expandsuggest_summary"
+                android:defaultValue="true"
+                android:dependency="suggestions" />
 
-    <SwitchPreferenceCompat
-            android:key="context_spell"
-            android:title="@string/pref_contextspell_title"
-            android:summary="@string/pref_contextspell_summary"
-            android:defaultValue="true" />
+        <SwitchPreferenceCompat
+                android:key="calc_chip"
+                android:title="@string/pref_calc_title"
+                android:summary="@string/pref_calc_summary"
+                android:defaultValue="true"
+                android:dependency="suggestions" />
 
-    <SwitchPreferenceCompat
-            android:key="comma_hints"
-            android:title="@string/pref_commas_title"
-            android:summary="@string/pref_commas_summary"
-            android:defaultValue="true" />
+    </PreferenceCategory>
 
-    <SwitchPreferenceCompat
-            android:key="smart_dash"
-            android:title="@string/pref_smartdash_title"
-            android:summary="@string/pref_smartdash_summary"
-            android:defaultValue="false" />
+    <PreferenceCategory android:title="@string/cat_autocorrect">
+        <SwitchPreferenceCompat
+                android:key="autocorrect"
+                android:title="@string/pref_autocorrect_title"
+                android:summary="@string/pref_autocorrect_summary"
+                android:defaultValue="true" />
 
-    <SwitchPreferenceCompat
-            android:key="expand_suggestions"
-            android:title="@string/pref_expandsuggest_title"
-            android:summary="@string/pref_expandsuggest_summary"
-            android:defaultValue="true" />
+        <SwitchPreferenceCompat
+                android:key="autocorrect_cautious"
+                android:title="@string/pref_autocorrect_cautious_title"
+                android:summary="@string/pref_autocorrect_cautious_summary"
+                android:dependency="autocorrect"
+                android:defaultValue="false" />
 
-    <SwitchPreferenceCompat
-            android:key="predictions"
-            android:title="@string/pref_predictions_title"
-            android:summary="@string/pref_predictions_summary"
-            android:defaultValue="true" />
+        <SwitchPreferenceCompat
+                android:key="post_correct"
+                android:title="@string/pref_postcorrect_title"
+                android:summary="@string/pref_postcorrect_summary"
+                android:dependency="autocorrect"
+                android:defaultValue="true" />
 
-    <SwitchPreferenceCompat
-            android:key="smart_tap"
-            android:title="@string/pref_smarttap_title"
-            android:summary="@string/pref_smarttap_summary"
-            android:defaultValue="true" />
+    </PreferenceCategory>
 
-    <SwitchPreferenceCompat
-            android:key="calc_chip"
-            android:title="@string/pref_calc_title"
-            android:summary="@string/pref_calc_summary"
-            android:defaultValue="true" />
+    <PreferenceCategory android:title="@string/cat_writing">
+        <SwitchPreferenceCompat
+                android:key="context_spell"
+                android:title="@string/pref_contextspell_title"
+                android:summary="@string/pref_contextspell_summary"
+                android:defaultValue="true" />
 
-    <SwitchPreferenceCompat
-            android:key="learn_words"
-            android:title="@string/pref_learn_title"
-            android:summary="@string/pref_learn_summary"
-            android:defaultValue="true" />
+        <SwitchPreferenceCompat
+                android:key="comma_hints"
+                android:title="@string/pref_commas_title"
+                android:summary="@string/pref_commas_summary"
+                android:defaultValue="true" />
 
-    <SwitchPreferenceCompat
-            android:key="remember_case"
-            android:title="@string/pref_remembercase_title"
-            android:summary="@string/pref_remembercase_summary"
-            android:defaultValue="true" />
+        <SwitchPreferenceCompat
+                android:key="smart_dash"
+                android:title="@string/pref_smartdash_title"
+                android:summary="@string/pref_smartdash_summary"
+                android:defaultValue="false" />
 
-    <Preference
-            android:key="personal_dict"
-            android:icon="@drawable/ic_pref_book"
-            android:title="@string/pref_personal_dict_title"
-            android:summary="@string/pref_personal_dict_summary" />
+    </PreferenceCategory>
 
-    <Preference
-            android:key="extended_dicts"
-            android:icon="@drawable/ic_pref_import"
-            android:title="@string/pref_dicts_title"
-            android:summary="@string/pref_dicts_summary" />
+    <PreferenceCategory android:title="@string/cat_learning">
+        <SwitchPreferenceCompat
+                android:key="learn_words"
+                android:title="@string/pref_learn_title"
+                android:summary="@string/pref_learn_summary"
+                android:defaultValue="true" />
 
-    <Preference
-            android:key="text_shortcuts"
-            android:icon="@drawable/ic_pref_bolt"
-            android:title="@string/pref_shortcuts_title"
-            android:summary="@string/pref_shortcuts_summary" />
+        <SwitchPreferenceCompat
+                android:key="remember_case"
+                android:title="@string/pref_remembercase_title"
+                android:summary="@string/pref_remembercase_summary"
+                android:defaultValue="true"
+                android:dependency="learn_words" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/cat_your_words">
+        <Preference
+                android:key="personal_dict"
+                android:icon="@drawable/ic_pref_book"
+                android:title="@string/pref_personal_dict_title"
+                android:summary="@string/pref_personal_dict_summary" />
+
+        <Preference
+                android:key="extended_dicts"
+                android:icon="@drawable/ic_pref_import"
+                android:title="@string/pref_dicts_title"
+                android:summary="@string/pref_dicts_summary" />
+
+        <Preference
+                android:key="text_shortcuts"
+                android:icon="@drawable/ic_pref_bolt"
+                android:title="@string/pref_shortcuts_title"
+                android:summary="@string/pref_shortcuts_summary" />
+
+    </PreferenceCategory>
 
 </PreferenceScreen>

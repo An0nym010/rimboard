@@ -12,7 +12,8 @@
         android:key="glide_trail"
         android:title="@string/pref_glide_trail_title"
         android:summary="@string/pref_glide_trail_summary"
-        android:defaultValue="true" />
+        android:defaultValue="true"
+        android:dependency="glide_typing" />
 
 
     <SwitchPreferenceCompat

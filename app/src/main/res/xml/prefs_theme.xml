@@ -2,123 +2,138 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <ListPreference
-            android:key="theme"
-            android:icon="@drawable/ic_pref_palette"
-            android:title="@string/pref_theme_title"
-            android:entries="@array/theme_entries"
-            android:entryValues="@array/theme_values"
-            android:defaultValue="system"
+    <PreferenceCategory android:title="@string/cat_colors">
+        <ListPreference
+                android:key="theme"
+                android:icon="@drawable/ic_pref_palette"
+                android:title="@string/pref_theme_title"
+                android:entries="@array/theme_entries"
+                android:entryValues="@array/theme_values"
+                android:defaultValue="system"
+                app:useSimpleSummaryProvider="true" />
+
+        <Preference
+            android:key="custom_colors"
+            android:icon="@drawable/ic_pref_droplet"
+            android:title="@string/pref_custom_colors_title"
+            android:summary="@string/pref_custom_colors_summary" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/cat_app_tint">
+        <SwitchPreferenceCompat
+            android:key="theme_per_app"
+            android:title="@string/pref_theme_per_app_title"
+            android:summary="@string/pref_theme_per_app_summary"
+            android:defaultValue="true" />
+
+        <ListPreference
+            android:key="tint_strength"
+            android:title="@string/pref_tint_strength_title"
+            android:entries="@array/tint_strength_entries"
+            android:entryValues="@array/tint_strength_values"
+            android:defaultValue="medium"
+            android:dependency="theme_per_app"
             app:useSimpleSummaryProvider="true" />
 
-    <SwitchPreferenceCompat
-        android:key="theme_per_app"
-        android:title="@string/pref_theme_per_app_title"
-        android:summary="@string/pref_theme_per_app_summary"
-        android:defaultValue="true" />
+        <SwitchPreferenceCompat
+            android:key="match_app_mode"
+            android:title="@string/pref_match_app_mode_title"
+            android:summary="@string/pref_match_app_mode_summary"
+            android:defaultValue="true" />
 
-    <ListPreference
-        android:key="tint_strength"
-        android:title="@string/pref_tint_strength_title"
-        android:entries="@array/tint_strength_entries"
-        android:entryValues="@array/tint_strength_values"
-        android:defaultValue="medium"
-        android:dependency="theme_per_app"
-        app:useSimpleSummaryProvider="true" />
+        <ListPreference
+            android:key="app_color_source"
+            android:title="@string/pref_app_color_source_title"
+            android:entries="@array/app_color_source_entries"
+            android:entryValues="@array/app_color_source_values"
+            android:defaultValue="all"
+            app:useSimpleSummaryProvider="true" />
 
-    <SwitchPreferenceCompat
-        android:key="match_app_mode"
-        android:title="@string/pref_match_app_mode_title"
-        android:summary="@string/pref_match_app_mode_summary"
-        android:defaultValue="true" />
+    </PreferenceCategory>
 
-    <ListPreference
-        android:key="app_color_source"
-        android:title="@string/pref_app_color_source_title"
-        android:entries="@array/app_color_source_entries"
-        android:entryValues="@array/app_color_source_values"
-        android:defaultValue="all"
-        app:useSimpleSummaryProvider="true" />
+    <PreferenceCategory android:title="@string/cat_background">
+        <ListPreference
+            android:key="live_background"
+            android:title="@string/pref_live_bg_title"
+            android:summary="@string/pref_live_bg_summary"
+            android:entries="@array/live_bg_entries"
+            android:entryValues="@array/live_bg_values"
+            android:defaultValue="none" />
 
-    <Preference
-        android:key="custom_colors"
-        android:icon="@drawable/ic_pref_droplet"
-        android:title="@string/pref_custom_colors_title"
-        android:summary="@string/pref_custom_colors_summary" />
+        <Preference
+            android:key="bg_pick"
+            android:icon="@drawable/ic_pref_image"
+            android:title="@string/pref_bg_image_title"
+            android:summary="@string/pref_bg_image_summary" />
 
-    <ListPreference
-        android:key="live_background"
-        android:title="@string/pref_live_bg_title"
-        android:summary="@string/pref_live_bg_summary"
-        android:entries="@array/live_bg_entries"
-        android:entryValues="@array/live_bg_values"
-        android:defaultValue="none" />
+        <SeekBarPreference
+            android:key="bg_dim_pct"
+            android:title="@string/pref_bg_dim_title"
+            android:max="100"
+            app:min="0"
+            app:showSeekBarValue="true"
+            android:defaultValue="48" />
 
-    <Preference
-        android:key="bg_pick"
-        android:icon="@drawable/ic_pref_image"
-        android:title="@string/pref_bg_image_title"
-        android:summary="@string/pref_bg_image_summary" />
+        <Preference
+            android:key="bg_clear"
+            android:title="@string/pref_bg_clear_title"
+     />
 
-    <SeekBarPreference
-        android:key="bg_dim_pct"
-        android:title="@string/pref_bg_dim_title"
-        android:max="100"
-        app:min="0"
-        app:showSeekBarValue="true"
-        android:defaultValue="48" />
+    </PreferenceCategory>
 
-    <Preference
-        android:key="bg_clear"
-        android:title="@string/pref_bg_clear_title"
- />
+    <PreferenceCategory android:title="@string/cat_key_look">
+        <ListPreference
+            android:key="split_mode"
+            android:title="@string/pref_split_title"
+            android:entries="@array/split_entries"
+            android:entryValues="@array/split_values"
+            android:defaultValue="off"
+            app:useSimpleSummaryProvider="true" />
 
-    <ListPreference
-        android:key="split_mode"
-        android:title="@string/pref_split_title"
-        android:entries="@array/split_entries"
-        android:entryValues="@array/split_values"
-        android:defaultValue="off"
-        app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+            android:key="key_borders"
+            android:title="@string/pref_borders_title"
+            android:defaultValue="false" />
 
-    <SwitchPreferenceCompat
-        android:key="key_borders"
-        android:title="@string/pref_borders_title"
-        android:defaultValue="false" />
+        <SwitchPreferenceCompat
+            android:key="narrow_gaps"
+            android:title="@string/pref_gaps_title"
+            android:defaultValue="false" />
 
-    <SwitchPreferenceCompat
-        android:key="narrow_gaps"
-        android:title="@string/pref_gaps_title"
-        android:defaultValue="false" />
+        <SeekBarPreference
+            android:key="side_pad_pct"
+            android:title="@string/pref_sidepad_title"
+            app:min="0"
+            android:max="12"
+            android:defaultValue="0"
+            app:showSeekBarValue="true" />
 
-    <SeekBarPreference
-        android:key="side_pad_pct"
-        android:title="@string/pref_sidepad_title"
-        app:min="0"
-        android:max="12"
-        android:defaultValue="0"
-        app:showSeekBarValue="true" />
+        <SeekBarPreference
+            android:key="bottom_pad_pct"
+            android:title="@string/pref_bottompad_title"
+            app:min="0"
+            android:max="12"
+            android:defaultValue="0"
+            app:showSeekBarValue="true" />
 
-    <SeekBarPreference
-        android:key="bottom_pad_pct"
-        android:title="@string/pref_bottompad_title"
-        app:min="0"
-        android:max="12"
-        android:defaultValue="0"
-        app:showSeekBarValue="true" />
+        <EditTextPreference
+            android:key="space_text"
+            android:title="@string/pref_space_text_title"
+            app:useSimpleSummaryProvider="true" />
 
-    <Preference
-        android:key="font_pick"
-        android:title="@string/pref_font_title"
-        android:summary="@string/pref_font_summary" />
+    </PreferenceCategory>
 
-    <Preference
-        android:key="font_clear"
-        android:title="@string/pref_font_clear" />
+    <PreferenceCategory android:title="@string/cat_font">
+        <Preference
+            android:key="font_pick"
+            android:title="@string/pref_font_title"
+            android:summary="@string/pref_font_summary" />
 
-    <EditTextPreference
-        android:key="space_text"
-        android:title="@string/pref_space_text_title"
-        app:useSimpleSummaryProvider="true" />
+        <Preference
+            android:key="font_clear"
+            android:title="@string/pref_font_clear" />
+
+    </PreferenceCategory>
 
 </PreferenceScreen>
