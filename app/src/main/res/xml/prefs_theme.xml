@@ -3,14 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory android:title="@string/cat_colors">
-        <ListPreference
+        <!-- Opens ThemePickerActivity rather than a list dialog. The key and
+             the store are unchanged; what went was choosing between twenty-three
+             palettes by reading their names. -->
+        <Preference
                 android:key="theme"
                 android:icon="@drawable/ic_pref_palette"
-                android:title="@string/pref_theme_title"
-                android:entries="@array/theme_entries"
-                android:entryValues="@array/theme_values"
-                android:defaultValue="system"
-                app:useSimpleSummaryProvider="true" />
+                android:title="@string/pref_theme_title" />
 
         <Preference
             android:key="custom_colors"

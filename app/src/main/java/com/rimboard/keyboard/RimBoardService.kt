@@ -893,7 +893,6 @@ class RimBoardService : InputMethodService(),
         // for rather than a promise kept.
         com.rimboard.keyboard.net.Net.setSensitiveField(isPassword)
 
-        val themePref = Prefs.theme(this)
         // Tinted before the photo variant is derived from it, not after: over a
         // photo the caps become scrims and only the accent survives from the
         // base theme, so tinting afterwards would be the one case where this
@@ -904,51 +903,28 @@ class RimBoardService : InputMethodService(),
         // appearing — the stall `warm()` exists to keep off this path. The
         // first open in an app therefore uses the plain theme, and the
         // prefetch callback reapplies a moment later when the answers land.
-        val curatedOnly = Prefs.curatedColorsOnly(this)
-        // Part of the cache key, not just of the answer: an app's declared
-        // theme resolves through this process's configuration, so what was
-        // read while the system was light does not describe the same app once
-        // the system is dark. See AppPalette.cacheKey.
-        val night = Themes.isNightMode(this)
-        val palette = com.rimboard.keyboard.theme.AppPalette
-        val appIsLight =
-            if (Prefs.matchAppMode(this))
-                palette.cachedIsLight(info.packageName, curatedOnly, night)
-            else null
-        kbTheme = Themes.resolve(this, themePref, appIsLight).let { base ->
-            if (Prefs.themePerApp(this) && Themes.tintable(themePref))
-                Themes.forApp(
-                    base, info.packageName,
-                    // The app's real colour when its icon can be read, and the
-                    // package-name hue when it cannot. Which of those happens
-                    // is decided by package visibility, not by anything here.
-                    palette.cachedHue(info.packageName, curatedOnly, night),
-                    Prefs.tintStrength(this)
-                )
-            else base
-        }
-        val t = kbTheme ?: return
-        val bgDimAlpha = Prefs.bgDimAlpha(this)
-        // With a photo, the keys switch to translucent scrims whose polarity
-        // follows the image (see Themes.overPhoto), and the strip — which sits
-        // on the same photo now — takes the adapted colours over a transparent
-        // background. The panels cover the photo with their own opaque surface,
-        // so they keep the base theme.
-        val hasBgImage =
-            File(UserData.dataDir(this), "bg_image.jpg").exists()
-        val photoTheme =
-            if (hasBgImage) Themes.overPhoto(t, Prefs.bgLuma(this), bgDimAlpha) else null
-        // Read once and handed to all three of the things that have to agree
-        // about it: the backdrop that draws the sky, the keyboard that must not
-        // paint over it, and the strip that must not either. See [Backdrop] --
-        // they disagreed, and the setting drew nothing anyone could see.
-        val liveMode = Prefs.liveBackground(this)
-        val liveBg = com.rimboard.keyboard.model.Backdrop.liveVisible(hasBgImage, liveMode)
-        val clearSurfaces =
-            com.rimboard.keyboard.model.Backdrop.surfacesTransparent(hasBgImage, liveMode)
+        // The whole of it -- theme, per-app tint, the photo variant derived
+        // from the tinted theme rather than before it, and which of the three
+        // backdrop cases applies -- now lives in KeyboardLook, because the
+        // settings preview needs the same answer and a second copy of it would
+        // be wrong in exactly the cases that matter. The comments that used to
+        // stand here are on that object.
+        val look = com.rimboard.keyboard.theme.KeyboardLook.of(this, info.packageName)
+        kbTheme = look.base
+        val t = look.base
+        val bgDimAlpha = look.dimAlpha
+        val photoTheme = if (look.drawn !== look.base) look.drawn else null
+        val liveMode = look.liveMode
+        val clearSurfaces = look.clearSurfaces
         keyboardView?.let { kv ->
-            kv.backdropDrawn = clearSurfaces
-            kv.theme = photoTheme ?: t
+            // The look-only half, shared with the settings preview. First in
+            // the block, where `backdropDrawn` and `theme` were set before the
+            // extraction, so nothing between here and there changes order.
+            com.rimboard.keyboard.theme.KeyboardLook.applyTo(
+                kv, this, look,
+                landscape = resources.configuration.orientation ==
+                    android.content.res.Configuration.ORIENTATION_LANDSCAPE
+            )
             kv.previewEnabled = com.rimboard.keyboard.model.KeyPreview.mayShow(
                 enabled = Prefs.popupPreview(this),
                 isPassword = isPassword,
@@ -977,11 +953,6 @@ class RimBoardService : InputMethodService(),
                 else -> { kv.repeatInitialMs = 300L; kv.repeatIntervalMs = 50L }
             }
             kv.showTrail = Prefs.glideTrail(this)
-            kv.keyBorders = Prefs.keyBorders(this)
-            kv.narrowGaps = Prefs.narrowGaps(this)
-            kv.sidePadPct = Prefs.sidePadPct(this)
-            kv.bottomPadPct = Prefs.bottomPadPct(this)
-            kv.labelScale = Prefs.labelScalePct(this) / 100f
             // The same request, applied to the one row that used to ignore it.
             strip?.labelScale = Prefs.labelScalePct(this) / 100f
             kv.longPressTimeoutMs = Prefs.longPressMs(this).toLong()
@@ -994,14 +965,6 @@ class RimBoardService : InputMethodService(),
             kv.spaceLongPressMode = if (Prefs.spaceLongPress(this) == "none") 0 else 1
             kv.numpadOnSymbolsLongPress = Prefs.numpadLongPress(this)
             kv.tldPopups = isEmailOrUri && Prefs.tldPopupsOn(this)
-            kv.customTypeface = customFont()
-            kv.splitFraction = when (Prefs.splitMode(this)) {
-                "on" -> 0.12f
-                "landscape" ->
-                    if (resources.configuration.orientation ==
-                        android.content.res.Configuration.ORIENTATION_LANDSCAPE) 0.12f else 0f
-                else -> 0f
-            }
             engine.blockOffensive = Prefs.blockOffensive(this)
             engine.cautiousAutocorrect = Prefs.cautiousAutocorrect(this)
             // Queued on the first focus that is allowed to read them. The
@@ -1012,8 +975,6 @@ class RimBoardService : InputMethodService(),
             com.rimboard.keyboard.engine.UserDictionaryStore.warm(this)
             kv.hapticFeedback = Prefs.haptic(this)
             kv.oneHanded = (if (Prefs.floating(this)) 0 else Prefs.oneHanded(this))
-            kv.keyHeightFactor = Prefs.heightFactor(this)
-            kv.showDigitHints = !Prefs.numberRow(this)
             kv.incognito = isIncognito()
         }
         // Transparent over anything the backdrop is drawing, which until now
@@ -3283,27 +3244,6 @@ class RimBoardService : InputMethodService(),
             ?.let { keyboardView?.flashSpaceLabel(it.nativeName) }
     }
 
-    private var cachedFont: android.graphics.Typeface? = null
-    private var cachedFontStamp = -1L
-
-    private fun customFont(): android.graphics.Typeface? {
-        val f = java.io.File(
-            com.rimboard.keyboard.engine.UserData.dataDir(this), "custom_font.ttf")
-        if (!f.exists()) {
-            cachedFont = null
-            return null
-        }
-        val stamp = f.lastModified()
-        if (cachedFont == null || cachedFontStamp != stamp) {
-            cachedFont = try {
-                android.graphics.Typeface.createFromFile(f)
-            } catch (_: Exception) {
-                null
-            }
-            cachedFontStamp = stamp
-        }
-        return cachedFont
-    }
 
     /** Parsed once and invalidated on change: feedIdle runs per keystroke. */
     private var pinnedCache: List<String>? = null

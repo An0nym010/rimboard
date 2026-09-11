@@ -139,6 +139,16 @@ object Prefs {
 
     fun theme(c: Context): String = get(c).stringOr(KEY_THEME, "system") ?: "system"
 
+    /**
+     * Written by [com.rimboard.keyboard.settings.ThemePickerActivity], which
+     * replaced the `ListPreference` that used to own this key. Same key, same
+     * store, so the keyboard's preference listener wakes for it exactly as it
+     * did before.
+     */
+    fun setTheme(c: Context, v: String) {
+        get(c).edit().putString(KEY_THEME, v).apply()
+    }
+
     fun heightFactor(c: Context): Float =
         (get(c).stringOr(KEY_HEIGHT, "1.0") ?: "1.0").toFloatOrNull() ?: 1f
 

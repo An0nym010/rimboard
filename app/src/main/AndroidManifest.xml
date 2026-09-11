@@ -196,6 +196,11 @@
             android:label="@string/pref_toolbar_title" />
 
         <activity
+            android:name=".settings.ThemePickerActivity"
+            android:exported="false"
+            android:label="@string/pref_theme_title" />
+
+        <activity
             android:name=".settings.NetworkActivity"
             android:exported="false"
             android:label="@string/pref_network_title" />

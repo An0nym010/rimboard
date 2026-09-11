@@ -380,6 +380,103 @@ class SettingsActivity : LocalisedActivity() {
     class SettingsFragment : PreferenceFragmentCompat() {
 
         /**
+         * The theme row, kept so its summary can be refreshed when the picker
+         * comes back. The picker writes the preference directly, which is what
+         * the `ListPreference` it replaced did too -- but a plain `Preference`
+         * has no summary provider watching the key, so the row would go on
+         * naming whichever theme was current when the screen was built.
+         */
+        private var themeRow: Preference? = null
+
+        /** Names the theme the preference is currently set to. */
+        private fun showThemeName(row: Preference) {
+            val ctx = row.context
+            val values = ctx.resources.getStringArray(R.array.theme_values)
+            val labels = ctx.resources.getStringArray(R.array.theme_entries)
+            val i = values.indexOf(Prefs.theme(ctx))
+            row.summary = if (i >= 0) labels.getOrNull(i) else null
+        }
+
+        /**
+         * The Look and feel preview, pinned above the list on that screen only.
+         *
+         * A header rather than a row in the list, which is the whole of what
+         * makes it useful: a preview that scrolls away leaves you changing a
+         * control you cannot see the effect of, which is the state this screen
+         * was already in.
+         */
+        private var preview: com.rimboard.keyboard.ui.KeyboardPreviewView? = null
+
+        /**
+         * Held in a field on purpose: `SharedPreferences` keeps only a weak
+         * reference to its listeners, so one created at the point of
+         * registration is collected at the next GC and the preview silently
+         * stops following the settings.
+         */
+        private val previewWatcher =
+            android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+                preview?.refresh()
+            }
+
+        /**
+         * Puts the keyboard above the list, on the Look and feel screen only.
+         *
+         * Wrapping the fragment's own view rather than replacing it: the
+         * preference list keeps its recycler, its dividers and its scroll
+         * behaviour, and gains a sibling above it that does not move.
+         */
+        override fun onCreateView(
+            inflater: android.view.LayoutInflater,
+            container: android.view.ViewGroup?,
+            savedInstanceState: Bundle?
+        ): android.view.View {
+            val list = super.onCreateView(inflater, container, savedInstanceState)
+            if (arguments?.getInt(ARG_XML, 0) != R.xml.prefs_theme) return list
+            val kb = com.rimboard.keyboard.ui.KeyboardPreviewView(requireContext())
+            preview = kb
+            return android.widget.LinearLayout(requireContext()).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+                addView(
+                    kb,
+                    android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                )
+                addView(
+                    list,
+                    android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f
+                    )
+                )
+            }
+        }
+
+        override fun onDestroyView() {
+            super.onDestroyView()
+            preview = null
+        }
+
+        override fun onResume() {
+            super.onResume()
+            themeRow?.let { showThemeName(it) }
+            // Refreshed here as well as on change: the theme picker is a
+            // separate activity, so the preference moves while this screen is
+            // stopped and no change callback arrives for it.
+            preview?.refresh()
+            preview?.let {
+                preferenceManager.sharedPreferences
+                    ?.registerOnSharedPreferenceChangeListener(previewWatcher)
+            }
+        }
+
+        override fun onPause() {
+            super.onPause()
+            preferenceManager.sharedPreferences
+                ?.unregisterOnSharedPreferenceChangeListener(previewWatcher)
+        }
+
+        /**
          * The permission behind "Names from contacts".
          *
          * Asked for when the switch is turned on and never before, so the
@@ -567,6 +664,16 @@ class SettingsActivity : LocalisedActivity() {
             findPreference<Preference>("toolbar_picker")?.setOnPreferenceClickListener {
                 startActivity(Intent(requireContext(), ToolbarPickerActivity::class.java))
                 true
+            }
+            findPreference<Preference>("theme")?.let { row ->
+                row.setOnPreferenceClickListener {
+                    startActivity(Intent(requireContext(), ThemePickerActivity::class.java))
+                    true
+                }
+                // `useSimpleSummaryProvider` went with the ListPreference, and
+                // the row would otherwise stop naming the theme it is on.
+                themeRow = row
+                showThemeName(row)
             }
             findPreference<Preference>("custom_colors")?.setOnPreferenceClickListener {
                 showCustomColors()
