@@ -49,7 +49,8 @@ Third-party data
 ----------------
 
 Part of the bundled next-word prediction models
-(all files under app/src/main/assets/predictions/) is derived from:
+(all files under app/src/main/assets/predictions/) and the comma models
+(all files under app/src/main/assets/commas/) are derived from:
 
   Tatoeba sentence exports
   https://tatoeba.org
@@ -63,6 +64,13 @@ again to remove tokens over-represented in that corpus relative to the
 dictionary — Tatoeba is a language-teaching collection whose sentences are
 largely about two people named Tom and Mary, and without that filter "tom"
 would be the commonest prediction in the language. See tools/build_ngrams.py.
+
+The comma models are the same corpus counted for a different question:
+for each word, how often the character before it is a comma. `build_ngrams.py`
+strips punctuation on the way in and `tools/build_commas.py` does not, so the
+two read one cache and ship two assets. Only mid-sentence occurrences are
+counted, and a word ships only where the rule clears 95% on a held-out tenth
+of the corpus.
 
 The same corpus supplies `app/src/test/fixtures/tr_unlisted.txt`, 500
 ordinary Turkish words that appear in it and not in the shipped
@@ -128,6 +136,20 @@ what was changed.
 
 Under the CC BY-SA 4.0 terms, these dictionary files (and any derivative
 dictionary files) remain licensed under CC BY-SA 4.0.
+
+The prefix and suffix inventories (all files under
+app/src/main/assets/prefixes/ and app/src/main/assets/suffixes/) are derived
+from those dictionaries by tools/derive_prefixes.py and
+tools/derive_suffixes.py, which read app/src/main/assets/dictionaries/ and
+record which word-openings and endings recur across enough distinct stems to be
+worth a decoder's attention.
+
+Because they are computed from CC BY-SA 4.0 material, these files are offered
+under the same licence, CC BY-SA 4.0, with the same attribution as the
+dictionaries they came from. Whether a statistic about a word list is a
+derivative of it is not a settled question; the share-alike is asserted rather
+than argued away, because it costs nothing here — the dictionaries that ship
+beside these files already carry it.
 
 
 Interface icons
