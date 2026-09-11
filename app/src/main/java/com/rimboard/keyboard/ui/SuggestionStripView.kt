@@ -458,7 +458,11 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         // updateStrip before the new field's state had been read.
         val changed = drawerOpen != open
         drawerOpen = open
-        expandBtn.icon = if (open) Icons.CHEVRON_L else Icons.CHEVRON
+        // Turned, not swapped. `>` rotated half a turn *is* `<`, so the two
+        // drawables were always the same shape twice — and swapping them made
+        // the drawer open with a jump where every other surface in this
+        // keyboard moves. The icon stays CHEVRON and the view rotates.
+        turnChevron(open)
         expandBtn.contentDescription = context.getString(
             if (open) R.string.a11y_drawer_close else R.string.a11y_drawer_open
         )
@@ -469,6 +473,7 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
 
     /** The pinned tools across the full strip, with nothing competing. */
     private fun showDrawer() {
+        val wasShowing = toolRow.visibility == VISIBLE
         hideAll()
         expandBtn.visibility = VISIBLE
         centerBox.visibility = VISIBLE
@@ -476,6 +481,10 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         toolRow.visibility = VISIBLE
         setCenterWidth(0)
         emojiScroll.scrollTo(0, 0)
+        // Only on the way in. `showDrawer` is re-entered on every redraw while
+        // the drawer is open, and animating each time would leave the row
+        // permanently fading.
+        if (!wasShowing) riseIn(toolRow)
     }
 
     fun applyTheme(t: KeyboardTheme) {
@@ -780,6 +789,51 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         toolRow.visibility = GONE
         setCenterWidth(0)
         emojiScroll.visibility = GONE
+    }
+
+    /**
+     * Which way the chevron is pointing, so a redraw does not re-run the turn.
+     *
+     * `showSuggestions` and `showEmpty` both reach `setDrawerOpen`-adjacent
+     * code on every keystroke; animating from the current value each time
+     * would restart the turn continuously and the chevron would never settle.
+     */
+    private var chevronTurned = false
+
+    private fun turnChevron(open: Boolean) {
+        if (chevronTurned == open) return
+        chevronTurned = open
+        val d = (Anim.POPUP_IN_MS * Anim.durationScale).toLong()
+        expandBtn.animate().cancel()
+        if (d <= 0L) {
+            expandBtn.rotation = if (open) 180f else 0f
+            return
+        }
+        expandBtn.animate()
+            .rotation(if (open) 180f else 0f)
+            .setDuration(d)
+            .start()
+    }
+
+    /**
+     * Fades a row in from slightly below.
+     *
+     * Used where the strip changes what it is showing rather than what it
+     * says: tools appearing, chips returning. Not on every word change — the
+     * words change on every keystroke, and a strip that flickers under fast
+     * typing is worse than one that simply updates.
+     */
+    private fun riseIn(v: View) {
+        val d = (Anim.PREVIEW_IN_MS * Anim.durationScale).toLong()
+        v.animate().cancel()
+        if (d <= 0L) {
+            v.alpha = 1f
+            v.translationY = 0f
+            return
+        }
+        v.alpha = 0f
+        v.translationY = dp(4).toFloat()
+        v.animate().alpha(1f).translationY(0f).setDuration(d).start()
     }
 
     /** [w] of 0 means "share the free space by weight"; otherwise a fixed cap. */
