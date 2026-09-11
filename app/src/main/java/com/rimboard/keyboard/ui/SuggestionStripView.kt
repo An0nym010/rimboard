@@ -518,9 +518,27 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
     }
 
     @JvmOverloads
-    fun showSuggestions(words: List<String>, highlightIndex: Int, emoji: String? = null) {
+    /**
+     * [composingWord] is true while a word is being typed, and it buys the
+     * chips the chevron's 34dp.
+     *
+     * The chevron holds the left end of the most-looked-at row in the product,
+     * permanently, to reach a drawer that is opened rarely -- and it holds it
+     * hardest at the moment the chips have least to spare. Measured on the
+     * phone over fifteen five-letter prefixes, whose candidates are long
+     * enough for the fifth chip to be at risk: see the commit for the numbers.
+     *
+     * It comes back the moment the word is committed, so the drawer is one
+     * space bar away rather than unreachable.
+     */
+    fun showSuggestions(
+        words: List<String>,
+        highlightIndex: Int,
+        emoji: String? = null,
+        composingWord: Boolean = false
+    ) {
         if (drawerOpen) return showDrawer()
-        expandBtn.visibility = VISIBLE
+        expandBtn.visibility = if (composingWord) GONE else VISIBLE
         centerBox.visibility = GONE
         boldIndex = highlightIndex
         clipChip.visibility = GONE
@@ -541,7 +559,8 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         // [com.rimboard.keyboard.model.StripLayout.chipsThatFit]: the fixed
         // children come to about 114dp, and in floating mode on a narrow phone
         // five chips would be 39dp each.
-        val fixed = dp(CHEVRON_W) + dp(ROW_PAD) + dividers.size * dp(DIVIDER_W) +
+        val fixed = (if (expandBtn.visibility == VISIBLE) dp(CHEVRON_W) else 0) +
+            dp(ROW_PAD) + dividers.size * dp(DIVIDER_W) +
             (if (emojiChip.visibility == VISIBLE) dp(EMOJI_CHIP_W) else 0) +
             (if (incogIcon.visibility == VISIBLE) dp(INCOG_W) else 0)
         val freeDp = ((width - fixed) / resources.displayMetrics.density).toInt()

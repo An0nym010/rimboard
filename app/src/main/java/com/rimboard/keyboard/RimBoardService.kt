@@ -2692,7 +2692,7 @@ class RimBoardService : InputMethodService(),
         // are part of the string, so nothing looks it up.
         val verbatim = composing.toString()
         shownWords = shownWords.map { if (it == verbatim) it else personalCase(it) }
-        s.showSuggestions(shownWords, shownHi, emojiSug)
+        s.showSuggestions(shownWords, shownHi, emojiSug, composingWord = true)
     }
 
     /**

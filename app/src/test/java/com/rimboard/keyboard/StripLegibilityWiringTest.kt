@@ -120,6 +120,45 @@ class StripLegibilityWiringTest {
         )
     }
 
+    /**
+     * The chevron yields its 34dp to the chips while a word is being typed.
+     *
+     * Two halves, and both have to hold. The view has to *hide* it, and the
+     * width arithmetic has to *notice* -- a `fixed` that keeps subtracting
+     * `CHEVRON_W` for a chevron that is GONE gives the 34dp to nobody, and
+     * nothing fails: the row simply goes on fitting what it fitted before.
+     * That is the same shape as every other guard in this file, which is why
+     * it is here rather than left to a measurement nobody re-runs.
+     *
+     * Measured on the phone over fifteen five-letter prefixes: 5/15 reached
+     * five chips before, 9/15 after.
+     */
+    @Test
+    fun `the chevron yields its width while a word is composing`() {
+        val s = strip()
+        assertTrue(
+            "showSuggestions no longer takes composingWord, so the strip " +
+                "cannot tell a typed word from an idle prediction",
+            s.contains("composingWord: Boolean")
+        )
+        assertTrue(
+            "the chevron is unconditionally VISIBLE again, so it holds the " +
+                "left end of the row at the moment the chips have least to spare",
+            s.contains("if (composingWord) GONE else VISIBLE")
+        )
+        assertTrue(
+            "the fixed width still charges for the chevron unconditionally. " +
+                "Hiding it then is free of benefit: the 34dp goes to nobody " +
+                "and no test fails.",
+            s.contains("if (expandBtn.visibility == VISIBLE) dp(CHEVRON_W) else 0")
+        )
+        assertTrue(
+            "the keyboard never tells the strip a word is composing, so the " +
+                "chevron never yields in practice",
+            service().contains("composingWord = true")
+        )
+    }
+
     @Test
     fun `the keyboard hands the strip the label scale`() {
         val s = strip()
