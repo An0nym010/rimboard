@@ -147,6 +147,36 @@ class ExpandedStripWiringTest {
         )
     }
 
+    /**
+     * The same fault, the second time, in the strip's tool row.
+     *
+     * Found on 2026-09-11 when the idle strip started opening the tool drawer
+     * by itself: the drawer came up with the chevron turned and no icons at
+     * all. Logging showed six children, correct colours, everything VISIBLE,
+     * the row measured 756x121 — and every child 0x0.
+     *
+     * `onSizeChanged` had been rebuilding the row directly since long before,
+     * and it never mattered, because the drawer was only ever opened by a tap
+     * — long after layout had settled. Opening it on an idle strip put the
+     * rebuild in the same frame as the first layout, and then it failed every
+     * single time.
+     *
+     * That is the thing worth keeping: the bug was always there, and what
+     * found it was a change that altered *when* the code ran rather than what
+     * it did.
+     */
+    @Test
+    fun `the tool row rebuilds outside the layout pass too`() {
+        val src = codeOnly(source("com/rimboard/keyboard/ui/SuggestionStripView.kt"))
+        val body = bodyOf(src, "override fun onSizeChanged(")
+        assertTrue(
+            "the strip rebuilds its tool row directly from onSizeChanged " +
+                "again, so the icons it adds are never measured and the " +
+                "drawer opens empty",
+            body.contains("post {")
+        )
+    }
+
     @Test
     fun `the panel rebuilds its rows outside the layout pass`() {
         // Found on a phone, and nothing in this suite could have found it.

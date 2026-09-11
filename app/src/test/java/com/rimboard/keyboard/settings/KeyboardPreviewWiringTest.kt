@@ -96,14 +96,68 @@ class KeyboardPreviewWiringTest {
         )
     }
 
+    /**
+     * The preview is meant to work under a finger and produce nothing.
+     *
+     * Those are two requirements, not one, and the second is the one that can
+     * rot quietly. Every path that would change a document goes out through a
+     * listener, so `Inert` has to keep dropping them — a member filled in later
+     * "to make the preview more useful" is how a settings screen starts typing
+     * into whatever field the user was last in.
+     */
     @Test
-    fun `the preview cannot type`() {
+    fun `the preview is interactive and still writes nothing`() {
         assertTrue(
-            "touches reach the real KeyboardView, which has long-press " +
-                "popups, glide and key repeat, and no input connection to " +
-                "send anything to",
-            preview.contains("override fun onInterceptTouchEvent") &&
-                preview.contains("override fun onTouchEvent")
+            "the views have no listener, so the layout keys, shift and the " +
+                "tool drawer all do nothing -- the preview is a picture again",
+            preview.contains("keyboard.listener = Inert()") &&
+                preview.contains("strip.listener = Inert()")
+        )
+        assertTrue(
+            "touches are being swallowed again, which takes the popups and " +
+                "the pressed states with them",
+            !preview.contains("onInterceptTouchEvent")
+        )
+        // The members that would carry something out of this view must stay
+        // empty. Written as a body check rather than a name check, because an
+        // empty override is the whole point.
+        val mustBeEmpty = listOf(
+            "onGlideComplete(points: FloatArray, keys: String)",
+            "onSuggestionPicked(index: Int, word: String)",
+            "onQuickAction(code: Int)",
+            "onBackspaceWord()",
+            "onPopupKeySelected(key: com.rimboard.keyboard.model.Key)",
+            "onClipboardPasteRequested()"
+        )
+        val filled = mustBeEmpty.filter { sig ->
+            val i = preview.indexOf(sig)
+            i >= 0 && !preview.substring(i + sig.length).trimStart().startsWith("{}")
+        }
+        assertEquals(
+            "these would carry a key press, a suggestion or a tool action out " +
+                "of the preview, and there is nowhere for it to go: $filled",
+            emptyList<String>(), filled
+        )
+        assertTrue(
+            "the preview reaches for an input connection, which a settings " +
+                "screen has no business holding",
+            !preview.contains("InputConnection") && !preview.contains("commitText")
+        )
+    }
+
+    @Test
+    fun `the interactive parts are the ones that only move this view`() {
+        assertTrue(
+            "the layout keys no longer switch anything, so ?123 is dead",
+            preview.contains("Codes.MODE_SYM") && preview.contains("applyLayout()")
+        )
+        assertTrue(
+            "shift no longer latches",
+            preview.contains("keyboard.shiftState =")
+        )
+        assertTrue(
+            "the chevron no longer opens the drawer",
+            preview.contains("strip.setDrawerOpen(expand)")
         )
     }
 

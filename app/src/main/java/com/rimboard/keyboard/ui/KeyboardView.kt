@@ -265,7 +265,55 @@ class KeyboardView(context: Context) : View(context) {
     private val baseSidePad = dp(3f)
     private val topPad = dp(6f)
     private val bottomPad = dp(5f)
-    private val keyRadius = dp(11f)
+    /**
+     * Key corner radius, measured off Gboard rather than chosen.
+     *
+     * Gboard on the same phone (1080x2340, x2.75): keys 95x111px with a 12px
+     * gap and a corner radius of about 13px — **4.7dp**. RimBoard drew 11dp,
+     * more than twice as round, which is the whole of what made the two look
+     * different at a glance; the gaps already matched to within half a dp.
+     *
+     * This is a dimension, not artwork. Nothing of Gboard's is copied here —
+     * the number was read off a screenshot with a pixel walk down a key's left
+     * edge, and every shape this view draws is still its own.
+     *
+     * The design canvas says 11dp, so the canvas and the app now disagree about
+     * this one value; see `design-canvas` in the notes.
+     */
+    private val keyRadius = dp(4.7f)
+
+    /**
+     * Popups keep the rounder corner. They are a surface floating over the
+     * keyboard rather than a key, and Gboard rounds its popup block much more
+     * than its keys too.
+     */
+    private val popupRadius = dp(11f)
+
+    /**
+     * The widest a popup row gets before it wraps.
+     *
+     * Five, measured against Gboard on the same phone rather than chosen: six
+     * alternates there come out three across and two deep. A row wider than
+     * this stops being a block the eye takes in at once and becomes a list to
+     * read, which is the opposite of what a long-press is for.
+     */
+    private val ROW_MAX = 5
+
+    /**
+     * How far above its own top edge this view may draw a popup, in pixels.
+     *
+     * A long-press on the second row needs two rows of grid above it and the
+     * keyboard is not that tall, so the popup used to be clamped to the top
+     * edge or dropped below the key. Gboard does neither: measured on the same
+     * phone, its popup for `E` reaches about 180px above the toolbar row, over
+     * the app.
+     *
+     * Set by whoever owns the layout to the height of what sits above the keys
+     * — the suggestion strip — and only has any effect if those parents have
+     * `clipChildren = false`. Zero by default, so a `KeyboardView` dropped into
+     * a container that does clip behaves exactly as it did before.
+     */
+    var popupHeadroom = 0f
     private val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x26000000 }
     private val shadowRect = RectF()
     private val bgPaint = Paint()
@@ -395,6 +443,34 @@ class KeyboardView(context: Context) : View(context) {
     private var popupOwner: PointerState? = null
     private var popupKeys: List<Key> = emptyList()
     private val popupRect = RectF()
+
+    /**
+     * Columns in the popup grid, and the height of one of its rows.
+     *
+     * The popup used to be a single row that shrank its cells until the whole
+     * alphabet of alternates fitted the screen width — nine cells across a
+     * phone makes each one narrower than a finger. It wraps now: full-size
+     * cells, as many per row as fit, rows stacked *upward* from the key.
+     *
+     * **Index 0 is the bottom-left cell**, so the entry the ordering was
+     * designed around — the digit, on a letter key — stays under the finger
+     * that opened the popup, exactly where it was before. A key whose
+     * alternates already fitted one row is laid out identically to before;
+     * only the overflow case changed.
+     */
+    private var popupCols = 1
+    private var popupRowH = 0f
+
+    /**
+     * Whether the grid stacks upward from the key, or downward from it.
+     *
+     * There is no room above the number row — it *is* the top row — so its
+     * popups used to be clamped to the top edge and drawn over the very key
+     * that opened them. They fall below now. Rows always stack *away* from the
+     * key, so whichever way the popup opens, index 0 is the row against the
+     * key and the finger is already on it.
+     */
+    private var popupUpward = true
     private var popupCell = 0f
     private var popupShownAt = 0L
     private var previewKb: KeyBounds? = null
@@ -826,7 +902,10 @@ class KeyboardView(context: Context) : View(context) {
                     1f - 0.14f * e, 1f - 0.14f * e,
                     popupOutRect.centerX(), popupOutRect.bottom
                 )
-                drawPopupBody(canvas, t, popupOutRect, popupOutKeys, popupOutIndex, popupOutCell)
+                drawPopupBody(
+                    canvas, t, popupOutRect, popupOutKeys, popupOutIndex,
+                    popupOutCell, popupOutCols, popupOutUpward
+                )
                 canvas.restoreToCount(layer)
                 postInvalidateOnAnimation()
             }
@@ -840,48 +919,177 @@ class KeyboardView(context: Context) : View(context) {
         val restore = canvas.save()
         canvas.scale(scale, scale, popupRect.centerX(), popupRect.bottom)
         if (et < 1f) postInvalidateOnAnimation()
-        drawPopupBody(canvas, t, popupRect, popupKeys, owner.popupIndex, popupCell)
+        drawPopupBody(
+            canvas, t, popupRect, popupKeys, owner.popupIndex, popupCell,
+            popupCols, popupUpward
+        )
         canvas.restoreToCount(restore)
     }
 
     /** Renders one popup: shared by the live popup and its exit animation. */
     private fun drawPopupBody(
         canvas: Canvas, t: KeyboardTheme,
-        rect: RectF, keys: List<Key>, selected: Int, cell: Float
+        rect: RectF, keys: List<Key>, selected: Int, cell: Float, cols: Int,
+        upward: Boolean
     ) {
         shadowRect.set(rect)
         shadowRect.offset(0f, dp(2f))
-        canvas.drawRoundRect(shadowRect, keyRadius, keyRadius, shadowPaint)
+        if (keys.size == 1) {
+            canvas.drawCircle(
+                shadowRect.centerX(), shadowRect.centerY(),
+                minOf(shadowRect.width(), shadowRect.height()) / 2f, shadowPaint
+            )
+        } else {
+            canvas.drawRoundRect(shadowRect, popupRadius, popupRadius, shadowPaint)
+        }
         keyPaint.color = t.previewBg
-        canvas.drawRoundRect(rect, keyRadius, keyRadius, keyPaint)
-        textPaint.textSize = rect.height() * 0.42f
+        if (keys.size == 1) {
+            // One alternate is a bubble. A rounded rectangle the width of a key
+            // reads as a row with the rest of it missing.
+            canvas.drawCircle(
+                rect.centerX(), rect.centerY(),
+                minOf(rect.width(), rect.height()) / 2f, keyPaint
+            )
+        } else {
+            canvas.drawRoundRect(rect, popupRadius, popupRadius, keyPaint)
+        }
+        // Derived from the rect rather than taken as a parameter, so the exit
+        // animation -- which draws the same grid into a shrinking rect -- keeps
+        // its rows in proportion instead of overflowing the box it is given.
+        val rows = ((keys.size + cols - 1) / cols).coerceAtLeast(1)
+        val rowH = rect.height() / rows
+        textPaint.textSize = rowH * 0.42f
         for (i in keys.indices) {
-            val left = rect.left + i * cell
+            popupCellBounds(i, rect, cell, cols, rowH, upward, popupCellRect)
             if (i == selected) {
                 keyPaint.color = t.accent
                 rectF.set(
-                    left + dp(2f), rect.top + dp(2f),
-                    left + cell - dp(2f), rect.bottom - dp(2f)
+                    popupCellRect.left + dp(2f), popupCellRect.top + dp(2f),
+                    popupCellRect.right - dp(2f), popupCellRect.bottom - dp(2f)
                 )
-                canvas.drawRoundRect(rectF, keyRadius * 0.75f, keyRadius * 0.75f, keyPaint)
+                if (keys.size == 1) {
+                    canvas.drawCircle(
+                        rectF.centerX(), rectF.centerY(),
+                        minOf(rectF.width(), rectF.height()) / 2f, keyPaint
+                    )
+                } else {
+                    canvas.drawRoundRect(rectF, keyRadius * 0.75f, keyRadius * 0.75f, keyPaint)
+                }
             }
             textPaint.color = if (i == selected) t.onAccent else t.keyText
             val pIcon = Icons.forCode(keys[i].code) ?: Icons.forLabel(keys[i].label)
+            val cx = popupCellRect.centerX()
             if (pIcon != null) {
-                Icons.draw(canvas, context, pIcon, left + cell / 2f, rect.centerY(),
-                    rect.height() * 0.46f, textPaint.color)
+                Icons.draw(canvas, context, pIcon, cx, popupCellRect.centerY(),
+                    rowH * 0.46f, textPaint.color)
             } else {
-                val cy = rect.centerY() - (textPaint.ascent() + textPaint.descent()) / 2f
-                canvas.drawText(popupDisplayLabel(keys[i]), left + cell / 2f, cy, textPaint)
+                val cy = popupCellRect.centerY() -
+                    (textPaint.ascent() + textPaint.descent()) / 2f
+                canvas.drawText(popupDisplayLabel(keys[i]), cx, cy, textPaint)
             }
         }
     }
 
     /** Snapshot of a dismissed popup, drawn shrinking away. */
+    /**
+     * The bounds of popup cell [i]. The one place that knows the grid's shape.
+     *
+     * Drawing, hit-testing and the accessibility tree each used to work this
+     * out for themselves, which was survivable while the answer was
+     * `left + i * cell` and is not once there are rows: three copies of a
+     * two-dimensional layout is three chances for the cell a finger lands on
+     * and the cell that lights up to disagree.
+     */
+    private fun popupCellBounds(
+        i: Int, rect: RectF, cell: Float, cols: Int, rowH: Float,
+        upward: Boolean, out: RectF
+    ) {
+        val slot = popupCellOf.getOrElse(i) { i }
+        val col = slot % cols
+        val row = slot / cols
+        val left = rect.left + col * cell
+        if (upward) {
+            val bottom = rect.bottom - row * rowH
+            out.set(left, bottom - rowH, left + cell, bottom)
+        } else {
+            val top = rect.top + row * rowH
+            out.set(left, top, left + cell, top + rowH)
+        }
+    }
+
+    /** Which entry [x],[y] is over, clamped into the grid. */
+    private fun popupIndexAt(x: Float, y: Float, n: Int): Int {
+        if (popupCols <= 0 || popupCell <= 0f || popupRowH <= 0f) return 0
+        val col = ((x - popupRect.left) / popupCell).toInt()
+            .coerceIn(0, popupCols - 1)
+        val rows = ((n + popupCols - 1) / popupCols).coerceAtLeast(1)
+        val row = (if (popupUpward) ((popupRect.bottom - y) / popupRowH).toInt()
+        else ((y - popupRect.top) / popupRowH).toInt()).coerceIn(0, rows - 1)
+        val slot = row * popupCols + col
+        popupItemOf.getOrElse(slot) { -1 }.let { if (it >= 0) return it }
+        // The last row of a grid that does not divide evenly has empty cells.
+        // A finger there belongs to the nearest filled one on the same row
+        // rather than to nothing: an inert strip inside the popup reads as the
+        // popup having stopped responding.
+        for (d in 1 until popupCols) {
+            popupItemOf.getOrElse(slot - d) { -1 }.let { if (it >= 0) return it }
+            popupItemOf.getOrElse(slot + d) { -1 }.let { if (it >= 0) return it }
+        }
+        return 0
+    }
+
+    /**
+     * Where each entry sits in the grid, and what sits in each cell.
+     *
+     * Filled in [openPopup] rather than derived, because the arrangement is not
+     * a plain reading order. The **row against the key is laid out from the
+     * middle outwards** — first entry under the finger, second to its right,
+     * third to its left — so the item the ordering was designed around is the
+     * one the thumb is already on, and its neighbours are a flick away in
+     * either direction. Rows further from the key fill left to right, because
+     * by then there is no anchor worth preserving.
+     *
+     * Two arrays rather than one so that hit-testing is a lookup instead of a
+     * search: [popupCellOf] answers drawing, [popupItemOf] answers touch, and
+     * they are built together so they cannot disagree.
+     */
+    private var popupCellOf = IntArray(0)
+    private var popupItemOf = IntArray(0)
+
+    /** Builds that pair for [n] entries anchored at [anchorCol]. */
+    private fun layOutPopupCells(n: Int, cols: Int, rows: Int, anchorCol: Int) {
+        popupCellOf = IntArray(n)
+        popupItemOf = IntArray(rows * cols) { -1 }
+        var i = 0
+        var step = 0
+        // The row against the key, outward from the anchor.
+        while (i < n && step < cols * 2 + 2) {
+            val col = if (step % 2 == 0) anchorCol + step / 2 else anchorCol - (step + 1) / 2
+            step++
+            if (col < 0 || col >= cols) continue
+            popupCellOf[i] = col
+            popupItemOf[col] = i
+            i++
+        }
+        // Everything above it, in reading order.
+        var slot = cols
+        while (i < n && slot < rows * cols) {
+            popupCellOf[i] = slot
+            popupItemOf[slot] = i
+            i++
+            slot++
+        }
+    }
+
+    private val popupCellRect = RectF()
     private val popupOutRect = RectF()
     private var popupOutKeys: List<Key> = emptyList()
     private var popupOutIndex = -1
     private var popupOutCell = 0f
+    // The snapshot has to remember the grid it was, or a popup dismissed from
+    // two rows redraws itself as one on the way out.
+    private var popupOutCols = 1
+    private var popupOutUpward = true
     private var popupOutAt = 0L
 
     private fun snapshotPopupOut() {
@@ -890,6 +1098,8 @@ class KeyboardView(context: Context) : View(context) {
         popupOutKeys = popupKeys
         popupOutIndex = popupOwner?.popupIndex ?: -1
         popupOutCell = popupCell
+        popupOutCols = popupCols
+        popupOutUpward = popupUpward
         popupOutAt = SystemClock.uptimeMillis()
     }
 
@@ -1130,7 +1340,7 @@ class KeyboardView(context: Context) : View(context) {
         if (ps.popupOpen) {
             val n = popupKeys.size
             if (n > 0) {
-                val i = ((x - popupRect.left) / popupCell).toInt().coerceIn(0, n - 1)
+                val i = popupIndexAt(x, y, n)
                 if (i != ps.popupIndex) {
                     ps.popupIndex = i
                     invalidate()
@@ -1336,24 +1546,70 @@ class KeyboardView(context: Context) : View(context) {
         previewKb = null
         val kb = ps.kb
         val cellW = max(kb.w, dp(44f))
-        var total = cellW * keys.size
         val maxW = width - dp(8f)
-        val cell = if (total > maxW) maxW / keys.size else cellW
-        total = cell * keys.size
-        // The popup grows rightward from the key rather than centring on it, so
-        // the *first* entry sits under the finger that opened it. Centring put
-        // the middle of the list there instead, which meant the entry the order
-        // was designed around — the digit on the top row — was off to the left
-        // and had to be hunted for.
-        var left = kb.centerX() - cell / 2f
+        val rowH = kb.h * 1.1f
+        val n = keys.size
+
+        // A compact block rather than a long row. Measured against Gboard on
+        // the same phone: six alternates come out three across and two deep,
+        // not six across. Five to a row is the widest that still reads as a
+        // block; beyond that the eye has to scan rather than see.
+        var rows = ((n + ROW_MAX - 1) / ROW_MAX).coerceAtLeast(1)
+        var cols = ((n + rows - 1) / rows).coerceAtMost(n)
+        val fitCols = max(1, (maxW / cellW).toInt())
+        if (cols > fitCols) {
+            cols = fitCols
+            rows = (n + cols - 1) / cols
+        }
+        // Rows stack upward into the space above the key, and there is only so
+        // much of it. Widening the grid is the lesser harm: it shrinks the
+        // cells, which is what this always used to do, rather than covering the
+        // key that opened the popup.
+        val roomAbove = kb.y + popupHeadroom - dp(10f)
+        while (rows * rowH > roomAbove && cols < n) {
+            cols++
+            rows = (n + cols - 1) / cols
+        }
+        val cell = minOf(cellW, maxW / cols)
+        val total = cell * cols
+
+        // Centred on the key, not grown rightward from it. The first entry
+        // still lands under the finger — that is [layOutPopupCells]' job now,
+        // and it does it by placing the entry rather than by displacing the
+        // whole block, so a popup near either edge no longer leans away from
+        // the key that opened it.
+        var left = kb.centerX() - total / 2f
         val maxLeft = width - total - dp(4f)
         left = if (maxLeft < dp(4f)) dp(4f) else left.coerceIn(dp(4f), maxLeft)
-        val h = kb.h * 1.1f
-        var top = kb.y - h - dp(8f)
-        if (top < dp(2f)) top = dp(2f)
-        popupRect.set(left, top, left + total, top + h)
+        val gridH = rows * rowH
+        var top = kb.y - gridH - dp(8f)
+        var upward = true
+        // Negative is allowed up to [popupHeadroom]: the strip above the keys
+        // is part of the same window, and covering it for the length of a
+        // long-press costs nothing that is being read at the time.
+        val minTop = dp(2f) - popupHeadroom
+        if (top < minTop) {
+            // No room above. Falling below the key beats being clamped to the
+            // top edge and drawn over the key that opened it, which is what a
+            // number-row long-press did every time.
+            val below = kb.y + kb.h + dp(8f)
+            if (below + gridH <= height - dp(2f)) {
+                top = below
+                upward = false
+            } else {
+                top = minTop
+            }
+        }
+        popupRect.set(left, top, left + total, top + gridH)
         popupCell = cell
-        ps.popupIndex = ((ps.downX - left) / cell).toInt().coerceIn(0, keys.size - 1)
+        popupCols = cols
+        popupRowH = rowH
+        popupUpward = upward
+        // The column the key's own centre falls in: the first entry goes there,
+        // so it opens under the finger however the block had to be clamped.
+        val anchorCol = ((kb.centerX() - left) / cell).toInt().coerceIn(0, cols - 1)
+        layOutPopupCells(n, cols, rows, anchorCol)
+        ps.popupIndex = 0
         if (hapticFeedback) Haptics.longPress(this)
         invalidate()
     }
@@ -1556,11 +1812,14 @@ class KeyboardView(context: Context) : View(context) {
             node.isEnabled = true
             node.isFocusable = true
             node.addAction(AccessibilityNodeInfoCompat.ACTION_CLICK)
-            val left = popupRect.left + index * popupCell
+            popupCellBounds(
+                index, popupRect, popupCell, popupCols, popupRowH, popupUpward,
+                popupCellRect
+            )
             node.setBoundsInParent(
                 Rect(
-                    left.toInt(), popupRect.top.toInt(),
-                    (left + popupCell).toInt(), popupRect.bottom.toInt()
+                    popupCellRect.left.toInt(), popupCellRect.top.toInt(),
+                    popupCellRect.right.toInt(), popupCellRect.bottom.toInt()
                 )
             )
         }

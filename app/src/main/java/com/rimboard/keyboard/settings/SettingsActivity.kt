@@ -457,9 +457,58 @@ class SettingsActivity : LocalisedActivity() {
             preview = null
         }
 
+        /**
+         * Whether a file the keyboard's appearance depends on exists.
+         *
+         * Two of this screen's settings are about files rather than
+         * preferences, and that has consequences the preference framework does
+         * not cover: no `android:dependency` can name them, and no
+         * `OnSharedPreferenceChangeListener` fires when they change.
+         */
+        private fun hasFile(name: String) = java.io.File(
+            com.rimboard.keyboard.engine.UserData.dataDir(requireContext()), name
+        ).exists()
+
+        /**
+         * Hides the two actions that cannot be performed, and greys the setting
+         * that would do nothing.
+         *
+         * **Hidden rather than greyed for the actions.** "Remove custom font"
+         * is not a setting whose value is worth explaining; it is a thing to
+         * do, and with no font there is nothing to do. **Greyed rather than
+         * hidden for the dim slider**, because it holds a value the user set
+         * and will get back the moment a photo returns — a control that
+         * vanishes looks like a feature that was taken away.
+         */
+        private fun syncFileRows() {
+            val hasFont = hasFile("custom_font.ttf")
+            val hasBg = hasFile("bg_image.jpg")
+            findPreference<Preference>("font_clear")?.isVisible = hasFont
+            findPreference<Preference>("bg_clear")?.isVisible = hasBg
+            findPreference<androidx.preference.SeekBarPreference>("bg_dim_pct")?.let {
+                // PhotoBackdrop paints the dim inside `bm?.let {}` and nowhere
+                // else, so with no photo this moves a number nobody can see.
+                it.isEnabled = hasBg
+            }
+        }
+
+        /**
+         * After anything that writes or deletes one of those files.
+         *
+         * The preview follows preferences through a change listener, and a file
+         * is not a preference — so picking or clearing a font left it drawing
+         * the old one until the screen was left and reopened.
+         */
+        private fun afterFileChange() {
+            syncFileRows()
+            preview?.refresh()
+        }
+
         override fun onResume() {
             super.onResume()
             themeRow?.let { showThemeName(it) }
+            // Covers the pickers, which come back through a separate activity.
+            syncFileRows()
             // Refreshed here as well as on change: the theme picker is a
             // separate activity, so the preference moves while this screen is
             // stopped and no change callback arrives for it.
@@ -610,10 +659,17 @@ class SettingsActivity : LocalisedActivity() {
                 true
             }
             findPreference<Preference>("font_clear")?.setOnPreferenceClickListener {
-                java.io.File(com.rimboard.keyboard.engine.UserData.dataDir(requireContext()),
-                    "custom_font.ttf").delete()
-                android.widget.Toast.makeText(requireContext(),
-                    R.string.font_removed, android.widget.Toast.LENGTH_SHORT).show()
+                // Only claim it if it happened. `delete()` returns false when
+                // there is no file, and this said "Font removed" either way.
+                val gone = java.io.File(
+                    com.rimboard.keyboard.engine.UserData.dataDir(requireContext()),
+                    "custom_font.ttf"
+                ).delete()
+                if (gone) {
+                    android.widget.Toast.makeText(requireContext(),
+                        R.string.font_removed, android.widget.Toast.LENGTH_SHORT).show()
+                }
+                afterFileChange()
                 true
             }
             findPreference<Preference>("dict_import")?.setOnPreferenceClickListener {
@@ -621,11 +677,16 @@ class SettingsActivity : LocalisedActivity() {
                 true
             }
             findPreference<Preference>("bg_clear")?.setOnPreferenceClickListener {
-                java.io.File(com.rimboard.keyboard.engine.UserData.dataDir(requireContext()),
-                    "bg_image.jpg").delete()
+                val gone = java.io.File(
+                    com.rimboard.keyboard.engine.UserData.dataDir(requireContext()),
+                    "bg_image.jpg"
+                ).delete()
                 com.rimboard.keyboard.ui.BgImageState.version++
-                android.widget.Toast.makeText(requireContext(),
-                    R.string.bg_removed, android.widget.Toast.LENGTH_SHORT).show()
+                if (gone) {
+                    android.widget.Toast.makeText(requireContext(),
+                        R.string.bg_removed, android.widget.Toast.LENGTH_SHORT).show()
+                }
+                afterFileChange()
                 true
             }
             findPreference<androidx.preference.SeekBarPreference>("clip_timeout_min")?.let { sb ->
@@ -950,6 +1011,9 @@ class SettingsActivity : LocalisedActivity() {
                     android.widget.Toast.makeText(ctx, R.string.font_saved,
                         android.widget.Toast.LENGTH_SHORT).show()
                 }
+                // Written, not stored: no preference changed, so nothing else
+                // will tell the preview or the Remove row about it.
+                afterFileChange()
             } catch (_: Exception) {
             }
         }

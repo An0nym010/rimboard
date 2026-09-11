@@ -476,9 +476,15 @@ class RimBoardService : InputMethodService(),
         val s = SuggestionStripView(ctx).apply { listener = this@RimBoardService }
         root.addView(s, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(44)))
         val frame = FrameLayout(ctx)
+        // A long-press popup is drawn by the keyboard and has to reach above
+        // it, over the suggestion strip, the way Gboard's does. Both parents
+        // stop clipping so it can; see KeyboardView.popupHeadroom.
+        frame.clipChildren = false
+        root.clipChildren = false
         val kv = KeyboardView(ctx).apply {
             listener = this@RimBoardService
             tapArbiter = ::resolveAmbiguousTap
+            popupHeadroom = dp(44).toFloat()
         }
         val ev = EmojiView(ctx).apply {
             listener = this@RimBoardService
@@ -909,10 +915,12 @@ class RimBoardService : InputMethodService(),
         // settings preview needs the same answer and a second copy of it would
         // be wrong in exactly the cases that matter. The comments that used to
         // stand here are on that object.
+        // A new field is a new visit: whatever the user did to the drawer in
+        // the last one is not an instruction about this one.
+        idleToolsClosed = false
         val look = com.rimboard.keyboard.theme.KeyboardLook.of(this, info.packageName)
         kbTheme = look.base
         val t = look.base
-        val bgDimAlpha = look.dimAlpha
         val photoTheme = if (look.drawn !== look.base) look.drawn else null
         val liveMode = look.liveMode
         val clearSurfaces = look.clearSurfaces
@@ -999,10 +1007,9 @@ class RimBoardService : InputMethodService(),
         suggestCloseBtn?.setTextColor(panelTheme.accent)
         gifView?.applyTheme(panelTheme)
         translateView?.applyTheme(panelTheme)
-        rootView?.setBackgroundColor(t.background)
-        rootView?.dimAlpha = bgDimAlpha
-        rootView?.starColor = t.keyText
-        rootView?.liveMode = liveMode
+        rootView?.let {
+            com.rimboard.keyboard.theme.KeyboardLook.applyBackdropTo(it, look)
+        }
         window?.window?.let { w ->
             w.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
             w.navigationBarColor = t.background
@@ -2750,7 +2757,10 @@ class RimBoardService : InputMethodService(),
             // doing, rather than only marking it. When there *are* suggestions
             // the icon rides alongside them instead — see [showSuggestions].
             if (isIncognito()) s.showIncognito(getString(R.string.incognito_label))
-            else s.showEmpty()
+            else if (idleToolsWanted()) {
+                if (!s.isDrawerOpen()) feedTools(s, force = true)
+                s.setDrawerOpen(true)
+            } else s.showEmpty()
         }
     }
 
@@ -3255,9 +3265,17 @@ class RimBoardService : InputMethodService(),
      *  suggestions. Guarded so the views are rebuilt only when the set changes. */
     private var lastTools: List<String>? = null
 
-    private fun feedTools(s: com.rimboard.keyboard.ui.SuggestionStripView) {
+    private fun feedTools(
+        s: com.rimboard.keyboard.ui.SuggestionStripView,
+        force: Boolean = false
+    ) {
         val tools = pinnedTools()
-        if (tools == lastTools) return
+        // The guard is about not rebuilding a row of views on every keystroke.
+        // It is the wrong guard at the moment the drawer opens: the row may be
+        // a different instance's, or never have been built at a width worth
+        // building at, and an empty drawer is indistinguishable from a broken
+        // one. Opening is not a per-keystroke event, so [force] costs nothing.
+        if (!force && tools == lastTools) return
         lastTools = tools
         s.setPinnedTools(tools)
     }
@@ -3823,6 +3841,12 @@ class RimBoardService : InputMethodService(),
     }
 
     override fun onToolbarToggle(expand: Boolean) {
+        // Set here and not in [onDrawerClosed], which is also reached by the
+        // defensive `setDrawerOpen(false)` in onStartInputView — taking that
+        // for a decision suppressed the idle tools before the field had even
+        // been read, and the drawer opened and shut again too fast to see.
+        // This is the chevron, and the chevron is the user.
+        idleToolsClosed = !expand
         val s = strip ?: return
         // Fill the row before revealing it: the drawer is shown directly rather
         // than through updateStrip, which is what normally feeds it.
@@ -3833,6 +3857,22 @@ class RimBoardService : InputMethodService(),
     override fun onDrawerClosed() {
         updateStrip()
     }
+
+    /**
+     * Whether an empty strip shows the tools instead of nothing.
+     *
+     * Gboard's answer, measured on the same phone: an empty field shows a row
+     * of tools and no chevron at all — the chevron only appears once there are
+     * suggestions to come back from. An empty strip is 44dp of the most looked
+     * at part of the screen spent on a single chevron.
+     *
+     * The one thing that has to keep working is closing it. Without
+     * [idleToolsClosed] the chevron would reopen the drawer on the next redraw
+     * and the control would look broken.
+     */
+    private var idleToolsClosed = false
+
+    private fun idleToolsWanted(): Boolean = !idleToolsClosed && !fieldNoSuggestions
 
     // ------------------------------------------------------------ toolbar panel
 

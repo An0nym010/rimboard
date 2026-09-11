@@ -6,6 +6,7 @@ import com.rimboard.keyboard.engine.UserData
 import com.rimboard.keyboard.model.Backdrop
 import com.rimboard.keyboard.settings.Prefs
 import com.rimboard.keyboard.ui.KeyboardView
+import com.rimboard.keyboard.ui.PhotoBackdrop
 import java.io.File
 
 /**
@@ -138,6 +139,30 @@ object KeyboardLook {
             "landscape" -> if (landscape) 0.12f else 0f
             else -> 0f
         }
+    }
+
+    /**
+     * The backdrop's four properties, which are not the keyboard's.
+     *
+     * **The background is always the opaque base, never transparent.** The
+     * preview got this wrong by reasoning about it instead of copying it: it
+     * used `clearSurfaces` here, which is the rule for whether the *keys* may
+     * paint over the backdrop, and blanked the root whenever a live background
+     * was on. The sky then drew over nothing, and on a light theme the key
+     * lettering landed on whatever page was behind — dark text on a dark
+     * settings screen, all but invisible. It looked right for as long as the
+     * theme happened to be dark, which is the whole reason this is here rather
+     * than written out twice.
+     *
+     * `starColor` is [Look.base]'s key colour rather than [Look.drawn]'s: over
+     * a photo the drawn theme's lettering is a scrim colour chosen for the
+     * image, and the sky is not drawn over a photo at all.
+     */
+    fun applyBackdropTo(backdrop: PhotoBackdrop, look: Look) {
+        backdrop.setBackgroundColor(look.base.background)
+        backdrop.dimAlpha = look.dimAlpha
+        backdrop.starColor = look.base.keyText
+        backdrop.liveMode = look.liveMode
     }
 
     private var cachedFont: Typeface? = null

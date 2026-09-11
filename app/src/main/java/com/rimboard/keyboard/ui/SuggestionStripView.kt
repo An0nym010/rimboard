@@ -704,7 +704,19 @@ class SuggestionStripView(context: Context) : LinearLayout(context) {
         super.onSizeChanged(w, h, oldw, oldh)
         // Width decides the slot size, and it changes with floating mode,
         // one-handed mode and rotation.
-        if (w != oldw && pinnedItems.isNotEmpty()) rebuildToolRow()
+        //
+        // **Posted, because onSizeChanged runs inside a layout traversal.**
+        // `addView` there calls `requestLayout()` at the one moment it does
+        // nothing, so the new icons were added and never measured: six children
+        // of 0x0 inside a row that still reported its old width. Nothing
+        // throws, nothing logs, and the drawer simply comes up empty.
+        //
+        // The same fault, in the same shape, as `SuggestionsPanelView` on
+        // 2026-09-08 — a view rebuilding its own children in response to being
+        // laid out. It went unseen here because the drawer was only ever opened
+        // by a tap, long after layout had settled; opening it on an idle strip
+        // put it in the same frame as the first layout and it failed every time.
+        if (w != oldw && pinnedItems.isNotEmpty()) post { rebuildToolRow() }
     }
 
     /**
